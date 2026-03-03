@@ -202,6 +202,91 @@ GCR = 1.0 across all rates confirms governance invariance under infrastructure p
 
 ---
 
+## Production Runtime Integration
+
+The framework transitions from offline simulation to production-grade runtime integration. All execution entrypoints (`main.py`, `a2a_server.py`) delegate to `core.crew_runner.run_crew()`, which orchestrates the full observability pipeline on every request.
+
+### Runtime Execution Pipeline
+
+```
+Entrypoint (main.py | a2a_server.py)
+│
+▼
+crew_runner.run_crew(crew_name, crew, input_text, crew_factory)
+│
+├── ProviderManager ── TTL-based backoff, exhaustion marking, rotation
+├── crew.kickoff()  ── CrewAI agent execution
+├── ConstitutionEnforcer ── Hard rules (block) + Soft rules (score)
+├── MetaSupervisor ── Q+A+C+F quality scoring
+├── RunTrace + StepTrace ── JSONL observability
+├── CheckpointManager ── Step-level JSONL persistence
+└── MetricsLogger ── JSONL with rotation
+│
+▼
+Decision: ACCEPT | RETRY (rebuild via crew_factory) | ESCALATE
+```
+
+Prior to integration, entrypoints called `crew.kickoff()` directly — bypassing supervisor, governance, provider management, and tracing. This constituted blind execution with no quality guarantees.
+
+### Meta-Supervisor Scoring Model
+
+The supervisor evaluates final output quality using a weighted linear combination:
+
+S = Q(0.40) + A(0.25) + C(0.20) + F(0.15)
+
+where:
+- Q ∈ [0,10]: Structural quality (headers, organization, coherence)
+- A ∈ [0,10]: Actionability (concrete recommendations, next steps)
+- C ∈ [0,10]: Completeness (coverage of requested scope)
+- F ∈ [0,10]: Factuality (source citations, verifiable claims)
+
+Decision thresholds (calibration phase):
+- ACCEPT: S ≥ 7.0
+- RETRY:  S ≥ 5.0 (max 2 retries, crew rebuilt via factory)
+- ESCALATE: S < 5.0
+
+Thresholds are intentionally relaxed during calibration. Production targets: ACCEPT ≥ 8.0, RETRY ≥ 6.0.
+
+### Provider Resilience — crew_factory Pattern
+
+CrewAI binds LLM instances at crew construction time. If a provider fails mid-execution, retrying with the same crew object reuses the exhausted provider. LiteLLM fallback parameters are not propagated by CrewAI's internal completion calls.
+
+Solution: `crew_factory` — a callable that reconstructs the crew with fresh LLM assignments on each retry. When `ProviderManager` marks a provider as exhausted, the factory calls `get_llm_for_role()` which skips exhausted providers and selects the next available in the chain.
+
+Provider chains per role:
+
+| Role | Chain (first available wins) |
+|---|---|
+| Research Analyst | Groq (Llama 3.3) → NVIDIA (DeepSeek V3.2) → Cerebras (GPT-OSS) → Zhipu (GLM-4.7) |
+| Code Architect | NVIDIA (Kimi K2.5) → Groq (Kimi K2) → Cerebras (GPT-OSS) → Zhipu (GLM-4.7) |
+| MVP Strategist | NVIDIA (Qwen3.5-397B) → Cerebras (GPT-OSS) → Zhipu (GLM-4.7) → Groq (Llama 3.3) |
+| Verifier | Cerebras (GPT-OSS) → Groq (Llama 3.3) → NVIDIA (DeepSeek V3.2) → Zhipu (GLM-4.7) |
+
+### Optimized Agent Pipeline
+
+Research crew reduced from 5 sequential tasks to 3:
+
+| Phase | Agent | Function |
+|---|---|---|
+| 1 | Research Analyst | Deep web research + source gathering |
+| 2 | Verifier | Fact-checking, claim validation, scoring |
+| 3 | MVP Strategist | Final plan incorporating verified data only |
+
+Removed: redundant QA Reviewer and duplicate Strategist pass. Measured reduction: 11m → 4m48s (56% faster).
+
+### Empirical Production Validation
+
+| Metric | Before Integration | After Integration |
+|---|---|---|
+| Supervisor in runtime | No (blind execution) | Yes (every request) |
+| Governance enforcement | No | Yes (hard + soft rules) |
+| Provider rotation on failure | Crash | Automatic via crew_factory |
+| Execution time (research) | 10m56s (5 tasks) | 4m48s (3 tasks) |
+| Tracing | None | RunTrace + StepTrace JSONL |
+| Groq TPD exhaustion | Terminal failure | Automatic rotation to NVIDIA/Cerebras |
+
+---
+
 ## Quickstart
 
 1. Clone repository  
@@ -225,16 +310,26 @@ python -c "from core.experiment import run_parametric_sweep; run_parametric_swee
 
 ## Project Structure
 
+```
+main.py                    # Interactive entrypoint with supervisor
+a2a_server.py              # A2A HTTP entrypoint with supervisor
+crew.py                    # Agent and crew factories
+llm_config.py              # Provider chain configuration
+
 core/
-  providers.py
-  checkpointing.py
-  governance.py
-  supervisor.py
-  metrics.py
-  memory_manager.py
-  crew_runner.py
-  observability.py
-  experiment.py
+  crew_runner.py            # Orchestrator with crew_factory rotation
+  providers.py              # TTL-based provider management
+  checkpointing.py          # Step-level JSONL persistence
+  governance.py             # Constitutional enforcement (hard + soft)
+  supervisor.py             # Meta-supervisor quality gating
+  metrics.py                # Structured JSONL metrics with rotation
+  memory_manager.py         # Agent memory management
+  observability.py          # RunTrace, StepTrace, derived metrics
+  experiment.py             # Batch runner, parametric sweep
+
+config/
+  agents.yaml               # 17 agent definitions
+  tasks.yaml                # 10 task definitions
 
 paper/
   PAPER_OBSERVABILITY_LAB.md
@@ -249,6 +344,7 @@ release_artifacts/
 tests/
 examples/
 docs/
+```
 
 ---
 
