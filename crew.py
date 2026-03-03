@@ -602,123 +602,81 @@ def create_pure_research_crew(topic: str) -> Crew:
 
 
 def create_research_crew(topic: str) -> Crew:
-    # Pre-fetch datos reales para inyectar al Researcher
-    print("  Ejecutando pre-research (5 búsquedas web)...")
+    # Pre-fetch real data to inject into Researcher
+    print("  Running pre-research (5 web searches)...")
     web_data = _pre_research(topic)
-    print(f"  Pre-research completado ({len(web_data)} chars de datos)")
+    print(f"  Pre-research completed ({len(web_data)} chars of data)")
 
     researcher = create_research_analyst()
-    strategist = create_mvp_strategist()
-    qa = create_qa_reviewer()
     verifier = create_verifier()
+    strategist = create_mvp_strategist()
 
     t1 = Task(
         description=(
-            f'Investiga a fondo: "{topic}".\n\n'
-            "A continuación tienes DATOS REALES obtenidos de internet. "
-            "Usa estos datos como base para tu análisis. "
-            "Si necesitas datos adicionales, usa web_search.\n\n"
+            f'Research in depth: "{topic}".\n\n'
+            "Below you have REAL DATA obtained from the internet. "
+            "Use this data as the basis for your analysis. "
+            "If you need additional data, use web_search.\n\n"
             f"{web_data}\n\n"
-            "ENTREGA FINAL (EN ESPAÑOL):\n"
-            "- executive_summary: resumen con datos concretos de los resultados web anteriores\n"
-            "- market_size: tamaño con número y fuente URL (extrae de los datos web)\n"
-            "- competitors: MÍNIMO 5 con name, url, pricing, strengths, weaknesses\n"
-            "- pain_points: 3-5 problemas reales del mercado\n"
-            "- trends: 3-5 tendencias 2025-2026\n"
-            "- go_no_go: decisión con score 1-10 justificado con datos\n"
-            "- confidence_score: basado en calidad de datos encontrados\n"
-            "- sources: TODAS las URLs de los datos web anteriores"
+            "FINAL DELIVERABLE:\n"
+            "- executive_summary: summary with concrete data from the web results above\n"
+            "- market_size: size with number and source URL (extract from web data)\n"
+            "- competitors: MINIMUM 5 with name, url, pricing, strengths, weaknesses\n"
+            "- pain_points: 3-5 real market problems\n"
+            "- trends: 3-5 trends for 2025-2026\n"
+            "- go_no_go: decision with score 1-10 justified with data\n"
+            "- confidence_score: based on quality of data found\n"
+            "- sources: ALL URLs from the web data above"
         ),
         agent=researcher,
-        expected_output="Reporte con MÍNIMO 5 competidores con URLs reales y datos de market size verificables.",
+        expected_output="Report with MINIMUM 5 competitors with real URLs and verifiable market size data.",
         output_pydantic=ResearchReport,
     )
     t2 = Task(
         description=(
-            f'Plan MVP para: "{topic}".\n\n'
-            "REQUISITOS OBLIGATORIOS:\n"
-            "- Propuesta de valor en 1 oración\n"
-            "- Features priorizadas (max 5) con P0/P1/P2 y esfuerzo en días\n"
-            "- Tech stack COMPLETO: frontend, backend, DB, infra, testing, CI/CD\n"
-            "- Timeline por sprints de 1-2 semanas\n"
-            "- 3-5 KPIs medibles para validar\n"
-            "- Top 3 riesgos con mitigación CONCRETA (no genérica)\n"
-            "- Modelo de monetización con números: precio, conversión esperada, revenue mes 1-6"
+            "VERIFICATION & FACT-CHECK of the research.\n\n"
+            "Use web_search 2-3 times to verify the key claims.\n"
+            "Evaluate:\n"
+            "- Are market data claims verifiable? Are sources cited?\n"
+            "- Are the listed competitors real with valid URLs?\n"
+            "- Is there a market size figure backed by a source?\n"
+            "- Are there unsubstantiated or dubious claims?\n\n"
+            "Score 1-10 and verdict APPROVED/REJECTED with justification.\n\n"
+            "IMPORTANT: List ALL issues found and concrete improvements "
+            "as bullet points. This will feed the MVP planning step."
         ),
-        agent=strategist,
-        expected_output="Plan MVP detallado con tech stack completo y números de monetización.",
-        output_pydantic=MVPPlan,
+        agent=verifier,
+        expected_output="Verification with fact-checked claims, justified score, and actionable improvements.",
+        output_pydantic=VerificationReport,
         context=[t1],
     )
     t3 = Task(
         description=(
-            "REVISIÓN CRÍTICA de investigación y plan MVP.\n\n"
-            "PRIMERO evalúa la CALIDAD de la investigación:\n"
-            "- ¿El Researcher trajo datos concretos o respondió vacío?\n"
-            "- ¿Hay mínimo 5 competidores con URLs?\n"
-            "- ¿Hay dato de market size con fuente?\n"
-            "- Si la investigación está vacía o pobre, REPORTA como issue CRÍTICO (score ≤ 3)\n\n"
-            "USA web_search 2-3 veces para VERIFICAR (no para investigar desde cero):\n"
-            "1. Verifica UN dato de market size citado\n"
-            "2. Verifica que 2-3 competidores son reales\n"
-            "3. Verifica viabilidad del timeline propuesto\n\n"
-            "ENTREGA:\n"
-            "- Score 1-10 con justificación\n"
-            "- Lista de inconsistencias encontradas\n"
-            "- Lista de datos NO verificados o dudosos\n"
-            "- 3-5 mejoras concretas y accionables"
+            f'MVP Plan for: "{topic}".\n\n'
+            "Read the Verifier's verdict and incorporate ONLY verified data.\n\n"
+            "MANDATORY REQUIREMENTS:\n"
+            "- Value proposition in 1 sentence\n"
+            "- Prioritized features (max 5) with P0/P1/P2 and effort in days\n"
+            "- COMPLETE tech stack: frontend, backend, DB, infra, testing, CI/CD\n"
+            "- If the topic involves DeFi/blockchain/smart contracts:\n"
+            "  - Tech stack MUST include: Solidity/Vyper, Hardhat/Foundry, chain SDK, fuzzing\n"
+            "  - Timeline MINIMUM 16-20 weeks (dev + testing + audit + deploy)\n"
+            "  - INCLUDE security audit in the plan\n"
+            "  - Revenue based on: protocol fees, spread, liquidation fees — NOT advertising\n"
+            "- Timeline by 1-2 week sprints\n"
+            "- 3-5 measurable KPIs for validation\n"
+            "- Top 3 risks with CONCRETE mitigation (not generic)\n"
+            "- Monetization model with numbers: price, expected conversion, revenue months 1-6"
         ),
-        agent=qa,
-        expected_output="Revisión con fact-checking de datos existentes, score justificado y mejoras concretas.",
-        context=[t1, t2],
-    )
-    t4 = Task(
-        description=(
-            "VERIFICACIÓN FINAL.\n\n"
-            "USA web_search 1-2 veces para fact-check los claims principales.\n"
-            "Evalúa:\n"
-            "- ¿Datos de mercado verificables? ¿Fuentes citadas?\n"
-            "- ¿Competidores reales con URLs?\n"
-            "- ¿Plan realista para el timeline?\n"
-            "- ¿Hay contradicciones entre investigación y plan?\n"
-            "- ¿Monetización tiene números concretos?\n\n"
-            "Score 1-10 y veredicto APROBADO/RECHAZADO con justificación.\n\n"
-            "IMPORTANTE: Si el score es < 7, lista EXACTAMENTE qué debe corregir el Strategist "
-            "en formato de bullet points claros y accionables. Esto alimentará un pase de corrección."
-        ),
-        agent=verifier,
-        expected_output="Verificación final con score y veredicto justificado.",
-        output_pydantic=VerificationReport,
-        context=[t3],
-    )
-
-    # ── Pase de mejora: Strategist refina el plan con feedback del Verifier ──
-    strategist_v2 = create_mvp_strategist()
-    t5 = Task(
-        description=(
-            f'VERSIÓN FINAL del plan MVP para: "{topic}".\n\n'
-            "Lee el veredicto del Verifier y sus sugerencias de mejora.\n"
-            "Incorpora TODAS las mejoras al plan.\n\n"
-            "INSTRUCCIONES:\n"
-            "1. Lee 'issues_found' y 'improvements' del Verifier\n"
-            "2. Incorpora CADA mejora al plan\n"
-            "3. Si el topic involucra DeFi/blockchain/smart contracts:\n"
-            "   - Tech stack DEBE incluir: Solidity/Vyper, Hardhat/Foundry, SDK del chain, fuzzing\n"
-            "   - Timeline MÍNIMO 16-20 semanas (dev + testing + auditoría + deploy)\n"
-            "   - INCLUIR auditoría de seguridad en el plan\n"
-            "   - Revenue basado en: protocol fees, spread, liquidation fees — NO publicidad\n"
-            "4. Monetización con NÚMEROS concretos: precio, conversión, revenue mes 1-6\n\n"
-            "ENTREGA: Plan MVP FINAL mejorado y listo para ejecución."
-        ),
-        agent=strategist_v2,
-        expected_output="Plan MVP final con todas las mejoras incorporadas, listo para ejecución.",
+        agent=strategist,
+        expected_output="Final MVP plan with complete tech stack, monetization numbers, and verified data only.",
         output_pydantic=MVPPlan,
-        context=[t4],
+        context=[t1, t2],
     )
 
     return Crew(
-        agents=[researcher, strategist, qa, verifier, strategist_v2],
-        tasks=[t1, t2, t3, t4, t5],
+        agents=[researcher, verifier, strategist],
+        tasks=[t1, t2, t3],
         process=Process.sequential,
         verbose=True,
         **_crew_config(),
