@@ -354,7 +354,7 @@ docs/
   title={Deterministic Observability and Resilience Engineering for Multi-Agent LLM Systems: An Experimental Framework},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={2,252 LOC, 120 parametric experiments, 5 formal metrics}
+  note={2,400+ LOC, 120 parametric experiments, 5 formal metrics}
 }
 
 ---
