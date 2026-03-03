@@ -1,5 +1,5 @@
 """
-Configuración de LLMs — 7 proveedores gratuitos + Smart Router + Retry.
+Configuración de LLMs — 8 proveedores gratuitos + Smart Router + Retry.
 
 Distribución de carga (Research Crew):
   Researcher:  Groq Llama 3.3         (tool-calling)
@@ -7,10 +7,11 @@ Distribución de carga (Research Crew):
   QA Reviewer: Cerebras GPT-OSS 120B  (tool-calling)
   Verifier:    Cerebras GPT-OSS 120B  (libera Groq TPM)
 
-Proveedores activos (7):
+Proveedores activos (8):
   GROQ:       Llama 3.3 70B, Qwen3-32B, GPT-OSS 120B, Kimi K2  (131K, 12K TPM free)
   NVIDIA:     Qwen3.5-397B, Kimi K2.5, DeepSeek V3.2           (128K, 1000 credits)
   CEREBRAS:   GPT-OSS 120B                                      (128K, 1M tok/día free)
+  MINIMAX:    MiniMax-M2.1                                      (128K, free tier)
   GEMINI:     2.5 Flash                                (1M context, 20 req/día free)
   SAMBANOVA:  DeepSeek V3.2                            (BACKUP — 24K limit)
   OPENROUTER: Hermes 405B free                         (variable)
@@ -131,6 +132,18 @@ def get_zhipu_llm(model="glm-4.7-flash", temperature=0.3):
     )
 
 
+def get_minimax_llm(model="MiniMax-M2.1", temperature=0.3):
+    """MiniMax — M2.1, 128K context, free tier."""
+    api_key = os.getenv("MINIMAX_API_KEY")
+    if not api_key:
+        return None
+    return LLM(
+        model=f"minimax/{model}",
+        api_key=api_key,
+        temperature=temperature,
+        max_tokens=4096,
+    )
+
 
 # ═══════════════════════════════════════════════════════
 # PROVIDER RESILIENCE — Auto-fallback cuando un provider cae
@@ -154,7 +167,7 @@ def reset_exhausted_providers():
 
 def _get_active_providers() -> list[str]:
     """List active (non-exhausted) providers."""
-    all_providers = ["groq", "nvidia", "cerebras", "zhipu"]
+    all_providers = ["groq", "nvidia", "cerebras", "minimax", "zhipu"]
     return [p for p in all_providers if p not in _exhausted_providers]
 
 
@@ -178,41 +191,50 @@ def _try_get(provider: str, getter, **kwargs):
 # rebuilds the crew via crew_factory → next provider is selected.
 
 _ROLE_CHAINS = {
-    "code_architect":    [("nvidia", "nvidia_nim/moonshotai/kimi-k2.5"),
+    "code_architect":    [("minimax", "minimax/MiniMax-M2.1"),
+                          ("nvidia", "nvidia_nim/moonshotai/kimi-k2.5"),
                           ("groq", "groq/moonshotai/kimi-k2-instruct"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
                           ("zhipu", "openai/glm-4.7-flash")],
-    "research_analyst":  [("groq", "groq/llama-3.3-70b-versatile"),
+    "research_analyst":  [("minimax", "minimax/MiniMax-M2.1"),
+                          ("groq", "groq/llama-3.3-70b-versatile"),
                           ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
                           ("zhipu", "openai/glm-4.7-flash")],
-    "mvp_strategist":    [("nvidia", "nvidia_nim/qwen/qwen3.5-397b-a17b"),
+    "mvp_strategist":    [("minimax", "minimax/MiniMax-M2.1"),
+                          ("nvidia", "nvidia_nim/qwen/qwen3.5-397b-a17b"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
                           ("zhipu", "openai/glm-4.7-flash"),
                           ("groq", "groq/llama-3.3-70b-versatile")],
-    "qa_reviewer":       [("cerebras", "cerebras/gpt-oss-120b"),
+    "qa_reviewer":       [("minimax", "minimax/MiniMax-M2.1"),
+                          ("cerebras", "cerebras/gpt-oss-120b"),
                           ("groq", "groq/llama-3.3-70b-versatile"),
                           ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
                           ("zhipu", "openai/glm-4.7-flash")],
-    "data_engineer":     [("cerebras", "cerebras/gpt-oss-120b"),
+    "data_engineer":     [("minimax", "minimax/MiniMax-M2.1"),
+                          ("cerebras", "cerebras/gpt-oss-120b"),
                           ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
                           ("groq", "groq/llama-3.3-70b-versatile"),
                           ("zhipu", "openai/glm-4.7-flash")],
-    "project_organizer": [("groq", "groq/qwen/qwen3-32b"),
+    "project_organizer": [("minimax", "minimax/MiniMax-M2.1"),
+                          ("groq", "groq/qwen/qwen3-32b"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
                           ("zhipu", "openai/glm-4.7-flash"),
                           ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2")],
-    "narrative_content": [("cerebras", "cerebras/gpt-oss-120b"),
+    "narrative_content": [("minimax", "minimax/MiniMax-M2.1"),
+                          ("cerebras", "cerebras/gpt-oss-120b"),
                           ("zhipu", "openai/glm-4.7-flash"),
                           ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
                           ("groq", "groq/llama-3.3-70b-versatile")],
-    "verifier":          [("cerebras", "cerebras/gpt-oss-120b"),
+    "verifier":          [("minimax", "minimax/MiniMax-M2.1"),
+                          ("cerebras", "cerebras/gpt-oss-120b"),
                           ("groq", "groq/llama-3.3-70b-versatile"),
                           ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
                           ("zhipu", "openai/glm-4.7-flash")],
 }
 
 _DEFAULT_CHAIN = [
+    ("minimax", "minimax/MiniMax-M2.1"),
     ("cerebras", "cerebras/gpt-oss-120b"),
     ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
     ("groq", "groq/llama-3.3-70b-versatile"),
@@ -226,6 +248,7 @@ _ROLE_TEMPS = {
 }
 
 _PROVIDER_KEY_ENV = {
+    "minimax": "MINIMAX_API_KEY",
     "groq": "GROQ_API_KEY",
     "nvidia": "NVIDIA_API_KEY",
     "cerebras": "CEREBRAS_API_KEY",
@@ -242,16 +265,16 @@ def get_llm_for_role(role: str) -> LLM:
     calls this function again with the exhausted provider already marked — so the
     next provider in the chain is automatically selected.
 
-    | Role              | Chain order (first available wins)                                          |
-    |-------------------|-----------------------------------------------------------------------------|
-    | Code Architect    | Kimi K2.5 (NVIDIA) → Kimi K2 (Groq) → GPT-OSS (Cerebras) → GLM-4.7 (Zhipu)|
-    | Research Analyst  | Llama 3.3 (Groq) → DeepSeek V3.2 (NV) → GPT-OSS (Cerebras) → GLM-4.7      |
-    | MVP Strategist    | Qwen3.5-397B (NV) → GPT-OSS (Cerebras) → GLM-4.7 (Zhipu) → Llama 3.3      |
-    | QA Reviewer       | GPT-OSS (Cerebras) → Llama 3.3 (Groq) → DeepSeek V3.2 (NV) → GLM-4.7      |
-    | Data Engineer     | GPT-OSS (Cerebras) → DeepSeek V3.2 (NV) → Llama 3.3 (Groq) → GLM-4.7      |
-    | Project Organizer | Qwen3-32B (Groq) → GPT-OSS (Cerebras) → GLM-4.7 (Zhipu) → DeepSeek (NV)   |
-    | Narrative         | GPT-OSS (Cerebras) → GLM-4.7 (Zhipu) → DeepSeek V3.2 (NV) → Llama 3.3     |
-    | Verifier          | GPT-OSS (Cerebras) → Llama 3.3 (Groq) → DeepSeek V3.2 (NV) → GLM-4.7      |
+    | Role              | Chain order (first available wins)                                                       |
+    |-------------------|------------------------------------------------------------------------------------------|
+    | Code Architect    | M2.1 (MiniMax) → Kimi K2.5 (NVIDIA) → Kimi K2 (Groq) → GPT-OSS (Cerebras) → GLM (Zhipu)|
+    | Research Analyst  | M2.1 (MiniMax) → Llama 3.3 (Groq) → DeepSeek V3.2 (NV) → GPT-OSS (Cerebras) → GLM      |
+    | MVP Strategist    | M2.1 (MiniMax) → Qwen3.5-397B (NV) → GPT-OSS (Cerebras) → GLM (Zhipu) → Llama 3.3      |
+    | QA Reviewer       | M2.1 (MiniMax) → GPT-OSS (Cerebras) → Llama 3.3 (Groq) → DeepSeek V3.2 (NV) → GLM     |
+    | Data Engineer     | M2.1 (MiniMax) → GPT-OSS (Cerebras) → DeepSeek V3.2 (NV) → Llama 3.3 (Groq) → GLM     |
+    | Project Organizer | M2.1 (MiniMax) → Qwen3-32B (Groq) → GPT-OSS (Cerebras) → GLM (Zhipu) → DeepSeek (NV)   |
+    | Narrative         | M2.1 (MiniMax) → GPT-OSS (Cerebras) → GLM (Zhipu) → DeepSeek V3.2 (NV) → Llama 3.3    |
+    | Verifier          | M2.1 (MiniMax) → GPT-OSS (Cerebras) → Llama 3.3 (Groq) → DeepSeek V3.2 (NV) → GLM     |
     """
     role = role.lower()
     chain = _ROLE_CHAINS.get(role, _DEFAULT_CHAIN)
@@ -335,6 +358,7 @@ def get_llm_smart(role: str, task_text: str = "", context_size: int = 0):
 
 def validate_keys() -> dict:
     status = {
+        "minimax": bool(os.getenv("MINIMAX_API_KEY")),
         "groq": bool(os.getenv("GROQ_API_KEY")),
         "gemini": bool(os.getenv("GEMINI_API_KEY")),
         "nvidia": bool(os.getenv("NVIDIA_API_KEY")),
