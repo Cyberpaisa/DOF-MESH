@@ -130,7 +130,7 @@ AGENT_CARD = {
 # ═══════════════════════════════════════════════════════
 
 def execute_skill(skill_id: str, input_text: str) -> dict:
-    """Ejecuta el crew correspondiente al skill solicitado."""
+    """Ejecuta el crew correspondiente al skill con supervisor + governance + tracing."""
     from crew import (
         create_research_crew,
         create_code_review_crew,
@@ -141,8 +141,8 @@ def execute_skill(skill_id: str, input_text: str) -> dict:
         create_daily_ops_crew,
         create_enigma_audit_crew,
     )
+    from core.crew_runner import run_crew as run_crew_supervised
 
-    start = datetime.now()
     logger.info(f"Executing skill '{skill_id}' with input: {input_text[:100]}...")
 
     try:
@@ -165,15 +165,34 @@ def execute_skill(skill_id: str, input_text: str) -> dict:
         else:
             return {"error": f"Unknown skill: {skill_id}"}
 
-        result = crew.kickoff()
-        elapsed = (datetime.now() - start).total_seconds()
-        logger.info(f"Skill '{skill_id}' completed in {elapsed:.1f}s")
+        result = run_crew_supervised(
+            crew_name=skill_id,
+            crew=crew,
+            input_text=input_text,
+            max_retries=3,
+        )
+
+        status_mapped = "completed" if result["status"] == "ok" else result["status"]
+        sup = result.get("supervisor")
+        gov = result.get("governance")
+
+        logger.info(f"Skill '{skill_id}' {status_mapped} in {result.get('elapsed_ms', 0):.0f}ms")
 
         return {
-            "status": "completed",
+            "status": status_mapped,
             "skill": skill_id,
-            "result": result.raw if hasattr(result, "raw") else str(result),
-            "elapsed_seconds": elapsed,
+            "result": result.get("output", ""),
+            "elapsed_seconds": result.get("elapsed_ms", 0) / 1000,
+            "run_id": result.get("run_id"),
+            "supervisor": {
+                "decision": sup["decision"],
+                "score": sup["score"],
+            } if sup else None,
+            "governance": {
+                "passed": gov["passed"],
+                "score": gov["score"],
+            } if gov else None,
+            "retries": result.get("retries", 0),
         }
 
     except Exception as e:

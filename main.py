@@ -331,19 +331,31 @@ def _log_execution(entry: dict):
 COOLDOWN_SEC = 15  # Cooldown entre crew runs para evitar rate limits
 
 
-def run_crew(crew, mode_name: str, project: str | None = None, max_retries: int = 1):
-    """Ejecuta un crew con retry automático en rate limits."""
-    if project:
-        out_dir = f"output/{project}"
-    else:
-        out_dir = "output"
+# ── Supervisor-integrated crew execution ──
+from core.crew_runner import run_crew as run_crew_supervised
+
+
+def run_crew(crew, mode_name: str, project: str | None = None, max_retries: int = 3):
+    """Ejecuta un crew con supervisor + governance + tracing completo.
+
+    Mantiene la firma pública original. Internamente delega a
+    core.crew_runner.run_crew (supervisor, governance, checkpointing, tracing).
+    Preserva: Rich console output, archivo .md, execution_log.jsonl.
+    """
+    out_dir = f"output/{project}" if project else "output"
     os.makedirs(out_dir, exist_ok=True)
 
     project_label = f" [{project}]" if project else ""
     agents_used = [a.role for a in crew.agents]
     console.print(f"\n[bold green]Ejecutando {mode_name}{project_label}...[/bold green]")
-    console.print(f"[dim]Agentes: {', '.join(agents_used)}[/dim]\n")
+    console.print(f"[dim]Agentes: {', '.join(agents_used)}[/dim]")
+    console.print(f"[dim]Supervisor: ON | Governance: ON | Tracing: ON[/dim]\n")
     start = datetime.now()
+
+    # Extraer input_text del primer task del crew
+    input_text = ""
+    if hasattr(crew, "tasks") and crew.tasks:
+        input_text = getattr(crew.tasks[0], "description", "")
 
     log_entry = {
         "timestamp": start.isoformat(),
@@ -357,56 +369,72 @@ def run_crew(crew, mode_name: str, project: str | None = None, max_retries: int 
         "error": None,
     }
 
-    result = None
-    for attempt in range(1 + max_retries):
-        try:
-            result = crew.kickoff()
-            break
-        except Exception as e:
-            error_str = str(e).lower()
-            is_rate_limit = "rate" in error_str or "429" in error_str or "quota" in error_str
-            if is_rate_limit and attempt < max_retries:
-                wait = COOLDOWN_SEC * (attempt + 1)
-                console.print(f"\n[yellow]Rate limit detectado. Esperando {wait}s antes de reintentar... (intento {attempt + 1}/{max_retries})[/yellow]")
-                import time
-                time.sleep(wait)
-                continue
-            # Error final
-            elapsed = datetime.now() - start
-            log_entry.update({
-                "status": "error",
-                "duration_sec": round(elapsed.total_seconds(), 1),
-                "error": str(e),
-            })
-            _log_execution(log_entry)
-            console.print(f"\n[red]Error: {e}[/red]")
-            console.print("[dim]Verifica tu API key y conexion[/dim]")
-            return log_entry
+    # Llamar al orquestador completo
+    result = run_crew_supervised(
+        crew_name=mode_name,
+        crew=crew,
+        input_text=input_text,
+        max_retries=max_retries,
+    )
 
     elapsed = datetime.now() - start
+
+    if result["status"] == "error":
+        log_entry.update({
+            "status": "error",
+            "duration_sec": round(elapsed.total_seconds(), 1),
+            "error": result.get("error", "unknown"),
+        })
+        _log_execution(log_entry)
+        console.print(f"\n[red]Error: {result.get('error', 'unknown')}[/red]")
+        if result.get("retries", 0) > 0:
+            console.print(f"[dim]Reintentos usados: {result['retries']}[/dim]")
+        return log_entry
+
+    # Escribir output a archivo .md
+    output_text = result.get("output", "")
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     out = f"{out_dir}/{mode_name}_{ts}.md"
+
+    sup = result.get("supervisor")
+    gov = result.get("governance")
+    sup_line = f"**Supervisor:** {sup['decision']} (score: {sup['score']:.1f})" if sup else "**Supervisor:** skipped"
+    gov_line = f"**Governance:** {'PASS' if gov and gov['passed'] else 'FAIL'}" if gov else "**Governance:** N/A"
 
     with open(out, "w") as f:
         f.write(
             f"# {mode_name}{project_label}\n"
             f"**Fecha:** {datetime.now():%Y-%m-%d %H:%M}\n"
             f"**Tiempo:** {elapsed}\n"
-            f"**Agentes:** {', '.join(agents_used)}\n\n---\n\n{result}"
+            f"**Agentes:** {', '.join(agents_used)}\n"
+            f"**Run ID:** {result.get('run_id', 'N/A')}\n"
+            f"{sup_line}\n"
+            f"{gov_line}\n\n---\n\n{output_text}"
         )
 
+    status_mapped = "success" if result["status"] == "ok" else result["status"]
     log_entry.update({
-        "status": "success",
+        "status": status_mapped,
         "duration_sec": round(elapsed.total_seconds(), 1),
         "output_path": out,
+        "run_id": result.get("run_id"),
+        "supervisor_score": sup["score"] if sup else None,
+        "supervisor_decision": sup["decision"] if sup else None,
+        "governance_passed": gov["passed"] if gov else None,
+        "retries": result.get("retries", 0),
+        "trace_path": result.get("trace_path"),
     })
     _log_execution(log_entry)
 
+    # Rich console output
+    sup_info = f" | Supervisor: {sup['decision']} ({sup['score']:.1f})" if sup else ""
+    gov_info = f" | Governance: {'PASS' if gov and gov['passed'] else 'FAIL'}" if gov else ""
     console.print(Panel(
-        f"[green]Completado en {elapsed}[/green]\nGuardado en: [cyan]{out}[/cyan]",
+        f"[green]Completado en {elapsed}[/green]{sup_info}{gov_info}\n"
+        f"Guardado en: [cyan]{out}[/cyan]",
         border_style="green",
     ))
-    console.print(f"\n{result}")
+    console.print(f"\n{output_text}")
     return log_entry
 
 
