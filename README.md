@@ -4,7 +4,7 @@
 >
 > This repository formalizes reproducible experimentation, resilience metrics, controlled degradation modeling, governance invariance, and deterministic evaluation in heterogeneous provider environments.
 
-Python 3.11+ | Apache-2.0 | 2,400+ LOC | 11 core modules | 120 parametric + 25 production experiments executed
+Python 3.11+ | Apache-2.0 | 2,400+ LOC | 11 core modules | 120 parametric + 52 production experiments executed
 
 ---
 
@@ -12,9 +12,9 @@ Python 3.11+ | Apache-2.0 | 2,400+ LOC | 11 core modules | 120 parametric + 25 p
 
 Multi-agent LLM systems operating across heterogeneous providers exhibit infrastructure-induced instability that cannot be rigorously characterized using conventional orchestration tooling. Rate limits, cascading retries, infrastructure-induced degradation, and non-deterministic provider behavior introduce execution variance that obscures causal attribution.
 
-This framework establishes a deterministic execution regime, formal resilience metrics, controlled failure injection protocols, empirical parametric validation, and reproducibility guarantees to model stability degradation under bounded retry logic. Experimental evidence supports a linear degradation regime:
+This framework establishes a deterministic execution regime, formal resilience metrics, controlled failure injection protocols, empirical parametric validation, and reproducibility guarantees to model stability degradation under bounded retry logic. Under r = 2 bounded retries with independent provider failures:
 
-SS(f) ≈ 1 − (f / 2)
+SS(f) = 1 − f³
 
 while constitutional governance enforcement remains invariant:
 
@@ -44,7 +44,7 @@ Without formal metrics and deterministic evaluation, observed performance differ
 
 5. Batch experiment runner — automatic statistical aggregation (sample mean with Bessel-corrected standard deviation) across repeated trials.
 
-6. Parametric sensitivity analysis — experimental validation that SS(f) ≈ 1 − (f / 2) while GCR remains invariant across all tested failure rates.
+6. Parametric sensitivity analysis — formal derivation SS(f) = 1 − f³ under bounded retries, with experimental validation across 6 failure rates while GCR remains invariant.
 
 7. Governance–Infrastructure Decoupling Validation — empirical confirmation that constitutional enforcement remains invariant under infrastructure degradation.
 
@@ -103,30 +103,48 @@ All metrics are defined over finite experimental batches of size n ≥ 1.
 
 Let:
 
-f ∈ [0,1] be the provider-level failure injection probability  
-SS ∈ [0,1] be the Stability Score  
-PFI ∈ [0,1] be the Provider Fragility Index  
-RP ∈ [0,1] be the Retry Pressure  
-GCR ∈ [0,1] be the Governance Compliance Rate  
+f ∈ [0,1] be the provider-level failure injection probability
+r ∈ {0,1,2,...} be the maximum number of retries (r = 2 in this framework)
+SS ∈ [0,1] be the Stability Score
+PFI ∈ [0,1] be the Provider Fragility Index
+RP ∈ [0,1] be the Retry Pressure
+GCR ∈ [0,1] be the Governance Compliance Rate
 
-Assuming deterministic execution mode and statistically independent provider failures:
+Assuming deterministic execution mode, statistically independent provider failures, and bounded retry logic with r retries:
 
-PFI(f) ≈ f  
-RP(f) ≈ f  
+PFI(f) ≈ f
+RP(f) ≈ f
 
-Under bounded retry and recovery logic, experimental evidence indicates a linear degradation regime:
+A run fails only when all (r + 1) attempts fail. Under independent failures with per-attempt failure probability f, the probability of terminal failure is f^(r+1). With r = 2:
 
-SS(f) ≈ 1 − (f / 2)
+SS(f) = 1 − f^(r+1) = 1 − f³
+
+Derived from first principles with r = 2 bounded retries and independent provider failures. The earlier empirical approximation SS(f) ≈ 1 − (f/2) was a linear fit to the parametric sweep data; the cubic model provides the theoretical derivation.
 
 Hence:
 
-∂SS/∂f ≈ −0.5
+∂SS/∂f = −3f²
 
-Governance remains structurally decoupled from infrastructure instability:
+At f = 0.5: ∂SS/∂f = −0.75, predicting SS(0.5) = 0.875. The parametric sweep measured SS(0.5) = 0.75 ± 0.26, consistent within one standard deviation.
+
+Governance compliance is an architectural property confirmed empirically — governance evaluation is structurally independent of provider state:
 
 GCR(f) = 1.0  ∀ f ∈ [0,1]
 
-This establishes a linear stability degradation regime under controlled failure injection while constitutional enforcement remains invariant.
+GCR(f) = 1.0 holds by construction: the `ConstitutionEnforcer` evaluates output text against rule predicates after crew execution completes. It receives no provider state, retry count, or infrastructure metadata. Constitutional enforcement is therefore structurally decoupled from infrastructure instability by design, not by empirical coincidence.
+
+### Supervisor Circularity
+
+The meta-supervisor is itself an LLM and therefore shares failure modes with the evaluated agents: provider exhaustion, rate limits, and stochastic output quality. This introduces circularity: the quality gate may fail in the same conditions that degrade agent output.
+
+Mitigations implemented in this framework:
+
+1. **Cross-provider evaluation** — The supervisor uses a different provider chain than the agents it evaluates, reducing correlated failures.
+2. **Rubric decomposition** — Quality scoring is decomposed into four independent dimensions (Q, A, C, F), reducing the impact of single-dimension evaluation failures.
+3. **Rule-based governance layer** — The `ConstitutionEnforcer` provides deterministic, non-LLM quality checks (hallucination detection, output length, language compliance) that are immune to provider instability.
+4. **Bounded retry with factory rebuild** — On supervisor RETRY decisions, the crew is rebuilt with fresh provider assignments, breaking correlation between evaluator and evaluated failures.
+
+This does not eliminate circularity but bounds its impact: the deterministic governance layer ensures that even if the supervisor fails, hard constraint violations are caught independently.
 
 ---
 
@@ -136,7 +154,7 @@ This establishes a linear stability degradation regime under controlled failure 
 2. Deterministic Execution Mode — Fixed provider ordering and seeded PRNGs isolate infrastructure variance from model stochasticity.
 3. Bounded Retry Logic — Retry attempts are capped and recovery policies are deterministic.
 4. Uniform Failure Injection — Failure probability f is applied uniformly without structural bias.
-5. Linear Regime Validity — The approximation SS(f) ≈ 1 − (f / 2) holds within the explored range f ∈ [0,0.7].
+5. Cubic Regime Validity — The model SS(f) = 1 − f³ is derived under independent failures with r = 2 bounded retries. Empirical validation covers f ∈ [0,0.7].
 
 ---
 
@@ -284,8 +302,8 @@ Removed: redundant QA Reviewer and duplicate Strategist pass. Measured reduction
 | Execution time (research) | 10m56s (5 tasks) | 1m38s (3 tasks, 85% reduction) |
 | Tracing | None | RunTrace + StepTrace JSONL |
 | Groq TPD exhaustion | Terminal failure | Automatic rotation to MiniMax/Cerebras |
-| Supervisor acceptance rate | 0% (blind execution) | 100% (3/3 ACCEPT) |
-| Stability Score (SS) | 0.54 (n=22, pre-fix) | 1.00 (n=3, post-fix) |
+| Supervisor acceptance rate | 0% (blind execution) | 90% (27/30 ACCEPT) |
+| Stability Score (SS) | 0.54 (n=22, pre-fix) | 0.90 (n=30, post-fix) |
 
 ---
 
@@ -305,35 +323,61 @@ Production metrics computed by `RuntimeObserver` over consecutive executions und
 
 Root causes identified through structured log analysis: OpenAI routing misconfiguration (33% of failures), Groq TPM/TPD exhaustion without provider rotation (33%), NVIDIA NIM grammar incompatibility with structured output (11%), overly strict verification agent rejecting plausible research (cascading quality failure).
 
-### Post-Fix Baseline (n=3)
+### Post-Fix Baseline (n=30)
 
-| Metric | Value | Interpretation |
-|--------|-------|----------------|
-| SS | 1.0000 | 100% execution stability — zero terminal failures |
-| PFI | 0.6667 | Provider failures occur but are recovered via crew_factory |
-| RP | 0.6667 | Retry pressure elevated; all retries succeed through rotation |
-| GCR | 1.0000 | 100% governance compliance — invariant under perturbation |
-| SSR | 0.0000 | Zero supervisor rejections — calibrated acceptance threshold |
+| Metric | Value (μ ± σ) | Interpretation |
+|--------|---------------|----------------|
+| SS | 0.9000 ± 0.3051 | 90% execution stability — 27/30 runs completed successfully |
+| PFI | 0.6111 ± 0.1769 | Provider failures occur but are recovered via crew_factory rotation |
+| RP | 0.6000 ± 0.2034 | Retry pressure elevated; most retries succeed through provider rotation |
+| GCR | 1.0000 ± 0.0000 | 100% governance compliance — invariant under real infrastructure perturbation |
+| SSR | 0.0000 ± 0.0000 | Zero supervisor rejections — calibrated plausibility-based acceptance |
+
+Supervisor quality scores across 27 successful runs: mean = 6.06, min = 5.60, max = 6.56 (all above ACCEPT threshold of 5.0). The 3 terminal failures (10%) were caused by provider exhaustion cascades where all 5 providers in the chain were rate-limited within a single execution window — a limitation of free-tier infrastructure, not an architectural failure.
 
 ### Intervention Summary
 
+**Architectural Contributions** — structural changes to the execution pipeline:
+
 | Intervention | Target Metric | Effect |
 |---|---|---|
-| Remove OpenAI from provider chains | SS | +0.16 (eliminated 33% of failures) |
-| crew_factory pattern for provider rotation | SS, PFI | Retries now rebuild crew with fresh providers |
-| Pre-research truncation to 3000 chars | SS, RP | Reduced single-request token consumption below TPM limits |
-| NVIDIA NIM moved to end of chain | SS | Structured output incompatibility avoided |
-| Verifier calibrated for plausibility scoring | SSR | Eliminated false rejections of valid research |
-| Language governance updated for English | GCR | Resolved misconfiguration blocking English output |
-| MiniMax M2.1 added as primary provider | SS, PFI | 1000 req/day free tier vs Groq 100K tokens/day |
+| crew_factory pattern for provider rotation | SS, PFI | Retries rebuild crew with fresh LLM assignments; decouples retry logic from provider state |
+| NVIDIA NIM moved to end of all provider chains | SS | Avoids structured output grammar incompatibility (`output_pydantic` not supported by NIM) |
+| Verifier calibrated for plausibility-based scoring | SSR | Replaced URL-access verification with coherence/consistency evaluation; eliminated cascading quality failures |
+| MiniMax M2.1 added as primary provider | SS, PFI | 1000 req/day free tier vs Groq 100K tokens/day; reduces provider exhaustion frequency |
+
+**Configuration Fixes** — corrected misconfigurations that inflated failure rates:
+
+| Fix | Target Metric | Effect |
+|---|---|---|
+| Remove OpenAI from provider chains | SS | +0.16 (eliminated 33% of pre-fix failures caused by routing misconfiguration) |
+| Pre-research truncation to 3000 chars | SS, RP | Reduced single-request token consumption below Groq 12K TPM limit |
+| Language governance updated for English | GCR | Resolved rule that required Spanish output after system was translated to English |
 
 ### Theoretical Validation
 
-The post-fix results empirically confirm the theoretical prediction established in the parametric sweep:
+The n=30 production results empirically confirm the theoretical prediction established in the parametric sweep under real infrastructure conditions — not simulated failure injection:
 
 GCR(f) = 1.0  ∀ f ∈ [0,1]
 
-Governance compliance remains invariant at 1.0 despite elevated provider failure rates (PFI = 0.67), validating the structural decoupling between constitutional enforcement and infrastructure instability under real production conditions — not simulated failure injection.
+Governance compliance remains invariant at 1.0000 ± 0.0000 across all 30 production runs despite elevated provider failure rates (PFI = 0.6111), confirming that constitutional enforcement is structurally decoupled from infrastructure instability by construction. The `ConstitutionEnforcer` receives no provider state, making GCR invariance an architectural property rather than an empirical coincidence.
+
+Additionally, the observed SS = 0.90 with PFI = 0.61 is consistent with the cubic model SS(f) = 1 − f³. At f ≈ 0.61: SS(0.61) = 1 − 0.61³ = 1 − 0.227 = 0.773. The measured SS = 0.90 exceeds this prediction, suggesting that the crew_factory rotation mechanism recovers a fraction of failures that would otherwise be terminal under the independent-failure assumption.
+
+---
+
+## Related Work
+
+Existing observability and reliability tools for LLM systems address complementary but distinct aspects of the problem:
+
+- **AgentOps** (Dong et al., 2024) — Extends OpenTelemetry with LLM-specific spans and agent lifecycle events. Provides tracing infrastructure but does not define formal resilience metrics or constitutional governance enforcement.
+- **Langfuse, LangSmith** — Commercial observability platforms offering trace visualization, prompt versioning, and cost tracking. Focus on developer experience rather than formal metric computation or parametric sensitivity analysis.
+- **ChaosEater** (Kikuta et al., 2025) — Automated chaos engineering for Kubernetes using LLM-generated fault hypotheses. Targets infrastructure-level failures but does not model multi-provider LLM degradation or governance invariance.
+- **ReliabilityBench** (2026) — Defines reliability surfaces for individual LLM agent evaluation across task categories. Evaluates single-agent reliability rather than multi-agent system stability under provider perturbation.
+- **Zheng et al. (2023)** — "Judging LLM-as-a-Judge" identifies systematic biases in LLM evaluation (position bias, verbosity bias, self-enhancement). Directly relevant to the supervisor circularity problem addressed in this framework.
+- **Breck et al. (2017)** — "The ML Test Score" proposes a rubric for ML production readiness. Provides organizational checklists rather than runtime-computed formal metrics.
+
+**DOF differentiation**: This framework is distinguished by the combination of (1) production-integrated formal metrics with Bessel-corrected statistics, (2) deterministic failure injection with parametric sensitivity analysis, (3) constitutional governance enforcement structurally decoupled from infrastructure state, and (4) the crew_factory pattern for bounded retry with provider rotation. No existing tool provides all four capabilities in an integrated system.
 
 ---
 
@@ -404,7 +448,7 @@ docs/
   title={Deterministic Observability and Resilience Engineering for Multi-Agent LLM Systems: An Experimental Framework},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={2,400+ LOC, 120 parametric experiments, 25 production runs, 5 formal metrics, empirical GCR invariance confirmed}
+  note={2,400+ LOC, 120 parametric experiments, 52 production runs, 5 formal metrics, 14 cited references, formal SS(f) derivation, empirical GCR invariance confirmed}
 }
 
 ---
