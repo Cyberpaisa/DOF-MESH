@@ -192,30 +192,30 @@ def _try_get(provider: str, getter, **kwargs):
 
 _ROLE_CHAINS = {
     "code_architect":    [("minimax", "minimax/MiniMax-M2.1"),
-                          ("nvidia", "nvidia_nim/moonshotai/kimi-k2.5"),
                           ("groq", "groq/moonshotai/kimi-k2-instruct"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
-                          ("zhipu", "openai/glm-4.7-flash")],
+                          ("zhipu", "openai/glm-4.7-flash"),
+                          ("nvidia", "nvidia_nim/moonshotai/kimi-k2.5")],
     "research_analyst":  [("minimax", "minimax/MiniMax-M2.1"),
                           ("groq", "groq/llama-3.3-70b-versatile"),
-                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
-                          ("cerebras", "cerebras/gpt-oss-120b"),
-                          ("zhipu", "openai/glm-4.7-flash")],
-    "mvp_strategist":    [("minimax", "minimax/MiniMax-M2.1"),
-                          ("nvidia", "nvidia_nim/qwen/qwen3.5-397b-a17b"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
                           ("zhipu", "openai/glm-4.7-flash"),
-                          ("groq", "groq/llama-3.3-70b-versatile")],
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2")],
+    "mvp_strategist":    [("minimax", "minimax/MiniMax-M2.1"),
+                          ("cerebras", "cerebras/gpt-oss-120b"),
+                          ("groq", "groq/llama-3.3-70b-versatile"),
+                          ("zhipu", "openai/glm-4.7-flash"),
+                          ("nvidia", "nvidia_nim/qwen/qwen3.5-397b-a17b")],
     "qa_reviewer":       [("minimax", "minimax/MiniMax-M2.1"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
                           ("groq", "groq/llama-3.3-70b-versatile"),
-                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
-                          ("zhipu", "openai/glm-4.7-flash")],
+                          ("zhipu", "openai/glm-4.7-flash"),
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2")],
     "data_engineer":     [("minimax", "minimax/MiniMax-M2.1"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
-                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
                           ("groq", "groq/llama-3.3-70b-versatile"),
-                          ("zhipu", "openai/glm-4.7-flash")],
+                          ("zhipu", "openai/glm-4.7-flash"),
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2")],
     "project_organizer": [("minimax", "minimax/MiniMax-M2.1"),
                           ("groq", "groq/qwen/qwen3-32b"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
@@ -223,22 +223,22 @@ _ROLE_CHAINS = {
                           ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2")],
     "narrative_content": [("minimax", "minimax/MiniMax-M2.1"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
+                          ("groq", "groq/llama-3.3-70b-versatile"),
                           ("zhipu", "openai/glm-4.7-flash"),
-                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
-                          ("groq", "groq/llama-3.3-70b-versatile")],
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2")],
     "verifier":          [("minimax", "minimax/MiniMax-M2.1"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
                           ("groq", "groq/llama-3.3-70b-versatile"),
-                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
-                          ("zhipu", "openai/glm-4.7-flash")],
+                          ("zhipu", "openai/glm-4.7-flash"),
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2")],
 }
 
 _DEFAULT_CHAIN = [
     ("minimax", "minimax/MiniMax-M2.1"),
     ("cerebras", "cerebras/gpt-oss-120b"),
-    ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
     ("groq", "groq/llama-3.3-70b-versatile"),
     ("zhipu", "openai/glm-4.7-flash"),
+    ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
 ]
 
 _ROLE_TEMPS = {
@@ -267,14 +267,14 @@ def get_llm_for_role(role: str) -> LLM:
 
     | Role              | Chain order (first available wins)                                                       |
     |-------------------|------------------------------------------------------------------------------------------|
-    | Code Architect    | M2.1 (MiniMax) → Kimi K2.5 (NVIDIA) → Kimi K2 (Groq) → GPT-OSS (Cerebras) → GLM (Zhipu)|
-    | Research Analyst  | M2.1 (MiniMax) → Llama 3.3 (Groq) → DeepSeek V3.2 (NV) → GPT-OSS (Cerebras) → GLM      |
-    | MVP Strategist    | M2.1 (MiniMax) → Qwen3.5-397B (NV) → GPT-OSS (Cerebras) → GLM (Zhipu) → Llama 3.3      |
-    | QA Reviewer       | M2.1 (MiniMax) → GPT-OSS (Cerebras) → Llama 3.3 (Groq) → DeepSeek V3.2 (NV) → GLM     |
-    | Data Engineer     | M2.1 (MiniMax) → GPT-OSS (Cerebras) → DeepSeek V3.2 (NV) → Llama 3.3 (Groq) → GLM     |
+    | Code Architect    | M2.1 (MiniMax) → Kimi K2 (Groq) → GPT-OSS (Cerebras) → GLM (Zhipu) → Kimi K2.5 (NV)   |
+    | Research Analyst  | M2.1 (MiniMax) → Llama 3.3 (Groq) → GPT-OSS (Cerebras) → GLM (Zhipu) → DeepSeek (NV)   |
+    | MVP Strategist    | M2.1 (MiniMax) → GPT-OSS (Cerebras) → Llama 3.3 (Groq) → GLM (Zhipu) → Qwen3.5 (NV)   |
+    | QA Reviewer       | M2.1 (MiniMax) → GPT-OSS (Cerebras) → Llama 3.3 (Groq) → GLM (Zhipu) → DeepSeek (NV)   |
+    | Data Engineer     | M2.1 (MiniMax) → GPT-OSS (Cerebras) → Llama 3.3 (Groq) → GLM (Zhipu) → DeepSeek (NV)   |
     | Project Organizer | M2.1 (MiniMax) → Qwen3-32B (Groq) → GPT-OSS (Cerebras) → GLM (Zhipu) → DeepSeek (NV)   |
-    | Narrative         | M2.1 (MiniMax) → GPT-OSS (Cerebras) → GLM (Zhipu) → DeepSeek V3.2 (NV) → Llama 3.3    |
-    | Verifier          | M2.1 (MiniMax) → GPT-OSS (Cerebras) → Llama 3.3 (Groq) → DeepSeek V3.2 (NV) → GLM     |
+    | Narrative         | M2.1 (MiniMax) → GPT-OSS (Cerebras) → Llama 3.3 (Groq) → GLM (Zhipu) → DeepSeek (NV)  |
+    | Verifier          | M2.1 (MiniMax) → GPT-OSS (Cerebras) → Llama 3.3 (Groq) → GLM (Zhipu) → DeepSeek (NV)  |
     """
     role = role.lower()
     chain = _ROLE_CHAINS.get(role, _DEFAULT_CHAIN)
