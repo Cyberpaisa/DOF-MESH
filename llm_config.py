@@ -171,11 +171,11 @@ def _try_get(provider: str, getter, **kwargs):
 
 
 # ═══════════════════════════════════════════════════════
-# ROLE ASSIGNMENT — With LiteLLM auto-fallback on rate limit
+# ROLE ASSIGNMENT — Provider chain with crew-level rotation
 # ═══════════════════════════════════════════════════════
 # Each role has a provider chain. First available becomes primary.
-# Remaining providers attach as LiteLLM fallbacks so rate-limit
-# errors auto-rotate to the next provider at the transport layer.
+# On rate-limit, crew_runner marks the provider exhausted and
+# rebuilds the crew via crew_factory → next provider is selected.
 
 _ROLE_CHAINS = {
     "code_architect":    [("nvidia", "nvidia_nim/moonshotai/kimi-k2.5"),
@@ -235,58 +235,35 @@ _PROVIDER_KEY_ENV = {
 _ZHIPU_BASE_URL = "https://api.z.ai/api/paas/v4/"
 
 
-def _build_fallback_entry(provider: str, model: str) -> dict | None:
-    """Build a LiteLLM fallback dict for a provider. Returns None if no API key."""
-    key_env = _PROVIDER_KEY_ENV.get(provider)
-    if not key_env:
-        return None
-    api_key = os.getenv(key_env)
-    if not api_key:
-        return None
-    entry = {"model": model, "api_key": api_key}
-    if provider == "zhipu":
-        entry["api_base"] = _ZHIPU_BASE_URL
-    return entry
-
-
 def get_llm_for_role(role: str) -> LLM:
     """
-    Resilient assignment — first available provider becomes primary,
-    remaining providers attach as LiteLLM fallbacks for automatic
-    rotation on rate-limit errors.
+    Resilient assignment — first available (non-exhausted) provider becomes primary.
+    On rate-limit failure, crew_runner rebuilds the crew via crew_factory, which
+    calls this function again with the exhausted provider already marked — so the
+    next provider in the chain is automatically selected.
 
-    | Role              | Primary               | Fallback 1            | Fallback 2          | Fallback 3      |
-    |-------------------|-----------------------|-----------------------|---------------------|-----------------|
-    | Code Architect    | Kimi K2.5 (NVIDIA)    | Kimi K2 (Groq)        | GPT-OSS (Cerebras)  | GLM-4.7 (Zhipu) |
-    | Research Analyst  | Llama 3.3 (Groq)      | DeepSeek V3.2 (NV)    | GPT-OSS (Cerebras)  | GLM-4.7 (Zhipu) |
-    | MVP Strategist    | Qwen3.5-397B (NVIDIA) | GPT-OSS (Cerebras)    | GLM-4.7 (Zhipu)     | Llama 3.3 (Groq)|
-    | QA Reviewer       | GPT-OSS (Cerebras)    | Llama 3.3 (Groq)      | DeepSeek V3.2 (NV)  | GLM-4.7 (Zhipu) |
-    | Data Engineer     | GPT-OSS (Cerebras)    | DeepSeek V3.2 (NV)    | Llama 3.3 (Groq)    | GLM-4.7 (Zhipu) |
-    | Project Organizer | Qwen3-32B (Groq)      | GPT-OSS (Cerebras)    | GLM-4.7 (Zhipu)     | DeepSeek (NV)   |
-    | Narrative         | GPT-OSS (Cerebras)    | GLM-4.7 (Zhipu)       | DeepSeek V3.2 (NV)  | Llama 3.3 (Groq)|
-    | Verifier          | GPT-OSS (Cerebras)    | Llama 3.3 (Groq)      | DeepSeek V3.2 (NV)  | GLM-4.7 (Zhipu) |
+    | Role              | Chain order (first available wins)                                          |
+    |-------------------|-----------------------------------------------------------------------------|
+    | Code Architect    | Kimi K2.5 (NVIDIA) → Kimi K2 (Groq) → GPT-OSS (Cerebras) → GLM-4.7 (Zhipu)|
+    | Research Analyst  | Llama 3.3 (Groq) → DeepSeek V3.2 (NV) → GPT-OSS (Cerebras) → GLM-4.7      |
+    | MVP Strategist    | Qwen3.5-397B (NV) → GPT-OSS (Cerebras) → GLM-4.7 (Zhipu) → Llama 3.3      |
+    | QA Reviewer       | GPT-OSS (Cerebras) → Llama 3.3 (Groq) → DeepSeek V3.2 (NV) → GLM-4.7      |
+    | Data Engineer     | GPT-OSS (Cerebras) → DeepSeek V3.2 (NV) → Llama 3.3 (Groq) → GLM-4.7      |
+    | Project Organizer | Qwen3-32B (Groq) → GPT-OSS (Cerebras) → GLM-4.7 (Zhipu) → DeepSeek (NV)   |
+    | Narrative         | GPT-OSS (Cerebras) → GLM-4.7 (Zhipu) → DeepSeek V3.2 (NV) → Llama 3.3     |
+    | Verifier          | GPT-OSS (Cerebras) → Llama 3.3 (Groq) → DeepSeek V3.2 (NV) → GLM-4.7      |
     """
     role = role.lower()
     chain = _ROLE_CHAINS.get(role, _DEFAULT_CHAIN)
     temp = _ROLE_TEMPS.get(role, 0.5)
 
-    for i, (provider, model) in enumerate(chain):
+    for provider, model in chain:
         if not _is_available(provider):
             continue
         api_key = os.getenv(_PROVIDER_KEY_ENV.get(provider, ""))
         if not api_key:
             continue
 
-        # Build fallbacks from remaining chain entries
-        fallbacks = []
-        for j, (fb_prov, fb_model) in enumerate(chain):
-            if j == i:
-                continue
-            entry = _build_fallback_entry(fb_prov, fb_model)
-            if entry:
-                fallbacks.append(entry)
-
-        # Build primary LLM with fallbacks
         kwargs = {
             "model": model,
             "api_key": api_key,
@@ -296,10 +273,8 @@ def get_llm_for_role(role: str) -> LLM:
         if provider == "zhipu":
             kwargs["base_url"] = _ZHIPU_BASE_URL
             kwargs["extra_body"] = {"enable_thinking": False}
-        if fallbacks:
-            kwargs["fallbacks"] = fallbacks
 
-        logger.info(f"LLM for '{role}': {model} + {len(fallbacks)} fallbacks")
+        logger.info(f"LLM for '{role}': {model} (provider: {provider})")
         return LLM(**kwargs)
 
     raise ValueError(f"All providers exhausted. No LLM available for {role}.")

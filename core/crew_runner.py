@@ -37,8 +37,13 @@ MAX_RETRIES = 3
 
 def run_crew(crew_name: str, crew: Any, input_text: str = "",
              max_retries: int = MAX_RETRIES, skip_supervisor: bool = False,
-             mode: str = "production") -> dict:
+             mode: str = "production", crew_factory=None) -> dict:
     """Execute a crew with full FASE 0 + FASE 1 infrastructure.
+
+    Args:
+        crew_factory: Optional callable() -> Crew. When provided, the crew is
+            rebuilt on each retry so exhausted providers are skipped and new
+            LLMs are assigned. If None, the same crew object is reused.
 
     Returns dict with:
         status, output, run_id, summary, supervisor, governance,
@@ -79,6 +84,16 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
     for attempt in range(1, max_retries + 1):
         step_id = f"{crew_name}_attempt_{attempt}"
         active = pm.get_active()
+
+        # Rebuild crew on retry if factory is available
+        if attempt > 1 and crew_factory is not None:
+            logger.info(f"[{run_id[:8]}] Rebuilding crew with active providers: {active}")
+            try:
+                crew = crew_factory()
+            except Exception as e:
+                logger.error(f"[{run_id[:8]}] crew_factory failed: {e}")
+                last_error = f"crew_factory error: {e}"
+                break
 
         if not active:
             logger.error(f"[{run_id[:8]}] No providers available, attempt {attempt}")
