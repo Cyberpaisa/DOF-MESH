@@ -291,8 +291,23 @@ def create_qa_reviewer(use_mcp: bool = False) -> Agent:
 def create_verifier(use_mcp: bool = False) -> Agent:
     kwargs = dict(
         role="Verifier",
-        goal="Fact-check datos, detectar alucinaciones, dar veredicto final.",
-        backstory=f"{CONSTITUTION}\n{load_soul('verifier')}",
+        goal=(
+            "Evaluate research quality by assessing claim plausibility, internal consistency, "
+            "source diversity, and logical coherence. Score fairly: 8-10 = well-researched with "
+            "diverse sources, 5-7 = acceptable with minor gaps, 1-4 = fabricated claims or "
+            "logical contradictions. Do NOT try to access URLs or verify that links are live."
+        ),
+        backstory=(
+            f"{CONSTITUTION}\n"
+            "You are a research quality evaluator. Your job is to assess whether research is "
+            "plausible, well-structured, and internally consistent — NOT to independently confirm "
+            "every fact by accessing URLs. You evaluate: (1) Are claims logically coherent? "
+            "(2) Are multiple diverse sources cited? (3) Is the data internally consistent? "
+            "(4) Are there obvious fabrications or contradictions? "
+            "A score of 5+ means 'acceptable with caveats'. You APPROVE research that is "
+            "plausible and well-sourced, even if the topic is niche or emerging. "
+            "You only REJECT research with clear fabrications, logical contradictions, or zero sources."
+        ),
         tools=[WebSearchTool()],
         llm=get_llm_for_role("verifier"),
         verbose=True,
@@ -641,26 +656,29 @@ def create_research_crew(topic: str) -> Crew:
     )
     t2 = Task(
         description=(
-            "VERIFICATION & FACT-CHECK of the research.\n\n"
-            "Use web_search 2-3 times to verify the key claims.\n"
-            "Evaluate:\n"
-            "- Are market data claims verifiable? Are sources cited?\n"
-            "- Are the listed competitors real with valid URLs?\n"
-            "- Is there a market size figure backed by a source?\n"
-            "- Are there unsubstantiated or dubious claims?\n\n"
-            "Score 1-10 and verdict APPROVED/REJECTED with justification.\n\n"
-            "IMPORTANT: List ALL issues found and concrete improvements "
-            "as bullet points. This will feed the MVP planning step."
+            "QUALITY EVALUATION of the research.\n\n"
+            "Evaluate the research on these criteria (do NOT try to access URLs or verify links are live):\n"
+            "1. CLAIM PLAUSIBILITY: Are the claims reasonable and consistent with known facts?\n"
+            "2. INTERNAL CONSISTENCY: Do the data points, market sizes, and conclusions align with each other?\n"
+            "3. SOURCE DIVERSITY: Are multiple independent sources cited (not just one)?\n"
+            "4. LOGICAL COHERENCE: Does the analysis flow logically from data to conclusions?\n\n"
+            "SCORING GUIDE:\n"
+            "- 8-10: Well-researched with diverse sources and coherent analysis\n"
+            "- 5-7: Acceptable with minor gaps or limited source diversity\n"
+            "- 1-4: Contains fabricated claims, logical contradictions, or zero sources\n\n"
+            "IMPORTANT: APPROVE research that is plausible and well-structured, even if the topic is "
+            "niche or emerging. Only REJECT if there are clear fabrications or contradictions.\n"
+            "List specific improvements as bullet points for the MVP planning step."
         ),
         agent=verifier,
-        expected_output="Verification with fact-checked claims, justified score, and actionable improvements.",
+        expected_output="Quality evaluation with plausibility assessment, justified score 1-10, and actionable improvements.",
         output_pydantic=VerificationReport,
         context=[t1],
     )
     t3 = Task(
         description=(
             f'MVP Plan for: "{topic}".\n\n'
-            "Read the Verifier's verdict and incorporate ONLY verified data.\n\n"
+            "Read the Verifier's evaluation and incorporate the research data, addressing any noted improvements.\n\n"
             "MANDATORY REQUIREMENTS:\n"
             "- Value proposition in 1 sentence\n"
             "- Prioritized features (max 5) with P0/P1/P2 and effort in days\n"

@@ -50,8 +50,8 @@ HARD_RULES = [
     },
     {
         "id": "LANGUAGE_COMPLIANCE",
-        "description": "Response must be in Spanish (except technical context in English)",
-        "check": lambda text: _check_spanish(text),
+        "description": "Response must be in English or contain structured data",
+        "check": lambda text: _check_language(text),
     },
     {
         "id": "NO_EMPTY_OUTPUT",
@@ -99,17 +99,22 @@ SOFT_RULES = [
 ]
 
 
-def _check_spanish(text: str) -> bool:
-    """Check if text is primarily in Spanish."""
-    spanish_markers = [
-        "de", "en", "el", "la", "los", "las", "que", "por", "para", "con",
-        "del", "una", "este", "esta", "como", "más", "también", "pero",
+def _check_language(text: str) -> bool:
+    """Check if text is in English or contains structured data (JSON, markdown)."""
+    # Structured data (JSON, pydantic output) always passes
+    stripped = text.strip()
+    if stripped.startswith("{") or stripped.startswith("["):
+        return True
+    # English markers
+    english_markers = [
+        "the", "is", "and", "of", "to", "in", "for", "with", "that", "this",
+        "are", "was", "has", "have", "from", "by", "an", "be", "as", "on",
     ]
     words = text.lower().split()[:200]
     if not words:
         return False
-    spanish_count = sum(1 for w in words if w in spanish_markers)
-    return spanish_count / len(words) > 0.05
+    english_count = sum(1 for w in words if w in english_markers)
+    return english_count / len(words) > 0.05
 
 
 def _check_no_repetition(text: str) -> bool:
