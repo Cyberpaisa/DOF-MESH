@@ -1,115 +1,115 @@
 # ============================================
-# TAREAS DEL EQUIPO - Flujo de trabajo completo
+# TEAM TASKS - Complete workflow
 # ============================================
 
-# FASE 1: Estrategia (Product Manager + BizDev)
+# PHASE 1: Strategy (Product Manager + BizDev)
 definir_producto:
   description: >
-    Analizar el requerimiento del usuario: {objetivo}.
-    Definir las features principales, escribir user stories con criterios
-    de aceptación, y priorizar usando el framework RICE.
-    Entregar un documento claro con: visión del producto, features priorizadas,
-    y user stories para el equipo técnico.
+    Analyze the user requirement: {objetivo}.
+    Define the main features, write user stories with acceptance
+    criteria, and prioritize using the RICE framework.
+    Deliver a clear document with: product vision, prioritized features,
+    and user stories for the technical team.
   expected_output: >
-    Documento con: 1) Visión del producto, 2) Lista de features priorizadas
-    con score RICE, 3) User stories con criterios de aceptación
+    Document with: 1) Product vision, 2) Prioritized feature list
+    with RICE score, 3) User stories with acceptance criteria
   agent: product_manager
 
 analizar_negocio:
   description: >
-    Para el producto definido, crear un modelo de negocio:
-    Business Model Canvas, análisis de competencia (mínimo 3 competidores),
-    estrategia de monetización y go-to-market inicial.
-    Contexto del producto: {objetivo}
+    For the defined product, create a business model:
+    Business Model Canvas, competitive analysis (minimum 3 competitors),
+    monetization strategy, and initial go-to-market plan.
+    Product context: {objetivo}
   expected_output: >
-    Business Model Canvas completo, análisis competitivo, estrategia de
-    monetización con unit economics básicos, y plan go-to-market
+    Complete Business Model Canvas, competitive analysis, monetization
+    strategy with basic unit economics, and go-to-market plan
   agent: bizdev
 
-# FASE 2: Planificación (Director Ops + Arquitecto)
+# PHASE 2: Planning (Operations Director + Architect)
 planificar_ejecucion:
   description: >
-    Con las features priorizadas y el modelo de negocio, crear un plan
-    de ejecución detallado: sprints, dependencias, milestones, riesgos
-    identificados y plan de mitigación. Asignar tareas a cada agente.
+    With the prioritized features and business model, create a detailed
+    execution plan: sprints, dependencies, milestones, identified risks,
+    and mitigation plan. Assign tasks to each agent.
   expected_output: >
-    Plan de ejecución con: sprints definidos, tareas asignadas por agente,
-    dependencias mapeadas, riesgos con mitigación, y timeline
+    Execution plan with: defined sprints, tasks assigned per agent,
+    mapped dependencies, risks with mitigation, and timeline
   agent: director_operaciones
 
 disenar_arquitectura:
   description: >
-    Diseñar la arquitectura técnica del proyecto: stack tecnológico,
-    estructura de directorios, diseño de APIs, modelo de datos,
-    y decisiones de infraestructura. Justificar cada decisión.
+    Design the project's technical architecture: technology stack,
+    directory structure, API design, data model,
+    and infrastructure decisions. Justify each decision.
   expected_output: >
-    Documento de arquitectura con: diagrama de componentes, stack elegido
-    con justificación, diseño de API (endpoints), modelo de datos,
-    y plan de infraestructura
+    Architecture document with: component diagram, chosen stack
+    with justification, API design (endpoints), data model,
+    and infrastructure plan
   agent: arquitecto
 
-# FASE 3: Research (Investigador)
+# PHASE 3: Research (Researcher)
 investigar_tecnologias:
   description: >
-    Investigar las tecnologías, APIs y herramientas necesarias para
-    implementar la arquitectura definida. Buscar mejores prácticas,
-    librerías recomendadas, y posibles problemas conocidos.
+    Research the technologies, APIs, and tools needed to
+    implement the defined architecture. Look for best practices,
+    recommended libraries, and known potential issues.
   expected_output: >
-    Informe de research con: tecnologías evaluadas, pros/cons de cada una,
-    librerías recomendadas con versiones, links a docs, y advertencias
+    Research report with: evaluated technologies, pros/cons of each,
+    recommended libraries with versions, links to docs, and warnings
   agent: investigador
 
-# FASE 4: Implementación (Developer + Organizador)
+# PHASE 4: Implementation (Developer + Organizer)
 organizar_proyecto:
   description: >
-    Crear la estructura de directorios del proyecto según la arquitectura
-    definida. Establecer naming conventions, crear archivos base,
-    configurar linters y formatters. Documentar la estructura.
+    Create the project's directory structure according to the defined
+    architecture. Establish naming conventions, create base files,
+    configure linters and formatters. Document the structure.
   expected_output: >
-    Estructura de directorios creada, README con convenciones,
-    archivos de configuración (eslint, prettier, etc.), y guía de estructura
+    Directory structure created, README with conventions,
+    configuration files (eslint, prettier, etc.), and structure guide
   agent: organizador_archivos
 
 implementar_codigo:
   description: >
-    Implementar las features según las user stories y la arquitectura
-    definida. Escribir código limpio, modular y siguiendo las convenciones
-    del proyecto. Crear PRs enfocados por feature.
+    Implement the features according to the user stories and defined
+    architecture. Write clean, modular code following the project's
+    conventions. Create focused PRs per feature.
   expected_output: >
-    Código implementado, funcional, siguiendo la arquitectura y convenciones
-    definidas. Cada feature en su módulo correspondiente.
+    Implemented, functional code following the defined architecture
+    and conventions. Each feature in its corresponding module.
   agent: developer
 
-# FASE 5: Calidad (QA)
+# PHASE 5: Quality (QA)
 testear_proyecto:
   description: >
-    Escribir y ejecutar tests para todo el código implementado:
-    tests unitarios (>80% coverage), tests de integración para APIs,
-    y tests e2e para flujos críticos. Reportar bugs encontrados.
+    Write and run tests for all implemented code:
+    unit tests (>80% coverage), integration tests for APIs,
+    and e2e tests for critical flows. Report bugs found.
   expected_output: >
-    Suite de tests completa, reporte de coverage, lista de bugs encontrados
-    con severidad, y recomendaciones de mejora
+    Complete test suite, coverage report, list of bugs found
+    with severity, and improvement recommendations
   agent: qa_engineer
 
-# FASE 6: Deploy (DevOps)
+# PHASE 6: Deploy (DevOps)
 desplegar_proyecto:
   description: >
-    Configurar CI/CD pipeline, dockerizar la aplicación si es necesario,
-    configurar el deployment en Railway, variables de entorno,
-    monitoreo básico y health checks.
+    Configure CI/CD pipeline, dockerize the application if needed,
+    configure deployment on Railway, environment variables,
+    basic monitoring, and health checks.
   expected_output: >
-    Pipeline CI/CD configurado, Dockerfile (si aplica), deployment exitoso,
-    variables de entorno documentadas, health checks activos
+    CI/CD pipeline configured, Dockerfile (if applicable), successful deployment,
+    documented environment variables, active health checks
   agent: devops
 
-# TAREA CONTINUA: Orquestación (Líder)
+# CONTINUOUS TASK: Orchestration (Lead)
 orquestar_equipo:
   description: >
-    Supervisar todo el flujo de trabajo. Revisar los outputs de cada fase,
-    asegurar coherencia entre las decisiones del PM, BizDev, Arquitecto
-    y Developer. Resolver conflictos y tomar decisiones finales.
-    Entregar un resumen ejecutivo al finalizar.
+    Supervise the entire workflow. Review the outputs of each phase,
+    ensure coherence between PM, BizDev, Architect, and Developer
+    decisions. Resolve conflicts and make final decisions.
+    Deliver an executive summary upon completion.
   expected_output: >
-    Resumen ejecutivo con: estado de cada fase, decisiones tomadas,
-    problemas resueltos, y resultado final del proyecto
+    Executive summary with: status of each phase, decisions made,
+    problems resolved, and final project outcome
   agent: lider_orquestador
