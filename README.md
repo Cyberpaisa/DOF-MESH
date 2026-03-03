@@ -4,7 +4,7 @@
 >
 > This repository formalizes reproducible experimentation, resilience metrics, controlled degradation modeling, governance invariance, and deterministic evaluation in heterogeneous provider environments.
 
-Python 3.11+ | Apache-2.0 | 2,252 LOC | 9 core modules | 120 parametric experiments executed
+Python 3.11+ | Apache-2.0 | 2,400+ LOC | 11 core modules | 120 parametric experiments executed
 
 ---
 
@@ -81,11 +81,11 @@ Definition: Fraction of runs completing without terminal failure.
 
 Metric: Provider Fragility Index (PFI)  
 Domain: [0,1]  
-Definition: Fraction of runs with at least one provider failure event.
+Definition: Mean provider failure count per execution, normalized over batch size.
 
 Metric: Retry Pressure (RP)  
 Domain: [0,1]  
-Definition: Fraction of runs requiring at least one retry attempt.
+Definition: Mean retry count per execution, normalized over batch size.
 
 Metric: Governance Compliance Rate (GCR)  
 Domain: [0,1]  
@@ -290,8 +290,8 @@ Removed: redundant QA Reviewer and duplicate Strategist pass. Measured reduction
 ## Quickstart
 
 1. Clone repository  
-git clone <repo-url>  
-cd equipo-de-agentes  
+git clone https://github.com/Cyberpaisa/deterministic-observability-framework.git
+cd deterministic-observability-framework  
 
 2. Install dependencies  
 pip install -r requirements.txt  
