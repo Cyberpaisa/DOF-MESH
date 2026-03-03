@@ -3,7 +3,7 @@ Meta-Supervisor Minimal — FASE 0.
 
 Evaluates FINAL output only. No intermediate intervention.
 Score: Q(0.40) + A(0.25) + C(0.20) + F(0.15)
-Decision: ACCEPT >= 8, RETRY 6-8 (max 2), ESCALATE < 6
+Decision: ACCEPT >= 7, RETRY 5-7 (max 2), ESCALATE < 5
 """
 
 import re
@@ -49,9 +49,10 @@ class MetaSupervisor:
         score = q * 0.40 + a * 0.25 + c * 0.20 + f * 0.15
         reasons = []
 
-        if score >= 8.0:
+        # Calibration phase - tighten after prompt optimization
+        if score >= 7.0:
             decision = "ACCEPT"
-        elif score >= 6.0 and retry_count < self.MAX_RETRIES:
+        elif score >= 5.0 and retry_count < self.MAX_RETRIES:
             decision = "RETRY"
             if q < 7:
                 reasons.append("Low structure quality")
@@ -62,8 +63,8 @@ class MetaSupervisor:
             if f < 7:
                 reasons.append("Missing source citations")
         else:
-            decision = "ESCALATE" if score < 6.0 else "ACCEPT"
-            if score < 6.0:
+            decision = "ESCALATE" if score < 5.0 else "ACCEPT"
+            if score < 5.0:
                 reasons.append(f"Insufficient total score: {score:.1f}/10")
 
         verdict = SupervisorVerdict(
