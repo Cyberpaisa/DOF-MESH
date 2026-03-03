@@ -336,7 +336,8 @@ COOLDOWN_SEC = 15  # Cooldown between crew runs to avoid rate limits
 from core.crew_runner import run_crew as run_crew_supervised
 
 
-def run_crew(crew, mode_name: str, project: str | None = None, max_retries: int = 3):
+def run_crew(crew, mode_name: str, project: str | None = None, max_retries: int = 3,
+             crew_factory=None):
     """Execute a crew with full supervisor + governance + tracing.
 
     Maintains the original public signature. Internally delegates to
@@ -376,6 +377,7 @@ def run_crew(crew, mode_name: str, project: str | None = None, max_retries: int 
         crew=crew,
         input_text=input_text,
         max_retries=max_retries,
+        crew_factory=crew_factory,
     )
 
     elapsed = datetime.now() - start
@@ -492,22 +494,27 @@ def run_interactive():
     result = None
     if choice == 1:
         topic = Prompt.ask("Describe your idea")
-        result = run_crew(create_research_crew(topic), "research", project)
+        factory = lambda: create_research_crew(topic)
+        result = run_crew(factory(), "research", project, crew_factory=factory)
     elif choice == 2:
         path = Prompt.ask("Path to project", default=".")
-        result = run_crew(create_code_review_crew(path), "code_review")
+        factory = lambda: create_code_review_crew(path)
+        result = run_crew(factory(), "code_review", crew_factory=factory)
     elif choice == 3:
         f = Prompt.ask("Path to Excel/CSV file")
-        result = run_crew(create_data_analysis_crew(f), "data_analysis")
+        factory = lambda: create_data_analysis_crew(f)
+        result = run_crew(factory(), "data_analysis", crew_factory=factory)
     elif choice == 4:
         conn = Prompt.ask(
             "Connection string",
             default=os.getenv("DATABASE_URL", "postgresql://user:pass@localhost/db"),
         )
-        result = run_crew(create_database_crew(conn), "database")
+        factory = lambda: create_database_crew(conn)
+        result = run_crew(factory(), "database", crew_factory=factory)
     elif choice == 5:
         topic = Prompt.ask("Describe your MVP idea")
-        result = run_crew(create_full_mvp_crew(topic), "full_mvp", project)
+        factory = lambda: create_full_mvp_crew(topic)
+        result = run_crew(factory(), "full_mvp", project, crew_factory=factory)
     elif choice == 6:
         console.print("\n[bold green]Enigma Audit — What to audit?[/bold green]")
         console.print("  [cyan]a.[/cyan] An agent (URL)")
@@ -516,32 +523,32 @@ def run_interactive():
         sub = Prompt.ask("Option", choices=["a", "b", "c"])
         if sub == "a":
             url = Prompt.ask("Agent URL", default="https://apex-arbitrage-agent-production.up.railway.app")
-            result = run_crew(create_enigma_audit_crew(url), "enigma_agent_audit")
+            factory = lambda: create_enigma_audit_crew(url)
+            result = run_crew(factory(), "enigma_agent_audit", crew_factory=factory)
         elif sub == "b":
-            result = run_crew(create_enigma_audit_crew("database"), "enigma_db_audit")
+            factory = lambda: create_enigma_audit_crew("database")
+            result = run_crew(factory(), "enigma_db_audit", crew_factory=factory)
         elif sub == "c":
             path = Prompt.ask("Path to scanner", default="/Users/jquiceva/Enigma")
-            result = run_crew(create_enigma_audit_crew(path), "enigma_code_audit")
+            factory = lambda: create_enigma_audit_crew(path)
+            result = run_crew(factory(), "enigma_code_audit", crew_factory=factory)
     elif choice == 7:
         task = Prompt.ask("What kind of grants are you looking for?", default="AI and Web3 infrastructure grants")
-        result = run_crew(create_grant_hunt_crew(task, project), "grant_hunt", project)
+        factory = lambda: create_grant_hunt_crew(task, project)
+        result = run_crew(factory(), "grant_hunt", project, crew_factory=factory)
     elif choice == 8:
         console.print("\nTypes: thread, blog, update, pitch, narrative, tokenomics")
         task = Prompt.ask("Describe the content you need")
-        result = run_crew(create_content_crew(task, project), "content", project)
+        factory = lambda: create_content_crew(task, project)
+        result = run_crew(factory(), "content", project, crew_factory=factory)
     elif choice == 9:
         file_path = Prompt.ask("Excel file for metrics (Enter to skip)", default="")
-        result = run_crew(
-            create_daily_ops_crew(file_path if file_path else None),
-            "daily_ops",
-        )
+        factory = lambda: create_daily_ops_crew(file_path if file_path else None)
+        result = run_crew(factory(), "daily_ops", crew_factory=factory)
     elif choice == 10:
         file_path = Prompt.ask("Excel file for metrics (Enter to skip)", default="")
-        result = run_crew(
-            create_weekly_report_crew(project, file_path if file_path else None),
-            "weekly_report",
-            project,
-        )
+        factory = lambda: create_weekly_report_crew(project, file_path if file_path else None)
+        result = run_crew(factory(), "weekly_report", project, crew_factory=factory)
     elif choice == 11:
         launch_dashboard()
     elif choice == 12:
@@ -551,7 +558,8 @@ def run_interactive():
     elif choice == 14:
         desc = Prompt.ask("Describe the project to generate")
         name = Prompt.ask("Project name (folder)", default="new_project")
-        result = run_crew(create_build_project_crew(desc, name), "build_project")
+        factory = lambda: create_build_project_crew(desc, name)
+        result = run_crew(factory(), "build_project", crew_factory=factory)
     elif choice == 15:
         launch_a2a_server()
 
@@ -580,39 +588,45 @@ def run_cli(args):
     if args.mode == "research":
         if not task:
             console.print("[red]--task required[/red]"); sys.exit(1)
-        run_crew(create_research_crew(task), "research", project)
+        factory = lambda: create_research_crew(task)
+        run_crew(factory(), "research", project, crew_factory=factory)
     elif args.mode == "code-review":
-        run_crew(create_code_review_crew(args.path or "."), "code_review")
+        factory = lambda: create_code_review_crew(args.path or ".")
+        run_crew(factory(), "code_review", crew_factory=factory)
     elif args.mode == "data":
         if not args.file:
             console.print("[red]--file required[/red]"); sys.exit(1)
-        run_crew(create_data_analysis_crew(args.file), "data_analysis")
+        factory = lambda: create_data_analysis_crew(args.file)
+        run_crew(factory(), "data_analysis", crew_factory=factory)
     elif args.mode == "database":
         conn = args.connection or os.getenv("DATABASE_URL")
         if not conn:
             console.print("[red]--connection or DATABASE_URL required[/red]"); sys.exit(1)
-        run_crew(create_database_crew(conn), "database")
+        factory = lambda: create_database_crew(conn)
+        run_crew(factory(), "database", crew_factory=factory)
     elif args.mode == "full-mvp":
         if not task:
             console.print("[red]--task required[/red]"); sys.exit(1)
-        run_crew(create_full_mvp_crew(task), "full_mvp", project)
+        factory = lambda: create_full_mvp_crew(task)
+        run_crew(factory(), "full_mvp", project, crew_factory=factory)
     elif args.mode == "enigma-audit":
         target = task or args.path or "database"
-        run_crew(create_enigma_audit_crew(target), "enigma_audit")
+        factory = lambda: create_enigma_audit_crew(target)
+        run_crew(factory(), "enigma_audit", crew_factory=factory)
     elif args.mode == "grant-hunt":
-        run_crew(create_grant_hunt_crew(task, project), "grant_hunt", project)
+        factory = lambda: create_grant_hunt_crew(task, project)
+        run_crew(factory(), "grant_hunt", project, crew_factory=factory)
     elif args.mode == "content":
         if not task:
             console.print("[red]--task required[/red]"); sys.exit(1)
-        run_crew(create_content_crew(task, project), "content", project)
+        factory = lambda: create_content_crew(task, project)
+        run_crew(factory(), "content", project, crew_factory=factory)
     elif args.mode == "daily-ops":
-        run_crew(create_daily_ops_crew(args.file), "daily_ops")
+        factory = lambda: create_daily_ops_crew(args.file)
+        run_crew(factory(), "daily_ops", crew_factory=factory)
     elif args.mode == "weekly-report":
-        run_crew(
-            create_weekly_report_crew(project, args.file),
-            "weekly_report",
-            project,
-        )
+        factory = lambda: create_weekly_report_crew(project, args.file)
+        run_crew(factory(), "weekly_report", project, crew_factory=factory)
     elif args.mode == "dashboard":
         launch_dashboard()
     elif args.mode == "telegram":
@@ -623,7 +637,8 @@ def run_cli(args):
         if not task:
             console.print("[red]--task required (project description)[/red]"); sys.exit(1)
         name = args.project or "new_project"
-        run_crew(create_build_project_crew(task, name), "build_project")
+        factory = lambda: create_build_project_crew(task, name)
+        run_crew(factory(), "build_project", crew_factory=factory)
     elif args.mode == "a2a-server":
         launch_a2a_server()
     elif args.mode == "all":
