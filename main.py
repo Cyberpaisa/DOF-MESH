@@ -45,7 +45,7 @@ def show_banner():
     console.print(Panel.fit(
         "[bold cyan]CrewAI Pro — 8 Agents + Kernel Boot[/bold cyan]\n"
         "[dim]Cyber Paisa / Enigma Group[/dim]\n"
-        "[dim]8 LLM providers — Logging — Memory — SOUL.md[/dim]",
+        "[dim]9 LLM providers — Logging — Memory — SOUL.md[/dim]",
         border_style="cyan",
     ))
 
@@ -65,6 +65,7 @@ def show_status():
 
     ok = "[green]OK[/green]"
     off = "[dim]--[/dim]"
+    table.add_row("MiniMax", ok if status.get("minimax") else off, "M2.1 128K (PRIMARY — all roles)")
     table.add_row("Groq", ok if status["groq"] else "[red]MISSING[/red]", "Llama 3.3 (Researcher), Qwen3-32B (Organizer)")
     table.add_row("NVIDIA NIM", ok if status["nvidia"] else off, "Kimi K2.5 (Architect), Qwen3.5-397B (Strategist)")
     table.add_row("Cerebras", ok if status["cerebras"] else off, "GPT-OSS 120B (Data, QA, Verifier)")
