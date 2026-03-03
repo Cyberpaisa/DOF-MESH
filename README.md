@@ -133,3 +133,8 @@ docs/                  # Internal design documents
 ## License
 
 [Apache License 2.0](LICENSE) — Copyright 2026 Cyber Paisa / Enigma Group.
+
+## Resilience & Deterministic Observability
+
+Formal resilience specification available at:
+[docs/research/deterministic-observability-framework.md](docs/research/deterministic-observability-framework.md)
