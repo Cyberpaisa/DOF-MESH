@@ -24,6 +24,10 @@ class GovernanceResult:
 def _check_no_hallucination(text: str) -> bool:
     """Check that unsubstantiated claims have nearby URLs."""
     claim_phrases = [
+        "according to recent studies",
+        "statistics show",
+        "data confirms",
+        "research demonstrates",
         "según estudios recientes",
         "las estadísticas muestran",
         "datos confirman",
@@ -41,24 +45,24 @@ def _check_no_hallucination(text: str) -> bool:
 HARD_RULES = [
     {
         "id": "NO_HALLUCINATION_CLAIM",
-        "description": "No debe afirmar datos inventados sin fuente",
+        "description": "Must not assert fabricated data without source",
         "check": lambda text: _check_no_hallucination(text),
     },
     {
         "id": "LANGUAGE_COMPLIANCE",
-        "description": "Respuesta debe ser en español (salvo contexto técnico en inglés)",
+        "description": "Response must be in Spanish (except technical context in English)",
         "check": lambda text: _check_spanish(text),
     },
     {
         "id": "NO_EMPTY_OUTPUT",
-        "description": "Output no puede estar vacío o ser placeholder",
+        "description": "Output cannot be empty or a placeholder",
         "check": lambda text: len(text.strip()) > 50 and text.strip() not in [
             "No output", "Error", "N/A", "TODO", "placeholder",
         ],
     },
     {
         "id": "MAX_LENGTH",
-        "description": "Output no puede exceder 50K chars",
+        "description": "Output cannot exceed 50K chars",
         "check": lambda text: len(text) <= 50000,
     },
 ]
@@ -67,28 +71,28 @@ HARD_RULES = [
 SOFT_RULES = [
     {
         "id": "HAS_SOURCES",
-        "description": "Debería incluir URLs de fuentes",
+        "description": "Should include source URLs",
         "check": lambda text: bool(re.search(r'https?://', text)),
         "weight": 0.3,
     },
     {
         "id": "STRUCTURED_OUTPUT",
-        "description": "Debería tener estructura clara (headers, bullets)",
+        "description": "Should have clear structure (headers, bullets)",
         "check": lambda text: any(marker in text for marker in ["##", "- ", "* ", "1.", "•"]),
         "weight": 0.2,
     },
     {
         "id": "CONCISENESS",
-        "description": "No debería tener párrafos repetitivos",
+        "description": "Should not have repetitive paragraphs",
         "check": lambda text: _check_no_repetition(text),
         "weight": 0.2,
     },
     {
         "id": "ACTIONABLE",
-        "description": "Debería incluir pasos accionables o recomendaciones",
+        "description": "Should include actionable steps or recommendations",
         "check": lambda text: any(
             kw in text.lower()
-            for kw in ["recomend", "siguiente paso", "acción", "implementar", "next step"]
+            for kw in ["recommend", "next step", "action", "implement", "recomend", "siguiente paso"]
         ),
         "weight": 0.3,
     },

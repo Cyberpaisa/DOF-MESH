@@ -54,17 +54,17 @@ class MetaSupervisor:
         elif score >= 6.0 and retry_count < self.MAX_RETRIES:
             decision = "RETRY"
             if q < 7:
-                reasons.append("Calidad de estructura baja")
+                reasons.append("Low structure quality")
             if a < 7:
-                reasons.append("Falta accionabilidad")
+                reasons.append("Lacking actionability")
             if c < 7:
-                reasons.append("Respuesta incompleta")
+                reasons.append("Incomplete response")
             if f < 7:
-                reasons.append("Falta citación de fuentes")
+                reasons.append("Missing source citations")
         else:
             decision = "ESCALATE" if score < 6.0 else "ACCEPT"
             if score < 6.0:
-                reasons.append(f"Score total insuficiente: {score:.1f}/10")
+                reasons.append(f"Insufficient total score: {score:.1f}/10")
 
         verdict = SupervisorVerdict(
             decision=decision,
@@ -112,10 +112,10 @@ class MetaSupervisor:
         """Score actionable recommendations (0-10)."""
         score = 4.0
         action_words = [
-            "implementar", "crear", "configurar", "ejecutar", "desplegar",
-            "instalar", "agregar", "modificar", "actualizar", "revisar",
-            "next step", "action item", "recomendación", "paso",
-            "implement", "create", "deploy", "configure",
+            "implement", "create", "configure", "execute", "deploy",
+            "install", "add", "modify", "update", "review",
+            "next step", "action item", "recommendation", "step",
+            "implementar", "crear", "desplegar", "configurar",
         ]
         found = sum(1 for w in action_words if w in text.lower())
         score += min(found * 0.5, 3.0)
@@ -140,7 +140,8 @@ class MetaSupervisor:
         # Check if input keywords appear in output
         if input_text:
             input_words = set(input_text.lower().split())
-            input_words -= {"de", "la", "el", "en", "que", "y", "a", "un", "una", "los", "las", "por", "para", "con"}
+            input_words -= {"de", "la", "el", "en", "que", "y", "a", "un", "una", "los", "las", "por", "para", "con",
+                           "the", "a", "an", "in", "on", "of", "to", "for", "and", "or", "is", "it", "with"}
             if input_words:
                 overlap = sum(1 for w in input_words if w in text.lower())
                 coverage = overlap / len(input_words)
@@ -159,10 +160,12 @@ class MetaSupervisor:
         elif len(urls) >= 1:
             score += 1.0
         # Hedging language (positive — shows awareness of uncertainty)
-        if any(w in text.lower() for w in ["según", "fuente:", "referencia", "source:", "data from"]):
+        if any(w in text.lower() for w in ["source:", "reference:", "data from", "according to", "según", "fuente:"]):
             score += 1.0
         # Negative — unsubstantiated claims
         unsubstantiated = [
+            "according to studies", "research demonstrates",
+            "it is well known", "everyone knows",
             "según estudios", "las investigaciones demuestran",
             "es bien sabido", "todos saben",
         ]

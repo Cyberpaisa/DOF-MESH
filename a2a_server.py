@@ -1,14 +1,14 @@
 """
-A2A Server — Expone los crews como servicios descubribles.
+A2A Server — Exposes crews as discoverable services.
 
-Otros agentes (LangGraph, AutoGen, etc.) pueden:
-  1. Descubrir nuestros crews via /.well-known/agent-card.json
-  2. Enviar tareas y recibir resultados via JSON-RPC
+Other agents (LangGraph, AutoGen, etc.) can:
+  1. Discover our crews via /.well-known/agent-card.json
+  2. Send tasks and receive results via JSON-RPC
 
-Uso:
-  python a2a_server.py                    → Puerto 8000
-  python a2a_server.py --port 9000        → Puerto custom
-  python a2a_server.py --crew research    → Solo Research crew
+Usage:
+  python a2a_server.py                    → Port 8000
+  python a2a_server.py --port 9000        → Custom port
+  python a2a_server.py --crew research    → Research crew only
 """
 
 import argparse
@@ -65,7 +65,7 @@ def _verify_hmac(headers: dict, body: bytes) -> tuple[bool, str]:
     return True, "ok"
 
 # ═══════════════════════════════════════════════════════
-# AGENT CARD — Describe nuestras capacidades
+# AGENT CARD — Describe our capabilities
 # ═══════════════════════════════════════════════════════
 
 AGENT_CARD = {
@@ -126,11 +126,11 @@ AGENT_CARD = {
 
 
 # ═══════════════════════════════════════════════════════
-# EJECUTAR CREW POR SKILL ID
+# EXECUTE CREW BY SKILL ID
 # ═══════════════════════════════════════════════════════
 
 def execute_skill(skill_id: str, input_text: str) -> dict:
-    """Ejecuta el crew correspondiente al skill con supervisor + governance + tracing."""
+    """Execute the crew for a given skill with supervisor + governance + tracing."""
     from crew import (
         create_research_crew,
         create_code_review_crew,
@@ -205,7 +205,7 @@ def execute_skill(skill_id: str, input_text: str) -> dict:
 # ═══════════════════════════════════════════════════════
 
 class A2AHandler(BaseHTTPRequestHandler):
-    """Handler HTTP que implementa A2A protocol simplificado."""
+    """HTTP handler implementing simplified A2A protocol."""
 
     def do_GET(self):
         if self.path == "/.well-known/agent-card.json":
@@ -280,7 +280,7 @@ class A2AHandler(BaseHTTPRequestHandler):
 
 
 def start_server(port: int = 8000):
-    """Inicia el A2A server."""
+    """Start the A2A server."""
     server = HTTPServer(("0.0.0.0", port), A2AHandler)
     logger.info(f"A2A Server running on http://localhost:{port}")
     logger.info(f"Agent card: http://localhost:{port}/.well-known/agent-card.json")
