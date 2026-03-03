@@ -140,167 +140,169 @@ _exhausted_providers: set[str] = set()
 
 
 def mark_provider_exhausted(provider: str):
-    """Marca un provider como agotado (rate limit). Se salta en todas las asignaciones."""
+    """Mark a provider as exhausted (rate limit). Skipped in all assignments."""
     provider = provider.lower()
     _exhausted_providers.add(provider)
-    logger.warning(f"Provider '{provider}' marcado como agotado. Activos sin él: {_get_active_providers()}")
+    logger.warning(f"Provider '{provider}' marked as exhausted. Active: {_get_active_providers()}")
 
 
 def reset_exhausted_providers():
-    """Resetea todos los providers a disponibles."""
+    """Reset all providers to available."""
     _exhausted_providers.clear()
-    logger.info("Todos los providers reseteados a disponibles.")
+    logger.info("All providers reset to available.")
 
 
 def _get_active_providers() -> list[str]:
-    """Lista providers activos (no agotados)."""
+    """List active (non-exhausted) providers."""
     all_providers = ["groq", "nvidia", "cerebras", "zhipu"]
     return [p for p in all_providers if p not in _exhausted_providers]
 
 
 def _is_available(provider: str) -> bool:
-    """Verifica si un provider está disponible (no agotado + tiene API key)."""
+    """Check if a provider is available (not exhausted)."""
     return provider.lower() not in _exhausted_providers
 
 
 def _try_get(provider: str, getter, **kwargs):
-    """Intenta obtener un LLM de un provider si está disponible."""
+    """Try to get an LLM from a provider if available."""
     if not _is_available(provider):
         return None
     return getter(**kwargs)
 
 
 # ═══════════════════════════════════════════════════════
-# ASIGNACIÓN POR ROL — Con auto-fallback resiliente
+# ROLE ASSIGNMENT — With LiteLLM auto-fallback on rate limit
 # ═══════════════════════════════════════════════════════
-# Cada rol tiene cadena completa: Primario → Fallback 1 → Fallback 2 → Fallback 3
-# Si un provider está agotado, se salta automáticamente al siguiente.
+# Each role has a provider chain. First available becomes primary.
+# Remaining providers attach as LiteLLM fallbacks so rate-limit
+# errors auto-rotate to the next provider at the transport layer.
+
+_ROLE_CHAINS = {
+    "code_architect":    [("nvidia", "nvidia_nim/moonshotai/kimi-k2.5"),
+                          ("groq", "groq/moonshotai/kimi-k2-instruct"),
+                          ("cerebras", "cerebras/gpt-oss-120b"),
+                          ("zhipu", "openai/glm-4.7-flash")],
+    "research_analyst":  [("groq", "groq/llama-3.3-70b-versatile"),
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
+                          ("cerebras", "cerebras/gpt-oss-120b"),
+                          ("zhipu", "openai/glm-4.7-flash")],
+    "mvp_strategist":    [("nvidia", "nvidia_nim/qwen/qwen3.5-397b-a17b"),
+                          ("cerebras", "cerebras/gpt-oss-120b"),
+                          ("zhipu", "openai/glm-4.7-flash"),
+                          ("groq", "groq/llama-3.3-70b-versatile")],
+    "qa_reviewer":       [("cerebras", "cerebras/gpt-oss-120b"),
+                          ("groq", "groq/llama-3.3-70b-versatile"),
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
+                          ("zhipu", "openai/glm-4.7-flash")],
+    "data_engineer":     [("cerebras", "cerebras/gpt-oss-120b"),
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
+                          ("groq", "groq/llama-3.3-70b-versatile"),
+                          ("zhipu", "openai/glm-4.7-flash")],
+    "project_organizer": [("groq", "groq/qwen/qwen3-32b"),
+                          ("cerebras", "cerebras/gpt-oss-120b"),
+                          ("zhipu", "openai/glm-4.7-flash"),
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2")],
+    "narrative_content": [("cerebras", "cerebras/gpt-oss-120b"),
+                          ("zhipu", "openai/glm-4.7-flash"),
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
+                          ("groq", "groq/llama-3.3-70b-versatile")],
+    "verifier":          [("cerebras", "cerebras/gpt-oss-120b"),
+                          ("groq", "groq/llama-3.3-70b-versatile"),
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
+                          ("zhipu", "openai/glm-4.7-flash")],
+}
+
+_DEFAULT_CHAIN = [
+    ("cerebras", "cerebras/gpt-oss-120b"),
+    ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
+    ("groq", "groq/llama-3.3-70b-versatile"),
+    ("zhipu", "openai/glm-4.7-flash"),
+]
+
+_ROLE_TEMPS = {
+    "code_architect": 0.2, "research_analyst": 0.5, "mvp_strategist": 0.6,
+    "qa_reviewer": 0.2, "data_engineer": 0.1, "project_organizer": 0.3,
+    "narrative_content": 0.7, "verifier": 0.2,
+}
+
+_PROVIDER_KEY_ENV = {
+    "groq": "GROQ_API_KEY",
+    "nvidia": "NVIDIA_API_KEY",
+    "cerebras": "CEREBRAS_API_KEY",
+    "zhipu": "ZHIPU_API_KEY",
+}
+
+_ZHIPU_BASE_URL = "https://api.z.ai/api/paas/v4/"
+
+
+def _build_fallback_entry(provider: str, model: str) -> dict | None:
+    """Build a LiteLLM fallback dict for a provider. Returns None if no API key."""
+    key_env = _PROVIDER_KEY_ENV.get(provider)
+    if not key_env:
+        return None
+    api_key = os.getenv(key_env)
+    if not api_key:
+        return None
+    entry = {"model": model, "api_key": api_key}
+    if provider == "zhipu":
+        entry["api_base"] = _ZHIPU_BASE_URL
+    return entry
+
 
 def get_llm_for_role(role: str) -> LLM:
     """
-    Distribución resiliente — Si un provider cae, salta al siguiente automáticamente.
+    Resilient assignment — first available provider becomes primary,
+    remaining providers attach as LiteLLM fallbacks for automatic
+    rotation on rate-limit errors.
 
-    | Agente            | Primario              | Fallback 1            | Fallback 2          | Fallback 3      |
+    | Role              | Primary               | Fallback 1            | Fallback 2          | Fallback 3      |
     |-------------------|-----------------------|-----------------------|---------------------|-----------------|
     | Code Architect    | Kimi K2.5 (NVIDIA)    | Kimi K2 (Groq)        | GPT-OSS (Cerebras)  | GLM-4.7 (Zhipu) |
     | Research Analyst  | Llama 3.3 (Groq)      | DeepSeek V3.2 (NV)    | GPT-OSS (Cerebras)  | GLM-4.7 (Zhipu) |
-    | MVP Strategist    | Qwen3.5-397B (NVIDIA) | GLM-4.7 (Zhipu)       | GPT-OSS (Cerebras)  | Llama 3.3 (Groq)|
-    | Data Engineer     | GPT-OSS (Cerebras)    | DeepSeek V3.2 (NV)    | Llama 3.3 (Groq)    | GLM-4.7 (Zhipu) |
-    | Project Organizer | Qwen3-32B (Groq)      | GLM-4.7 (Zhipu)       | GPT-OSS (Cerebras)  | DeepSeek (NV)   |
+    | MVP Strategist    | Qwen3.5-397B (NVIDIA) | GPT-OSS (Cerebras)    | GLM-4.7 (Zhipu)     | Llama 3.3 (Groq)|
     | QA Reviewer       | GPT-OSS (Cerebras)    | Llama 3.3 (Groq)      | DeepSeek V3.2 (NV)  | GLM-4.7 (Zhipu) |
+    | Data Engineer     | GPT-OSS (Cerebras)    | DeepSeek V3.2 (NV)    | Llama 3.3 (Groq)    | GLM-4.7 (Zhipu) |
+    | Project Organizer | Qwen3-32B (Groq)      | GPT-OSS (Cerebras)    | GLM-4.7 (Zhipu)     | DeepSeek (NV)   |
+    | Narrative         | GPT-OSS (Cerebras)    | GLM-4.7 (Zhipu)       | DeepSeek V3.2 (NV)  | Llama 3.3 (Groq)|
     | Verifier          | GPT-OSS (Cerebras)    | Llama 3.3 (Groq)      | DeepSeek V3.2 (NV)  | GLM-4.7 (Zhipu) |
-    | Narrative         | GLM-4.7 (Zhipu)       | DeepSeek V3.2 (NV)    | GPT-OSS (Cerebras)  | Llama 3.3 (Groq)|
     """
     role = role.lower()
+    chain = _ROLE_CHAINS.get(role, _DEFAULT_CHAIN)
+    temp = _ROLE_TEMPS.get(role, 0.5)
 
-    # Code Architect: NVIDIA → Groq → Cerebras → Zhipu
-    if role == "code_architect":
-        for llm in [
-            lambda: _try_get("nvidia", get_nvidia_llm, model="moonshotai/kimi-k2.5", temperature=0.2),
-            lambda: _try_get("groq", get_groq_llm, model="moonshotai/kimi-k2-instruct", temperature=0.2),
-            lambda: _try_get("cerebras", get_cerebras_llm, model="gpt-oss-120b", temperature=0.2),
-            lambda: _try_get("zhipu", get_zhipu_llm, temperature=0.2),
-        ]:
-            result = llm()
-            if result:
-                return result
+    for i, (provider, model) in enumerate(chain):
+        if not _is_available(provider):
+            continue
+        api_key = os.getenv(_PROVIDER_KEY_ENV.get(provider, ""))
+        if not api_key:
+            continue
 
-    # Research Analyst: Groq → NVIDIA → Cerebras → Zhipu
-    if role == "research_analyst":
-        for llm in [
-            lambda: _try_get("groq", get_groq_llm, model="llama-3.3-70b-versatile", temperature=0.5),
-            lambda: _try_get("nvidia", get_nvidia_llm, model="deepseek-ai/deepseek-v3.2", temperature=0.5),
-            lambda: _try_get("cerebras", get_cerebras_llm, model="gpt-oss-120b", temperature=0.5),
-            lambda: _try_get("zhipu", get_zhipu_llm, temperature=0.5),
-        ]:
-            result = llm()
-            if result:
-                return result
+        # Build fallbacks from remaining chain entries
+        fallbacks = []
+        for j, (fb_prov, fb_model) in enumerate(chain):
+            if j == i:
+                continue
+            entry = _build_fallback_entry(fb_prov, fb_model)
+            if entry:
+                fallbacks.append(entry)
 
-    # MVP Strategist: NVIDIA → Cerebras → Zhipu → Groq
-    if role == "mvp_strategist":
-        for llm in [
-            lambda: _try_get("nvidia", get_nvidia_llm, model="qwen/qwen3.5-397b-a17b", temperature=0.6),
-            lambda: _try_get("cerebras", get_cerebras_llm, model="gpt-oss-120b", temperature=0.6),
-            lambda: _try_get("zhipu", get_zhipu_llm, temperature=0.6),
-            lambda: _try_get("groq", get_groq_llm, model="llama-3.3-70b-versatile", temperature=0.6),
-        ]:
-            result = llm()
-            if result:
-                return result
+        # Build primary LLM with fallbacks
+        kwargs = {
+            "model": model,
+            "api_key": api_key,
+            "temperature": temp,
+            "max_tokens": 4096,
+        }
+        if provider == "zhipu":
+            kwargs["base_url"] = _ZHIPU_BASE_URL
+            kwargs["extra_body"] = {"enable_thinking": False}
+        if fallbacks:
+            kwargs["fallbacks"] = fallbacks
 
-    # QA Reviewer: Cerebras → Groq → NVIDIA → Zhipu
-    if role == "qa_reviewer":
-        for llm in [
-            lambda: _try_get("cerebras", get_cerebras_llm, model="gpt-oss-120b", temperature=0.2),
-            lambda: _try_get("groq", get_groq_llm, model="llama-3.3-70b-versatile", temperature=0.2),
-            lambda: _try_get("nvidia", get_nvidia_llm, model="deepseek-ai/deepseek-v3.2", temperature=0.2),
-            lambda: _try_get("zhipu", get_zhipu_llm, temperature=0.2),
-        ]:
-            result = llm()
-            if result:
-                return result
+        logger.info(f"LLM for '{role}': {model} + {len(fallbacks)} fallbacks")
+        return LLM(**kwargs)
 
-    # Data Engineer: Cerebras → NVIDIA → Groq → Zhipu
-    if role == "data_engineer":
-        for llm in [
-            lambda: _try_get("cerebras", get_cerebras_llm, model="gpt-oss-120b", temperature=0.1),
-            lambda: _try_get("nvidia", get_nvidia_llm, model="deepseek-ai/deepseek-v3.2", temperature=0.1),
-            lambda: _try_get("groq", get_groq_llm, model="llama-3.3-70b-versatile", temperature=0.1),
-            lambda: _try_get("zhipu", get_zhipu_llm, temperature=0.1),
-        ]:
-            result = llm()
-            if result:
-                return result
-
-    # Organizer: Groq → Cerebras → Zhipu → NVIDIA
-    if role == "project_organizer":
-        for llm in [
-            lambda: _try_get("groq", get_groq_llm, model="qwen/qwen3-32b", temperature=0.3),
-            lambda: _try_get("cerebras", get_cerebras_llm, model="gpt-oss-120b", temperature=0.3),
-            lambda: _try_get("zhipu", get_zhipu_llm, temperature=0.3),
-            lambda: _try_get("nvidia", get_nvidia_llm, model="deepseek-ai/deepseek-v3.2", temperature=0.3),
-        ]:
-            result = llm()
-            if result:
-                return result
-
-    # Narrative: Cerebras → Zhipu → NVIDIA → Groq
-    if role == "narrative_content":
-        for llm in [
-            lambda: _try_get("cerebras", get_cerebras_llm, model="gpt-oss-120b", temperature=0.7),
-            lambda: _try_get("zhipu", get_zhipu_llm, temperature=0.7),
-            lambda: _try_get("nvidia", get_nvidia_llm, model="deepseek-ai/deepseek-v3.2", temperature=0.7),
-            lambda: _try_get("groq", get_groq_llm, temperature=0.7),
-        ]:
-            result = llm()
-            if result:
-                return result
-
-    # Verifier: Cerebras → Groq → NVIDIA → Zhipu
-    if role == "verifier":
-        for llm in [
-            lambda: _try_get("cerebras", get_cerebras_llm, model="gpt-oss-120b", temperature=0.2),
-            lambda: _try_get("groq", get_groq_llm, model="llama-3.3-70b-versatile", temperature=0.2),
-            lambda: _try_get("nvidia", get_nvidia_llm, model="deepseek-ai/deepseek-v3.2", temperature=0.2),
-            lambda: _try_get("zhipu", get_zhipu_llm, temperature=0.2),
-        ]:
-            result = llm()
-            if result:
-                return result
-
-    # Default: cualquier provider disponible
-    for llm in [
-        lambda: _try_get("cerebras", get_cerebras_llm, temperature=0.5),
-        lambda: _try_get("nvidia", get_nvidia_llm, temperature=0.5),
-        lambda: _try_get("groq", get_groq_llm, temperature=0.5),
-        lambda: _try_get("zhipu", get_zhipu_llm, temperature=0.5),
-    ]:
-        result = llm()
-        if result:
-            return result
-
-    raise ValueError(f"Todos los providers están agotados. No hay LLM disponible para {role}.")
+    raise ValueError(f"All providers exhausted. No LLM available for {role}.")
 
 
 # ═══════════════════════════════════════════════════════
