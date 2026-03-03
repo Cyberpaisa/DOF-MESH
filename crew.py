@@ -450,7 +450,14 @@ def _pre_research(topic: str, num_queries: int = 5) -> str:
         return "\n⚠️ No se pudieron obtener resultados web. Usa tu conocimiento interno.\n"
 
     header = f"## DATOS REALES DE INTERNET ({len(all_results)} búsquedas exitosas)\n"
-    return header + "\n".join(all_results)
+    full_text = header + "\n".join(all_results)
+
+    # Truncate to avoid exceeding provider TPM limits (Groq 12K TPM)
+    max_chars = 3000
+    if len(full_text) > max_chars:
+        full_text = full_text[:max_chars] + "\n... [truncated]"
+
+    return full_text
 
 
 def create_pure_research_crew(topic: str) -> Crew:
