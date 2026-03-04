@@ -471,11 +471,12 @@ def run_interactive():
     console.print("  [magenta]16.[/magenta] [bold]Verify Formal Invariants[/bold] (Z3 SMT proofs)")
     console.print("  [magenta]17.[/magenta] [bold]Adversarial Evaluation[/bold] (Red Team on last output)")
     console.print("  [magenta]18.[/magenta] [bold]Memory Governance Dashboard[/bold]")
+    console.print("  [magenta]19.[/magenta] [bold]OAGS Compliance Check[/bold]")
     console.print("  [cyan]0.[/cyan]  Exit")
 
     choice = IntPrompt.ask(
         "\nOption",
-        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"],
+        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"],
     )
 
     if choice == 0:
@@ -572,6 +573,8 @@ def run_interactive():
         launch_adversarial(session_runs)
     elif choice == 18:
         launch_memory_dashboard()
+    elif choice == 19:
+        launch_oags_compliance()
 
     # Track execution in session
     if result:
@@ -818,6 +821,73 @@ def launch_memory_dashboard():
         for bucket, count in age_dist.items():
             age_table.add_row(bucket, str(count))
         console.print(age_table)
+
+    console.print()
+
+
+def launch_oags_compliance():
+    """Run OAGS Compliance Check."""
+    console.print("\n[bold magenta]OAGS Compliance Check — Open Agent Governance Specification[/bold magenta]\n")
+
+    from core.oags_bridge import OAGSIdentity, OAGSPolicyBridge, OAGSAuditBridge
+
+    # Identity
+    try:
+        identity = OAGSIdentity()
+        card = identity.get_agent_card()
+        console.print(f"  [bold]Agent Identity:[/bold] {card['identity_hash'][:16]}...")
+        console.print(f"  [bold]Model:[/bold] {card['model']}")
+        console.print(f"  [bold]Constitution Hash:[/bold] {card['constitution_hash'][:16]}...")
+        console.print(f"  [bold]Framework:[/bold] {card['framework']} v{card['version']}")
+    except Exception as e:
+        console.print(f"  [red]Identity error: {e}[/red]")
+        return
+
+    # Conformance
+    console.print()
+    conformance = OAGSPolicyBridge.validate_conformance(level=3)
+    for lvl in [1, 2, 3]:
+        key = f"level_{lvl}"
+        info = conformance[key]
+        status = "[green]PASS[/green]" if info["passed"] else "[red]FAIL[/red]"
+        console.print(f"  Level {lvl}: {status}")
+        for check in info["checks"]:
+            check_status = "[green]OK[/green]" if check["passed"] else "[red]FAIL[/red]"
+            console.print(f"    {check_status}  {check['check']}: {check['detail']}")
+
+    console.print(f"\n  [bold]Max Level Passed:[/bold] {conformance['max_level_passed']}")
+
+    # Policy count
+    try:
+        import yaml as _yaml
+        c_path = os.path.join(BASE_DIR, "dof.constitution.yml")
+        with open(c_path, "r") as f:
+            data = _yaml.safe_load(f) or {}
+        rules = data.get("rules", {})
+        total_policies = (
+            len(rules.get("hard", []))
+            + len(rules.get("soft", []))
+            + len(rules.get("ast", []))
+        )
+        console.print(f"  [bold]Total Policies:[/bold] {total_policies}")
+    except Exception:
+        pass
+
+    # Audit summary
+    try:
+        audit = OAGSAuditBridge(identity)
+        events = audit.export_audit_events()
+        if events:
+            report = audit.generate_audit_report(events)
+            console.print(f"\n  [bold]Audit Events:[/bold] {report['total_events']}")
+            console.print(f"  [bold]Compliance Rate:[/bold] {report['compliance_rate']:.2%}")
+            if report["by_type"]:
+                for etype, count in sorted(report["by_type"].items()):
+                    console.print(f"    {etype}: {count}")
+        else:
+            console.print("\n  [dim]No audit events found[/dim]")
+    except Exception as e:
+        console.print(f"\n  [yellow]Audit error: {e}[/yellow]")
 
     console.print()
 

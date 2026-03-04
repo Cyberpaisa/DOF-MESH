@@ -110,6 +110,16 @@ from core.memory_governance import (
 )
 
 # ─────────────────────────────────────────────────────────────────────
+# OAGS Bridge
+# ─────────────────────────────────────────────────────────────────────
+
+from core.oags_bridge import (
+    OAGSIdentity,
+    OAGSPolicyBridge,
+    OAGSAuditBridge,
+)
+
+# ─────────────────────────────────────────────────────────────────────
 # Crew Runner
 # ─────────────────────────────────────────────────────────────────────
 
@@ -190,6 +200,10 @@ __all__ = [
     "MemoryClassifier",
     "ConstitutionalDecay",
     "MemoryEntry",
+    # OAGS Bridge
+    "OAGSIdentity",
+    "OAGSPolicyBridge",
+    "OAGSAuditBridge",
     # Crew
     "run_crew",
 ]
