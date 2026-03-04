@@ -5,6 +5,7 @@ Estado por modelo, no global permanente. Ningun bloqueo irreversible.
 Includes BayesianProviderSelector for Thompson Sampling-based provider
 selection that balances exploration vs exploitation.
 """
+from __future__ import annotations
 
 import os
 import json
@@ -14,10 +15,16 @@ import logging
 import threading
 import math
 from dataclasses import dataclass, field
-from crewai import LLM
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+try:
+    from crewai import LLM
+except ImportError:
+    LLM = None  # type: ignore[assignment,misc]
 
-load_dotenv()
 logger = logging.getLogger("core.providers")
 
 # LiteLLM env vars

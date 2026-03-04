@@ -21,8 +21,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install package with dev dependencies
-        run: pip install -e ".[dev]"
+      - name: Install test dependencies (minimal — no crewai/litellm)
+        run: |
+          pip install --upgrade pip
+          pip install z3-solver pyyaml python-dotenv rich
+
+      - name: Install dof package (no transitive deps)
+        run: pip install -e . --no-deps
 
       - name: Run tests
         # pytest has a web3 plugin conflict in this project — use unittest runner
@@ -41,8 +46,6 @@ jobs:
         run: python -c "import dof; print('dof', dof.__version__, '— OK')"
 
       - name: Run quickstart example (smoke test)
-        env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: python examples/quickstart.py
-        # NOTE: Z3 proofs and governance run without API key.
-        # Crew execution is skipped in this example — no API key required.
+        # Z3 proofs, governance, metrics, and error classification
+        # run without any API keys or crewai dependency.
