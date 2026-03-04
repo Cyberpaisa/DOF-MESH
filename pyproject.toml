@@ -50,7 +50,11 @@ interfaces = [
     "gTTS>=2.5.0",
     "sounddevice>=0.5.0",
 ]
-all = ["dof-sdk[dev,data,interfaces]"]
+api = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.20.0",
+]
+all = ["dof-sdk[dev,data,interfaces,api]"]
 
 [project.urls]
 Homepage = "https://github.com/jquiceno/dof-sdk"
