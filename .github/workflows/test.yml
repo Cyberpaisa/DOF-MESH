@@ -43,6 +43,7 @@ jobs:
             tests.test_memory_governance \
             tests.test_oags_bridge \
             tests.test_oracle_bridge \
+            tests.test_full_pipeline \
             -v
 
       - name: Verify public API imports

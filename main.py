@@ -473,11 +473,12 @@ def run_interactive():
     console.print("  [magenta]18.[/magenta] [bold]Memory Governance Dashboard[/bold]")
     console.print("  [magenta]19.[/magenta] [bold]OAGS Compliance Check[/bold]")
     console.print("  [magenta]20.[/magenta] [bold]ERC-8004 Attestation Dashboard[/bold]")
+    console.print("  [magenta]21.[/magenta] [bold]Run Full Pipeline Test[/bold] (end-to-end validation)")
     console.print("  [cyan]0.[/cyan]  Exit")
 
     choice = IntPrompt.ask(
         "\nOption",
-        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"],
+        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"],
     )
 
     if choice == 0:
@@ -578,6 +579,8 @@ def run_interactive():
         launch_oags_compliance()
     elif choice == 20:
         launch_attestation_dashboard()
+    elif choice == 21:
+        launch_full_pipeline_test()
 
     # Track execution in session
     if result:
@@ -938,6 +941,92 @@ def launch_attestation_dashboard():
                 console.print(f"      {k}: {v}")
     else:
         console.print("  [dim]No attestations found. Run a crew with oracle_mode=True first.[/dim]")
+
+    console.print()
+
+
+def launch_full_pipeline_test():
+    """Run full end-to-end pipeline test exercising all 25+ DOF modules."""
+    console.print("\n[bold magenta]Full Pipeline Test — End-to-End Validation[/bold magenta]\n")
+    console.print("[dim]Exercising all 25+ modules in production order...[/dim]\n")
+
+    import unittest
+    import io
+
+    # Discover and run full pipeline tests
+    loader = unittest.TestLoader()
+    suite = loader.loadTestsFromName("tests.test_full_pipeline")
+
+    # Run with verbose output captured
+    stream = io.StringIO()
+    runner = unittest.TextTestRunner(stream=stream, verbosity=2)
+    result = runner.run(suite)
+
+    # Parse output for display
+    output_text = stream.getvalue()
+
+    # Display results with Rich
+    total = result.testsRun
+    failures = len(result.failures) + len(result.errors)
+    passed = total - failures
+
+    if failures == 0:
+        console.print(f"  [bold green]ALL {total} TESTS PASSED[/bold green]\n")
+    else:
+        console.print(f"  [bold red]{failures} FAILURES[/bold red] out of {total} tests\n")
+
+    # Show individual test results
+    for line in output_text.strip().split("\n"):
+        if line.strip():
+            if "ok" in line.lower() and "..." in line:
+                test_name = line.split(" ...")[0].strip()
+                console.print(f"  [green]PASS[/green]  {test_name}")
+            elif "fail" in line.lower() or "error" in line.lower():
+                console.print(f"  [red]FAIL[/red]  {line.strip()}")
+            elif "..." in line:
+                test_name = line.split(" ...")[0].strip()
+                console.print(f"  [yellow]????[/yellow]  {test_name}")
+
+    # Show failures detail
+    if result.failures:
+        console.print("\n[bold red]Failures:[/bold red]")
+        for test, traceback in result.failures:
+            console.print(f"\n  [red]{test}[/red]")
+            for tb_line in traceback.strip().split("\n")[-3:]:
+                console.print(f"    [dim]{tb_line}[/dim]")
+
+    if result.errors:
+        console.print("\n[bold red]Errors:[/bold red]")
+        for test, traceback in result.errors:
+            console.print(f"\n  [red]{test}[/red]")
+            for tb_line in traceback.strip().split("\n")[-3:]:
+                console.print(f"    [dim]{tb_line}[/dim]")
+
+    # Summary
+    console.print(f"\n  [bold]Summary:[/bold] {passed}/{total} passed, {failures} failed")
+
+    # Check for report file
+    report_path = os.path.join(BASE_DIR, "logs", "full_pipeline_report.json")
+    if os.path.exists(report_path):
+        console.print(f"  [dim]Report saved to {report_path}[/dim]")
+        with open(report_path) as f:
+            report = json.load(f)
+        if "stages" in report:
+            stage_table = Table(title="Pipeline Stages", show_lines=False)
+            stage_table.add_column("Stage", style="cyan", width=6)
+            stage_table.add_column("Name", width=30)
+            stage_table.add_column("Status")
+            stage_table.add_column("Time", justify="right")
+            for stage in report["stages"]:
+                status_style = "green" if stage["status"] == "PASS" else "red"
+                console.print()  # spacing
+                stage_table.add_row(
+                    stage["stage"],
+                    stage["name"],
+                    f"[{status_style}]{stage['status']}[/{status_style}]",
+                    f"{stage.get('elapsed_ms', 0):.1f}ms",
+                )
+            console.print(stage_table)
 
     console.print()
 
