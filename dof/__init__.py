@@ -107,6 +107,7 @@ from core.memory_governance import (
     MemoryClassifier,
     ConstitutionalDecay,
     MemoryEntry,
+    ConflictError,
 )
 
 # ─────────────────────────────────────────────────────────────────────
@@ -211,6 +212,7 @@ __all__ = [
     "MemoryClassifier",
     "ConstitutionalDecay",
     "MemoryEntry",
+    "ConflictError",
     # OAGS Bridge
     "OAGSIdentity",
     "OAGSPolicyBridge",
