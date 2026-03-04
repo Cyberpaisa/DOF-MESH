@@ -474,11 +474,12 @@ def run_interactive():
     console.print("  [magenta]19.[/magenta] [bold]OAGS Compliance Check[/bold]")
     console.print("  [magenta]20.[/magenta] [bold]ERC-8004 Attestation Dashboard[/bold]")
     console.print("  [magenta]21.[/magenta] [bold]Run Full Pipeline Test[/bold] (end-to-end validation)")
+    console.print("  [magenta]22.[/magenta] [bold]Start MCP Server[/bold] (DOF governance as MCP tools)")
     console.print("  [cyan]0.[/cyan]  Exit")
 
     choice = IntPrompt.ask(
         "\nOption",
-        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"],
+        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22"],
     )
 
     if choice == 0:
@@ -581,6 +582,8 @@ def run_interactive():
         launch_attestation_dashboard()
     elif choice == 21:
         launch_full_pipeline_test()
+    elif choice == 22:
+        launch_mcp_server()
 
     # Track execution in session
     if result:
@@ -1029,6 +1032,40 @@ def launch_full_pipeline_test():
             console.print(stage_table)
 
     console.print()
+
+
+def launch_mcp_server():
+    """Launch DOF MCP Server — governance tools via Model Context Protocol."""
+    console.print("\n[bold magenta]DOF MCP Server — Model Context Protocol[/bold magenta]\n")
+
+    from mcp_server import TOOLS, RESOURCES, SERVER_INFO
+
+    console.print(f"  Server: [cyan]{SERVER_INFO['name']}[/cyan] v{SERVER_INFO['version']}")
+    console.print(f"  Tools:  [green]{len(TOOLS)}[/green]")
+    console.print(f"  Resources: [green]{len(RESOURCES)}[/green]")
+    console.print(f"  Transport: [cyan]stdio[/cyan] (JSON-RPC 2.0)\n")
+
+    # Show tools
+    for name, spec in TOOLS.items():
+        console.print(f"    [green]>[/green] {name}")
+
+    console.print(f"\n  [dim]Configure in Claude Desktop, Cursor, or any MCP client.[/dim]")
+    console.print(f"  [dim]See docs/MCP_SETUP.md for configuration examples.[/dim]\n")
+
+    mode = Prompt.ask(
+        "Start server now?",
+        choices=["yes", "no", "list"],
+        default="yes",
+    )
+
+    if mode == "list":
+        from mcp_server import list_tools
+        list_tools()
+    elif mode == "yes":
+        console.print("[green]Starting MCP Server on stdio...[/green]")
+        console.print("[dim]Press Ctrl+C to stop[/dim]\n")
+        from mcp_server import run_stdio
+        run_stdio()
 
 
 def launch_a2a_server():

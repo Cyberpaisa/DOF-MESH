@@ -44,6 +44,7 @@ jobs:
             tests.test_oags_bridge \
             tests.test_oracle_bridge \
             tests.test_full_pipeline \
+            tests.test_mcp_server \
             -v
 
       - name: Verify public API imports
