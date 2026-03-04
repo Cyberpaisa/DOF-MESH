@@ -4,7 +4,7 @@
 >
 > This repository formalizes reproducible experimentation, resilience metrics, controlled degradation modeling, governance invariance, and deterministic evaluation in heterogeneous provider environments.
 
-Python 3.11+ | Apache-2.0 | 4,000+ LOC | 19 core modules | 149 tests | Z3 formal verification | pip install dof-sdk
+Python 3.11+ | Apache-2.0 | 6,000+ LOC | 25+ core modules | 293 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | pip install dof-sdk
 
 ---
 
@@ -20,7 +20,7 @@ while constitutional governance enforcement remains invariant:
 
 GCR(f) = 1.0
 
-The system provides a reproducible experimental substrate for evaluating resilience in multi-agent LLM systems under adversarial infrastructure perturbations.
+The system provides a reproducible experimental substrate for evaluating resilience in multi-agent LLM systems under adversarial infrastructure perturbations. The framework further provides constitutional memory governance with bi-temporal versioning and relevance decay, OAGS-conformant agent identity via BLAKE3 deterministic hashing, and compliance-gated on-chain attestation of governance metrics via ERC-8004 on Avalanche C-Chain.
 
 ---
 
@@ -63,6 +63,12 @@ Without formal metrics and deterministic evaluation, observed performance differ
 14. Constitutional Policy-as-Code — Formalization of all governance rules in a versioned dof.constitution.yml specification. YAML serves as the canonical governance source with JSON Schema validation. Rules are categorized by severity (block/warn), with explicit pattern definitions, evidence specifications, and metric documentation. The governance.py module loads rules from YAML at runtime with fallback to in-code defaults.
 
 15. SDK Package — pip-installable package (dof-sdk 0.1.0) exposing a public API: dof.register() for governance initialization, dof.verify() for Z3 proof execution, dof.Constitution for rule enforcement, and dof.Metrics for formal metric access. Backward-compatible wrapper over existing core modules.
+
+16. Constitutional Memory Governance — First memory persistence system with formal governance enforcement. GovernedMemoryStore validates every add, update, and delete operation against ConstitutionEnforcer prior to persistence. TemporalGraph implements bi-temporal versioning (valid_from, valid_to, recorded_at) enabling point-in-time state reconstruction and temporal diff operations. MemoryClassifier assigns categories via deterministic keyword matching without LLM involvement. ConstitutionalDecay applies configurable relevance decay (λ = 0.99/hour) with constitutionally protected categories: decisions and error records are immune to decay by design. All operations persist to append-only JSONL with full audit trail. Zero external dependencies.
+
+17. OAGS Conformance Bridge — Compatibility layer implementing the Open Agent Governance Specification. OAGSIdentity computes deterministic agent identity via BLAKE3 hashing of model configuration, constitution hash, and tool manifest. OAGSPolicyBridge provides bidirectional conversion between dof.constitution.yml and sekuire.yml policy formats, enabling interoperability with OAGS-conformant systems. OAGSAuditBridge exports DOF JSONL execution traces as OAGS-formatted audit events. Conformance validation spans three levels: Level 1 (declarative governance policy exists), Level 2 (runtime enforcement active), Level 3 (attestation mechanism operational).
+
+18. ERC-8004 Oracle Bridge — On-chain attestation mechanism bridging off-chain governance verification with the ERC-8004 Validation Registry on Avalanche C-Chain. OracleBridge generates AttestationCertificates containing signed governance metrics (SS, GCR, PFI, RP, SSR) with BLAKE3 certificate hashing and HMAC-SHA256 signatures. Publishing is compliance-gated: only attestations with GCR = 1.0 are eligible for on-chain publication; governance failures produce no attestation, ensuring the on-chain record reflects only verified compliance. Batch attestation aggregation reduces gas cost for high-throughput deployments. AttestationRegistry maintains an off-chain JSONL ledger with export-for-chain capability. Transaction structures are prepared for Avalanche C-Chain without requiring live blockchain connectivity during testing.
 
 ---
 
@@ -110,6 +116,10 @@ Definition: Fraction of runs passing all governance constraints.
 Metric: Supervisor Strictness Ratio (SSR)
 Domain: [0,1]
 Definition: Fraction of completed runs rejected by the meta-supervisor.
+
+Metric: Adversarial Consensus Rate (ACR)
+Domain: [0,1]
+Definition: Fraction of RedTeam-identified issues resolved through Guardian defense with deterministic evidence.
 
 All metrics are defined over finite experimental batches of size n ≥ 1.
 
@@ -200,6 +210,85 @@ The DeterministicArbiter accepts a Guardian defense only if accompanied by deter
 This architecture exploits LLM sycophancy bidirectionally — the RedTeamAgent is reward-biased toward finding defects while the GuardianAgent is biased toward defending quality — then resolves the dialectic through a deterministic referee immune to LLM failure modes.
 
 Metric: Adversarial Consensus Rate (ACR) = |resolved_issues| / |total_issues|, domain [0,1].
+
+---
+
+## Constitutional Memory Governance
+
+The framework implements a governed memory persistence layer that enforces constitutional rules on all memory operations. Unlike conventional memory systems (Mem0, Graphiti, Cognee) that store information without governance constraints, the GovernedMemoryStore validates every write operation against the ConstitutionEnforcer before persistence.
+
+### Architecture
+
+| Component | Function | LLM Dependency |
+|-----------|----------|----------------|
+| GovernedMemoryStore | CRUD operations with governance validation on every write | No |
+| TemporalGraph | Bi-temporal versioning: snapshot(as_of), timeline(), diff() | No |
+| MemoryClassifier | Deterministic category assignment via keyword matching | No |
+| ConstitutionalDecay | Relevance decay with constitutionally protected categories | No |
+
+### Bi-Temporal Versioning Model
+
+Each memory entry maintains three temporal coordinates:
+
+- `valid_from`: timestamp when the fact became true in the domain
+- `valid_to`: timestamp when the fact ceased to be true (null if current)
+- `recorded_at`: timestamp when the system recorded the entry
+
+This enables point-in-time reconstruction: `snapshot(as_of=t)` returns the complete memory state as known at time t. The `diff(t1, t2)` operation computes the set difference between two temporal snapshots, identifying additions, updates, and deletions within a time range.
+
+### Constitutional Decay
+
+Memory relevance decays according to: `relevance(t) = relevance(t₀) × λ^(t - t₀)` where λ = 0.99/hour by default. Memories with relevance below the configured threshold (0.1) are archived.
+
+Two categories are constitutionally protected from decay: **decisions** and **errors**. The rationale is that past decisions and learned error patterns retain permanent value regardless of recency. This is a governance property enforced by the constitution, not a heuristic.
+
+### Memory Governance Rules
+
+Configured in `dof.constitution.yml` under the `memory:` section:
+- `enforce_on_add: true` — every add() call passes through ConstitutionEnforcer
+- `enforce_on_update: true` — every update() call passes through ConstitutionEnforcer
+- `protected_categories: [decisions, errors]` — immune to relevance decay
+- `max_memories: 10000` — configurable capacity limit
+
+---
+
+## OAGS Conformance
+
+The framework implements compatibility with the Open Agent Governance Specification (OAGS) through deterministic identity management, bidirectional policy conversion, and structured audit event export.
+
+### Agent Identity
+
+Agent identity is computed as the BLAKE3 hash of the concatenation of model identifier, constitution hash, and sorted tool manifest. This produces a deterministic 64-character hex identifier: the same agent configuration always yields the same identity hash, while any change to model, governance rules, or available tools produces a distinct identity.
+
+### Conformance Levels
+
+| Level | Requirement | DOF Implementation | Status |
+|-------|-------------|-------------------|--------|
+| 1 — Declarative | Governance policy exists in machine-readable format | `dof.constitution.yml` with JSON Schema validation | PASSED |
+| 2 — Runtime | Governance enforcement active during execution | ConstitutionEnforcer evaluates every crew output; AST verification on generated code | PASSED |
+| 3 — Attestation | Cryptographic attestation of governance outcomes | ERC-8004 Oracle Bridge with HMAC-SHA256 signed certificates | PASSED |
+
+### Policy Interoperability
+
+`OAGSPolicyBridge.export_sekuire()` converts `dof.constitution.yml` to `sekuire.yml` format, mapping HARD_RULES to block policies, SOFT_RULES to warn policies, and AST_RULES to code_analysis policies. The reverse operation `import_sekuire()` enables ingestion of external OAGS policies into the DOF governance framework.
+
+---
+
+## On-Chain Attestation via ERC-8004
+
+The Oracle Bridge connects off-chain governance verification with the ERC-8004 Validation Registry on Avalanche C-Chain, providing immutable third-party-verifiable records of governance compliance.
+
+### Attestation Certificate Structure
+
+Each attestation contains: agent identity (BLAKE3), task identifier, timestamp, governance metrics (SS, GCR, PFI, RP, SSR), governance status (COMPLIANT/NON_COMPLIANT), Z3 verification status, HMAC-SHA256 signature, and BLAKE3 certificate hash.
+
+### Compliance-Gated Publishing
+
+The publishing rule is deterministic: attestations are eligible for on-chain publication if and only if GCR = 1.0. If governance compliance fails (GCR < 1.0), no attestation is generated for that execution. This ensures the on-chain record contains only verified compliance — governance failures leave no on-chain trace, preventing the attestation registry from recording non-compliant executions.
+
+### Transaction Preparation
+
+`OracleBridge.prepare_transaction()` generates ERC-8004-compatible transaction structures for Avalanche C-Chain without requiring live blockchain connectivity. `batch_attestations()` aggregates multiple certificates into a single transaction for gas optimization. The `AttestationRegistry` maintains a local JSONL ledger with `export_for_chain()` to retrieve pending attestations.
 
 ---
 
@@ -530,6 +619,9 @@ core/
   z3_verifier.py            # Z3 SMT formal proofs (4 theorems)
   adversarial.py            # Red-on-Blue evaluation protocol
   task_contract.py          # Formal task contracts with quality gates
+  memory_governance.py      # Constitutional memory store with temporal graph
+  oags_bridge.py            # OAGS identity, policy bridge, audit export
+  oracle_bridge.py          # ERC-8004 attestation and oracle bridge
 
 dof/
   __init__.py               # pip-installable public API (dof-sdk 0.1.0)
@@ -549,7 +641,7 @@ experiments/
   schema.json
   parametric_sweep.csv
 
-tests/                      # 149 tests across 7 test modules
+tests/                      # 293 tests across 12 test modules
 examples/
   quickstart.py             # SDK usage demonstration (no API key required)
 docs/
@@ -560,10 +652,10 @@ docs/
 ## Citation
 
 @article{cyberpaisa2026deterministic,
-  title={Deterministic Observability and Resilience Engineering for Multi-Agent LLM Systems: An Experimental Framework},
+  title={Deterministic Observability and Resilience Engineering for Multi-Agent LLM Systems: An Experimental Framework with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={4,000+ LOC, 19 core modules, 149 tests, 120 parametric experiments, 52 production runs, 5 formal metrics, Z3 SMT formal verification, adversarial Red-on-Blue protocol, Bayesian provider selection, formal task contracts, pip-installable SDK}
+  note={6,000+ LOC, 25+ core modules, 293 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain, adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, 120 parametric experiments, 52 production runs, 6 formal metrics}
 }
 
 ---

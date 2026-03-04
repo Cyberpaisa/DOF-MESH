@@ -4,7 +4,7 @@
 
 ## Abstract
 
-Multi-agent systems built on large language models (LLMs) exhibit failure modes that are distinct from single-model inference pipelines: provider rate limits, model incompatibilities, cascading retries, and non-deterministic output quality interact across execution steps. Existing orchestration frameworks—CrewAI, AutoGen, LangGraph—provide coordination abstractions but do not include instrumentation for measuring system stability under controlled perturbation. This paper presents an experimental framework for deterministic evaluation of multi-agent LLM systems operating across heterogeneous free-tier providers. The framework defines five metrics—Stability Score, Provider Fragility Index, Retry Pressure, Governance Compliance Rate, and Supervisor Strictness Ratio—each with explicit mathematical formulation, domain specification, and aggregation rules. The observability stack comprises run-level tracing with UUID-based session correlation, step-level checkpointing with JSONL persistence, two-tier governance enforcement, and a weighted meta-supervisor quality gate. A deterministic execution mode controls infrastructure-level randomness by fixing provider ordering and seeding pseudo-random number generators. Three experimental configurations validate the framework: a baseline with no injected failures (n=10, SS=1.0, σ=0.0), a reproducibility verification confirming metric identity across independent runs, and a perturbation experiment with periodic failure injection (n=10, SS=0.85, σ=0.2415). The implementation comprises 2,099 lines of Python across nine modules with no external dependencies beyond the orchestration layer. All results are from executed experiments with persisted trace artifacts. The framework now includes Z3 SMT formal verification proving GCR(f) = 1.0 as an architectural invariant, an adversarial Red-on-Blue evaluation protocol resolving supervisor circularity through dialectical conflict with deterministic adjudication, formal task contracts enforcing completion guarantees, causal error attribution with three-class taxonomy, Bayesian provider selection via Thompson Sampling, AST-based static verification, and constitutional policy-as-code specification. Total: 149 tests, 19 modules, 4 formally verified theorems.
+Multi-agent systems built on large language models (LLMs) exhibit failure modes that are distinct from single-model inference pipelines: provider rate limits, model incompatibilities, cascading retries, and non-deterministic output quality interact across execution steps. Existing orchestration frameworks—CrewAI, AutoGen, LangGraph—provide coordination abstractions but do not include instrumentation for measuring system stability under controlled perturbation. This paper presents an experimental framework for deterministic evaluation of multi-agent LLM systems operating across heterogeneous free-tier providers. The framework defines five metrics—Stability Score, Provider Fragility Index, Retry Pressure, Governance Compliance Rate, and Supervisor Strictness Ratio—each with explicit mathematical formulation, domain specification, and aggregation rules. The observability stack comprises run-level tracing with UUID-based session correlation, step-level checkpointing with JSONL persistence, two-tier governance enforcement, and a weighted meta-supervisor quality gate. A deterministic execution mode controls infrastructure-level randomness by fixing provider ordering and seeding pseudo-random number generators. Three experimental configurations validate the framework: a baseline with no injected failures (n=10, SS=1.0, σ=0.0), a reproducibility verification confirming metric identity across independent runs, and a perturbation experiment with periodic failure injection (n=10, SS=0.85, σ=0.2415). The implementation comprises 2,099 lines of Python across nine modules with no external dependencies beyond the orchestration layer. All results are from executed experiments with persisted trace artifacts. The framework now includes Z3 SMT formal verification proving GCR(f) = 1.0 as an architectural invariant, an adversarial Red-on-Blue evaluation protocol resolving supervisor circularity through dialectical conflict with deterministic adjudication, formal task contracts enforcing completion guarantees, causal error attribution with three-class taxonomy, Bayesian provider selection via Thompson Sampling, AST-based static verification, and constitutional policy-as-code specification. The framework further implements constitutional memory governance with bi-temporal versioning and relevance decay, OAGS-conformant agent identity via BLAKE3 deterministic hashing with three-level conformance validation, and compliance-gated on-chain attestation of governance metrics via ERC-8004 on Avalanche C-Chain. Total: 293 tests, 22 core modules, 4 formally verified theorems, OAGS Level 3 conformance.
 
 ---
 
@@ -29,6 +29,9 @@ This paper makes the following contributions:
 11. **Causal error attribution** with a three-class taxonomy (MODEL_FAILURE, INFRA_FAILURE, GOVERNANCE_FAILURE) and causal chain tracking. Classification uses structural analysis of error signals, not LLM interpretation (Section 12).
 12. **Bayesian provider selection** using Thompson Sampling over Beta-distributed reliability estimates with temporal decay (λ = 0.95/hour). Replaces static round-robin with exploration-exploitation balanced rotation (Section 13).
 13. **Constitutional policy-as-code** formalizing all governance rules in a versioned dof.constitution.yml specification, establishing YAML as the canonical governance source with JSON Schema validation and runtime loading (Section 14).
+14. **Constitutional memory governance** providing the first memory persistence system with formal governance enforcement. GovernedMemoryStore validates every write operation against ConstitutionEnforcer. TemporalGraph implements bi-temporal versioning enabling point-in-time state reconstruction. ConstitutionalDecay applies configurable relevance decay with constitutionally protected categories (Section 15).
+15. **OAGS conformance bridge** implementing the Open Agent Governance Specification through deterministic BLAKE3 agent identity, bidirectional policy conversion between dof.constitution.yml and sekuire.yml formats, and structured audit event export. Three-level conformance validation: declarative, runtime enforcement, attestation (Section 16).
+16. **ERC-8004 Oracle Bridge** connecting off-chain governance verification with the ERC-8004 Validation Registry on Avalanche C-Chain. HMAC-SHA256 signed attestation certificates with compliance-gated publishing: only GCR = 1.0 attestations are eligible for on-chain publication. Batch transaction preparation for gas optimization (Section 17).
 
 The system under study consists of eight specialized agents organized into eleven crew configurations, operating across four free-tier LLM providers. All experimental results presented in this paper are from executed runs with persisted traces.
 
@@ -76,6 +79,14 @@ Thompson Sampling [17] is a well-established exploration-exploitation algorithm 
 
 The 4/δ bound established in [18] (arXiv:2512.02080) provides a finite-sample confidence guarantee for the Thompson Sampling regret under bounded reward distributions, which is directly applicable to the retry mechanism: with r = 2 retries, the probability that the selected provider sequence fails to produce a successful execution is bounded by a function of the Beta posterior variances.
 
+### 2.8 Agent Memory Systems
+
+Mem0 [19] provides a memory layer for LLM applications with automatic extraction and retrieval but does not enforce governance constraints on stored content. Graphiti [20] implements temporal knowledge graphs with episodic and semantic memory but lacks constitutional validation of memory operations. Cognee [21] provides scientific memory management with knowledge graph construction but does not integrate governance enforcement at the write path. All three systems treat memory as an unconstrained store: any content produced by an LLM can be persisted regardless of governance compliance. The constitutional memory governance system (Section 15) addresses this gap by interposing ConstitutionEnforcer validation on every write operation.
+
+### 2.9 Agent Governance Specifications
+
+The Open Agent Governance Specification (OAGS), developed by Sekuire, proposes a standardized framework for agent identity, policy declaration, and audit trails. OAGS defines three conformance levels: declarative (policy exists), runtime (enforcement active), and attestation (cryptographic proof of compliance). However, OAGS provides the specification without a reference implementation that includes formal verification. The OAGS conformance bridge (Section 16) implements all three levels with Z3-verified governance invariants, providing the first formally verified OAGS-conformant system.
+
 ---
 
 ## 3. System Architecture
@@ -118,7 +129,7 @@ The system implements a layered architecture with clear separation between agent
 
 ### 3.2 Core Modules
 
-The framework comprises 19 Python modules totaling 4,000+ lines of code, with no external dependencies beyond the orchestration layer (CrewAI) and its transitive dependency (LiteLLM). The original nine modules are extended by ten new modules implementing formal verification, adversarial evaluation, and quality enforcement.
+The framework comprises 22 Python modules totaling 6,000+ lines of code, with no external dependencies beyond the orchestration layer (CrewAI) and its transitive dependency (LiteLLM). The original nine modules are extended by thirteen new modules implementing formal verification, adversarial evaluation, quality enforcement, constitutional memory governance, OAGS conformance, and on-chain attestation.
 
 **Provider Manager** (`providers.py`). Implements per-provider state tracking with TTL-based exhaustion and exponential backoff recovery. Each provider maintains independent state: exhaustion flag, exhaust timestamp, failure count, and TTL. The backoff schedule follows `TTL = min(300 × 2^(failures-1), 1200)` seconds, producing a 5-minute, 10-minute, 20-minute progression capped at 20 minutes. Recovery is automatic: when `now - exhaust_time >= TTL`, the provider is reactivated. Now extended with `BayesianProviderSelector` (Section 13).
 
@@ -798,9 +809,163 @@ The `spec_version` field in the YAML enables governance versioning. All RunTrace
 
 ---
 
-## 15. Discussion
+## 15. Constitutional Memory Governance
 
-### 15.1 Deterministic Reproducibility
+### 15.1 Motivation
+
+Conventional memory systems for LLM agents (Mem0, Graphiti, Cognee) treat memory as an unconstrained store: any content produced by an agent can be persisted without validation. In a governance-enforced framework, this creates an inconsistency — output is governance-checked before delivery, but the same content can be stored in memory without governance validation, potentially contaminating future agent context with non-compliant content.
+
+### 15.2 GovernedMemoryStore Architecture
+
+The `GovernedMemoryStore` interposes `ConstitutionEnforcer` validation on every write path. The `add(content, category, metadata)` method passes the content through `ConstitutionEnforcer.check()` before persistence. If governance validation fails, the memory entry is rejected and the violation is logged to `logs/memory_governance.jsonl`. The `update()` and `delete()` methods follow the same validation pattern.
+
+Memory entries are persisted to append-only JSONL (`logs/governed_memory.jsonl`), maintaining a complete audit trail of all memory operations including rejected writes.
+
+### 15.3 Bi-Temporal Versioning
+
+The `TemporalGraph` implements a bi-temporal data model where each memory entry maintains three temporal coordinates:
+
+- `valid_from`: timestamp when the fact became true in the domain
+- `valid_to`: timestamp when the fact ceased to be true (null if current)
+- `recorded_at`: timestamp when the system recorded the entry
+
+This enables three operations:
+
+1. **snapshot(as_of=t)**: Returns the complete memory state as known at time t. This reconstructs the exact set of memories that were valid and recorded before the specified timestamp.
+2. **timeline(entry_id)**: Returns the complete version history of a specific memory entry, showing all mutations with their temporal coordinates.
+3. **diff(t1, t2)**: Computes the set difference between two temporal snapshots, identifying additions, updates, and deletions within a time range.
+
+The bi-temporal model is essential for audit compliance: it enables retrospective analysis of what an agent "knew" at any point in time, independent of when that knowledge was recorded.
+
+### 15.4 Constitutional Decay
+
+Memory relevance decays according to:
+
+```
+relevance(t) = relevance(t₀) × λ^(t - t₀)
+```
+
+where λ = 0.99/hour by default and t₀ is the timestamp of the last relevance update. Memories with relevance below the configured threshold (0.1) are archived — moved to a separate JSONL file for long-term storage.
+
+Two categories are constitutionally protected from decay: **decisions** and **errors**. The rationale is that past decisions and learned error patterns retain permanent value regardless of recency. This protection is a governance property configured in `dof.constitution.yml` under the `memory.protected_categories` field, not a heuristic embedded in code.
+
+### 15.5 Integration
+
+The `GovernedMemoryStore` is integrated with `crew_runner.py` via the `governed_memory=True` parameter. On successful execution, the crew output is stored as "knowledge"; on terminal failure, the error summary is stored as "errors". The adversarial evaluation module can query memory for historical context when evaluating pattern recurrence.
+
+---
+
+## 16. OAGS Conformance
+
+### 16.1 Open Agent Governance Specification
+
+The Open Agent Governance Specification (OAGS) defines a standardized framework for agent governance comprising agent identity, policy declaration, runtime enforcement, and audit trails. The DOF framework implements OAGS compatibility through three components: `OAGSIdentity`, `OAGSPolicyBridge`, and `OAGSAuditBridge`.
+
+### 16.2 Deterministic Agent Identity
+
+`OAGSIdentity` computes a deterministic agent identity as the BLAKE3 hash (with SHA-256 fallback for environments without the blake3 package) of the concatenation of:
+
+1. Model identifier (e.g., "groq/llama-3.3-70b-versatile")
+2. Constitution hash (BLAKE3 of `dof.constitution.yml` contents)
+3. Sorted tool manifest (canonical JSON serialization of available tools)
+
+This produces a deterministic 64-character hex identifier: the same agent configuration always yields the same identity hash, while any change to model, governance rules, or available tools produces a distinct identity. The identity is included in `get_agent_card()` for external systems.
+
+### 16.3 Three-Level Conformance Validation
+
+| Level | Requirement | DOF Implementation | Verification |
+|-------|-------------|-------------------|-------------|
+| 1 — Declarative | Governance policy exists in machine-readable format | `dof.constitution.yml` with JSON Schema validation | File existence + YAML parse |
+| 2 — Runtime | Governance enforcement active during execution | `ConstitutionEnforcer` evaluates every crew output; `ASTVerifier` on generated code | Class instantiation + method availability |
+| 3 — Attestation | Cryptographic attestation of governance outcomes | ERC-8004 Oracle Bridge with HMAC-SHA256 signed certificates | Module import + class functionality |
+
+`OAGSPolicyBridge.validate_conformance(level=3)` executes all checks for the specified level and returns a structured result with per-check details. All three levels pass in the current implementation.
+
+### 16.4 Policy Interoperability
+
+`OAGSPolicyBridge.export_sekuire()` converts `dof.constitution.yml` to `sekuire.yml` format:
+
+- HARD_RULES → `policies` with `action: block`
+- SOFT_RULES → `policies` with `action: warn`
+- AST_RULES → `policies` with `category: code_analysis`
+
+The reverse operation `import_sekuire()` converts external OAGS policies into the DOF governance format. This bidirectional conversion enables interoperability with other OAGS-conformant systems without modifying the internal governance representation.
+
+### 16.5 Audit Event Export
+
+`OAGSAuditBridge.export_traces(trace_dir)` reads DOF JSONL execution traces and converts them to OAGS audit event format, including: event type, agent identity, timestamp, governance status, and metrics. This enables integration with external OAGS audit infrastructure.
+
+---
+
+## 17. On-Chain Attestation via ERC-8004
+
+### 17.1 Motivation
+
+Off-chain governance verification provides internal assurance but cannot be independently verified by third parties. The ERC-8004 Validation Registry on Avalanche C-Chain provides an immutable public ledger of governance attestations, enabling external verification of compliance claims without access to the agent's internal state.
+
+### 17.2 Attestation Certificate Structure
+
+Each `AttestationCertificate` contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| agent_identity | string | BLAKE3 hash from OAGSIdentity |
+| task_id | string | UUID of the execution run |
+| timestamp | string | ISO 8601 creation timestamp |
+| metrics | dict | SS, GCR, PFI, RP, SSR values |
+| governance_status | string | COMPLIANT or NON_COMPLIANT |
+| z3_verified | bool | True if all Z3 proofs passed |
+| signature | string | HMAC-SHA256 hex signature |
+| certificate_hash | string | BLAKE3 hash of payload + signature |
+
+The `CertificateSigner` generates a random 32-byte secret key on first use, persists it to `keys/oracle_key.json`, and signs attestation payloads with HMAC-SHA256. The signer uses only standard library modules (`hmac`, `hashlib`, `secrets`) — zero external dependencies.
+
+### 17.3 Compliance-Gated Publishing
+
+The publishing rule is deterministic and strict:
+
+```
+should_publish(cert) = True  iff  cert.governance_status == "COMPLIANT"
+```
+
+A certificate receives `governance_status = "COMPLIANT"` if and only if `GCR = 1.0` in the execution metrics. Any governance violation (GCR < 1.0) produces `NON_COMPLIANT`, which is not eligible for on-chain publication.
+
+This design ensures that the on-chain attestation registry contains only verified compliance records. Governance failures leave no on-chain trace, preventing the public ledger from recording non-compliant executions. An attestation with low SS (< 0.5) but perfect GCR (= 1.0) is still published, with a warning logged — stability degradation is an infrastructure concern, not a governance violation.
+
+### 17.4 Transaction Preparation and Batching
+
+`OracleBridge.prepare_transaction(cert)` generates an ERC-8004-compatible transaction structure targeting the Avalanche C-Chain. The transaction includes: agent identity, validation signal (COMPLIANT/NON_COMPLIANT), metrics hash, timestamp, and HMAC signature. No live blockchain connectivity is required — the bridge prepares transaction structures for later submission.
+
+`batch_attestations(certs)` aggregates multiple certificates into a single batch transaction, reducing per-attestation gas cost for high-throughput deployments. Each batch receives a unique UUID for tracking.
+
+### 17.5 Off-Chain Registry
+
+The `AttestationRegistry` maintains a local JSONL ledger (`logs/attestations.jsonl`) of all generated certificates. Key operations:
+
+- `add(cert)`: Persist new attestation
+- `get_attestation(hash)`: Lookup by certificate hash
+- `get_agent_history(identity)`: All attestations for an agent
+- `get_compliance_rate()`: COMPLIANT / total ratio
+- `export_for_chain()`: Unpublished COMPLIANT certificates ready for on-chain submission
+- `mark_published(hash)`: Flag certificate as published
+
+### 17.6 Attestation Verification
+
+`OracleBridge.verify_attestation(cert)` reconstructs the original payload from the certificate fields, re-signs with the same key, and compares the signature. It then recomputes the certificate hash and compares. Both must match for verification to succeed. Any tampering with metrics, timestamps, or governance status produces a verification failure.
+
+---
+
+## 18. Discussion
+
+### 18.1 Constitutional Memory and Governance Integrity
+
+The constitutional memory governance system (Section 15) closes a previously unaddressed gap in agent memory systems: governance-validated output could be stored in memory without re-validation, potentially contaminating future agent context. By interposing ConstitutionEnforcer on every write path, the framework ensures that memory content meets the same governance standard as delivered output. The bi-temporal versioning model provides auditability guarantees that are essential for compliance-sensitive deployments: any point-in-time reconstruction of agent memory state is possible via the TemporalGraph snapshot operation.
+
+The OAGS conformance bridge (Section 16) demonstrates that formal governance frameworks can achieve interoperability with emerging governance specifications without sacrificing verification rigor. The DOF implementation is, to our knowledge, the first OAGS-conformant system with Z3-verified governance invariants.
+
+The ERC-8004 Oracle Bridge (Section 17) extends governance assurance beyond the execution boundary. By publishing compliance attestations to an immutable public ledger, the framework enables third-party verification of governance claims without requiring access to internal execution state. The compliance-gating rule (only GCR = 1.0 published) ensures that the on-chain record represents a curated set of verified compliance events, not a raw audit log.
+
+### 18.2 Deterministic Reproducibility
 
 The reproducibility experiment (Section 6.2) demonstrates perfect metric identity across independent runs, confirming that the deterministic mode successfully eliminates infrastructure-level randomness. This result is theoretically expected for simulated experiments but has practical implications for real provider testing.
 
@@ -808,29 +973,29 @@ In practice, deterministic mode cannot control LLM output randomness (temperatur
 
 A limitation of the current deterministic mode is that it operates at the Python process level. Concurrent executions in separate threads or processes maintain independent random states, which could introduce nondeterminism in multi-threaded deployments.
 
-### 15.2 Sensitivity to Perturbations
+### 18.3 Sensitivity to Perturbations
 
 The perturbation experiment (Section 6.3) shows that a 30% failure injection rate reduces mean Stability from 1.0 to 0.85, a 15% degradation. The relationship is not 30% because Stability is computed per-step within each run: a run with 2 steps where 1 fails has Stability 0.5, not 0.0. The mean across 7 clean runs (Stability=1.0) and 3 perturbed runs (Stability=0.5) is (7×1.0 + 3×0.5)/10 = 0.85.
 
 Provider Fragility Index and Retry Pressure show high standard deviation (0.4830) relative to their mean (0.3000), reflecting the bimodal nature of the underlying data.
 
-### 15.3 Governance Robustness and Formal Proof
+### 18.4 Governance Robustness and Formal Proof
 
 The invariance of Governance Compliance Rate under perturbation (GCR = 1.0 in all experiments) is now elevated beyond an empirical observation: Section 8 provides a machine-checkable Z3 proof that this invariance holds for all f ∈ [0,1] by architectural construction. The constitutional enforcement model—hard rules that block and soft rules that score—provides a useful separation of concerns.
 
-### 15.4 Supervisor Circularity Resolution
+### 18.5 Supervisor Circularity Resolution
 
 Section 9 addresses the fundamental limitation identified in the original framework: LLM-based supervision is subject to the same failure modes as the agents it evaluates. The adversarial Red-on-Blue protocol provides a partial resolution: LLM agents establish the dialectic (defect identification and defense), while a deterministic arbiter resolves it. This does not eliminate LLM involvement in evaluation but bounds its impact: the final quality determination is made by code, not by an LLM.
 
 The ACR metric provides a new signal complementary to the existing SSR: while SSR measures the fraction of outputs rejected by the supervisor (a pass/fail gate), ACR measures the fraction of adversarially identified defects that can be defended with verifiable evidence (a quality signal about the defensibility of the output).
 
-### 15.5 Bayesian vs. Static Provider Selection
+### 18.6 Bayesian vs. Static Provider Selection
 
 The introduction of Thompson Sampling (Section 13) addresses a limitation of the original static rotation: equal treatment of providers regardless of observed reliability. In production deployments where provider reliability is heterogeneous and time-varying, Thompson Sampling provides asymptotically optimal regret bounds under the 4/δ framework [18]. The temporal decay mechanism ensures that historical data does not permanently bias selection against a provider that was temporarily degraded.
 
-The empirical question — whether Bayesian selection produces measurably lower PFI than static selection over a multi-day deployment — is deferred to future work (Section 16.2).
+The empirical question — whether Bayesian selection produces measurably lower PFI than static selection over a multi-day deployment — is deferred to future work (Section 22.2).
 
-### 15.6 Limitations
+### 18.7 Limitations
 
 Several limitations should be acknowledged:
 
@@ -844,9 +1009,9 @@ Several limitations should be acknowledged:
 
 ---
 
-## 16. Threats to Validity
+## 19. Threats to Validity
 
-### 16.1 Internal Validity
+### 19.1 Internal Validity
 
 Internal validity concerns whether the observed metric values are attributable to the experimental variables rather than confounding factors. Three potential confounds are identified.
 
@@ -856,7 +1021,7 @@ Internal validity concerns whether the observed metric values are attributable t
 
 **Token estimation approximation.** Token counts are estimated using a fixed ratio of 4 characters per token. For English text, approximately 4.0 (GPT-class tokenizers); for Spanish, approximately 3.5; for mixed multilingual text, approximately 3.5–4.5.
 
-### 16.2 External Validity
+### 19.2 External Validity
 
 **Simulated vs. real execution.** All controlled experiments use `SimulatedCrew`. Real LLM providers introduce variable latency, non-deterministic output content, model-specific failure modes, and time-dependent availability. The post-integration production baseline (n=30, Section 7.3) provides the first real-provider validation.
 
@@ -864,7 +1029,7 @@ Internal validity concerns whether the observed metric values are attributable t
 
 **Provider heterogeneity.** The framework is validated against four specific providers with free-tier constraints. Error classification heuristics may not generalize to providers with different error reporting conventions.
 
-### 16.3 Construct Validity
+### 19.3 Construct Validity
 
 **ACR and defect coverage.** The ACR metric measures the fraction of *identified* defects that are defensible, not the fraction of *all defects* that are defensible. If the RedTeamAgent fails to identify real defects (false negatives), ACR will be high even for genuinely defective outputs. The quality of ACR as a signal depends on the RedTeamAgent's recall, which has not been benchmarked against human defect identification.
 
@@ -872,7 +1037,7 @@ Internal validity concerns whether the observed metric values are attributable t
 
 **Governance Compliance as quality proxy.** Governance Compliance Rate measures conformance to rule-based constraints, not semantic quality. An output that is linguistically correct, properly structured, and factually wrong would receive GCR=1.0.
 
-### 16.4 Statistical Conclusion Validity
+### 19.4 Statistical Conclusion Validity
 
 **Sample size.** The primary experiments use n=10 runs. For metrics with non-zero variance (e.g., SS under perturbation, σ=0.2415), the 95% confidence interval for the mean is μ ± t₉,₀.₀₂₅ × σ/√n = 0.85 ± 0.173, yielding the interval [0.677, 1.023]. A sample of n=50 would reduce the interval width to ±0.077.
 
@@ -880,18 +1045,18 @@ Internal validity concerns whether the observed metric values are attributable t
 
 ---
 
-## 17. Replication Protocol
+## 20. Replication Protocol
 
-### 17.1 Preconditions
+### 20.1 Preconditions
 
 - Python 3.11 or higher.
-- All 19 core modules present in `core/` and `dof/`.
+- All 22 core modules present in `core/` and `dof/`.
 - `dof.constitution.yml` present in project root.
 - `z3-solver>=4.12` installed (for Section 8 experiments).
 - No external API keys are required for simulated experiments.
 - No GPU or specialized hardware requirements.
 
-### 17.2 Environment Configuration
+### 20.2 Environment Configuration
 
 ```bash
 # Verify Python version
@@ -910,7 +1075,7 @@ python3 -c "import dof; print(dof.__version__)"
 mkdir -p logs/experiments logs/traces experiments
 ```
 
-### 17.3 Z3 Formal Verification
+### 20.3 Z3 Formal Verification
 
 ```python
 from dof import verify
@@ -925,7 +1090,7 @@ for p in proofs:
 # SS_BOUNDARIES: VERIFIED (0.35 ms)
 ```
 
-### 17.4 Exact Experimental Commands
+### 20.4 Exact Experimental Commands
 
 **Experiment 1 — Baseline (No Failures):**
 
@@ -986,7 +1151,7 @@ sweep = run_parametric_sweep(
 # CSV exported to experiments/parametric_sweep.csv
 ```
 
-### 17.5 Expected Artifacts
+### 20.5 Expected Artifacts
 
 After executing all experiments, the following artifacts should exist:
 
@@ -1000,7 +1165,7 @@ After executing all experiments, the following artifacts should exist:
 | Adversarial logs | `logs/adversarial.jsonl` | JSONL | per-run |
 | Contract logs | `logs/task_contracts.jsonl` | JSONL | per-run |
 
-### 17.6 Validation Criteria
+### 20.6 Validation Criteria
 
 Replication is successful if the following conditions hold:
 
@@ -1012,13 +1177,13 @@ Replication is successful if the following conditions hold:
 
 ---
 
-## 18. Comparative Positioning
+## 21. Comparative Positioning
 
-### 18.1 Comparison Framework
+### 21.1 Comparison Framework
 
 We evaluate five systems: CrewAI [1] (the orchestration layer used by this framework), AutoGen [2], LangGraph [3], MetaGPT [4], and the framework presented in this paper. The comparison is based on documented capabilities as of early 2026.
 
-### 18.2 Comparative Table
+### 21.2 Comparative Table
 
 | Dimension | CrewAI | AutoGen | LangGraph | MetaGPT | This Framework |
 |-----------|--------|---------|-----------|---------|----------------|
@@ -1032,8 +1197,11 @@ We evaluate five systems: CrewAI [1] (the orchestration layer used by this frame
 | **Task contracts** | None | None | None | None | Markdown contracts with quality gates and completion guarantees. |
 | **Causal error attribution** | None | None | None | None | Three-class taxonomy: MODEL, INFRA, GOVERNANCE. |
 | **Bayesian provider selection** | None | None | None | None | Thompson Sampling, Beta posteriors, temporal decay. |
+| **Governed memory** | None | None | None | None | ConstitutionEnforcer on every write, bi-temporal versioning, constitutional decay. |
+| **Agent governance spec** | None | None | None | None | OAGS Level 3 conformance: identity, policy, attestation. |
+| **On-chain attestation** | None | None | None | None | ERC-8004 on Avalanche C-Chain, compliance-gated publishing. |
 
-### 18.3 Positioning Analysis
+### 21.3 Positioning Analysis
 
 The comparison reveals that existing multi-agent frameworks prioritize *coordination semantics* over *experimental infrastructure*. The framework presented in this paper occupies a complementary position: it does not replace CrewAI's coordination capabilities (it uses CrewAI as its orchestration layer) but adds the experimental infrastructure necessary for systematic evaluation and formal assurance.
 
@@ -1041,13 +1209,13 @@ The addition of Z3 formal verification represents the most significant different
 
 ---
 
-## 19. Future Work
+## 22. Future Work
 
-### 19.1 Parametric Failure Curves with Bayesian Selection
+### 22.1 Parametric Failure Curves with Bayesian Selection
 
 Section 7 tested parametric failure rates with static provider selection. A systematic comparison would execute identical parametric sweeps with static selection (current baseline) vs. Bayesian Thompson Sampling, measuring whether Bayesian selection produces lower PFI at equivalent failure rates. This would provide empirical validation of the theoretical prediction from [18] that Thompson Sampling minimizes regret.
 
-### 19.2 Real Provider Benchmarking
+### 22.2 Real Provider Benchmarking
 
 Executing the experiment framework against real LLM providers would produce the first empirical characterization of multi-provider system behavior. Key questions include:
 
@@ -1056,19 +1224,19 @@ Executing the experiment framework against real LLM providers would produce the 
 - How does ACR vary across providers? Do certain models produce more unresolvable adversarial defects?
 - Does causal error attribution correctly distinguish INFRA\_FAILURE from MODEL\_FAILURE in production?
 
-### 19.3 ACR Calibration Against Human Assessment
+### 22.3 ACR Calibration Against Human Assessment
 
 The ACR metric depends on the DeterministicArbiter's evidence threshold. Calibration requires: (1) human annotators labeling a set of outputs with defects and severity, (2) running the adversarial protocol on the same outputs, and (3) computing precision and recall of the protocol against human labels. This would establish whether ACR correlates with human-perceived output quality and whether the evidence thresholds need adjustment.
 
-### 19.4 Cross-Model Entropy Analysis
+### 22.4 Cross-Model Entropy Analysis
 
 Different LLM models produce outputs with different levels of variability for the same prompt. Measuring the entropy of supervisor scores and ACR values across runs for a fixed prompt and fixed model would characterize each model's output consistency — a signal for model selection decisions based on quality distribution rather than single-sample evaluation.
 
-### 19.5 Adaptive Task Contracts
+### 22.5 Adaptive Task Contracts
 
 Current task contracts are static specifications. Adaptive contracts could learn from execution history: if a specific quality gate consistently fails for a given crew type, the contract could automatically adjust its threshold or add additional gates based on observed failure patterns. This would require accumulating `ContractResult` history per crew configuration, which the current JSONL logging infrastructure supports.
 
-### 19.6 Extended Z3 Theorem Set
+### 22.6 Extended Z3 Theorem Set
 
 The current four theorems address SS and GCR invariants. Additional candidates for formal verification include:
 
@@ -1078,13 +1246,13 @@ The current four theorems address SS and GCR invariants. Additional candidates f
 
 ---
 
-## 20. Conclusion
+## 23. Conclusion
 
 This paper presented an experimental framework for deterministic evaluation of multi-agent LLM systems operating across heterogeneous providers. The framework addresses the absence of formal metrics, reproducible evaluation conditions, and structured observability in existing multi-agent orchestration tools.
 
-Five metrics—Stability Score, Provider Fragility Index, Retry Pressure, Governance Compliance Rate, and Supervisor Strictness Ratio—provide complementary characterizations of system behavior with formal definitions (Section 5). The deterministic execution mode produces reproducible results in simulated experiments, confirmed by metric identity across independent runs (Section 6.2).
+Six metrics—Stability Score, Provider Fragility Index, Retry Pressure, Governance Compliance Rate, Supervisor Strictness Ratio, and Adversarial Consensus Rate—provide complementary characterizations of system behavior with formal definitions (Section 5). The deterministic execution mode produces reproducible results in simulated experiments, confirmed by metric identity across independent runs (Section 6.2).
 
-The framework has been substantially extended beyond the original nine-module implementation. Four new formal assurance capabilities address limitations identified in the initial design:
+The framework has been substantially extended beyond the original nine-module implementation. Seven new formal assurance capabilities address limitations identified in the initial design:
 
 **Z3 formal verification** (Section 8) elevates the empirical observation GCR = 1.0 to a machine-checkable architectural invariant, proven in 1.66 ms total across four theorems. This provides the first formal behavioral guarantee for a multi-agent LLM framework property, demonstrating that *architectural* deterministic guarantees are achievable even when *output* guarantees are not.
 
@@ -1094,9 +1262,15 @@ The framework has been substantially extended beyond the original nine-module im
 
 **Bayesian provider selection** (Section 13) replaces static rotation with Thompson Sampling over Beta posteriors, incorporating empirical reliability evidence with temporal decay. This provides asymptotically optimal provider selection under the 4/δ regret bound [18].
 
+**Constitutional memory governance** (Section 15) introduces the first memory persistence system with formal governance enforcement. Every write operation passes through ConstitutionEnforcer validation, and the bi-temporal versioning model enables point-in-time reconstruction of agent memory state for audit compliance. Constitutionally protected categories ensure that decisions and error patterns are immune to relevance decay.
+
+**OAGS conformance** (Section 16) implements three-level compatibility with the Open Agent Governance Specification through deterministic BLAKE3 agent identity, bidirectional policy conversion, and structured audit event export. This represents, to our knowledge, the first OAGS-conformant system with Z3-verified governance invariants.
+
+**ERC-8004 Oracle Bridge** (Section 17) extends governance assurance beyond the execution boundary through compliance-gated on-chain attestation on Avalanche C-Chain. Only attestations with GCR = 1.0 are eligible for publication, ensuring the on-chain record contains exclusively verified compliance events.
+
 The parametric sweep (Section 7) establishes that Stability Score follows SS_empirical(f) = 1 − f/2 under the simulated two-step recovery structure, while the theoretical model SS(f) = 1 − f³ describes terminal failure probability under bounded retries with independent failures. The distinction between these formulations is now formally verified rather than argued by derivation.
 
-The implementation comprises 4,000+ lines of Python across 19 modules, with 149 passing tests. All experimental results are from executed code with persisted trace artifacts. The framework provides the instrumentation layer necessary for systematic study of multi-agent system behavior, expressing operational characteristics as distributions with means and standard deviations, formal proofs for architectural invariants, and adversarially validated quality signals.
+The implementation comprises 6,000+ lines of Python across 22 core modules, with 293 passing tests. All experimental results are from executed code with persisted trace artifacts. The framework provides the instrumentation layer necessary for systematic study of multi-agent system behavior, expressing operational characteristics as distributions with means and standard deviations, formal proofs for architectural invariants, adversarially validated quality signals, governed memory with temporal auditability, standards-conformant governance interoperability, and immutable on-chain attestation of compliance outcomes.
 
 ---
 
@@ -1137,3 +1311,11 @@ The implementation comprises 4,000+ lines of Python across 19 modules, with 149 
 [17] W. R. Thompson, "On the likelihood that one unknown probability exceeds another in view of the evidence of two samples," Biometrika 25(3-4), 1933.
 
 [18] Anonymous, "4/δ Regret Bound for Thompson Sampling under Bounded Reward Distributions," arXiv:2512.02080, 2025.
+
+[19] Mem0 AI, "Mem0: The Memory Layer for AI Applications," 2024. https://github.com/mem0ai/mem0
+
+[20] Zep AI, "Graphiti: Build Dynamic, Temporally Aware Knowledge Graphs," 2024. https://github.com/getzep/graphiti
+
+[21] Topoteretes, "Cognee: Scientific Memory Management for AI Applications," 2024. https://github.com/topoteretes/cognee
+
+[22] Sekuire, "Open Agent Governance Specification (OAGS)," 2025. https://sekuire.com/oags
