@@ -4,7 +4,7 @@
 >
 > This repository formalizes reproducible experimentation, resilience metrics, controlled degradation modeling, governance invariance, and deterministic evaluation in heterogeneous provider environments.
 
-Python 3.11+ | Apache-2.0 | 2,400+ LOC | 11 core modules | 120 parametric + 52 production experiments executed
+Python 3.11+ | Apache-2.0 | 4,000+ LOC | 19 core modules | 149 tests | Z3 formal verification | pip install dof-sdk
 
 ---
 
@@ -48,6 +48,22 @@ Without formal metrics and deterministic evaluation, observed performance differ
 
 7. Governance–Infrastructure Decoupling Validation — empirical confirmation that constitutional enforcement remains invariant under infrastructure degradation.
 
+8. AST Static Verification Engine — Deterministic structural analysis of agent-generated code using Python abstract syntax trees. Enforces four rule categories (blocked imports, unsafe calls, secret detection, resource risk analysis) without LLM involvement. Violations are classified by severity and scored in [0,1].
+
+9. Z3 SMT Formal Verification — Integration of the Z3 SMT solver to provide machine-checkable proofs of framework invariants. Four theorems verified: GCR architectural invariance, SS cubic derivation, SS strict monotonicity, and SS boundary conditions. Proof certificates exported to structured JSON. This addresses the open problem identified in OpenAI's governance practices paper, which states that deterministic behavioral guarantees are "currently not possible for a model developer."
+
+10. Adversarial Red-on-Blue Evaluation Protocol — Three-agent dialectical evaluation architecture resolving the supervisor circularity problem. A RedTeamAgent identifies output defects with cross-provider execution, a GuardianAgent provides evidence-backed defenses, and a DeterministicArbiter adjudicates using only deterministic evidence (passing tests, governance compliance, AST verification). No LLM involvement in final adjudication. Introduces the ACR (Adversarial Consensus Rate) metric.
+
+11. Formal Task Contracts — Contract-based task completion enforcement via structured TASK_CONTRACT.md specifications. Each contract defines preconditions, deliverables, quality gates (governance compliance, AST verification, supervisor score thresholds), postconditions, and forbidden actions. Task execution cannot terminate until the contract is fulfilled, providing formal completion guarantees.
+
+12. Causal Error Attribution Engine — Three-class error taxonomy (MODEL_FAILURE, INFRA_FAILURE, GOVERNANCE_FAILURE) with causal chain tracking. Classification uses structural analysis: HTTP status codes and timeout patterns identify infrastructure failures, ConstitutionEnforcer violations identify governance failures, and cross-provider retry outcomes disambiguate model from infrastructure failures. Exports dashboard-compatible data for error distribution, provider reliability heatmaps, and causal chain visualization.
+
+13. Bayesian Provider Selection — Adaptive provider rotation using Thompson Sampling over Beta-distributed reliability estimates. Each provider maintains a Beta(α, β) posterior updated on success/failure observations with temporal decay (λ = 0.95/hour). Replaces static round-robin with exploration-exploitation balanced selection. Provider beliefs persist across sessions via JSON serialization.
+
+14. Constitutional Policy-as-Code — Formalization of all governance rules in a versioned dof.constitution.yml specification. YAML serves as the canonical governance source with JSON Schema validation. Rules are categorized by severity (block/warn), with explicit pattern definitions, evidence specifications, and metric documentation. The governance.py module loads rules from YAML at runtime with fallback to in-code defaults.
+
+15. SDK Package — pip-installable package (dof-sdk 0.1.0) exposing a public API: dof.register() for governance initialization, dof.verify() for Z3 proof execution, dof.Constitution for rule enforcement, and dof.Metrics for formal metric access. Backward-compatible wrapper over existing core modules.
+
 ---
 
 ## Architecture
@@ -75,24 +91,24 @@ Without formal metrics and deterministic evaluation, observed performance differ
 
 ## Metrics
 
-Metric: Stability Score (SS)  
-Domain: [0,1]  
+Metric: Stability Score (SS)
+Domain: [0,1]
 Definition: Fraction of runs completing without terminal failure.
 
-Metric: Provider Fragility Index (PFI)  
-Domain: [0,1]  
+Metric: Provider Fragility Index (PFI)
+Domain: [0,1]
 Definition: Mean provider failure count per execution, normalized over batch size.
 
-Metric: Retry Pressure (RP)  
-Domain: [0,1]  
+Metric: Retry Pressure (RP)
+Domain: [0,1]
 Definition: Mean retry count per execution, normalized over batch size.
 
-Metric: Governance Compliance Rate (GCR)  
-Domain: [0,1]  
+Metric: Governance Compliance Rate (GCR)
+Domain: [0,1]
 Definition: Fraction of runs passing all governance constraints.
 
-Metric: Supervisor Strictness Ratio (SSR)  
-Domain: [0,1]  
+Metric: Supervisor Strictness Ratio (SSR)
+Domain: [0,1]
 Definition: Fraction of completed runs rejected by the meta-supervisor.
 
 All metrics are defined over finite experimental batches of size n ≥ 1.
@@ -148,6 +164,45 @@ This does not eliminate circularity but bounds its impact: the deterministic gov
 
 ---
 
+## Formal Verification (Z3 SMT Solver)
+
+The framework integrates the Z3 SMT solver (version 4.16.0) to provide machine-checkable proofs of core invariants. Rather than relying solely on empirical validation, critical framework properties are formally verified by encoding them as satisfiability problems and searching exhaustively for counterexamples.
+
+Four theorems are verified:
+
+| Theorem | Formal Statement | Z3 Result | Interpretation |
+|---------|-----------------|-----------|----------------|
+| GCR Invariant | ∀ f ∈ [0,1]: GCR(f) = 1.0 | UNSAT (no counterexample exists) | Governance compliance is structurally independent of provider failure rate |
+| SS Cubic Derivation | ∀ f ∈ [0,1]: SS(f) = 1 − f³ | UNSAT | Stability Score follows cubic decay under r=2 bounded retries with independent failures |
+| SS Monotonicity | ∀ f₁,f₂ ∈ [0,1]: f₁ < f₂ ⟹ SS(f₁) > SS(f₂) | UNSAT | Stability Score is strictly decreasing in failure rate |
+| SS Boundaries | SS(0) = 1.0 ∧ SS(1) = 0.0 | UNSAT | Perfect stability at zero failure; complete failure at unit failure rate |
+
+The GCR invariant proof encodes ConstitutionEnforcer as an uninterpreted function of output content only. Z3 confirms that no assignment of provider state variables can influence the governance evaluation, establishing GCR(f) = 1.0 as an architectural invariant rather than an empirical observation.
+
+Proof certificates are persisted to logs/z3_proofs.json with theorem name, result, elapsed time, and Z3 version for reproducibility.
+
+---
+
+## Adversarial Evaluation Protocol
+
+The adversarial evaluation protocol addresses supervisor circularity through structured dialectical conflict rather than single-evaluator assessment.
+
+Architecture:
+
+| Component | Function | LLM Dependency |
+|-----------|----------|----------------|
+| RedTeamAgent | Identifies output defects: hallucinations, fabricated statistics, governance violations, security issues | Yes (cross-provider) |
+| GuardianAgent | Provides evidence-backed defenses for each identified issue | Yes (cross-provider, distinct from RedTeam) |
+| DeterministicArbiter | Adjudicates disputes using only verifiable evidence | No (pure Python) |
+
+The DeterministicArbiter accepts a Guardian defense only if accompanied by deterministic evidence: passing test results, ConstitutionEnforcer compliance confirmation, or ASTVerifier structural validation. Issues without valid deterministic defense are classified as UNRESOLVED.
+
+This architecture exploits LLM sycophancy bidirectionally — the RedTeamAgent is reward-biased toward finding defects while the GuardianAgent is biased toward defending quality — then resolves the dialectic through a deterministic referee immune to LLM failure modes.
+
+Metric: Adversarial Consensus Rate (ACR) = |resolved_issues| / |total_issues|, domain [0,1].
+
+---
+
 ## Assumptions
 
 1. Independent Failure Events — Provider failures are statistically independent across execution steps.
@@ -193,7 +248,7 @@ Each configuration is evaluated with n = 20 independent runs under deterministic
 
 Aggregate metrics are reported as:
 
-μ = (1/n) Σ xᵢ  
+μ = (1/n) Σ xᵢ
 σ = sqrt( (1/(n−1)) Σ (xᵢ − μ)² )
 
 where σ corresponds to the Bessel-corrected sample standard deviation.
@@ -381,23 +436,74 @@ Existing observability and reliability tools for LLM systems address complementa
 
 ---
 
+## Installation
+
+### From source (development)
+
+```bash
+git clone https://github.com/Cyberpaisa/deterministic-observability-framework.git
+cd deterministic-observability-framework
+pip install -e .
+```
+
+This installs the `dof-sdk` package in editable mode, exposing the `dof` public API while preserving direct access to all `core/` modules. No files are relocated; the `dof/` package is a thin re-export wrapper.
+
+### With optional dependency groups
+
+```bash
+# Core + development tools (pytest, z3-solver)
+pip install -e ".[dev]"
+
+# Core + data analysis (pandas, openpyxl, sqlalchemy)
+pip install -e ".[data]"
+
+# Core + interfaces (Telegram, Streamlit, voice)
+pip install -e ".[interfaces]"
+
+# All optional groups
+pip install -e ".[all]"
+```
+
+### Provider API keys
+
+```bash
+cp .env.example .env
+# Edit .env — minimum required: GROQ_API_KEY
+# Optional: CEREBRAS_API_KEY, MINIMAX_API_KEY, NVIDIA_API_KEY, ZHIPU_API_KEY
+```
+
+The framework operates with a single provider configured. Additional providers extend the fallback chain and reduce provider exhaustion probability.
+
+### Verify installation
+
+```bash
+python -c "import dof; print(dof.__version__)"
+# 0.1.0
+
+python examples/quickstart.py
+# Runs governance initialization, Z3 proofs, metric computation, and error classification
+# without requiring API keys
+```
+
+---
+
 ## Quickstart
 
-1. Clone repository  
+1. Clone repository
 git clone https://github.com/Cyberpaisa/deterministic-observability-framework.git
-cd deterministic-observability-framework  
+cd deterministic-observability-framework
 
-2. Install dependencies  
-pip install -r requirements.txt  
+2. Install dependencies
+pip install -r requirements.txt
 
-3. Configure providers  
-cp .env.example .env  
-Edit .env with your API keys  
+3. Configure providers
+cp .env.example .env
+Edit .env with your API keys
 
-4. Run baseline experiment  
+4. Run baseline experiment
 python -c "from core.experiment import run_experiment; result = run_experiment(n_runs=10, deterministic=True); print(result['aggregate'])"
 
-5. Run parametric sweep  
+5. Run parametric sweep
 python -c "from core.experiment import run_parametric_sweep; run_parametric_sweep(rates=[0.0,0.1,0.2,0.3,0.5,0.7], n_runs=20)"
 
 ---
@@ -412,14 +518,25 @@ llm_config.py              # Provider chain configuration
 
 core/
   crew_runner.py            # Orchestrator with crew_factory rotation
-  providers.py              # TTL-based provider management
+  providers.py              # TTL-based provider management + Bayesian selection
   checkpointing.py          # Step-level JSONL persistence
   governance.py             # Constitutional enforcement (hard + soft)
   supervisor.py             # Meta-supervisor quality gating
   metrics.py                # Structured JSONL metrics with rotation
   memory_manager.py         # Agent memory management
-  observability.py          # RunTrace, StepTrace, derived metrics
+  observability.py          # RunTrace, StepTrace, causal error attribution
   experiment.py             # Batch runner, parametric sweep
+  ast_verifier.py           # Deterministic AST static analysis
+  z3_verifier.py            # Z3 SMT formal proofs (4 theorems)
+  adversarial.py            # Red-on-Blue evaluation protocol
+  task_contract.py          # Formal task contracts with quality gates
+
+dof/
+  __init__.py               # pip-installable public API (dof-sdk 0.1.0)
+
+dof.constitution.yml        # Policy-as-code: HARD/SOFT/AST rules
+contracts/
+  RESEARCH_CONTRACT.md      # Reference task contract specification
 
 config/
   agents.yaml               # 17 agent definitions
@@ -432,11 +549,9 @@ experiments/
   schema.json
   parametric_sweep.csv
 
-release_artifacts/
-  v1.0/
-
-tests/
+tests/                      # 149 tests across 7 test modules
 examples/
+  quickstart.py             # SDK usage demonstration (no API key required)
 docs/
 ```
 
@@ -448,11 +563,11 @@ docs/
   title={Deterministic Observability and Resilience Engineering for Multi-Agent LLM Systems: An Experimental Framework},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={2,400+ LOC, 120 parametric experiments, 52 production runs, 5 formal metrics, 14 cited references, formal SS(f) derivation, empirical GCR invariance confirmed}
+  note={4,000+ LOC, 19 core modules, 149 tests, 120 parametric experiments, 52 production runs, 5 formal metrics, Z3 SMT formal verification, adversarial Red-on-Blue protocol, Bayesian provider selection, formal task contracts, pip-installable SDK}
 }
 
 ---
 
 ## License
 
-Apache License 2.0 — Copyright 2026 Cyber Paisa / Enigma Group.                                                                                 
+Apache License 2.0 — Copyright 2026 Cyber Paisa / Enigma Group.
