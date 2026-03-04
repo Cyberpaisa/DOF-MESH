@@ -428,10 +428,17 @@ class DeterministicArbiter:
 class AdversarialEvaluator:
     """Orchestrates Red Team → Guardian → Arbiter pipeline."""
 
-    def __init__(self):
+    def __init__(self, governed_memory: bool = False):
         self.red_team = RedTeamAgent()
         self.guardian = GuardianAgent()
         self.arbiter = DeterministicArbiter()
+        self._memory_store = None
+        if governed_memory:
+            try:
+                from core.memory_governance import GovernedMemoryStore
+                self._memory_store = GovernedMemoryStore()
+            except Exception:
+                pass
 
     def evaluate(self, output: str, input_text: str = "") -> AdversarialVerdict:
         """Run full adversarial evaluation pipeline."""
@@ -463,6 +470,22 @@ class AdversarialEvaluator:
         verdict.elapsed_ms = round((time.time() - start) * 1000, 2)
 
         _log_result(verdict, output[:200])
+
+        # Store unresolved issues in governed memory
+        if self._memory_store and verdict.unresolved:
+            try:
+                issues_summary = "; ".join(
+                    f"{u['issue_id']}({u['severity']}): {u['reason'][:80]}"
+                    for u in verdict.unresolved[:5]
+                )
+                self._memory_store.add(
+                    content=f"Adversarial evaluation: {len(verdict.unresolved)} unresolved issues. {issues_summary}",
+                    category="errors",
+                    metadata={"acr": verdict.acr, "score": verdict.score},
+                )
+            except Exception as e:
+                logger.warning(f"Memory store (adversarial) failed: {e}")
+
         return verdict
 
 

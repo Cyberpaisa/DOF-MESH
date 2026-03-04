@@ -98,6 +98,18 @@ from core.task_contract import TaskContract, ContractResult
 from core.providers import BayesianProviderSelector
 
 # ─────────────────────────────────────────────────────────────────────
+# Memory Governance
+# ─────────────────────────────────────────────────────────────────────
+
+from core.memory_governance import (
+    GovernedMemoryStore,
+    TemporalGraph,
+    MemoryClassifier,
+    ConstitutionalDecay,
+    MemoryEntry,
+)
+
+# ─────────────────────────────────────────────────────────────────────
 # Crew Runner
 # ─────────────────────────────────────────────────────────────────────
 
@@ -172,6 +184,12 @@ __all__ = [
     "ContractResult",
     # Providers
     "BayesianProviderSelector",
+    # Memory Governance
+    "GovernedMemoryStore",
+    "TemporalGraph",
+    "MemoryClassifier",
+    "ConstitutionalDecay",
+    "MemoryEntry",
     # Crew
     "run_crew",
 ]

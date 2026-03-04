@@ -301,3 +301,28 @@ thresholds:
       factuality: 0.15
   crew_runner:
     max_retries: 3
+
+# ─────────────────────────────────────────────────────────────────────
+# Memory Governance
+# ─────────────────────────────────────────────────────────────────────
+
+memory:
+  categories:
+    - knowledge
+    - preferences
+    - context
+    - decisions
+    - errors
+  decay:
+    lambda: 0.99
+    threshold: 0.1
+    protected_categories:
+      - decisions
+      - errors
+  limits:
+    max_memories: 10000
+    max_content_length: 50000
+  governance:
+    enforce_on_add: true
+    enforce_on_update: true
+    log_queries: true
