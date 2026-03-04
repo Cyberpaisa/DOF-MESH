@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dof-sdk"
+version = "0.1.0"
+description = "Deterministic Observability Framework — formal governance for multi-agent LLM systems"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [
+    { name = "Juan Carlos Quiceno Vasquez" },
+]
+keywords = ["llm", "agents", "observability", "governance", "multi-agent"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "crewai[tools]>=0.108.0",
+    "litellm",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0.0",
+    "rich>=13.9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "z3-solver>=4.12",
+]
+data = [
+    "pandas>=2.2.0",
+    "openpyxl>=3.1.0",
+    "sqlalchemy>=2.0.0",
+    "psycopg2-binary>=2.9.0",
+]
+interfaces = [
+    "pyTelegramBotAPI>=4.25.0",
+    "streamlit>=1.42.0",
+    "groq>=0.12.0",
+    "gTTS>=2.5.0",
+    "sounddevice>=0.5.0",
+]
+all = ["dof-sdk[dev,data,interfaces]"]
+
+[project.urls]
+Homepage = "https://github.com/jquiceno/dof-sdk"
+
+[tool.setuptools.packages.find]
+include = ["dof*", "core*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

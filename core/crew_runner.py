@@ -15,12 +15,13 @@ Usage:
     result = run_crew("research", crew, input_text="ERC-8004 market analysis")
 """
 
+import os
 import time
 import uuid
 import logging
 from typing import Any
 
-from core.providers import ProviderManager
+from core.providers import ProviderManager, BayesianProviderSelector
 from core.checkpointing import CheckpointManager
 from core.metrics import MetricsLogger
 from core.governance import ConstitutionEnforcer
@@ -37,19 +38,28 @@ MAX_RETRIES = 3
 
 def run_crew(crew_name: str, crew: Any, input_text: str = "",
              max_retries: int = MAX_RETRIES, skip_supervisor: bool = False,
-             mode: str = "production", crew_factory=None) -> dict:
+             mode: str = "production", crew_factory=None,
+             adversarial_mode: bool = False,
+             contract_path: str = "") -> dict:
     """Execute a crew with full FASE 0 + FASE 1 infrastructure.
 
     Args:
         crew_factory: Optional callable() -> Crew. When provided, the crew is
             rebuilt on each retry so exhausted providers are skipped and new
             LLMs are assigned. If None, the same crew object is reused.
+        adversarial_mode: When True, run Red Team → Guardian → Arbiter
+            evaluation after successful execution.
+        contract_path: Optional path to a TASK_CONTRACT.md file. When provided,
+            preconditions are checked before kickoff and quality gates +
+            postconditions are verified after execution.
 
     Returns dict with:
         status, output, run_id, summary, supervisor, governance,
-        retries, elapsed_ms, trace_path
+        retries, elapsed_ms, trace_path, adversarial (if enabled),
+        contract (if contract_path provided)
     """
     pm = ProviderManager()
+    bayesian = BayesianProviderSelector()
     metrics = MetricsLogger()
     checkpoint = CheckpointManager()
     enforcer = ConstitutionEnforcer()
@@ -75,6 +85,32 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
 
     metrics.log_crew_start(run_id, crew_name, input_text)
     logger.info(f"[{run_id[:8]}] Starting crew '{crew_name}' (providers: {pm.get_active()})")
+
+    # ─── Contract: load and check preconditions ──────────────────
+    contract = None
+    if contract_path:
+        from core.task_contract import TaskContract
+        try:
+            contract = TaskContract.from_file(contract_path)
+            pre_ctx = {
+                "topic_provided": bool(input_text),
+                "providers_available": len(pm.get_active()) > 0,
+            }
+            pre_ok, pre_failures = contract.check_preconditions(pre_ctx)
+            if not pre_ok:
+                logger.warning(f"[{run_id[:8]}] Contract preconditions FAILED: {pre_failures}")
+                return {
+                    "status": "contract_breach",
+                    "output": "",
+                    "error": f"Precondition failures: {pre_failures}",
+                    "run_id": run_id,
+                    "contract": {"phase": "preconditions", "failures": pre_failures},
+                    "retries": 0,
+                    "elapsed_ms": (time.time() - start) * 1000,
+                }
+        except FileNotFoundError:
+            logger.warning(f"[{run_id[:8]}] Contract file not found: {contract_path}")
+            contract = None
 
     last_error = ""
     output = ""
@@ -193,7 +229,10 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
                     "trace_path": trace_path,
                 }
 
-            # Success
+            # Success — update Bayesian beliefs
+            for p in current_provider.split(","):
+                bayesian.record_success(p.strip())
+
             trace.status = "ok"
             trace.supervisor_score_final = sup_verdict.score if sup_verdict else 0.0
             trace.supervisor_decision = sup_verdict.decision if sup_verdict else "skipped"
@@ -205,7 +244,7 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
             elapsed_ms = (time.time() - start) * 1000
             metrics.log_crew_end(run_id, crew_name, "ok", elapsed_ms, len(output))
 
-            return {
+            result_dict = {
                 "status": "ok",
                 "output": output,
                 "run_id": run_id,
@@ -219,7 +258,47 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
                 "retries": attempt - 1,
                 "elapsed_ms": elapsed_ms,
                 "trace_path": trace_path,
+                "bayesian": bayesian.get_all_confidences(),
             }
+
+            # Adversarial evaluation (optional)
+            if adversarial_mode:
+                from core.adversarial import AdversarialEvaluator
+                adv = AdversarialEvaluator()
+                adv_result = adv.evaluate(output, input_text)
+                result_dict["adversarial"] = {
+                    "verdict": adv_result.verdict,
+                    "acr": adv_result.acr,
+                    "score": adv_result.score,
+                    "total_issues": adv_result.total_issues,
+                    "resolved": len(adv_result.resolved),
+                    "unresolved": len(adv_result.unresolved),
+                }
+
+            # Contract: verify quality gates and postconditions
+            if contract:
+                contract_ctx = {
+                    "supervisor_score": sup_verdict.score if sup_verdict else 0.0,
+                    "input_text": input_text,
+                    "log_path": os.path.join(
+                        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "logs", "execution_log.jsonl",
+                    ),
+                }
+                contract_result = contract.is_fulfilled(output, contract_ctx)
+                result_dict["contract"] = {
+                    "fulfilled": contract_result.fulfilled,
+                    "passed_gates": contract_result.passed_gates,
+                    "failed_gates": contract_result.failed_gates,
+                    "evidence": contract_result.evidence,
+                }
+                if not contract_result.fulfilled:
+                    logger.warning(
+                        f"[{run_id[:8]}] Contract NOT fulfilled: "
+                        f"{contract_result.failed_gates}"
+                    )
+
+            return result_dict
 
         except Exception as e:
             error_str = str(e)
@@ -245,8 +324,12 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
             trace.steps.append(step)
             prev_provider = current_provider
 
-            # Detect and mark exhausted provider
+            # Update Bayesian beliefs for failure
             detected = pm.detect_provider(error_str)
+            if detected:
+                bayesian.record_failure(detected)
+
+            # Detect and mark exhausted provider
             if detected:
                 classified = pm.classify_error(error_str)
                 pm.mark_exhausted(detected, error_str)

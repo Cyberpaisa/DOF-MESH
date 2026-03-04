@@ -1,0 +1,303 @@
+# ═══════════════════════════════════════════════════════════════════════
+# DOF Constitution — Policy-as-Code
+# Deterministic Observability Framework for Multi-Agent LLM Systems
+# ═══════════════════════════════════════════════════════════════════════
+# Canonical source for governance rules, metrics, and thresholds.
+# core/governance.py loads from this file at runtime.
+# ═══════════════════════════════════════════════════════════════════════
+
+metadata:
+  spec_version: "1.0"
+  project: "deterministic-observability-framework"
+  author: "Juan Carlos Quiceno Vasquez"
+  license: "Apache-2.0"
+
+# ─────────────────────────────────────────────────────────────────────
+# Identity
+# ─────────────────────────────────────────────────────────────────────
+
+identity:
+  model: "minimax/MiniMax-M2.1"
+  providers:
+    - name: "groq"
+      models: ["llama-3.3-70b-versatile", "qwen/qwen3-32b", "moonshotai/kimi-k2-instruct"]
+    - name: "nvidia"
+      models: ["qwen/qwen3.5-397b-a17b", "moonshotai/kimi-k2.5", "deepseek-ai/deepseek-v3.2"]
+    - name: "cerebras"
+      models: ["gpt-oss-120b"]
+    - name: "minimax"
+      models: ["MiniMax-M2.1"]
+    - name: "gemini"
+      models: ["gemini-2.5-flash"]
+    - name: "sambanova"
+      models: ["DeepSeek-V3.2"]
+    - name: "openrouter"
+      models: ["nousresearch/hermes-3-llama-3.1-405b:free"]
+    - name: "zhipu"
+      models: ["glm-4.7-flash"]
+
+# ─────────────────────────────────────────────────────────────────────
+# Governance Rules
+# ─────────────────────────────────────────────────────────────────────
+
+rules:
+  hard:
+    - id: "HARD-001"
+      name: "No Hallucination Claims"
+      rule_key: "NO_HALLUCINATION_CLAIM"
+      severity: "block"
+      action: "block"
+      description: "Must not assert fabricated data without source"
+      pattern:
+        type: "phrase_without_url"
+        phrases:
+          - "according to recent studies"
+          - "statistics show"
+          - "data confirms"
+          - "research demonstrates"
+          - "según estudios recientes"
+          - "las estadísticas muestran"
+          - "datos confirman"
+          - "investigaciones demuestran"
+        condition: "any phrase present AND no http URL in text"
+      evidence: "violation logged as '[NO_HALLUCINATION_CLAIM] Must not assert fabricated data without source'"
+
+    - id: "HARD-002"
+      name: "Language Compliance"
+      rule_key: "LANGUAGE_COMPLIANCE"
+      severity: "block"
+      action: "block"
+      description: "Response must be in English or contain structured data"
+      pattern:
+        type: "language_check"
+        conditions:
+          - "text starts with '{' or '[' → pass (structured data)"
+          - "english marker ratio in first 200 words > 0.05 → pass"
+        english_markers:
+          - "the"
+          - "is"
+          - "and"
+          - "of"
+          - "to"
+          - "in"
+          - "for"
+          - "with"
+          - "that"
+          - "this"
+          - "are"
+          - "was"
+          - "has"
+          - "have"
+          - "from"
+          - "by"
+          - "an"
+          - "be"
+          - "as"
+          - "on"
+        threshold: 0.05
+      evidence: "violation logged as '[LANGUAGE_COMPLIANCE] Response must be in English or contain structured data'"
+
+    - id: "HARD-003"
+      name: "No Empty Output"
+      rule_key: "NO_EMPTY_OUTPUT"
+      severity: "block"
+      action: "block"
+      description: "Output cannot be empty or a placeholder"
+      pattern:
+        type: "min_length_and_blocklist"
+        min_length: 50
+        blocked_values:
+          - "No output"
+          - "Error"
+          - "N/A"
+          - "TODO"
+          - "placeholder"
+      evidence: "violation logged as '[NO_EMPTY_OUTPUT] Output cannot be empty or a placeholder'"
+
+    - id: "HARD-004"
+      name: "Max Length"
+      rule_key: "MAX_LENGTH"
+      severity: "block"
+      action: "block"
+      description: "Output cannot exceed 50K chars"
+      pattern:
+        type: "max_length"
+        max_chars: 50000
+      evidence: "violation logged as '[MAX_LENGTH] Output cannot exceed 50K chars'"
+
+  # AST static analysis rules (enforced by core/ast_verifier.py)
+  ast:
+    - id: "AST-001"
+      name: "Blocked Imports"
+      rule_key: "BLOCKED_IMPORTS"
+      severity: "block"
+      action: "block"
+      description: "Must not import dangerous modules"
+      pattern:
+        type: "ast_import_check"
+        blocked:
+          - "subprocess"
+          - "os.system"
+          - "shutil.rmtree"
+          - "__import__"
+      evidence: "violation logged as '[AST_VERIFY] Blocked import: <module>'"
+
+    - id: "AST-002"
+      name: "Unsafe Calls"
+      rule_key: "UNSAFE_CALLS"
+      severity: "block"
+      action: "block"
+      description: "Must not call eval(), exec(), or compile()"
+      pattern:
+        type: "ast_call_check"
+        blocked_calls:
+          - "eval"
+          - "exec"
+          - "compile"
+      evidence: "violation logged as '[AST_VERIFY] Unsafe call: <func>()'"
+
+    - id: "AST-003"
+      name: "Secret Patterns"
+      rule_key: "SECRET_PATTERNS"
+      severity: "block"
+      action: "block"
+      description: "Must not contain hardcoded API keys or tokens"
+      pattern:
+        type: "regex_scan"
+        patterns:
+          - "sk-[a-zA-Z0-9]{20,}"
+          - "ghp_[a-zA-Z0-9]{36,}"
+          - "AKIA[A-Z0-9]{16}"
+          - "gho_[a-zA-Z0-9]{36,}"
+          - "glpat-[a-zA-Z0-9\\-]{20,}"
+          - "xox[baprs]-[a-zA-Z0-9\\-]{10,}"
+      evidence: "violation logged as '[AST_VERIFY] Possible hardcoded secret'"
+
+    - id: "AST-004"
+      name: "Resource Risks"
+      rule_key: "RESOURCE_RISKS"
+      severity: "warn"
+      action: "warn"
+      description: "Detect while True without break, recursion without depth guard"
+      pattern:
+        type: "ast_pattern_check"
+        checks:
+          - "while_true_no_break"
+          - "recursion_no_guard"
+      evidence: "violation logged as '[AST_VERIFY] Resource risk: <detail>'"
+
+  soft:
+    - id: "SOFT-001"
+      name: "Has Sources"
+      rule_key: "HAS_SOURCES"
+      severity: "warn"
+      action: "warn"
+      description: "Should include source URLs"
+      weight: 0.3
+      pattern:
+        type: "regex"
+        regex: "https?://"
+      evidence: "warning logged as '[HAS_SOURCES] Should include source URLs'"
+
+    - id: "SOFT-002"
+      name: "Structured Output"
+      rule_key: "STRUCTURED_OUTPUT"
+      severity: "warn"
+      action: "warn"
+      description: "Should have clear structure (headers, bullets)"
+      weight: 0.2
+      pattern:
+        type: "contains_any"
+        markers:
+          - "##"
+          - "- "
+          - "* "
+          - "1."
+          - "•"
+      evidence: "warning logged as '[STRUCTURED_OUTPUT] Should have clear structure (headers, bullets)'"
+
+    - id: "SOFT-003"
+      name: "Conciseness"
+      rule_key: "CONCISENESS"
+      severity: "warn"
+      action: "warn"
+      description: "Should not have repetitive paragraphs"
+      weight: 0.2
+      pattern:
+        type: "repetition_check"
+        min_paragraphs: 3
+        min_paragraph_length: 50
+        max_duplicate_ratio: 0.3
+        comparison_prefix_length: 100
+      evidence: "warning logged as '[CONCISENESS] Should not have repetitive paragraphs'"
+
+    - id: "SOFT-004"
+      name: "Actionable"
+      rule_key: "ACTIONABLE"
+      severity: "warn"
+      action: "warn"
+      description: "Should include actionable steps or recommendations"
+      weight: 0.3
+      pattern:
+        type: "contains_any_keyword"
+        keywords:
+          - "recommend"
+          - "next step"
+          - "action"
+          - "implement"
+          - "recomend"
+          - "siguiente paso"
+      evidence: "warning logged as '[ACTIONABLE] Should include actionable steps or recommendations'"
+
+# ─────────────────────────────────────────────────────────────────────
+# Formal Metrics (5)
+# ─────────────────────────────────────────────────────────────────────
+
+metrics:
+  - id: "SS"
+    name: "Stability Score"
+    formula: "1 - f^3"
+    domain: [0.0, 1.0]
+    description: "Fraction of runs completing without terminal failure under r=2 bounded retries"
+
+  - id: "PFI"
+    name: "Provider Fragility Index"
+    formula: "mean(provider_failures) / n"
+    domain: [0.0, 1.0]
+    description: "Mean provider failure count per execution, normalized over batch size"
+
+  - id: "RP"
+    name: "Retry Pressure"
+    formula: "mean(retries) / n"
+    domain: [0.0, 1.0]
+    description: "Mean retry count per execution, normalized over batch size"
+
+  - id: "GCR"
+    name: "Governance Compliance Rate"
+    invariant: 1.0
+    domain: [1.0, 1.0]
+    description: "Fraction of runs passing all governance constraints — structurally invariant under infrastructure degradation"
+
+  - id: "SSR"
+    name: "Supervisor Strictness Ratio"
+    formula: "rejected / completed"
+    domain: [0.0, 1.0]
+    description: "Fraction of completed runs rejected by the meta-supervisor"
+
+# ─────────────────────────────────────────────────────────────────────
+# Thresholds (from crew_runner.py + supervisor.py)
+# ─────────────────────────────────────────────────────────────────────
+
+thresholds:
+  supervisor:
+    accept: 7.0
+    retry: 5.0
+    escalate_below: 5.0
+    max_retries: 2
+    weights:
+      quality: 0.40
+      actionability: 0.25
+      completeness: 0.20
+      factuality: 0.15
+  crew_runner:
+    max_retries: 3

@@ -3,13 +3,46 @@ Constitution Hard Enforcement — FASE 0.
 
 Hard rules block execution. Soft rules score output (future).
 Enforced at crew output level before delivery.
+
+Rules are defined in dof.constitution.yml (canonical source) and loaded
+at module init. The YAML is merged with the in-code defaults so the
+system works even if the YAML file is missing.
 """
 
+import os
 import re
 import logging
 from dataclasses import dataclass
 
+import yaml
+
 logger = logging.getLogger("core.governance")
+
+# ─────────────────────────────────────────────────────────────────────
+# YAML loader
+# ─────────────────────────────────────────────────────────────────────
+
+_CONSTITUTION_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "dof.constitution.yml",
+)
+
+
+def load_constitution(path: str | None = None) -> dict:
+    """Load dof.constitution.yml and return parsed dict. Returns {} on failure."""
+    path = path or _CONSTITUTION_PATH
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return yaml.safe_load(f) or {}
+    except FileNotFoundError:
+        logger.warning(f"Constitution file not found: {path} — using in-code defaults")
+        return {}
+    except Exception as e:
+        logger.warning(f"Error loading constitution: {e} — using in-code defaults")
+        return {}
+
+
+_CONSTITUTION: dict = load_constitution()
 
 
 @dataclass
@@ -99,6 +132,34 @@ SOFT_RULES = [
 ]
 
 
+def _sync_rules_from_yaml(constitution: dict) -> None:
+    """Ensure every rule_key in dof.constitution.yml has a matching entry in
+    HARD_RULES / SOFT_RULES.  Logs warnings for YAML-only rules that have no
+    in-code check function (they cannot be enforced without code).
+    This guarantees the YAML is the canonical *registry* while Python remains
+    the enforcement engine.
+    """
+    if not constitution:
+        return
+
+    rules_section = constitution.get("rules", {})
+    hard_ids = {r["id"] for r in HARD_RULES}
+    soft_ids = {r["id"] for r in SOFT_RULES}
+
+    for yaml_rule in rules_section.get("hard", []):
+        key = yaml_rule.get("rule_key", "")
+        if key and key not in hard_ids:
+            logger.info(f"YAML hard rule '{key}' has no in-code check — registry-only")
+
+    for yaml_rule in rules_section.get("soft", []):
+        key = yaml_rule.get("rule_key", "")
+        if key and key not in soft_ids:
+            logger.info(f"YAML soft rule '{key}' has no in-code check — registry-only")
+
+
+_sync_rules_from_yaml(_CONSTITUTION)
+
+
 def _check_language(text: str) -> bool:
     """Check if text is in English or contains structured data (JSON, markdown)."""
     # Structured data (JSON, pydantic output) always passes
@@ -132,8 +193,28 @@ def _check_no_repetition(text: str) -> bool:
     return duplicates < len(paragraphs) * 0.3
 
 
+def get_constitution() -> dict:
+    """Return the loaded constitution dict (from dof.constitution.yml)."""
+    return _CONSTITUTION
+
+
+def _extract_python_blocks(text: str) -> list[str]:
+    """Extract Python code blocks from markdown-formatted output."""
+    blocks = []
+    pattern = re.compile(r"```(?:python|py)?\s*\n(.*?)```", re.DOTALL)
+    for match in pattern.finditer(text):
+        code = match.group(1).strip()
+        if code:
+            blocks.append(code)
+    return blocks
+
+
 class ConstitutionEnforcer:
     """Enforces governance rules on agent output."""
+
+    def __init__(self):
+        from core.ast_verifier import ASTVerifier
+        self._ast_verifier = ASTVerifier()
 
     def check(self, output: str, context: str = "") -> GovernanceResult:
         """Run all governance checks on output.
@@ -142,6 +223,17 @@ class ConstitutionEnforcer:
         """
         violations = []
         warnings = []
+
+        # AST verification on embedded code blocks
+        code_blocks = _extract_python_blocks(output)
+        for i, block in enumerate(code_blocks):
+            ast_result = self._ast_verifier.verify(block)
+            for v in ast_result.violations:
+                label = f"[AST_VERIFY] Block {i+1}, line {v['line_number']}: {v['message']}"
+                if v["severity"] == "block":
+                    violations.append(label)
+                else:
+                    warnings.append(label)
 
         # Hard rules — any violation = fail
         for rule in HARD_RULES:

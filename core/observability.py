@@ -2,19 +2,23 @@
 Run-Level Observability — FASE 1.
 
 Full run traces with UUID v4, session tracking, ordered steps,
-token counting, derived metrics, and deterministic mode.
+token counting, derived metrics, deterministic mode, and causal
+error classification.
 
 Every execution generates a complete RunTrace exported as JSON.
 Derived metrics saved to logs/experiments/runs.jsonl.
 """
 
 import os
+import re
 import json
 import time
 import uuid
 import hashlib
 import logging
 import math
+import functools
+from enum import Enum
 from dataclasses import dataclass, field, asdict
 from typing import Any
 
@@ -67,6 +71,77 @@ def reset_session():
     return _SESSION_ID
 
 
+# ── Error Classification ──
+
+class ErrorClass(str, Enum):
+    """Causal classification for execution errors."""
+    MODEL_FAILURE = "MODEL_FAILURE"
+    INFRA_FAILURE = "INFRA_FAILURE"
+    GOVERNANCE_FAILURE = "GOVERNANCE_FAILURE"
+    UNKNOWN = "UNKNOWN"
+
+
+def classify_error(exception: str | Exception, context: dict | None = None) -> ErrorClass:
+    """Classify an error into a causal category.
+
+    Args:
+        exception: Error message string or Exception object.
+        context: Optional dict with keys:
+            - governance_violations: list of governance violation strings
+            - retry_provider_different: bool, True if retry used a different provider
+            - retry_succeeded: bool, True if retry with different provider succeeded
+            - retry_same_failure: bool, True if retry with different provider had same error
+
+    Returns:
+        ErrorClass enum value.
+    """
+    context = context or {}
+    error_str = str(exception).lower()
+
+    # 1. Governance failure — check context first (most specific)
+    if context.get("governance_violations"):
+        return ErrorClass.GOVERNANCE_FAILURE
+
+    # Check error message for governance keywords
+    gov_keywords = ["governance", "constitution", "blocked", "hallucination",
+                     "language_compliance", "no_empty_output", "ast_verify"]
+    if any(kw in error_str for kw in gov_keywords):
+        return ErrorClass.GOVERNANCE_FAILURE
+
+    # 2. Infrastructure failure — HTTP errors, rate limits, timeouts
+    infra_patterns = [
+        r"429", r"500", r"502", r"503", r"504",
+        r"rate.?limit", r"rate_limit", r"resource.?exhausted",
+        r"timeout", r"timed?.?out", r"connection.?error",
+        r"connection.?refused", r"connection.?reset",
+        r"ssl.?error", r"dns.?resolution", r"network",
+        r"econnrefused", r"econnreset", r"epipe",
+        r"service.?unavailable", r"gateway.?timeout",
+        r"too.?many.?requests",
+    ]
+    for pattern in infra_patterns:
+        if re.search(pattern, error_str):
+            return ErrorClass.INFRA_FAILURE
+
+    # 3. Cross-provider analysis: retry with different provider succeeded → INFRA
+    if context.get("retry_provider_different") and context.get("retry_succeeded"):
+        return ErrorClass.INFRA_FAILURE
+
+    # 4. Cross-provider analysis: retry with different provider had same failure → MODEL
+    if context.get("retry_provider_different") and context.get("retry_same_failure"):
+        return ErrorClass.MODEL_FAILURE
+
+    # 5. Model-specific failure patterns
+    model_keywords = ["invalid grammar", "not supported", "bad request",
+                      "model_incompatible", "parse_error", "pydantic",
+                      "validation error", "output format",
+                      "content_filter", "content filter"]
+    if any(kw in error_str for kw in model_keywords):
+        return ErrorClass.MODEL_FAILURE
+
+    return ErrorClass.UNKNOWN
+
+
 # ── Step Trace ──
 
 @dataclass
@@ -84,6 +159,8 @@ class StepTrace:
     token_output: int = 0
     error: str = ""
     provider_switched: bool = False
+    error_class: str = ""
+    causal_chain: list[dict] = field(default_factory=list)
 
 
 # ── Run Trace ──
@@ -116,11 +193,61 @@ class RunTrace:
     total_retries: int = 0
     total_token_input: int = 0
     total_token_output: int = 0
+    # Causal error tracking
+    error_distribution: dict = field(default_factory=dict)
+    provider_reliability: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         d = asdict(self)
         d["steps"] = [asdict(s) for s in self.steps]
         return d
+
+    def export_dashboard(self) -> dict:
+        """Export data structured for dashboard visualization.
+
+        Returns:
+            error_class_distribution: {ErrorClass: count} for pie chart
+            provider_reliability_over_time: {provider: {success: N, fail: N, rate: float}} for heatmap
+            causal_chains: list of step causal chains for debugging
+        """
+        # Error class distribution
+        error_dist: dict[str, int] = {}
+        for step in self.steps:
+            if step.error_class:
+                error_dist[step.error_class] = error_dist.get(step.error_class, 0) + 1
+
+        # Provider reliability
+        provider_stats: dict[str, dict] = {}
+        for step in self.steps:
+            provider = step.provider
+            if provider not in provider_stats:
+                provider_stats[provider] = {"success": 0, "fail": 0}
+            if step.status in ("completed", "ok"):
+                provider_stats[provider]["success"] += 1
+            elif step.status == "failed":
+                provider_stats[provider]["fail"] += 1
+
+        for provider, stats in provider_stats.items():
+            total = stats["success"] + stats["fail"]
+            stats["rate"] = round(stats["success"] / total, 4) if total > 0 else 0.0
+
+        # Causal chains (only steps that have them)
+        chains = []
+        for step in self.steps:
+            if step.causal_chain:
+                chains.append({
+                    "step_index": step.step_index,
+                    "agent": step.agent,
+                    "provider": step.provider,
+                    "error_class": step.error_class,
+                    "chain": step.causal_chain,
+                })
+
+        return {
+            "error_class_distribution": error_dist,
+            "provider_reliability_over_time": provider_stats,
+            "causal_chains": chains,
+        }
 
 
 # ── Token Estimation ──
@@ -163,7 +290,111 @@ def compute_derived_metrics(trace: RunTrace) -> RunTrace:
     # Total latency
     trace.total_latency_ms = round(sum(s.latency_ms for s in steps), 1)
 
+    # Error distribution
+    error_dist: dict[str, int] = {}
+    provider_stats: dict[str, dict] = {}
+    for s in steps:
+        if s.error_class:
+            error_dist[s.error_class] = error_dist.get(s.error_class, 0) + 1
+        provider = s.provider
+        if provider not in provider_stats:
+            provider_stats[provider] = {"success": 0, "fail": 0}
+        if s.status in ("completed", "ok"):
+            provider_stats[provider]["success"] += 1
+        elif s.status == "failed":
+            provider_stats[provider]["fail"] += 1
+    for stats in provider_stats.values():
+        total = stats["success"] + stats["fail"]
+        stats["rate"] = round(stats["success"] / total, 4) if total > 0 else 0.0
+
+    trace.error_distribution = error_dist
+    trace.provider_reliability = provider_stats
+
     return trace
+
+
+# ── Causal Trace Decorator ──
+
+# Thread-local storage for the active RunTrace
+_active_trace: RunTrace | None = None
+
+
+def get_active_trace() -> RunTrace | None:
+    """Return the currently active RunTrace (set by @causal_trace)."""
+    return _active_trace
+
+
+def causal_trace(task_id: str = "", provider: str = ""):
+    """Decorator that wraps a function with automatic causal error tracking.
+
+    Captures exceptions, classifies them, and appends StepTrace entries
+    to the active RunTrace.
+
+    Usage:
+        @causal_trace(task_id="research-001")
+        def run_research(topic):
+            return crew.kickoff()
+    """
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            global _active_trace
+            trace = _active_trace
+            own_trace = False
+
+            if trace is None:
+                trace = RunTrace(
+                    crew_name=task_id or func.__name__,
+                    timestamp_start=time.strftime("%Y-%m-%dT%H:%M:%S"),
+                    start_epoch=time.time(),
+                )
+                _active_trace = trace
+                own_trace = True
+
+            step_start = time.time()
+            step = StepTrace(
+                step_index=len(trace.steps),
+                agent=task_id or func.__name__,
+                provider=provider or "unknown",
+            )
+
+            try:
+                result = func(*args, **kwargs)
+                step_ms = (time.time() - step_start) * 1000
+                step.latency_ms = round(step_ms, 1)
+                step.status = "completed"
+                step.causal_chain.append({
+                    "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                    "event": "completed",
+                    "classification": "",
+                })
+                trace.steps.append(step)
+                return result
+
+            except Exception as e:
+                step_ms = (time.time() - step_start) * 1000
+                step.latency_ms = round(step_ms, 1)
+                step.status = "failed"
+                step.error = str(e)[:200]
+
+                error_class = classify_error(e)
+                step.error_class = error_class.value
+                step.causal_chain.append({
+                    "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                    "event": f"error: {str(e)[:100]}",
+                    "classification": error_class.value,
+                })
+                trace.steps.append(step)
+                raise
+
+            finally:
+                if own_trace:
+                    trace.end_epoch = time.time()
+                    trace.timestamp_end = time.strftime("%Y-%m-%dT%H:%M:%S")
+                    _active_trace = None
+
+        return wrapper
+    return decorator
 
 
 # ── Persistence ──
