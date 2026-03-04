@@ -24,7 +24,7 @@ jobs:
       - name: Install test dependencies (minimal — no crewai/litellm)
         run: |
           pip install --upgrade pip
-          pip install z3-solver pyyaml python-dotenv rich
+          pip install z3-solver pyyaml python-dotenv rich blake3
 
       - name: Install dof package (no transitive deps)
         run: pip install -e . --no-deps
@@ -40,6 +40,8 @@ jobs:
             tests.test_task_contract \
             tests.test_causal \
             tests.test_bayesian_provider \
+            tests.test_memory_governance \
+            tests.test_oags_bridge \
             -v
 
       - name: Verify public API imports

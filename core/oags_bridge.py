@@ -32,7 +32,17 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime
 
 import yaml
-import blake3
+
+try:
+    import blake3 as _blake3
+
+    def _hash_bytes(data: bytes) -> str:
+        return _blake3.blake3(data).hexdigest()
+except ImportError:
+    import hashlib
+
+    def _hash_bytes(data: bytes) -> str:
+        return hashlib.sha256(data).hexdigest()
 
 logger = logging.getLogger("core.oags_bridge")
 
@@ -90,7 +100,7 @@ class OAGSIdentity:
         The same agent with the same configuration ALWAYS produces the same hash.
         """
         payload = model + "|" + constitution_hash + "|" + ",".join(sorted(tools))
-        return blake3.blake3(payload.encode("utf-8")).hexdigest()
+        return _hash_bytes(payload.encode("utf-8"))
 
     @staticmethod
     def compute_constitution_hash(constitution_path: str) -> str:
@@ -104,10 +114,10 @@ class OAGSIdentity:
         try:
             with open(path, "rb") as f:
                 content = f.read()
-            return blake3.blake3(content).hexdigest()
+            return _hash_bytes(content)
         except FileNotFoundError:
             logger.warning(f"Constitution file not found: {path}")
-            return blake3.blake3(b"").hexdigest()
+            return _hash_bytes(b"")
 
     def get_agent_card(self) -> dict:
         """Return OAGS-compatible agent card."""
