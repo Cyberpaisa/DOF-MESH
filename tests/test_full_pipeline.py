@@ -221,8 +221,13 @@ class TestFullPipelineAcceptFlow(unittest.TestCase):
             "We recommend implementing governance verification.\n\n"
             "Source: https://example.com/data"
         )
+        log_path = os.path.join(LOGS_DIR, "execution_log.jsonl")
+        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+        if not os.path.exists(log_path):
+            with open(log_path, "w") as lf:
+                lf.write('{"timestamp":"2026-01-01T00:00:00","crew":"test","status":"success"}\n')
         ctx = {"supervisor_score": 8.0, "input_text": "test topic",
-               "log_path": os.path.join(LOGS_DIR, "execution_log.jsonl")}
+               "log_path": log_path}
         result = contract.is_fulfilled(good_output, ctx)
         self.assertTrue(result.fulfilled,
                         f"Contract should be fulfilled: failed={result.failed_gates}")
