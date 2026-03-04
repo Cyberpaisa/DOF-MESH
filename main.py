@@ -475,11 +475,12 @@ def run_interactive():
     console.print("  [magenta]20.[/magenta] [bold]ERC-8004 Attestation Dashboard[/bold]")
     console.print("  [magenta]21.[/magenta] [bold]Run Full Pipeline Test[/bold] (end-to-end validation)")
     console.print("  [magenta]22.[/magenta] [bold]Start MCP Server[/bold] (DOF governance as MCP tools)")
+    console.print("  [magenta]23.[/magenta] [bold]Start REST API Server[/bold] (FastAPI endpoints)")
     console.print("  [cyan]0.[/cyan]  Exit")
 
     choice = IntPrompt.ask(
         "\nOption",
-        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22"],
+        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"],
     )
 
     if choice == 0:
@@ -584,6 +585,8 @@ def run_interactive():
         launch_full_pipeline_test()
     elif choice == 22:
         launch_mcp_server()
+    elif choice == 23:
+        launch_rest_api()
 
     # Track execution in session
     if result:
@@ -1032,6 +1035,40 @@ def launch_full_pipeline_test():
             console.print(stage_table)
 
     console.print()
+
+
+def launch_rest_api():
+    """Launch DOF REST API Server — FastAPI endpoints for governance."""
+    console.print("\n[bold magenta]DOF REST API — FastAPI Server[/bold magenta]\n")
+
+    try:
+        from api.server import app, start_server
+    except ImportError as e:
+        console.print(f"[red]Missing dependency: {e}[/red]")
+        console.print("[dim]Install with: pip install fastapi uvicorn[/dim]")
+        return
+
+    console.print("  [bold]Endpoints:[/bold]")
+    console.print("    [green]POST[/green] /api/v1/governance/verify")
+    console.print("    [green]POST[/green] /api/v1/ast/verify")
+    console.print("    [cyan]GET [/cyan] /api/v1/z3/verify")
+    console.print("    [green]POST[/green] /api/v1/memory")
+    console.print("    [cyan]GET [/cyan] /api/v1/memory?query=X")
+    console.print("    [cyan]GET [/cyan] /api/v1/memory/snapshot")
+    console.print("    [cyan]GET [/cyan] /api/v1/memory/stats")
+    console.print("    [cyan]GET [/cyan] /api/v1/metrics")
+    console.print("    [green]POST[/green] /api/v1/attestation")
+    console.print("    [cyan]GET [/cyan] /api/v1/attestation/history")
+    console.print("    [cyan]GET [/cyan] /api/v1/oags/identity")
+    console.print("    [cyan]GET [/cyan] /api/v1/oags/conformance")
+    console.print("    [cyan]GET [/cyan] /api/v1/constitution")
+    console.print("    [cyan]GET [/cyan] /api/v1/health")
+
+    port = IntPrompt.ask("\nPort", default=8080)
+    console.print(f"\n[green]Starting REST API on http://0.0.0.0:{port} ...[/green]")
+    console.print(f"[dim]Docs at http://localhost:{port}/docs[/dim]")
+    console.print("[dim]Press Ctrl+C to stop[/dim]\n")
+    start_server(port=port)
 
 
 def launch_mcp_server():
