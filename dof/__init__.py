@@ -120,6 +120,17 @@ from core.oags_bridge import (
 )
 
 # ─────────────────────────────────────────────────────────────────────
+# Oracle Bridge (ERC-8004)
+# ─────────────────────────────────────────────────────────────────────
+
+from core.oracle_bridge import (
+    OracleBridge,
+    AttestationCertificate,
+    AttestationRegistry,
+    CertificateSigner,
+)
+
+# ─────────────────────────────────────────────────────────────────────
 # Crew Runner
 # ─────────────────────────────────────────────────────────────────────
 
@@ -204,6 +215,11 @@ __all__ = [
     "OAGSIdentity",
     "OAGSPolicyBridge",
     "OAGSAuditBridge",
+    # Oracle Bridge
+    "OracleBridge",
+    "AttestationCertificate",
+    "AttestationRegistry",
+    "CertificateSigner",
     # Crew
     "run_crew",
 ]

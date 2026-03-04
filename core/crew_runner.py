@@ -41,7 +41,8 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
              mode: str = "production", crew_factory=None,
              adversarial_mode: bool = False,
              contract_path: str = "",
-             governed_memory: bool = False) -> dict:
+             governed_memory: bool = False,
+             oracle_mode: bool = False) -> dict:
     """Execute a crew with full FASE 0 + FASE 1 infrastructure.
 
     Args:
@@ -55,11 +56,14 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
             postconditions are verified after execution.
         governed_memory: When True, store execution results in GovernedMemoryStore
             (success → "knowledge", failure → "errors").
+        oracle_mode: When True, create an ERC-8004 attestation certificate
+            after successful execution (ACCEPT). Only COMPLIANT attestations
+            are published on-chain.
 
     Returns dict with:
         status, output, run_id, summary, supervisor, governance,
         retries, elapsed_ms, trace_path, adversarial (if enabled),
-        contract (if contract_path provided)
+        contract (if contract_path provided), attestation (if oracle_mode)
     """
     pm = ProviderManager()
     bayesian = BayesianProviderSelector()
@@ -324,6 +328,45 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
                         f"[{run_id[:8]}] Contract NOT fulfilled: "
                         f"{contract_result.failed_gates}"
                     )
+
+            # Oracle attestation (optional)
+            if oracle_mode:
+                try:
+                    from core.oracle_bridge import OracleBridge, CertificateSigner, AttestationRegistry
+                    from core.oags_bridge import OAGSIdentity
+
+                    signer = CertificateSigner()
+                    identity = OAGSIdentity()
+                    bridge = OracleBridge(signer, identity)
+
+                    # Collect metrics for attestation
+                    derived = compute_derived_metrics(trace)
+                    attestation_metrics = {
+                        "SS": derived.get("stability_score", 0.0),
+                        "GCR": derived.get("governance_compliance_rate", 0.0),
+                        "PFI": derived.get("provider_failure_index", 0.0),
+                        "RP": derived.get("recovery_probability", 0.0),
+                        "SSR": derived.get("supervisor_score_reliability", 0.0),
+                    }
+
+                    cert = bridge.create_attestation(
+                        task_id=run_id,
+                        metrics=attestation_metrics,
+                    )
+
+                    # Persist to registry
+                    registry = AttestationRegistry()
+                    registry.add(cert)
+
+                    result_dict["attestation"] = {
+                        "certificate_hash": cert.certificate_hash,
+                        "governance_status": cert.governance_status,
+                        "z3_verified": cert.z3_verified,
+                        "publishable": bridge.should_publish(cert),
+                    }
+                except Exception as e:
+                    logger.warning(f"Oracle attestation failed: {e}")
+                    result_dict["attestation"] = {"error": str(e)}
 
             return result_dict
 

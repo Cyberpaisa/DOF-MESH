@@ -472,11 +472,12 @@ def run_interactive():
     console.print("  [magenta]17.[/magenta] [bold]Adversarial Evaluation[/bold] (Red Team on last output)")
     console.print("  [magenta]18.[/magenta] [bold]Memory Governance Dashboard[/bold]")
     console.print("  [magenta]19.[/magenta] [bold]OAGS Compliance Check[/bold]")
+    console.print("  [magenta]20.[/magenta] [bold]ERC-8004 Attestation Dashboard[/bold]")
     console.print("  [cyan]0.[/cyan]  Exit")
 
     choice = IntPrompt.ask(
         "\nOption",
-        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"],
+        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"],
     )
 
     if choice == 0:
@@ -575,6 +576,8 @@ def run_interactive():
         launch_memory_dashboard()
     elif choice == 19:
         launch_oags_compliance()
+    elif choice == 20:
+        launch_attestation_dashboard()
 
     # Track execution in session
     if result:
@@ -888,6 +891,53 @@ def launch_oags_compliance():
             console.print("\n  [dim]No audit events found[/dim]")
     except Exception as e:
         console.print(f"\n  [yellow]Audit error: {e}[/yellow]")
+
+    console.print()
+
+
+def launch_attestation_dashboard():
+    """Display ERC-8004 Attestation Dashboard."""
+    console.print("\n[bold magenta]ERC-8004 Attestation Dashboard[/bold magenta]\n")
+
+    from core.oracle_bridge import AttestationRegistry
+
+    try:
+        registry = AttestationRegistry()
+    except Exception as e:
+        console.print(f"  [red]Failed to load registry: {e}[/red]\n")
+        return
+
+    certs = registry._certs
+    console.print(f"  [bold]Total Attestations:[/bold] {len(certs)}")
+
+    if certs:
+        compliance_rate = registry.get_compliance_rate()
+        compliant = sum(1 for c in certs if c.governance_status == "COMPLIANT")
+        non_compliant = len(certs) - compliant
+        published = sum(1 for c in certs if c.published)
+        pending = registry.export_for_chain()
+
+        console.print(f"  [bold]Compliance Rate:[/bold] {compliance_rate:.2%}")
+        console.print(f"  [bold]Compliant:[/bold] {compliant}  |  [bold]Non-Compliant:[/bold] {non_compliant}")
+        console.print(f"  [bold]Published On-Chain:[/bold] {published}")
+        console.print(f"  [bold]Pending for Chain:[/bold] {len(pending)}")
+
+        # Last attestation details
+        last = certs[-1]
+        console.print(f"\n  [bold]Last Attestation:[/bold]")
+        console.print(f"    Task: {last.task_id}")
+        console.print(f"    Status: {last.governance_status}")
+        console.print(f"    Z3 Verified: {last.z3_verified}")
+        console.print(f"    Hash: {last.certificate_hash[:32]}...")
+        console.print(f"    Timestamp: {last.timestamp}")
+
+        # Metrics summary
+        if last.metrics:
+            console.print(f"    Metrics:")
+            for k, v in sorted(last.metrics.items()):
+                console.print(f"      {k}: {v}")
+    else:
+        console.print("  [dim]No attestations found. Run a crew with oracle_mode=True first.[/dim]")
 
     console.print()
 
