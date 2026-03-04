@@ -27,6 +27,7 @@ Usage:
 """
 
 import os
+import re
 import uuid
 import json
 import logging
@@ -63,6 +64,12 @@ class MemoryEntry:
     governance_status: str = "approved"   # approved | warning | rejected
     version: int = 1
     parent_id: Optional[str] = None      # points to previous version
+    root_id: Optional[str] = None        # points to version 1 (None = this IS the root)
+
+
+class ConflictError(Exception):
+    """Raised when optimistic concurrency check fails in update()."""
+    pass
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -82,6 +89,9 @@ def _to_dict(entry: MemoryEntry) -> dict:
 
 
 def _from_dict(d: dict) -> MemoryEntry:
+    # Backward compat: old JSONL may lack root_id
+    if "root_id" not in d:
+        d["root_id"] = None
     return MemoryEntry(**d)
 
 
@@ -112,6 +122,7 @@ class GovernedMemoryStore:
         os.makedirs(os.path.dirname(self._store_file), exist_ok=True)
         os.makedirs(os.path.dirname(self._log_file), exist_ok=True)
         self._entries: list[MemoryEntry] = []
+        self._root_index: dict[str, list[MemoryEntry]] = {}  # root_id → versions
         self._decay: Optional["ConstitutionalDecay"] = None
 
         # Load memory config from constitution YAML
@@ -167,8 +178,23 @@ class GovernedMemoryStore:
                     parent = id_map[e.parent_id]
                     if parent.valid_to is None:
                         parent.valid_to = e.valid_from
+
+            # Rebuild root_id index
+            self._rebuild_root_index()
         except Exception as exc:
             logger.error(f"Failed to load memory store: {exc}")
+
+    def _rebuild_root_index(self) -> None:
+        """Rebuild root_id → [entries] index from current entries."""
+        self._root_index.clear()
+        for e in self._entries:
+            root = e.root_id or e.id
+            self._root_index.setdefault(root, []).append(e)
+
+    def _index_entry(self, entry: MemoryEntry) -> None:
+        """Add a single entry to the root index."""
+        root = entry.root_id or entry.id
+        self._root_index.setdefault(root, []).append(entry)
 
     def _persist_entry(self, entry: MemoryEntry) -> None:
         """Append entry to the JSONL store."""
@@ -278,29 +304,49 @@ class GovernedMemoryStore:
             governance_status=gov_status,
             version=1,
             parent_id=None,
+            root_id=None,  # this IS the root
         )
 
         self._entries.append(entry)
+        self._index_entry(entry)
         self._persist_entry(entry)
         self._log_op("add", entry.id, gov_status,
                      "HARD_RULE violation" if gov_status == "rejected" else "")
         return entry
 
-    def update(self, memory_id: str, new_content: str) -> MemoryEntry:
+    def update(
+        self,
+        memory_id: str,
+        new_content: str,
+        expected_version: int = None,
+    ) -> MemoryEntry:
         """Create a new version of an existing memory (non-destructive).
 
         The previous version is marked valid_to=now in memory.
         The new version has version+1 and parent_id pointing to the previous.
+
+        If expected_version is provided and doesn't match the current version,
+        raises ConflictError (optimistic concurrency control).
         """
         existing = next((e for e in self._entries if e.id == memory_id), None)
         if existing is None:
             return self.add(new_content)
+
+        # Optimistic concurrency check
+        if expected_version is not None and existing.version != expected_version:
+            raise ConflictError(
+                f"Version conflict: expected {expected_version}, "
+                f"found {existing.version} for memory {memory_id}"
+            )
 
         gov_status = self._check_governance(new_content)
         now = _now_iso()
 
         # Mark old version as expired (in-memory; reconstructed from child on reload)
         existing.valid_to = now
+
+        # root_id: inherit from existing, or use existing.id if existing is the root
+        new_root_id = existing.root_id or existing.id
 
         new_entry = MemoryEntry(
             id=str(uuid.uuid4()),
@@ -314,8 +360,10 @@ class GovernedMemoryStore:
             governance_status=gov_status,
             version=existing.version + 1,
             parent_id=memory_id,
+            root_id=new_root_id,
         )
         self._entries.append(new_entry)
+        self._index_entry(new_entry)
         self._persist_entry(new_entry)
         self._log_op("update", new_entry.id, gov_status, f"parent={memory_id}")
         return new_entry
@@ -385,33 +433,21 @@ class GovernedMemoryStore:
     def get_history(self, memory_id: str) -> list[MemoryEntry]:
         """Return all versions of a memory chain in chronological order.
 
-        Follows parent_id backwards to root, then collects all descendants.
+        Uses root_id index for O(1) lookup instead of O(n) chain traversal.
         """
         target = next((e for e in self._entries if e.id == memory_id), None)
         if target is None:
             return []
 
-        # Walk back to the root of the chain
-        root = target
-        visited: set[str] = set()
-        while root.parent_id and root.parent_id not in visited:
-            visited.add(root.id)
-            parent = next((x for x in self._entries if x.id == root.parent_id), None)
-            if parent is None:
-                break
-            root = parent
+        # Determine the root_id for this chain
+        target_root = target.root_id or target.id
 
-        # Collect all descendants of root (BFS)
-        chain_ids: set[str] = {root.id}
-        changed = True
-        while changed:
-            changed = False
-            for e in self._entries:
-                if e.parent_id in chain_ids and e.id not in chain_ids:
-                    chain_ids.add(e.id)
-                    changed = True
+        # O(1) lookup via root index
+        chain = self._root_index.get(target_root, [])
+        if not chain:
+            return [target]
 
-        chain = [e for e in self._entries if e.id in chain_ids]
+        chain = list(chain)  # copy to avoid mutating index
         chain.sort(key=lambda e: e.valid_from)
         return chain
 
@@ -492,17 +528,8 @@ class TemporalGraph:
         return sorted(root_map.values(), key=lambda e: e.valid_from)
 
     def _root_id(self, entry: MemoryEntry) -> str:
-        """Walk parent_id chain to the root and return its id."""
-        visited: set[str] = set()
-        current = entry
-        id_map = {e.id: e for e in self._store._entries}
-        while current.parent_id and current.parent_id not in visited:
-            visited.add(current.id)
-            parent = id_map.get(current.parent_id)
-            if parent is None:
-                break
-            current = parent
-        return current.id
+        """Return the root id for a version chain. O(1) via root_id field."""
+        return entry.root_id or entry.id
 
     # ─── timeline ─────────────────────────────────────────────────
 
@@ -630,13 +657,23 @@ class TemporalGraph:
 # MemoryClassifier — deterministic keyword-based categorization
 # ─────────────────────────────────────────────────────────────────────
 
-# Keyword → category mapping (order matters: first match wins)
+# Keyword → category mapping.
+# Priority order: decisions > errors > context > preferences > knowledge (default).
+# Uses regex word boundaries to prevent false positives.
 _CATEGORY_KEYWORDS: list[tuple[str, list[str]]] = [
-    ("errors", ["error", "fail", "exception", "bug", "crash"]),
     ("decisions", ["decidido", "decided", "elegimos", "optamos", "chose"]),
-    ("preferences", ["prefer", "config", "setting", "option"]),
+    ("errors", ["error", "fail", "exception", "bug", "crash"]),
     ("context", ["task", "pending", "current", "session", "working on"]),
+    ("preferences", ["prefer", "config", "setting", "option"]),
 ]
+
+
+def _word_match(keyword: str, text: str) -> bool:
+    """Check if keyword matches as a whole word (or phrase) in text."""
+    # For multi-word keywords like "working on", use literal match
+    if " " in keyword:
+        return keyword in text
+    return bool(re.search(r'\b' + re.escape(keyword) + r'\b', text, re.IGNORECASE))
 
 
 class MemoryClassifier:
@@ -644,19 +681,21 @@ class MemoryClassifier:
 
     No LLM — pure pattern matching against predefined keyword lists.
     Categories: knowledge, preferences, context, decisions, errors.
-    Default (no keywords matched): knowledge.
+    Priority: decisions > errors > context > preferences > knowledge (default).
+    Uses regex word boundaries to prevent false positives.
     """
 
     def classify(self, content: str) -> str:
         """Classify content into a category by keyword matching.
 
-        First matching category wins (errors > decisions > preferences > context).
+        Priority: decisions > errors > context > preferences > knowledge.
+        Uses word boundaries for accurate matching.
         Default: "knowledge".
         """
         text_lower = content.lower()
         for category, keywords in _CATEGORY_KEYWORDS:
             for kw in keywords:
-                if kw in text_lower:
+                if _word_match(kw, text_lower):
                     return category
         return "knowledge"
 
@@ -665,6 +704,7 @@ class MemoryClassifier:
 
         Confidence = matched_keywords / total_keywords_checked across ALL categories.
         If confidence < 0.3, returns ("uncategorized", confidence).
+        Priority order is respected for the best_category selection.
         """
         text_lower = content.lower()
         total_keywords = sum(len(kws) for _, kws in _CATEGORY_KEYWORDS)
@@ -673,7 +713,7 @@ class MemoryClassifier:
         best_count = 0
 
         for category, keywords in _CATEGORY_KEYWORDS:
-            cat_matches = sum(1 for kw in keywords if kw in text_lower)
+            cat_matches = sum(1 for kw in keywords if _word_match(kw, text_lower))
             matched += cat_matches
             if cat_matches > best_count:
                 best_count = cat_matches

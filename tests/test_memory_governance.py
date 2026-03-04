@@ -19,7 +19,7 @@ sys.path.insert(0, PROJECT_ROOT)
 
 from core.memory_governance import (
     GovernedMemoryStore, MemoryEntry, TemporalGraph, VALID_CATEGORIES,
-    MemoryClassifier, ConstitutionalDecay,
+    MemoryClassifier, ConstitutionalDecay, ConflictError,
 )
 
 
@@ -916,6 +916,144 @@ class TestDofExports(unittest.TestCase):
     def test_import_memory_entry(self):
         from dof import MemoryEntry
         self.assertTrue(callable(MemoryEntry))
+
+
+# ═════════════════════════════════════════════════════════════════════
+# Improvement tests: root_id, optimistic concurrency, word boundaries
+# ═════════════════════════════════════════════════════════════════════
+
+class TestRootId(unittest.TestCase):
+    """Tests for root_id O(1) version history lookup."""
+
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp()
+        self.store = make_store(self.tmpdir)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_add_sets_root_id_none(self):
+        entry = self.store.add(APPROVED_CONTENT, category="knowledge")
+        self.assertIsNone(entry.root_id)
+
+    def test_update_sets_root_id_to_original(self):
+        v1 = self.store.add(APPROVED_CONTENT, category="knowledge")
+        v2 = self.store.update(v1.id, WARNING_CONTENT)
+        self.assertEqual(v2.root_id, v1.id)
+
+    def test_update_chain_preserves_root_id(self):
+        v1 = self.store.add(APPROVED_CONTENT, category="decisions")
+        v2 = self.store.update(v1.id, WARNING_CONTENT)
+        v3_content = (
+            "## Updated Recommendation\n\n"
+            "- Use Bayesian selection. See https://example.com/\n\n"
+            "Next step: deploy new provider selector."
+        )
+        v3 = self.store.update(v2.id, v3_content)
+        # v2 and v3 both point to v1 as root
+        self.assertEqual(v2.root_id, v1.id)
+        self.assertEqual(v3.root_id, v1.id)
+
+    def test_get_history_uses_root_id(self):
+        v1 = self.store.add(APPROVED_CONTENT, category="decisions")
+        v2 = self.store.update(v1.id, WARNING_CONTENT)
+        v3_content = (
+            "## Third Version\n\n"
+            "- Final recommendation. See https://example.com/\n\n"
+            "Next step: finalize implementation."
+        )
+        v3 = self.store.update(v2.id, v3_content)
+
+        # get_history from any version returns all 3
+        history = self.store.get_history(v3.id)
+        self.assertEqual(len(history), 3)
+        self.assertEqual(history[0].id, v1.id)
+        self.assertEqual(history[2].id, v3.id)
+
+    def test_root_index_populated(self):
+        v1 = self.store.add(APPROVED_CONTENT, category="knowledge")
+        v2 = self.store.update(v1.id, WARNING_CONTENT)
+        # Root index should have v1.id as key with 2 entries
+        chain = self.store._root_index.get(v1.id, [])
+        self.assertEqual(len(chain), 2)
+
+
+class TestOptimisticConcurrency(unittest.TestCase):
+    """Tests for optimistic concurrency in update()."""
+
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp()
+        self.store = make_store(self.tmpdir)
+        self.original = self.store.add(APPROVED_CONTENT, category="knowledge")
+
+    def tearDown(self):
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_update_with_correct_expected_version(self):
+        new_entry = self.store.update(
+            self.original.id, WARNING_CONTENT, expected_version=1
+        )
+        self.assertEqual(new_entry.version, 2)
+
+    def test_update_with_wrong_expected_version_raises(self):
+        with self.assertRaises(ConflictError):
+            self.store.update(
+                self.original.id, WARNING_CONTENT, expected_version=99
+            )
+
+    def test_update_without_expected_version_works(self):
+        """No expected_version → no validation (backward compatible)."""
+        new_entry = self.store.update(self.original.id, WARNING_CONTENT)
+        self.assertEqual(new_entry.version, 2)
+
+    def test_conflict_error_message(self):
+        try:
+            self.store.update(
+                self.original.id, WARNING_CONTENT, expected_version=5
+            )
+            self.fail("Should have raised ConflictError")
+        except ConflictError as e:
+            self.assertIn("expected 5", str(e))
+            self.assertIn("found 1", str(e))
+
+    def test_import_conflict_error(self):
+        from dof import ConflictError as CE
+        self.assertTrue(issubclass(CE, Exception))
+
+
+class TestWordBoundaryClassifier(unittest.TestCase):
+    """Tests for word boundary matching and priority in MemoryClassifier."""
+
+    def setUp(self):
+        self.classifier = MemoryClassifier()
+
+    def test_decisions_priority_over_errors(self):
+        """'We decided to fix the error' → decisions (decisions > errors)."""
+        result = self.classifier.classify("We decided to fix the error")
+        self.assertEqual(result, "decisions")
+
+    def test_error_without_decision_keyword(self):
+        """'error in the system' → errors (no decisions keyword)."""
+        result = self.classifier.classify("error in the system")
+        self.assertEqual(result, "errors")
+
+    def test_word_boundary_prevents_false_positive(self):
+        """'configuration' should NOT match 'config' as a substring without boundary."""
+        # 'config' should match 'config' as a whole word
+        result = self.classifier.classify("config file updated")
+        self.assertEqual(result, "preferences")
+
+    def test_crash_classified_as_errors(self):
+        result = self.classifier.classify("The application crash was unexpected")
+        self.assertEqual(result, "errors")
+
+    def test_chose_classified_as_decisions(self):
+        result = self.classifier.classify("We chose to use FastAPI")
+        self.assertEqual(result, "decisions")
+
+    def test_plain_knowledge_text(self):
+        result = self.classifier.classify("the framework uses 5 metrics")
+        self.assertEqual(result, "knowledge")
 
 
 if __name__ == "__main__":
