@@ -470,11 +470,12 @@ def run_interactive():
     console.print("  [magenta]15.[/magenta] [bold]A2A Server[/bold] (expose agents as a service)")
     console.print("  [magenta]16.[/magenta] [bold]Verify Formal Invariants[/bold] (Z3 SMT proofs)")
     console.print("  [magenta]17.[/magenta] [bold]Adversarial Evaluation[/bold] (Red Team on last output)")
+    console.print("  [magenta]18.[/magenta] [bold]Memory Governance Dashboard[/bold]")
     console.print("  [cyan]0.[/cyan]  Exit")
 
     choice = IntPrompt.ask(
         "\nOption",
-        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17"],
+        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"],
     )
 
     if choice == 0:
@@ -569,6 +570,8 @@ def run_interactive():
         launch_z3_verifier()
     elif choice == 17:
         launch_adversarial(session_runs)
+    elif choice == 18:
+        launch_memory_dashboard()
 
     # Track execution in session
     if result:
@@ -741,6 +744,82 @@ def launch_adversarial(session_runs: list):
             console.print(f"    [{u['severity']}] {u['issue_id']}: {u['reason']}")
 
     console.print(f"\n  [dim]Results saved to logs/adversarial.jsonl[/dim]\n")
+
+
+def launch_memory_dashboard():
+    """Display Memory Governance Dashboard."""
+    console.print("\n[bold magenta]Memory Governance Dashboard[/bold magenta]\n")
+
+    from core.memory_governance import GovernedMemoryStore, TemporalGraph, ConstitutionalDecay
+
+    try:
+        store = GovernedMemoryStore()
+    except Exception as e:
+        console.print(f"  [red]Failed to load memory store: {e}[/red]\n")
+        return
+
+    stats = store.get_stats()
+    graph = TemporalGraph(store)
+    decay = ConstitutionalDecay(store)
+
+    # Stats summary
+    console.print(f"  [bold]Total memories:[/bold] {stats['total_memories']}")
+    console.print(f"  [bold]Active memories:[/bold] {stats['active_memories']}")
+    console.print(f"  [bold]Avg relevance:[/bold] {stats['avg_relevance']:.3f}")
+
+    # By category
+    if stats["by_category"]:
+        cat_table = Table(title="By Category", show_lines=False)
+        cat_table.add_column("Category", style="cyan")
+        cat_table.add_column("Count", justify="right")
+        for cat, count in sorted(stats["by_category"].items()):
+            cat_table.add_row(cat, str(count))
+        console.print(cat_table)
+
+    # By status
+    if stats["by_status"]:
+        status_table = Table(title="By Status", show_lines=False)
+        status_table.add_column("Status", style="cyan")
+        status_table.add_column("Count", justify="right")
+        for status, count in sorted(stats["by_status"].items()):
+            style = "green" if status == "approved" else "yellow" if status == "warning" else "red"
+            status_table.add_row(f"[{style}]{status}[/{style}]", str(count))
+        console.print(status_table)
+
+    # Top memories by relevance
+    active = store.query()
+    if active:
+        top_table = Table(title="Top Memories (by relevance)", show_lines=False)
+        top_table.add_column("Score", justify="right", width=6)
+        top_table.add_column("Category", style="cyan", width=12)
+        top_table.add_column("Content", width=60)
+        for e in active[:5]:
+            top_table.add_row(f"{e.relevance_score:.2f}", e.category, e.content[:60])
+        console.print(top_table)
+
+    # Memories close to decay
+    decay_status = decay.get_decay_status()
+    at_risk = [d for d in decay_status if not d["protected"] and d["relevance_score"] < 0.5]
+    if at_risk:
+        risk_table = Table(title="Approaching Decay (score < 0.5)", show_lines=False)
+        risk_table.add_column("Score", justify="right", width=6)
+        risk_table.add_column("Category", style="cyan", width=12)
+        risk_table.add_column("Content", width=60)
+        for d in at_risk[:5]:
+            risk_table.add_row(f"{d['relevance_score']:.2f}", d["category"], d["content_summary"][:60])
+        console.print(risk_table)
+
+    # Age distribution
+    age_dist = graph.memory_age_distribution()
+    if any(v > 0 for v in age_dist.values()):
+        age_table = Table(title="Age Distribution", show_lines=False)
+        age_table.add_column("Bucket", style="cyan")
+        age_table.add_column("Count", justify="right")
+        for bucket, count in age_dist.items():
+            age_table.add_row(bucket, str(count))
+        console.print(age_table)
+
+    console.print()
 
 
 def launch_a2a_server():

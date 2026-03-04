@@ -40,7 +40,8 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
              max_retries: int = MAX_RETRIES, skip_supervisor: bool = False,
              mode: str = "production", crew_factory=None,
              adversarial_mode: bool = False,
-             contract_path: str = "") -> dict:
+             contract_path: str = "",
+             governed_memory: bool = False) -> dict:
     """Execute a crew with full FASE 0 + FASE 1 infrastructure.
 
     Args:
@@ -52,6 +53,8 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
         contract_path: Optional path to a TASK_CONTRACT.md file. When provided,
             preconditions are checked before kickoff and quality gates +
             postconditions are verified after execution.
+        governed_memory: When True, store execution results in GovernedMemoryStore
+            (success → "knowledge", failure → "errors").
 
     Returns dict with:
         status, output, run_id, summary, supervisor, governance,
@@ -65,6 +68,14 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
     enforcer = ConstitutionEnforcer()
     supervisor = MetaSupervisor()
     trace_store = RunTraceStore()
+
+    memory_store = None
+    if governed_memory:
+        try:
+            from core.memory_governance import GovernedMemoryStore
+            memory_store = GovernedMemoryStore()
+        except Exception as e:
+            logger.warning(f"GovernedMemoryStore init failed: {e} — continuing without memory")
 
     run_id = str(uuid.uuid4())
     checkpoint.run_id = run_id
@@ -275,6 +286,22 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
                     "unresolved": len(adv_result.unresolved),
                 }
 
+            # Governed memory: store successful result
+            if memory_store:
+                try:
+                    summary = output[:2000]
+                    memory_store.add(
+                        content=summary,
+                        category="knowledge",
+                        metadata={
+                            "task": crew_name,
+                            "run_id": run_id,
+                            "score": sup_verdict.score if sup_verdict else 0.0,
+                        },
+                    )
+                except Exception as e:
+                    logger.warning(f"Memory store (success) failed: {e}")
+
             # Contract: verify quality gates and postconditions
             if contract:
                 contract_ctx = {
@@ -348,6 +375,18 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
 
     elapsed_ms = (time.time() - start) * 1000
     metrics.log_crew_end(run_id, crew_name, "error", elapsed_ms, 0)
+
+    # Governed memory: store error
+    if memory_store:
+        try:
+            error_summary = f"Crew '{crew_name}' failed after {max_retries} retries. Error: {last_error[:500]}"
+            memory_store.add(
+                content=error_summary,
+                category="errors",
+                metadata={"task": crew_name, "run_id": run_id, "error_class": "terminal_failure"},
+            )
+        except Exception as e:
+            logger.warning(f"Memory store (error) failed: {e}")
 
     return {
         "status": "error",
