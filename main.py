@@ -468,11 +468,13 @@ def run_interactive():
     console.print("  [green]13.[/green] [bold]Voice Mode[/bold] (natural speech from your Mac)")
     console.print("  [green]14.[/green] [bold]Build Project[/bold] (generate project with real code)")
     console.print("  [magenta]15.[/magenta] [bold]A2A Server[/bold] (expose agents as a service)")
+    console.print("  [magenta]16.[/magenta] [bold]Verify Formal Invariants[/bold] (Z3 SMT proofs)")
+    console.print("  [magenta]17.[/magenta] [bold]Adversarial Evaluation[/bold] (Red Team on last output)")
     console.print("  [cyan]0.[/cyan]  Exit")
 
     choice = IntPrompt.ask(
         "\nOption",
-        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"],
+        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17"],
     )
 
     if choice == 0:
@@ -563,6 +565,10 @@ def run_interactive():
         result = run_crew(factory(), "build_project", crew_factory=factory)
     elif choice == 15:
         launch_a2a_server()
+    elif choice == 16:
+        launch_z3_verifier()
+    elif choice == 17:
+        launch_adversarial(session_runs)
 
     # Track execution in session
     if result:
@@ -672,6 +678,69 @@ def launch_voice():
     console.print("[green]Launching Voice Mode...[/green]")
     from interfaces.voice_interface import start_voice_loop
     start_voice_loop()
+
+
+def launch_z3_verifier():
+    """Run Z3 formal verification of DOF invariants."""
+    console.print("\n[bold magenta]Z3 Formal Verification — DOF Invariants[/bold magenta]\n")
+    from core.z3_verifier import Z3Verifier
+    verifier = Z3Verifier()
+    results = verifier.verify_all()
+
+    for r in results:
+        status = "[green]VERIFIED[/green]" if r.result == "VERIFIED" else "[red]COUNTEREXAMPLE[/red]"
+        console.print(f"  {status}  {r.theorem_name} ({r.proof_time_ms:.1f}ms)")
+        console.print(f"           [dim]{r.description}[/dim]")
+
+    verified = sum(1 for r in results if r.result == "VERIFIED")
+    total = len(results)
+    total_ms = sum(r.proof_time_ms for r in results)
+    console.print(f"\n  [bold]{verified}/{total} theorems verified[/bold] in {total_ms:.1f}ms (Z3 {results[0].z3_version})")
+    console.print(f"  [dim]Results saved to logs/z3_proofs.json[/dim]\n")
+
+
+def launch_adversarial(session_runs: list):
+    """Run adversarial evaluation on the last output."""
+    console.print("\n[bold magenta]Adversarial Evaluation — Red Team Analysis[/bold magenta]\n")
+
+    # Find last successful output
+    last_output = None
+    for run in reversed(session_runs):
+        if run.get("output"):
+            last_output = run["output"]
+            break
+
+    if not last_output:
+        # Try reading last output file
+        output_dir = os.path.join(BASE_DIR, "output")
+        if os.path.exists(output_dir):
+            files = sorted([f for f in os.listdir(output_dir) if f.endswith(".md")])
+            if files:
+                with open(os.path.join(output_dir, files[-1])) as f:
+                    last_output = f.read()
+                console.print(f"  [dim]Using last output file: {files[-1]}[/dim]")
+
+    if not last_output:
+        console.print("  [yellow]No output found to evaluate. Run a crew first.[/yellow]\n")
+        return
+
+    from core.adversarial import AdversarialEvaluator
+    evaluator = AdversarialEvaluator()
+    result = evaluator.evaluate(last_output)
+
+    verdict_style = "green" if result.verdict == "PASS" else "red"
+    console.print(f"  Verdict: [{verdict_style}]{result.verdict}[/{verdict_style}]")
+    console.print(f"  ACR: {result.acr:.2f} ({len(result.resolved)} resolved / {result.total_issues} total)")
+    console.print(f"  Score: {result.score}")
+    console.print(f"  Red Team Score: {result.red_team_score}")
+    console.print(f"  Time: {result.elapsed_ms:.1f}ms")
+
+    if result.unresolved:
+        console.print(f"\n  [red]Unresolved issues:[/red]")
+        for u in result.unresolved:
+            console.print(f"    [{u['severity']}] {u['issue_id']}: {u['reason']}")
+
+    console.print(f"\n  [dim]Results saved to logs/adversarial.jsonl[/dim]\n")
 
 
 def launch_a2a_server():
