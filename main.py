@@ -476,11 +476,12 @@ def run_interactive():
     console.print("  [magenta]21.[/magenta] [bold]Run Full Pipeline Test[/bold] (end-to-end validation)")
     console.print("  [magenta]22.[/magenta] [bold]Start MCP Server[/bold] (DOF governance as MCP tools)")
     console.print("  [magenta]23.[/magenta] [bold]Start REST API Server[/bold] (FastAPI endpoints)")
+    console.print("  [magenta]24.[/magenta] [bold]Open Dashboard[/bold] (DOF Sovereign Dashboard)")
     console.print("  [cyan]0.[/cyan]  Exit")
 
     choice = IntPrompt.ask(
         "\nOption",
-        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"],
+        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
     )
 
     if choice == 0:
@@ -587,6 +588,8 @@ def run_interactive():
         launch_mcp_server()
     elif choice == 23:
         launch_rest_api()
+    elif choice == 24:
+        launch_sovereign_dashboard()
 
     # Track execution in session
     if result:
@@ -1069,6 +1072,23 @@ def launch_rest_api():
     console.print(f"[dim]Docs at http://localhost:{port}/docs[/dim]")
     console.print("[dim]Press Ctrl+C to stop[/dim]\n")
     start_server(port=port)
+
+
+def launch_sovereign_dashboard():
+    """Open DOF Sovereign Dashboard in the default browser."""
+    import webbrowser
+
+    dashboard_html = os.path.join(BASE_DIR, "dashboard", "index.html")
+    if not os.path.exists(dashboard_html):
+        console.print("[red]dashboard/index.html not found[/red]")
+        return
+
+    url = f"file://{dashboard_html}"
+    console.print(f"\n[bold magenta]DOF Sovereign Dashboard[/bold magenta]\n")
+    console.print(f"  Opening: [cyan]{url}[/cyan]")
+    console.print(f"  [dim]Dashboard JSX: dashboard/DOF_Dashboard.jsx[/dim]")
+    console.print(f"  [dim]Requires React 18+, Recharts, Lucide[/dim]\n")
+    webbrowser.open(url)
 
 
 def launch_mcp_server():
