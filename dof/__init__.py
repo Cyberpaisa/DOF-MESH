@@ -132,6 +132,12 @@ from core.oracle_bridge import (
 )
 
 # ─────────────────────────────────────────────────────────────────────
+# Storage
+# ─────────────────────────────────────────────────────────────────────
+
+from core.storage import StorageFactory, JSONLBackend, PostgreSQLBackend
+
+# ─────────────────────────────────────────────────────────────────────
 # Crew Runner
 # ─────────────────────────────────────────────────────────────────────
 
@@ -222,6 +228,10 @@ __all__ = [
     "AttestationCertificate",
     "AttestationRegistry",
     "CertificateSigner",
+    # Storage
+    "StorageFactory",
+    "JSONLBackend",
+    "PostgreSQLBackend",
     # Crew
     "run_crew",
 ]

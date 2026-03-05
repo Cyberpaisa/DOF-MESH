@@ -54,7 +54,11 @@ api = [
     "fastapi>=0.100.0",
     "uvicorn>=0.20.0",
 ]
-all = ["dof-sdk[dev,data,interfaces,api]"]
+db = [
+    "sqlalchemy>=2.0.0",
+    "psycopg2-binary>=2.9.0",
+]
+all = ["dof-sdk[dev,data,interfaces,api,db]"]
 
 [project.urls]
 Homepage = "https://github.com/jquiceno/dof-sdk"

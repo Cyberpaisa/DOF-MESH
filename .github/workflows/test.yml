@@ -24,7 +24,7 @@ jobs:
       - name: Install test dependencies (minimal — no crewai/litellm)
         run: |
           pip install --upgrade pip
-          pip install z3-solver pyyaml python-dotenv rich blake3 fastapi httpx
+          pip install z3-solver pyyaml python-dotenv rich blake3 fastapi httpx sqlalchemy
 
       - name: Install dof package (no transitive deps)
         run: pip install -e . --no-deps
@@ -46,6 +46,7 @@ jobs:
             tests.test_full_pipeline \
             tests.test_mcp_server \
             tests.test_api \
+            tests.test_storage \
             -v
 
       - name: Verify public API imports

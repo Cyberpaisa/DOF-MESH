@@ -297,12 +297,14 @@ class AttestationRegistry:
     """Off-chain local registry for attestation certificates.
 
     Persists to logs/attestations.jsonl.
+    Optional: StorageBackend (PostgreSQL) for production persistence.
     """
 
-    def __init__(self):
+    def __init__(self, _storage_backend=None):
         os.makedirs(LOGS_DIR, exist_ok=True)
         self._store_path = os.path.join(LOGS_DIR, "attestations.jsonl")
         self._certs: list[AttestationCertificate] = []
+        self._backend = _storage_backend
         self._load()
 
     def _load(self):
@@ -334,6 +336,12 @@ class AttestationRegistry:
         """Add attestation to registry and persist."""
         self._certs.append(cert)
         self._save()
+        # Dual-write to storage backend if available
+        if self._backend is not None:
+            try:
+                self._backend.save_attestation(asdict(cert))
+            except Exception as exc:
+                logger.warning(f"Backend save_attestation failed: {exc}")
 
     def get_attestation(self, certificate_hash: str) -> AttestationCertificate | None:
         """Look up attestation by certificate hash."""

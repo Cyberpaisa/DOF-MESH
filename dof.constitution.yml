@@ -326,3 +326,12 @@ memory:
     enforce_on_add: true
     enforce_on_update: true
     log_queries: true
+
+# ─────────────────────────────────────────────────────────────────────
+# Storage Backend
+# ─────────────────────────────────────────────────────────────────────
+
+storage:
+  backend: "auto"
+  jsonl_path: "memory/"
+  postgresql_url: null

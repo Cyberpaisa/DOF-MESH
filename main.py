@@ -477,11 +477,12 @@ def run_interactive():
     console.print("  [magenta]22.[/magenta] [bold]Start MCP Server[/bold] (DOF governance as MCP tools)")
     console.print("  [magenta]23.[/magenta] [bold]Start REST API Server[/bold] (FastAPI endpoints)")
     console.print("  [magenta]24.[/magenta] [bold]Open Dashboard[/bold] (DOF Sovereign Dashboard)")
+    console.print("  [magenta]25.[/magenta] [bold]Storage Backend Status[/bold] (JSONL / PostgreSQL)")
     console.print("  [cyan]0.[/cyan]  Exit")
 
     choice = IntPrompt.ask(
         "\nOption",
-        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
+        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25"],
     )
 
     if choice == 0:
@@ -590,6 +591,8 @@ def run_interactive():
         launch_rest_api()
     elif choice == 24:
         launch_sovereign_dashboard()
+    elif choice == 25:
+        launch_storage_status()
 
     # Track execution in session
     if result:
@@ -1072,6 +1075,46 @@ def launch_rest_api():
     console.print(f"[dim]Docs at http://localhost:{port}/docs[/dim]")
     console.print("[dim]Press Ctrl+C to stop[/dim]\n")
     start_server(port=port)
+
+
+def launch_storage_status():
+    """Display Storage Backend Status — JSONL or PostgreSQL."""
+    console.print("\n[bold magenta]Storage Backend Status[/bold magenta]\n")
+
+    from core.storage import StorageFactory
+
+    backend = StorageFactory.get_backend()
+    name = StorageFactory.get_backend_name()
+    stats = backend.get_stats()
+
+    style = "green" if name == "postgresql" else "cyan"
+    console.print(f"  [bold]Active Backend:[/bold] [{style}]{name.upper()}[/{style}]")
+
+    db_url = os.environ.get("DOF_DATABASE_URL", "")
+    if db_url:
+        # Mask password in URL for display
+        masked = db_url.split("@")
+        if len(masked) > 1:
+            console.print(f"  [bold]Database:[/bold] [dim]***@{masked[-1]}[/dim]")
+    else:
+        console.print("  [dim]DOF_DATABASE_URL not set — using JSONL[/dim]")
+
+    console.print(f"\n  [bold]Total Memories:[/bold] {stats.get('total_memories', 0)}")
+    console.print(f"  [bold]Active Memories:[/bold] {stats.get('active_memories', 0)}")
+    console.print(f"  [bold]Total Attestations:[/bold] {stats.get('total_attestations', 0)}")
+
+    if "by_category" in stats and stats["by_category"]:
+        cat_table = Table(title="By Category", show_lines=False)
+        cat_table.add_column("Category", style="cyan")
+        cat_table.add_column("Count", justify="right")
+        for cat, count in sorted(stats["by_category"].items()):
+            cat_table.add_row(cat, str(count))
+        console.print(cat_table)
+
+    if "avg_relevance" in stats:
+        console.print(f"  [bold]Avg Relevance:[/bold] {stats['avg_relevance']:.3f}")
+
+    console.print()
 
 
 def launch_sovereign_dashboard():

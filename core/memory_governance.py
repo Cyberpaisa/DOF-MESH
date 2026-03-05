@@ -109,6 +109,7 @@ class GovernedMemoryStore:
 
     Persistence: append-only JSONL in memory/governed_store.jsonl.
     Audit log:   append-only JSONL in logs/memory_governance.jsonl.
+    Optional:    StorageBackend (PostgreSQL) for production persistence.
     """
 
     def __init__(
@@ -116,6 +117,7 @@ class GovernedMemoryStore:
         constitution_path: str = "dof.constitution.yml",
         _store_file: str = None,
         _log_file: str = None,
+        _storage_backend=None,
     ):
         self._store_file = _store_file or STORE_FILE
         self._log_file = _log_file or LOG_FILE
@@ -124,6 +126,9 @@ class GovernedMemoryStore:
         self._entries: list[MemoryEntry] = []
         self._root_index: dict[str, list[MemoryEntry]] = {}  # root_id → versions
         self._decay: Optional["ConstitutionalDecay"] = None
+
+        # Storage backend (optional — for dual persistence)
+        self._backend = _storage_backend
 
         # Load memory config from constitution YAML
         self._memory_config = self._load_memory_config(constitution_path)
@@ -197,12 +202,18 @@ class GovernedMemoryStore:
         self._root_index.setdefault(root, []).append(entry)
 
     def _persist_entry(self, entry: MemoryEntry) -> None:
-        """Append entry to the JSONL store."""
+        """Append entry to the JSONL store and optional backend."""
         try:
             with open(self._store_file, "a") as f:
                 f.write(json.dumps(_to_dict(entry)) + "\n")
         except Exception as exc:
             logger.error(f"Failed to persist memory entry: {exc}")
+        # Dual-write to storage backend if available
+        if self._backend is not None:
+            try:
+                self._backend.save_memory(_to_dict(entry))
+            except Exception as exc:
+                logger.warning(f"Backend save_memory failed: {exc}")
 
     def _log_op(self, operation: str, memory_id: str, status: str, reason: str = "") -> None:
         """Append an audit entry to memory_governance.jsonl."""
