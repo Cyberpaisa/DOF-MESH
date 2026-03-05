@@ -270,6 +270,50 @@ class OracleBridge:
         expected_hash = _hash_bytes(payload + cert.signature.encode("utf-8"))
         return expected_hash == cert.certificate_hash
 
+    def publish_to_enigma(self, cert: AttestationCertificate,
+                          ast_score: float = 0.0,
+                          acr: float = 0.0) -> dict:
+        """Publish attestation metrics to Enigma Scanner trust_scores.
+
+        Requires ENIGMA_DATABASE_URL in environment.
+
+        Args:
+            cert: Signed attestation certificate.
+            ast_score: AST verifier score (0.0-1.0).
+            acr: Adversarial compliance rate (0.0-1.0).
+
+        Returns:
+            Dict with published TrustScore or error.
+        """
+        try:
+            from core.enigma_bridge import EnigmaBridge
+
+            bridge = EnigmaBridge()
+            metrics = {
+                "SS": cert.metrics.get("SS", cert.metrics.get("stability_score", 0.0)),
+                "GCR": cert.metrics.get("GCR", cert.metrics.get("governance_compliance_rate", 0.0)),
+                "PFI": cert.metrics.get("PFI", cert.metrics.get("provider_failure_index", 0.0)),
+                "AST_score": ast_score,
+                "ACR": acr,
+            }
+            snapshot = {
+                "certificate_hash": cert.certificate_hash,
+                "task_id": cert.task_id,
+                "governance_status": cert.governance_status,
+                "z3_verified": cert.z3_verified,
+                "full_metrics": cert.metrics,
+            }
+            score = bridge.publish_trust_score(
+                agent_id=cert.agent_identity,
+                metrics=metrics,
+                snapshot_data=snapshot,
+            )
+            self._log_attestation(cert, "published_to_enigma")
+            return {"status": "published", "trust_score": score.__dict__}
+        except Exception as e:
+            logger.warning(f"Failed to publish to Enigma: {e}")
+            return {"status": "error", "error": str(e)}
+
     def _log_attestation(self, cert: AttestationCertificate, action: str):
         """Log attestation event to logs/oracle_bridge.jsonl."""
         os.makedirs(LOGS_DIR, exist_ok=True)

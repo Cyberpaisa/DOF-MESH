@@ -478,11 +478,12 @@ def run_interactive():
     console.print("  [magenta]23.[/magenta] [bold]Start REST API Server[/bold] (FastAPI endpoints)")
     console.print("  [magenta]24.[/magenta] [bold]Open Dashboard[/bold] (DOF Sovereign Dashboard)")
     console.print("  [magenta]25.[/magenta] [bold]Storage Backend Status[/bold] (JSONL / PostgreSQL)")
+    console.print("  [magenta]26.[/magenta] [bold]Publish to Enigma Scanner[/bold] (trust_scores → erc-8004scan.xyz)")
     console.print("  [cyan]0.[/cyan]  Exit")
 
     choice = IntPrompt.ask(
         "\nOption",
-        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25"],
+        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26"],
     )
 
     if choice == 0:
@@ -593,6 +594,8 @@ def run_interactive():
         launch_sovereign_dashboard()
     elif choice == 25:
         launch_storage_status()
+    elif choice == 26:
+        launch_enigma_publish()
 
     # Track execution in session
     if result:
@@ -1132,6 +1135,60 @@ def launch_sovereign_dashboard():
     console.print(f"  [dim]Dashboard JSX: dashboard/DOF_Dashboard.jsx[/dim]")
     console.print(f"  [dim]Requires React 18+, Recharts, Lucide[/dim]\n")
     webbrowser.open(url)
+
+
+def launch_enigma_publish():
+    """Publish DOF attestation metrics to Enigma Scanner trust_scores."""
+    console.print("\n[bold magenta]Publish to Enigma Scanner[/bold magenta]\n")
+
+    from core.enigma_bridge import EnigmaBridge
+
+    bridge = EnigmaBridge()
+    if not bridge.is_online:
+        console.print("  [yellow]OFFLINE[/yellow] — ENIGMA_DATABASE_URL not set or unreachable")
+        console.print("  [dim]Set ENIGMA_DATABASE_URL in .env to enable Enigma publishing[/dim]\n")
+        return
+
+    console.print("  [green]CONNECTED[/green] to Enigma database\n")
+
+    # Get latest attestation from registry
+    try:
+        from core.oracle_bridge import AttestationRegistry
+        registry = AttestationRegistry()
+        pending = registry.export_for_chain()
+
+        if not pending:
+            console.print("  [dim]No unpublished COMPLIANT attestations found[/dim]")
+            console.print("  [dim]Run a crew with oracle_mode=True first[/dim]\n")
+            return
+
+        console.print(f"  Found [cyan]{len(pending)}[/cyan] unpublished attestation(s)\n")
+
+        for cert_data in pending:
+            agent_id = cert_data.get("agent_identity", "unknown")
+            metrics = cert_data.get("metrics", {})
+            snapshot = {
+                "certificate_hash": cert_data.get("certificate_hash", ""),
+                "task_id": cert_data.get("task_id", ""),
+                "governance_status": cert_data.get("governance_status", ""),
+                "z3_verified": cert_data.get("z3_verified", False),
+            }
+
+            try:
+                score = bridge.publish_trust_score(agent_id, metrics, snapshot)
+                console.print(f"  [green]PUBLISHED[/green] agent={agent_id[:16]}... "
+                              f"SS={score.overall_score:.2f} GCR={score.uptime_score:.2f}")
+
+                # Mark as published in local registry
+                cert_hash = cert_data.get("certificate_hash", "")
+                if cert_hash:
+                    registry.mark_published(cert_hash)
+            except Exception as e:
+                console.print(f"  [red]FAILED[/red] agent={agent_id[:16]}... error={e}")
+
+        console.print()
+    except Exception as e:
+        console.print(f"  [red]Error: {e}[/red]\n")
 
 
 def launch_mcp_server():

@@ -364,6 +364,11 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
                         "z3_verified": cert.z3_verified,
                         "publishable": bridge.should_publish(cert),
                     }
+
+                    # Publish to Enigma Scanner if attestation is publishable
+                    if bridge.should_publish(cert):
+                        enigma_result = bridge.publish_to_enigma(cert)
+                        result_dict["enigma"] = enigma_result
                 except Exception as e:
                     logger.warning(f"Oracle attestation failed: {e}")
                     result_dict["attestation"] = {"error": str(e)}

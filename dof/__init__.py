@@ -132,6 +132,12 @@ from core.oracle_bridge import (
 )
 
 # ─────────────────────────────────────────────────────────────────────
+# Enigma Bridge (trust_scores → erc-8004scan.xyz)
+# ─────────────────────────────────────────────────────────────────────
+
+from core.enigma_bridge import EnigmaBridge, TrustScore
+
+# ─────────────────────────────────────────────────────────────────────
 # Storage
 # ─────────────────────────────────────────────────────────────────────
 
@@ -244,6 +250,9 @@ __all__ = [
     "AttestationCertificate",
     "AttestationRegistry",
     "CertificateSigner",
+    # Enigma Bridge
+    "EnigmaBridge",
+    "TrustScore",
     # Storage
     "StorageFactory",
     "JSONLBackend",
