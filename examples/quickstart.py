@@ -1,3 +1,4 @@
+# No API keys required. Run: python examples/quickstart.py
 """
 DOF SDK — Quick Start Example
 
@@ -62,7 +63,7 @@ trace.steps = [
 ]
 trace.end_epoch = time.time()
 
-from core.observability import compute_derived_metrics
+from dof import compute_derived_metrics
 metrics = compute_derived_metrics(trace)
 
 print("Derived metrics for demo run:")

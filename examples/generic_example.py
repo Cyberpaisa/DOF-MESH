@@ -9,12 +9,7 @@ Run with:
     python examples/generic_example.py
 """
 
-import sys
-import os
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from integrations.langgraph_adapter import GenericAdapter, create_governed_pipeline
+from dof import GenericAdapter, create_governed_pipeline
 
 # ── 1. GenericAdapter — govern any string output ─────────────────────────────
 

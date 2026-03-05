@@ -8,6 +8,23 @@ Python 3.11+ | Apache-2.0 | 12,000+ LOC | 30+ modules | 435 tests | Z3 formal ve
 
 ---
 
+## Quick Start
+
+```bash
+pip install -e .
+```
+
+```python
+from dof import GenericAdapter
+result = GenericAdapter().wrap_output("your agent output")
+# → {status: "pass", violations: [], score: 8.5}
+```
+
+For Z3 formal proofs: `python -m dof verify`
+For full guide: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
+
+---
+
 ## Abstract
 
 Multi-agent LLM systems operating across heterogeneous providers exhibit infrastructure-induced instability that cannot be rigorously characterized using conventional orchestration tooling. Rate limits, cascading retries, infrastructure-induced degradation, and non-deterministic provider behavior introduce execution variance that obscures causal attribution.
