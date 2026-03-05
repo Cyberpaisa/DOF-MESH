@@ -48,6 +48,7 @@ jobs:
             tests.test_api \
             tests.test_storage \
             tests.test_integrations \
+            tests.test_enigma_bridge \
             -v
 
       - name: Verify public API imports
