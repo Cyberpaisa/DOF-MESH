@@ -47,6 +47,7 @@ jobs:
             tests.test_mcp_server \
             tests.test_api \
             tests.test_storage \
+            tests.test_integrations \
             -v
 
       - name: Verify public API imports

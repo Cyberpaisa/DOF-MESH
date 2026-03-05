@@ -58,13 +58,16 @@ db = [
     "sqlalchemy>=2.0.0",
     "psycopg2-binary>=2.9.0",
 ]
-all = ["dof-sdk[dev,data,interfaces,api,db]"]
+langgraph = [
+    "langgraph>=0.2.0",
+]
+all = ["dof-sdk[dev,data,interfaces,api,db,langgraph]"]
 
 [project.urls]
 Homepage = "https://github.com/jquiceno/dof-sdk"
 
 [tool.setuptools.packages.find]
-include = ["dof*", "core*"]
+include = ["dof*", "core*", "integrations*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

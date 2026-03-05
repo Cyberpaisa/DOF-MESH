@@ -138,6 +138,22 @@ from core.oracle_bridge import (
 from core.storage import StorageFactory, JSONLBackend, PostgreSQLBackend
 
 # ─────────────────────────────────────────────────────────────────────
+# Framework-Agnostic Governance
+# ─────────────────────────────────────────────────────────────────────
+
+from integrations.langgraph_adapter import (
+    DOFGovernanceNode,
+    DOFASTNode,
+    DOFMemoryNode,
+    DOFObservabilityNode,
+    FrameworkAdapter,
+    GenericAdapter,
+    CrewAIAdapter,
+    LangGraphAdapter,
+    create_governed_pipeline,
+)
+
+# ─────────────────────────────────────────────────────────────────────
 # Crew Runner
 # ─────────────────────────────────────────────────────────────────────
 
@@ -232,6 +248,16 @@ __all__ = [
     "StorageFactory",
     "JSONLBackend",
     "PostgreSQLBackend",
+    # Framework-Agnostic Governance
+    "DOFGovernanceNode",
+    "DOFASTNode",
+    "DOFMemoryNode",
+    "DOFObservabilityNode",
+    "FrameworkAdapter",
+    "GenericAdapter",
+    "CrewAIAdapter",
+    "LangGraphAdapter",
+    "create_governed_pipeline",
     # Crew
     "run_crew",
 ]
