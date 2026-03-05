@@ -138,6 +138,12 @@ from core.oracle_bridge import (
 from core.enigma_bridge import EnigmaBridge, TrustScore
 
 # ─────────────────────────────────────────────────────────────────────
+# Avalanche Bridge (on-chain DOFValidationRegistry)
+# ─────────────────────────────────────────────────────────────────────
+
+from core.avalanche_bridge import AvalancheBridge
+
+# ─────────────────────────────────────────────────────────────────────
 # Storage
 # ─────────────────────────────────────────────────────────────────────
 
@@ -253,6 +259,8 @@ __all__ = [
     # Enigma Bridge
     "EnigmaBridge",
     "TrustScore",
+    # Avalanche Bridge
+    "AvalancheBridge",
     # Storage
     "StorageFactory",
     "JSONLBackend",
