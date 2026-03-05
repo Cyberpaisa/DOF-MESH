@@ -34,3 +34,9 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Hardhat / Node
+node_modules/
+artifacts/
+cache/
+contracts/deployed_address.txt

@@ -1,0 +1,32 @@
+{
+  "name": "equipo-de-agentes",
+  "version": "1.0.0",
+  "description": "> A research-grade deterministic orchestration and observability framework for multi-agent LLM systems operating under adversarial infrastructure constraints. > > This repository formalizes reproducible experimentation, resilience metrics, controlled degradation modeling, governance invariance, and deterministic evaluation in heterogeneous provider environments.",
+  "main": "hardhat.config.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cyberpaisa/deterministic-observability-framework.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Cyberpaisa/deterministic-observability-framework/issues"
+  },
+  "homepage": "https://github.com/Cyberpaisa/deterministic-observability-framework#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.2",
+    "hardhat": "^2.28.6"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1"
+  }
+}
