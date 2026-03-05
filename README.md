@@ -4,7 +4,7 @@
 >
 > This repository formalizes reproducible experimentation, resilience metrics, controlled degradation modeling, governance invariance, and deterministic evaluation in heterogeneous provider environments.
 
-Python 3.11+ | Apache-2.0 | 6,000+ LOC | 25+ core modules | 293 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | pip install dof-sdk
+Python 3.11+ | Apache-2.0 | 12,000+ LOC | 30+ modules | 435 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install dof-sdk
 
 ---
 
@@ -69,6 +69,16 @@ Without formal metrics and deterministic evaluation, observed performance differ
 17. OAGS Conformance Bridge — Compatibility layer implementing the Open Agent Governance Specification. OAGSIdentity computes deterministic agent identity via BLAKE3 hashing of model configuration, constitution hash, and tool manifest. OAGSPolicyBridge provides bidirectional conversion between dof.constitution.yml and sekuire.yml policy formats, enabling interoperability with OAGS-conformant systems. OAGSAuditBridge exports DOF JSONL execution traces as OAGS-formatted audit events. Conformance validation spans three levels: Level 1 (declarative governance policy exists), Level 2 (runtime enforcement active), Level 3 (attestation mechanism operational).
 
 18. ERC-8004 Oracle Bridge — On-chain attestation mechanism bridging off-chain governance verification with the ERC-8004 Validation Registry on Avalanche C-Chain. OracleBridge generates AttestationCertificates containing signed governance metrics (SS, GCR, PFI, RP, SSR) with BLAKE3 certificate hashing and HMAC-SHA256 signatures. Publishing is compliance-gated: only attestations with GCR = 1.0 are eligible for on-chain publication; governance failures produce no attestation, ensuring the on-chain record reflects only verified compliance. Batch attestation aggregation reduces gas cost for high-throughput deployments. AttestationRegistry maintains an off-chain JSONL ledger with export-for-chain capability. Transaction structures are prepared for Avalanche C-Chain without requiring live blockchain connectivity during testing.
+
+19. MCP Server — DOF governance exposed as Model Context Protocol tools. 10 tools and 3 resources accessible from Claude Desktop, Cursor, Windsurf, and any MCP-compatible client via stdio JSON-RPC 2.0 transport. Tools cover governance verification, AST analysis, Z3 proofs, memory operations, attestation, and OAGS conformance.
+
+20. REST API — FastAPI-based HTTP interface with 14 endpoints covering governance verification, AST analysis, Z3 formal proofs, memory CRUD with temporal queries, attestation management, OAGS conformance, and system health. CORS-enabled for dashboard integration.
+
+21. Storage Abstraction — Dual-backend storage supporting JSONL (default, zero-config) and PostgreSQL (production, multi-tenant via Supabase). StorageFactory auto-detects backend from environment. SQLAlchemy ORM with JSON columns. Migration utility for existing JSONL data.
+
+22. Framework-Agnostic Governance — FrameworkAdapter abstraction enabling DOF governance for any framework. LangGraphAdapter provides governance nodes as graph-compatible callables. GenericAdapter governs any system that produces string output with zero external dependencies. Philosophy: "if you can produce a string, DOF can govern it."
+
+23. Sovereign Dashboard — Liquid Glass 2026 observability interface with 6 sections: Causal Metrics (SS(f)=1-f³ visualization), Temporal Memory Radar, Z3 Proof Certificates, OAGS Conformance with holographic seal, Adversarial Dispute Log, and Constitution viewer with IDE-style syntax highlighting.
 
 ---
 
@@ -289,6 +299,155 @@ The publishing rule is deterministic: attestations are eligible for on-chain pub
 ### Transaction Preparation
 
 `OracleBridge.prepare_transaction()` generates ERC-8004-compatible transaction structures for Avalanche C-Chain without requiring live blockchain connectivity. `batch_attestations()` aggregates multiple certificates into a single transaction for gas optimization. The `AttestationRegistry` maintains a local JSONL ledger with `export_for_chain()` to retrieve pending attestations.
+
+---
+
+## MCP Server
+
+The DOF governance stack is exposed as a Model Context Protocol (MCP) server, enabling any MCP-compatible client to invoke governance verification, formal proofs, and memory operations via stdio JSON-RPC 2.0 transport.
+
+### Tools (10)
+
+| Tool | Description |
+|------|-------------|
+| `governance_check` | Run ConstitutionEnforcer on arbitrary text |
+| `ast_verify` | AST static analysis on code strings |
+| `z3_verify` | Execute all Z3 formal proofs |
+| `memory_add` | Add governed memory entry with category |
+| `memory_query` | Query governed memory store |
+| `memory_snapshot` | Temporal snapshot at a given timestamp |
+| `attestation_create` | Generate AttestationCertificate for a run |
+| `attestation_verify` | Verify certificate integrity |
+| `oags_identity` | Compute BLAKE3 agent identity |
+| `oags_conformance` | Validate OAGS conformance level |
+
+### Resources (3)
+
+| Resource | URI | Description |
+|----------|-----|-------------|
+| Constitution | `dof://constitution` | Current governance rules |
+| Metrics | `dof://metrics` | Formal metric definitions |
+| Status | `dof://status` | System health and module availability |
+
+### Setup
+
+```bash
+# Run standalone
+python3 mcp_server.py
+
+# Claude Desktop configuration (claude_desktop_config.json)
+{
+  "mcpServers": {
+    "dof": {
+      "command": "python3",
+      "args": ["/path/to/mcp_server.py"]
+    }
+  }
+}
+```
+
+---
+
+## REST API
+
+FastAPI-based HTTP interface with 14 endpoints. CORS-enabled for dashboard and external integrations.
+
+### Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/governance/check` | Run governance check on text |
+| `POST` | `/api/v1/governance/enforce` | Enforce governance with pass/fail |
+| `POST` | `/api/v1/ast/verify` | AST verification on code |
+| `GET` | `/api/v1/z3/verify` | Run Z3 formal proofs |
+| `POST` | `/api/v1/memory/add` | Add governed memory entry |
+| `POST` | `/api/v1/memory/query` | Query memory by category/keyword |
+| `POST` | `/api/v1/memory/snapshot` | Temporal snapshot at timestamp |
+| `POST` | `/api/v1/attestation/create` | Generate attestation certificate |
+| `POST` | `/api/v1/attestation/verify` | Verify certificate integrity |
+| `GET` | `/api/v1/attestation/registry` | List all attestations |
+| `GET` | `/api/v1/oags/identity` | Get agent identity card |
+| `GET` | `/api/v1/oags/conformance` | Validate OAGS conformance |
+| `GET` | `/api/v1/constitution` | Get active constitution |
+| `GET` | `/api/v1/health` | System health check |
+
+### Usage
+
+```bash
+# Start server
+python3 -m uvicorn api_server:app --port 8001
+
+# Example: governance check
+curl -X POST http://localhost:8001/api/v1/governance/check \
+  -H "Content-Type: application/json" \
+  -d '{"text": "The analysis shows clear evidence of growth. Sources: https://example.com"}'
+```
+
+---
+
+## Storage Backends
+
+Dual-backend storage architecture supporting zero-config JSONL and production PostgreSQL.
+
+| Feature | JSONL (Default) | PostgreSQL (Production) |
+|---------|----------------|------------------------|
+| Dependencies | None | SQLAlchemy, psycopg2 |
+| Configuration | Zero-config | `DOF_DATABASE_URL` env var |
+| Tables | Append-only files | `dof_memories`, `dof_attestations`, `dof_audit_events` |
+| Queries | Linear scan | SQL with indexes, GIN on JSONB |
+| Concurrency | Single-writer | Multi-tenant via connection pooling |
+| Migration | — | `migrate_jsonl_to_postgres()` utility |
+| Testing | Direct | SQLite in-memory as proxy |
+
+### Configuration
+
+```bash
+# JSONL (default — no configuration needed)
+# Files written to memory/ directory
+
+# PostgreSQL (set environment variable)
+export DOF_DATABASE_URL="postgresql://user:pass@host:5432/dbname"
+
+# StorageFactory auto-detects backend
+from dof import StorageFactory
+backend = StorageFactory.get()  # Returns PostgreSQLBackend or JSONLBackend
+```
+
+---
+
+## Multi-Framework Support
+
+DOF governance is framework-agnostic. The adapter layer wraps any framework's output with constitutional enforcement, AST verification, and observability tracing.
+
+| Adapter | Framework | Dependencies | Use Case |
+|---------|-----------|-------------|----------|
+| `GenericAdapter` | Any (string output) | None | Govern any system that produces text |
+| `CrewAIAdapter` | CrewAI | crewai | Wrap existing CrewAI crews |
+| `LangGraphAdapter` | LangGraph | langgraph (optional) | DOF nodes as graph callables |
+
+### DOF Governance Nodes
+
+Four callable nodes that can be plugged into any graph-based pipeline:
+
+| Node | Input State | Output State | Function |
+|------|------------|-------------|----------|
+| `DOFGovernanceNode` | `output` or `messages` | `governance_pass`, `governance_result` | Constitutional enforcement |
+| `DOFASTNode` | `code` | `ast_result` | Static code analysis |
+| `DOFMemoryNode` | `memory_action`, `memory_content` | `memory_result` | Governed memory operations |
+| `DOFObservabilityNode` | `agent`, `provider`, `status` | `trace_step` | Step tracing |
+
+### Usage
+
+```python
+from dof import GenericAdapter
+
+adapter = GenericAdapter()
+result = adapter.wrap_output("Your LLM output here...")
+# {"status": "pass", "score": 0.85, "violations": [], "warnings": [...]}
+
+result = adapter.wrap_code("def hello(): return 'world'")
+# {"score": 1.0, "violations": [], "passed": True}
+```
 
 ---
 
@@ -521,7 +680,7 @@ Existing observability and reliability tools for LLM systems address complementa
 - **Zheng et al. (2023)** — "Judging LLM-as-a-Judge" identifies systematic biases in LLM evaluation (position bias, verbosity bias, self-enhancement). Directly relevant to the supervisor circularity problem addressed in this framework.
 - **Breck et al. (2017)** — "The ML Test Score" proposes a rubric for ML production readiness. Provides organizational checklists rather than runtime-computed formal metrics.
 
-**DOF differentiation**: This framework is distinguished by the combination of (1) production-integrated formal metrics with Bessel-corrected statistics, (2) deterministic failure injection with parametric sensitivity analysis, (3) constitutional governance enforcement structurally decoupled from infrastructure state, and (4) the crew_factory pattern for bounded retry with provider rotation. No existing tool provides all four capabilities in an integrated system.
+**DOF differentiation**: This framework is distinguished by the combination of (1) production-integrated formal metrics with Bessel-corrected statistics, (2) deterministic failure injection with parametric sensitivity analysis, (3) constitutional governance enforcement structurally decoupled from infrastructure state, (4) the crew_factory pattern for bounded retry with provider rotation, (5) protocol-agnostic governance access via MCP and REST interfaces, (6) dual-backend storage with JSONL audit trail and PostgreSQL production support, and (7) framework-agnostic governance enabling DOF enforcement on any system producing string output. No existing tool provides all seven capabilities in an integrated system.
 
 ---
 
@@ -600,8 +759,9 @@ python -c "from core.experiment import run_parametric_sweep; run_parametric_swee
 ## Project Structure
 
 ```
-main.py                    # Interactive entrypoint with supervisor
+main.py                    # Interactive entrypoint (25 options) with supervisor
 a2a_server.py              # A2A HTTP entrypoint with supervisor
+mcp_server.py              # MCP server (10 tools, 3 resources, stdio JSON-RPC 2.0)
 crew.py                    # Agent and crew factories
 llm_config.py              # Provider chain configuration
 
@@ -615,6 +775,7 @@ core/
   memory_manager.py         # Agent memory management
   observability.py          # RunTrace, StepTrace, causal error attribution
   experiment.py             # Batch runner, parametric sweep
+  runtime_observer.py       # Production metrics (SS, PFI, RP, GCR, SSR)
   ast_verifier.py           # Deterministic AST static analysis
   z3_verifier.py            # Z3 SMT formal proofs (4 theorems)
   adversarial.py            # Red-on-Blue evaluation protocol
@@ -622,11 +783,20 @@ core/
   memory_governance.py      # Constitutional memory store with temporal graph
   oags_bridge.py            # OAGS identity, policy bridge, audit export
   oracle_bridge.py          # ERC-8004 attestation and oracle bridge
+  storage.py                # Dual-backend storage (JSONL + PostgreSQL)
 
 dof/
   __init__.py               # pip-installable public API (dof-sdk 0.1.0)
 
-dof.constitution.yml        # Policy-as-code: HARD/SOFT/AST rules
+integrations/
+  __init__.py
+  langgraph_adapter.py      # Framework-agnostic governance nodes + adapters
+
+dashboard/
+  DOF_Dashboard.jsx         # Sovereign Dashboard (Liquid Glass 2026)
+  index.html                # Standalone HTML wrapper
+
+dof.constitution.yml        # Policy-as-code: HARD/SOFT/AST rules + storage config
 contracts/
   RESEARCH_CONTRACT.md      # Reference task contract specification
 
@@ -641,9 +811,11 @@ experiments/
   schema.json
   parametric_sweep.csv
 
-tests/                      # 293 tests across 12 test modules
+tests/                      # 435 tests across 16 test modules
 examples/
   quickstart.py             # SDK usage demonstration (no API key required)
+  generic_example.py        # GenericAdapter governance example
+  langgraph_example.py      # LangGraph adapter example
 docs/
 ```
 
@@ -655,7 +827,7 @@ docs/
   title={Deterministic Observability and Resilience Engineering for Multi-Agent LLM Systems: An Experimental Framework with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={6,000+ LOC, 25+ core modules, 293 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain, adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, 120 parametric experiments, 52 production runs, 6 formal metrics}
+  note={12,000+ LOC, 30+ modules, 435 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain, adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, MCP server (10 tools, 3 resources), REST API (14 endpoints), dual-backend storage (JSONL + PostgreSQL), framework-agnostic governance (GenericAdapter, LangGraphAdapter, CrewAIAdapter), Sovereign Dashboard, 120 parametric experiments, 52 production runs, 6 formal metrics}
 }
 
 ---
