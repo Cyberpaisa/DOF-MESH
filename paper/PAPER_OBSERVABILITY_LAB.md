@@ -4,7 +4,7 @@
 
 ## Abstract
 
-Multi-agent systems built on large language models (LLMs) exhibit failure modes that are distinct from single-model inference pipelines: provider rate limits, model incompatibilities, cascading retries, and non-deterministic output quality interact across execution steps. Existing orchestration frameworks—CrewAI, AutoGen, LangGraph—provide coordination abstractions but do not include instrumentation for measuring system stability under controlled perturbation. This paper presents an experimental framework for deterministic evaluation of multi-agent LLM systems operating across heterogeneous free-tier providers. The framework defines five metrics—Stability Score, Provider Fragility Index, Retry Pressure, Governance Compliance Rate, and Supervisor Strictness Ratio—each with explicit mathematical formulation, domain specification, and aggregation rules. The observability stack comprises run-level tracing with UUID-based session correlation, step-level checkpointing with JSONL persistence, two-tier governance enforcement, and a weighted meta-supervisor quality gate. A deterministic execution mode controls infrastructure-level randomness by fixing provider ordering and seeding pseudo-random number generators. Three experimental configurations validate the framework: a baseline with no injected failures (n=10, SS=1.0, σ=0.0), a reproducibility verification confirming metric identity across independent runs, and a perturbation experiment with periodic failure injection (n=10, SS=0.85, σ=0.2415). The implementation comprises 2,099 lines of Python across nine modules with no external dependencies beyond the orchestration layer. All results are from executed experiments with persisted trace artifacts. The framework now includes Z3 SMT formal verification proving GCR(f) = 1.0 as an architectural invariant, an adversarial Red-on-Blue evaluation protocol resolving supervisor circularity through dialectical conflict with deterministic adjudication, formal task contracts enforcing completion guarantees, causal error attribution with three-class taxonomy, Bayesian provider selection via Thompson Sampling, AST-based static verification, and constitutional policy-as-code specification. The framework further implements constitutional memory governance with bi-temporal versioning and relevance decay, OAGS-conformant agent identity via BLAKE3 deterministic hashing with three-level conformance validation, and compliance-gated on-chain attestation of governance metrics via ERC-8004 on Avalanche C-Chain. Total: 293 tests, 22 core modules, 4 formally verified theorems, OAGS Level 3 conformance.
+Multi-agent systems built on large language models (LLMs) exhibit failure modes that are distinct from single-model inference pipelines: provider rate limits, model incompatibilities, cascading retries, and non-deterministic output quality interact across execution steps. Existing orchestration frameworks—CrewAI, AutoGen, LangGraph—provide coordination abstractions but do not include instrumentation for measuring system stability under controlled perturbation. This paper presents an experimental framework for deterministic evaluation of multi-agent LLM systems operating across heterogeneous free-tier providers. The framework defines five metrics—Stability Score, Provider Fragility Index, Retry Pressure, Governance Compliance Rate, and Supervisor Strictness Ratio—each with explicit mathematical formulation, domain specification, and aggregation rules. The observability stack comprises run-level tracing with UUID-based session correlation, step-level checkpointing with JSONL persistence, two-tier governance enforcement, and a weighted meta-supervisor quality gate. A deterministic execution mode controls infrastructure-level randomness by fixing provider ordering and seeding pseudo-random number generators. Three experimental configurations validate the framework: a baseline with no injected failures (n=10, SS=1.0, σ=0.0), a reproducibility verification confirming metric identity across independent runs, and a perturbation experiment with periodic failure injection (n=10, SS=0.85, σ=0.2415). The implementation comprises 2,099 lines of Python across nine modules with no external dependencies beyond the orchestration layer. All results are from executed experiments with persisted trace artifacts. The framework now includes Z3 SMT formal verification proving GCR(f) = 1.0 as an architectural invariant, an adversarial Red-on-Blue evaluation protocol resolving supervisor circularity through dialectical conflict with deterministic adjudication, formal task contracts enforcing completion guarantees, causal error attribution with three-class taxonomy, Bayesian provider selection via Thompson Sampling, AST-based static verification, and constitutional policy-as-code specification. The framework further implements constitutional memory governance with bi-temporal versioning and relevance decay, OAGS-conformant agent identity via BLAKE3 deterministic hashing with three-level conformance validation, and compliance-gated on-chain attestation of governance metrics via ERC-8004 on Avalanche C-Chain. The framework further provides protocol integration via MCP server (10 tools, 3 resources, stdio JSON-RPC 2.0) and REST API (14 FastAPI endpoints), dual-backend storage abstraction (JSONL default, PostgreSQL production via SQLAlchemy ORM with StorageFactory auto-detection), framework-agnostic governance enabling DOF enforcement on any system that produces string output (GenericAdapter, LangGraphAdapter, CrewAIAdapter), and a Sovereign Dashboard for real-time observability visualization. Total: 435 tests, 30+ modules, 12,000+ LOC, 4 formally verified theorems, OAGS Level 3 conformance.
 
 ---
 
@@ -32,6 +32,9 @@ This paper makes the following contributions:
 14. **Constitutional memory governance** providing the first memory persistence system with formal governance enforcement. GovernedMemoryStore validates every write operation against ConstitutionEnforcer. TemporalGraph implements bi-temporal versioning enabling point-in-time state reconstruction. ConstitutionalDecay applies configurable relevance decay with constitutionally protected categories (Section 15).
 15. **OAGS conformance bridge** implementing the Open Agent Governance Specification through deterministic BLAKE3 agent identity, bidirectional policy conversion between dof.constitution.yml and sekuire.yml formats, and structured audit event export. Three-level conformance validation: declarative, runtime enforcement, attestation (Section 16).
 16. **ERC-8004 Oracle Bridge** connecting off-chain governance verification with the ERC-8004 Validation Registry on Avalanche C-Chain. HMAC-SHA256 signed attestation certificates with compliance-gated publishing: only GCR = 1.0 attestations are eligible for on-chain publication. Batch transaction preparation for gas optimization (Section 17).
+17. **Protocol integration** via MCP server exposing 10 governance tools and 3 resources over stdio JSON-RPC 2.0 transport, and REST API providing 14 FastAPI endpoints with CORS support. Both interfaces serve as protocol adapters enabling external systems to invoke DOF governance without importing Python modules (Section 18).
+18. **Storage architecture** with dual-backend abstraction supporting JSONL (default, zero-config, append-only) and PostgreSQL (production, multi-tenant). StorageFactory implements singleton auto-detection from environment variables. SQLAlchemy ORM with JSON columns for flexible metadata. Migration utility enables transition from JSONL to PostgreSQL without data loss (Section 19).
+19. **Framework-agnostic governance** via FrameworkAdapter abstraction pattern. GenericAdapter provides governance enforcement for any system producing string output with zero external dependencies. LangGraphAdapter exposes DOF governance as graph-compatible callable nodes. DOFGovernanceNode, DOFASTNode, DOFMemoryNode, and DOFObservabilityNode operate on state dictionaries, enabling integration with LangGraph, custom pipelines, or any callable-based orchestration (Section 20).
 
 The system under study consists of eight specialized agents organized into eleven crew configurations, operating across four free-tier LLM providers. All experimental results presented in this paper are from executed runs with persisted traces.
 
@@ -87,6 +90,10 @@ Mem0 [19] provides a memory layer for LLM applications with automatic extraction
 
 The Open Agent Governance Specification (OAGS), developed by Sekuire, proposes a standardized framework for agent identity, policy declaration, and audit trails. OAGS defines three conformance levels: declarative (policy exists), runtime (enforcement active), and attestation (cryptographic proof of compliance). However, OAGS provides the specification without a reference implementation that includes formal verification. The OAGS conformance bridge (Section 16) implements all three levels with Z3-verified governance invariants, providing the first formally verified OAGS-conformant system.
 
+### 2.10 Protocol Standards and Framework Interoperability
+
+The Model Context Protocol (MCP) [23] defines a standardized interface for exposing tools and resources to LLM-based agents via JSON-RPC 2.0 over stdio transport. FastAPI [24] provides high-performance HTTP APIs with automatic OpenAPI documentation. LangGraph [3] defines a graph-based orchestration model where nodes are callable functions operating on shared state dictionaries. The protocol integration layer (Section 18) and framework-agnostic governance system (Section 20) adapt DOF governance to these interfaces without embedding governance logic in the protocol or framework layer.
+
 ---
 
 ## 3. System Architecture
@@ -129,7 +136,7 @@ The system implements a layered architecture with clear separation between agent
 
 ### 3.2 Core Modules
 
-The framework comprises 22 Python modules totaling 6,000+ lines of code, with no external dependencies beyond the orchestration layer (CrewAI) and its transitive dependency (LiteLLM). The original nine modules are extended by thirteen new modules implementing formal verification, adversarial evaluation, quality enforcement, constitutional memory governance, OAGS conformance, and on-chain attestation.
+The framework comprises 30+ Python modules totaling 12,000+ lines of code, with no external dependencies beyond the orchestration layer (CrewAI) and its transitive dependency (LiteLLM). The original nine modules are extended by modules implementing formal verification, adversarial evaluation, quality enforcement, constitutional memory governance, OAGS conformance, on-chain attestation, dual-backend storage, protocol integration (MCP server, REST API), and framework-agnostic governance adapters.
 
 **Provider Manager** (`providers.py`). Implements per-provider state tracking with TTL-based exhaustion and exponential backoff recovery. Each provider maintains independent state: exhaustion flag, exhaust timestamp, failure count, and TTL. The backoff schedule follows `TTL = min(300 × 2^(failures-1), 1200)` seconds, producing a 5-minute, 10-minute, 20-minute progression capped at 20 minutes. Recovery is automatic: when `now - exhaust_time >= TTL`, the provider is reactivated. Now extended with `BayesianProviderSelector` (Section 13).
 
@@ -955,9 +962,78 @@ The `AttestationRegistry` maintains a local JSONL ledger (`logs/attestations.jso
 
 ---
 
-## 18. Discussion
+## 18. Protocol Integration
 
-### 18.1 Constitutional Memory and Governance Integrity
+### 18.1 MCP Server
+
+The DOF governance stack is exposed as a Model Context Protocol (MCP) server implementing the stdio JSON-RPC 2.0 transport specification. The server exposes 10 tools covering governance verification (`governance_check`), AST analysis (`ast_verify`), Z3 formal proofs (`z3_verify`), governed memory operations (`memory_add`, `memory_query`, `memory_snapshot`), attestation management (`attestation_create`, `attestation_verify`), and OAGS conformance (`oags_identity`, `oags_conformance`). Three read-only resources provide the active constitution (`dof://constitution`), formal metric definitions (`dof://metrics`), and system health (`dof://status`).
+
+The MCP server enables Claude Desktop, Cursor, Windsurf, and any MCP-compatible client to invoke DOF governance without importing Python modules. Tool implementations delegate to the same `core/` modules used by all other entrypoints, ensuring governance consistency across all protocol interfaces.
+
+### 18.2 REST API
+
+A FastAPI-based HTTP interface exposes 14 endpoints covering governance verification, AST analysis, Z3 formal proofs, governed memory CRUD with temporal queries, attestation management, OAGS conformance validation, and system health. CORS middleware is enabled for dashboard integration.
+
+Both the MCP server and REST API serve as protocol adapters: thin translation layers that convert protocol-specific request formats into calls to the shared `core/` governance infrastructure. No governance logic resides in the protocol layer; all enforcement is delegated to `ConstitutionEnforcer`, `ASTVerifier`, `Z3Verifier`, `GovernedMemoryStore`, `OracleBridge`, and `OAGSPolicyBridge`. This ensures that governance semantics are identical regardless of the access protocol.
+
+---
+
+## 19. Storage Architecture
+
+### 19.1 Dual-Backend Abstraction
+
+The `StorageBackend` abstract class defines the storage interface: `save_memory()`, `load_memories()`, `save_attestation()`, `load_attestations()`, `save_audit_event()`, `query_memories()`, `get_stats()`, and `initialize()`. Two concrete implementations are provided:
+
+**JSONLBackend** (default): Zero-dependency append-only storage using one JSONL file per entity type (`memories.jsonl`, `attestations.jsonl`, `audit_events.jsonl`). Queries perform linear scan with in-memory filtering. Suitable for development, testing, and single-instance deployments.
+
+**PostgreSQLBackend**: SQLAlchemy ORM with three tables (`dof_memories`, `dof_attestations`, `dof_audit_events`). JSONB columns with GIN indexes for flexible metadata queries. Supports multi-tenant deployments via connection pooling. SQLite in-memory serves as a PostgreSQL proxy for testing, enabling full backend validation without database infrastructure.
+
+### 19.2 StorageFactory
+
+`StorageFactory` implements singleton auto-detection: if the `DOF_DATABASE_URL` environment variable is set, it returns a `PostgreSQLBackend`; otherwise, it returns a `JSONLBackend`. The factory includes `reset()` for test isolation and `get_stats()` for operational monitoring.
+
+### 19.3 Dual-Write Integration
+
+`GovernedMemoryStore` and `AttestationRegistry` accept an optional `_storage_backend` parameter. When provided, every write operation persists to both the primary JSONL store and the secondary backend. If the secondary backend fails, the primary JSONL write still succeeds, with a warning logged. This dual-write pattern ensures that JSONL remains the authoritative audit trail while PostgreSQL provides query performance for production workloads.
+
+### 19.4 Migration
+
+`migrate_jsonl_to_postgres()` reads existing JSONL files and bulk-inserts their contents into the PostgreSQL backend, enabling transition from development to production storage without data loss.
+
+---
+
+## 20. Framework-Agnostic Governance
+
+### 20.1 Adapter Pattern
+
+The `FrameworkAdapter` abstract class defines the governance interface: `wrap_output(text) → dict`, `wrap_code(code) → dict`, and `record_step(data) → None`. Three concrete implementations enable DOF governance across different orchestration frameworks:
+
+**GenericAdapter**: Zero external dependencies. Wraps `ConstitutionEnforcer` and `ASTVerifier` for any system that produces string output. Philosophy: "if you can produce a string, DOF can govern it."
+
+**LangGraphAdapter**: Exposes DOF governance as LangGraph-compatible callable nodes via `get_nodes()`. Each node operates on state dictionaries, reading input from and writing results to named state keys.
+
+**CrewAIAdapter**: Wraps the existing CrewAI `crew_runner` with governance hooks, providing the same `FrameworkAdapter` interface for CrewAI-specific deployments.
+
+### 20.2 Governance Nodes
+
+Four callable nodes implement the graph-compatible governance interface:
+
+- `DOFGovernanceNode`: Extracts output from `state["output"]` or the last message in `state["messages"]`, runs `ConstitutionEnforcer.check()`, writes `governance_pass` and `governance_result` to state.
+- `DOFASTNode`: Reads `state["code"]`, runs `ASTVerifier.verify()`, writes `ast_result` to state.
+- `DOFMemoryNode`: Supports `add` and `query` actions via `GovernedMemoryStore`, controlled by `state["memory_action"]`.
+- `DOFObservabilityNode`: Creates `StepTrace` entries from state data for execution tracing.
+
+`create_governed_pipeline()` returns a pre-configured dict of all four nodes, enabling single-call pipeline setup.
+
+### 20.3 Design Rationale
+
+The adapter pattern decouples governance enforcement from framework-specific coordination semantics. DOF governance nodes receive output after framework execution completes and evaluate it deterministically. No governance logic depends on the framework that produced the output. This is the same architectural principle that establishes GCR(f) = 1.0 as an invariant: governance evaluation is a function of output content only, not of the execution path or framework that produced it.
+
+---
+
+## 21. Discussion
+
+### 21.1 Constitutional Memory and Governance Integrity
 
 The constitutional memory governance system (Section 15) closes a previously unaddressed gap in agent memory systems: governance-validated output could be stored in memory without re-validation, potentially contaminating future agent context. By interposing ConstitutionEnforcer on every write path, the framework ensures that memory content meets the same governance standard as delivered output. The bi-temporal versioning model provides auditability guarantees that are essential for compliance-sensitive deployments: any point-in-time reconstruction of agent memory state is possible via the TemporalGraph snapshot operation.
 
@@ -965,7 +1041,7 @@ The OAGS conformance bridge (Section 16) demonstrates that formal governance fra
 
 The ERC-8004 Oracle Bridge (Section 17) extends governance assurance beyond the execution boundary. By publishing compliance attestations to an immutable public ledger, the framework enables third-party verification of governance claims without requiring access to internal execution state. The compliance-gating rule (only GCR = 1.0 published) ensures that the on-chain record represents a curated set of verified compliance events, not a raw audit log.
 
-### 18.2 Deterministic Reproducibility
+### 21.2 Deterministic Reproducibility
 
 The reproducibility experiment (Section 6.2) demonstrates perfect metric identity across independent runs, confirming that the deterministic mode successfully eliminates infrastructure-level randomness. This result is theoretically expected for simulated experiments but has practical implications for real provider testing.
 
@@ -973,29 +1049,37 @@ In practice, deterministic mode cannot control LLM output randomness (temperatur
 
 A limitation of the current deterministic mode is that it operates at the Python process level. Concurrent executions in separate threads or processes maintain independent random states, which could introduce nondeterminism in multi-threaded deployments.
 
-### 18.3 Sensitivity to Perturbations
+### 21.3 Sensitivity to Perturbations
 
 The perturbation experiment (Section 6.3) shows that a 30% failure injection rate reduces mean Stability from 1.0 to 0.85, a 15% degradation. The relationship is not 30% because Stability is computed per-step within each run: a run with 2 steps where 1 fails has Stability 0.5, not 0.0. The mean across 7 clean runs (Stability=1.0) and 3 perturbed runs (Stability=0.5) is (7×1.0 + 3×0.5)/10 = 0.85.
 
 Provider Fragility Index and Retry Pressure show high standard deviation (0.4830) relative to their mean (0.3000), reflecting the bimodal nature of the underlying data.
 
-### 18.4 Governance Robustness and Formal Proof
+### 21.4 Governance Robustness and Formal Proof
 
 The invariance of Governance Compliance Rate under perturbation (GCR = 1.0 in all experiments) is now elevated beyond an empirical observation: Section 8 provides a machine-checkable Z3 proof that this invariance holds for all f ∈ [0,1] by architectural construction. The constitutional enforcement model—hard rules that block and soft rules that score—provides a useful separation of concerns.
 
-### 18.5 Supervisor Circularity Resolution
+### 21.5 Supervisor Circularity Resolution
 
 Section 9 addresses the fundamental limitation identified in the original framework: LLM-based supervision is subject to the same failure modes as the agents it evaluates. The adversarial Red-on-Blue protocol provides a partial resolution: LLM agents establish the dialectic (defect identification and defense), while a deterministic arbiter resolves it. This does not eliminate LLM involvement in evaluation but bounds its impact: the final quality determination is made by code, not by an LLM.
 
 The ACR metric provides a new signal complementary to the existing SSR: while SSR measures the fraction of outputs rejected by the supervisor (a pass/fail gate), ACR measures the fraction of adversarially identified defects that can be defended with verifiable evidence (a quality signal about the defensibility of the output).
 
-### 18.6 Bayesian vs. Static Provider Selection
+### 21.6 Bayesian vs. Static Provider Selection
 
 The introduction of Thompson Sampling (Section 13) addresses a limitation of the original static rotation: equal treatment of providers regardless of observed reliability. In production deployments where provider reliability is heterogeneous and time-varying, Thompson Sampling provides asymptotically optimal regret bounds under the 4/δ framework [18]. The temporal decay mechanism ensures that historical data does not permanently bias selection against a provider that was temporarily degraded.
 
-The empirical question — whether Bayesian selection produces measurably lower PFI than static selection over a multi-day deployment — is deferred to future work (Section 22.2).
+The empirical question — whether Bayesian selection produces measurably lower PFI than static selection over a multi-day deployment — is deferred to future work (Section 25.2).
 
-### 18.7 Limitations
+### 21.7 Protocol Integration and Framework-Agnostic Governance
+
+The MCP server and REST API (Section 18) extend the governance boundary from in-process Python calls to network-accessible protocol interfaces. The design principle is that governance semantics must be identical across all access paths: an output governed via MCP `governance_check` produces the same result as `ConstitutionEnforcer.check()` called in-process. Both protocol layers are thin translation adapters with no governance logic.
+
+The dual-backend storage architecture (Section 19) addresses production deployment requirements while preserving the zero-dependency development experience. The dual-write pattern ensures JSONL remains the authoritative audit trail — a design choice motivated by the append-only, tamper-evident properties of JSONL logs.
+
+The framework-agnostic governance system (Section 20) demonstrates that the GCR invariant extends beyond the DOF execution pipeline. Because governance evaluation depends only on output content, any framework that produces text can be governed by DOF. The `GenericAdapter` with zero external dependencies makes this accessible without framework lock-in.
+
+### 21.8 Limitations
 
 Several limitations should be acknowledged:
 
@@ -1009,9 +1093,9 @@ Several limitations should be acknowledged:
 
 ---
 
-## 19. Threats to Validity
+## 22. Threats to Validity
 
-### 19.1 Internal Validity
+### 22.1 Internal Validity
 
 Internal validity concerns whether the observed metric values are attributable to the experimental variables rather than confounding factors. Three potential confounds are identified.
 
@@ -1021,7 +1105,7 @@ Internal validity concerns whether the observed metric values are attributable t
 
 **Token estimation approximation.** Token counts are estimated using a fixed ratio of 4 characters per token. For English text, approximately 4.0 (GPT-class tokenizers); for Spanish, approximately 3.5; for mixed multilingual text, approximately 3.5–4.5.
 
-### 19.2 External Validity
+### 22.2 External Validity
 
 **Simulated vs. real execution.** All controlled experiments use `SimulatedCrew`. Real LLM providers introduce variable latency, non-deterministic output content, model-specific failure modes, and time-dependent availability. The post-integration production baseline (n=30, Section 7.3) provides the first real-provider validation.
 
@@ -1029,7 +1113,7 @@ Internal validity concerns whether the observed metric values are attributable t
 
 **Provider heterogeneity.** The framework is validated against four specific providers with free-tier constraints. Error classification heuristics may not generalize to providers with different error reporting conventions.
 
-### 19.3 Construct Validity
+### 22.3 Construct Validity
 
 **ACR and defect coverage.** The ACR metric measures the fraction of *identified* defects that are defensible, not the fraction of *all defects* that are defensible. If the RedTeamAgent fails to identify real defects (false negatives), ACR will be high even for genuinely defective outputs. The quality of ACR as a signal depends on the RedTeamAgent's recall, which has not been benchmarked against human defect identification.
 
@@ -1037,7 +1121,7 @@ Internal validity concerns whether the observed metric values are attributable t
 
 **Governance Compliance as quality proxy.** Governance Compliance Rate measures conformance to rule-based constraints, not semantic quality. An output that is linguistically correct, properly structured, and factually wrong would receive GCR=1.0.
 
-### 19.4 Statistical Conclusion Validity
+### 22.4 Statistical Conclusion Validity
 
 **Sample size.** The primary experiments use n=10 runs. For metrics with non-zero variance (e.g., SS under perturbation, σ=0.2415), the 95% confidence interval for the mean is μ ± t₉,₀.₀₂₅ × σ/√n = 0.85 ± 0.173, yielding the interval [0.677, 1.023]. A sample of n=50 would reduce the interval width to ±0.077.
 
@@ -1045,18 +1129,18 @@ Internal validity concerns whether the observed metric values are attributable t
 
 ---
 
-## 20. Replication Protocol
+## 23. Replication Protocol
 
-### 20.1 Preconditions
+### 23.1 Preconditions
 
 - Python 3.11 or higher.
-- All 22 core modules present in `core/` and `dof/`.
+- All 30+ modules present in `core/`, `dof/`, and `integrations/`.
 - `dof.constitution.yml` present in project root.
 - `z3-solver>=4.12` installed (for Section 8 experiments).
 - No external API keys are required for simulated experiments.
 - No GPU or specialized hardware requirements.
 
-### 20.2 Environment Configuration
+### 23.2 Environment Configuration
 
 ```bash
 # Verify Python version
@@ -1075,7 +1159,7 @@ python3 -c "import dof; print(dof.__version__)"
 mkdir -p logs/experiments logs/traces experiments
 ```
 
-### 20.3 Z3 Formal Verification
+### 23.3 Z3 Formal Verification
 
 ```python
 from dof import verify
@@ -1090,7 +1174,7 @@ for p in proofs:
 # SS_BOUNDARIES: VERIFIED (0.35 ms)
 ```
 
-### 20.4 Exact Experimental Commands
+### 23.4 Exact Experimental Commands
 
 **Experiment 1 — Baseline (No Failures):**
 
@@ -1151,7 +1235,7 @@ sweep = run_parametric_sweep(
 # CSV exported to experiments/parametric_sweep.csv
 ```
 
-### 20.5 Expected Artifacts
+### 23.5 Expected Artifacts
 
 After executing all experiments, the following artifacts should exist:
 
@@ -1165,7 +1249,7 @@ After executing all experiments, the following artifacts should exist:
 | Adversarial logs | `logs/adversarial.jsonl` | JSONL | per-run |
 | Contract logs | `logs/task_contracts.jsonl` | JSONL | per-run |
 
-### 20.6 Validation Criteria
+### 23.6 Validation Criteria
 
 Replication is successful if the following conditions hold:
 
@@ -1177,13 +1261,13 @@ Replication is successful if the following conditions hold:
 
 ---
 
-## 21. Comparative Positioning
+## 24. Comparative Positioning
 
-### 21.1 Comparison Framework
+### 24.1 Comparison Framework
 
 We evaluate five systems: CrewAI [1] (the orchestration layer used by this framework), AutoGen [2], LangGraph [3], MetaGPT [4], and the framework presented in this paper. The comparison is based on documented capabilities as of early 2026.
 
-### 21.2 Comparative Table
+### 24.2 Comparative Table
 
 | Dimension | CrewAI | AutoGen | LangGraph | MetaGPT | This Framework |
 |-----------|--------|---------|-----------|---------|----------------|
@@ -1201,7 +1285,7 @@ We evaluate five systems: CrewAI [1] (the orchestration layer used by this frame
 | **Agent governance spec** | None | None | None | None | OAGS Level 3 conformance: identity, policy, attestation. |
 | **On-chain attestation** | None | None | None | None | ERC-8004 on Avalanche C-Chain, compliance-gated publishing. |
 
-### 21.3 Positioning Analysis
+### 24.3 Positioning Analysis
 
 The comparison reveals that existing multi-agent frameworks prioritize *coordination semantics* over *experimental infrastructure*. The framework presented in this paper occupies a complementary position: it does not replace CrewAI's coordination capabilities (it uses CrewAI as its orchestration layer) but adds the experimental infrastructure necessary for systematic evaluation and formal assurance.
 
@@ -1209,13 +1293,13 @@ The addition of Z3 formal verification represents the most significant different
 
 ---
 
-## 22. Future Work
+## 25. Future Work
 
-### 22.1 Parametric Failure Curves with Bayesian Selection
+### 25.1 Parametric Failure Curves with Bayesian Selection
 
 Section 7 tested parametric failure rates with static provider selection. A systematic comparison would execute identical parametric sweeps with static selection (current baseline) vs. Bayesian Thompson Sampling, measuring whether Bayesian selection produces lower PFI at equivalent failure rates. This would provide empirical validation of the theoretical prediction from [18] that Thompson Sampling minimizes regret.
 
-### 22.2 Real Provider Benchmarking
+### 25.2 Real Provider Benchmarking
 
 Executing the experiment framework against real LLM providers would produce the first empirical characterization of multi-provider system behavior. Key questions include:
 
@@ -1224,19 +1308,19 @@ Executing the experiment framework against real LLM providers would produce the 
 - How does ACR vary across providers? Do certain models produce more unresolvable adversarial defects?
 - Does causal error attribution correctly distinguish INFRA\_FAILURE from MODEL\_FAILURE in production?
 
-### 22.3 ACR Calibration Against Human Assessment
+### 25.3 ACR Calibration Against Human Assessment
 
 The ACR metric depends on the DeterministicArbiter's evidence threshold. Calibration requires: (1) human annotators labeling a set of outputs with defects and severity, (2) running the adversarial protocol on the same outputs, and (3) computing precision and recall of the protocol against human labels. This would establish whether ACR correlates with human-perceived output quality and whether the evidence thresholds need adjustment.
 
-### 22.4 Cross-Model Entropy Analysis
+### 25.4 Cross-Model Entropy Analysis
 
 Different LLM models produce outputs with different levels of variability for the same prompt. Measuring the entropy of supervisor scores and ACR values across runs for a fixed prompt and fixed model would characterize each model's output consistency — a signal for model selection decisions based on quality distribution rather than single-sample evaluation.
 
-### 22.5 Adaptive Task Contracts
+### 25.5 Adaptive Task Contracts
 
 Current task contracts are static specifications. Adaptive contracts could learn from execution history: if a specific quality gate consistently fails for a given crew type, the contract could automatically adjust its threshold or add additional gates based on observed failure patterns. This would require accumulating `ContractResult` history per crew configuration, which the current JSONL logging infrastructure supports.
 
-### 22.6 Extended Z3 Theorem Set
+### 25.6 Extended Z3 Theorem Set
 
 The current four theorems address SS and GCR invariants. Additional candidates for formal verification include:
 
@@ -1246,7 +1330,7 @@ The current four theorems address SS and GCR invariants. Additional candidates f
 
 ---
 
-## 23. Conclusion
+## 26. Conclusion
 
 This paper presented an experimental framework for deterministic evaluation of multi-agent LLM systems operating across heterogeneous providers. The framework addresses the absence of formal metrics, reproducible evaluation conditions, and structured observability in existing multi-agent orchestration tools.
 
@@ -1270,7 +1354,13 @@ The framework has been substantially extended beyond the original nine-module im
 
 The parametric sweep (Section 7) establishes that Stability Score follows SS_empirical(f) = 1 − f/2 under the simulated two-step recovery structure, while the theoretical model SS(f) = 1 − f³ describes terminal failure probability under bounded retries with independent failures. The distinction between these formulations is now formally verified rather than argued by derivation.
 
-The implementation comprises 6,000+ lines of Python across 22 core modules, with 293 passing tests. All experimental results are from executed code with persisted trace artifacts. The framework provides the instrumentation layer necessary for systematic study of multi-agent system behavior, expressing operational characteristics as distributions with means and standard deviations, formal proofs for architectural invariants, adversarially validated quality signals, governed memory with temporal auditability, standards-conformant governance interoperability, and immutable on-chain attestation of compliance outcomes.
+**Protocol integration** (Section 18) extends the governance boundary through MCP server (10 tools, 3 resources, stdio JSON-RPC 2.0) and REST API (14 FastAPI endpoints), enabling external systems to invoke DOF governance without importing Python modules. Both protocol layers are thin translation adapters ensuring governance semantics are identical across all access paths.
+
+**Storage architecture** (Section 19) provides a dual-backend abstraction with JSONL (default, zero-config) and PostgreSQL (production, multi-tenant via SQLAlchemy ORM). The dual-write pattern preserves JSONL as the authoritative audit trail while enabling production query performance.
+
+**Framework-agnostic governance** (Section 20) demonstrates that the GCR invariant extends beyond the DOF execution pipeline. The GenericAdapter with zero external dependencies enables DOF governance for any system that produces string output, validating the architectural principle that governance evaluation depends on output content only.
+
+The implementation comprises 12,000+ lines of Python across 30+ modules, with 435 passing tests. All experimental results are from executed code with persisted trace artifacts. The framework provides the instrumentation layer necessary for systematic study of multi-agent system behavior, expressing operational characteristics as distributions with means and standard deviations, formal proofs for architectural invariants, adversarially validated quality signals, governed memory with temporal auditability, standards-conformant governance interoperability, immutable on-chain attestation of compliance outcomes, protocol-agnostic governance access, production-grade storage, and framework-independent constitutional enforcement.
 
 ---
 
@@ -1319,3 +1409,7 @@ The implementation comprises 6,000+ lines of Python across 22 core modules, with
 [21] Topoteretes, "Cognee: Scientific Memory Management for AI Applications," 2024. https://github.com/topoteretes/cognee
 
 [22] Sekuire, "Open Agent Governance Specification (OAGS)," 2025. https://sekuire.com/oags
+
+[23] Anthropic, "Model Context Protocol (MCP)," 2024. https://modelcontextprotocol.io
+
+[24] S. Ramírez, "FastAPI: Modern, fast (high-performance), web framework for building APIs with Python," 2018. https://fastapi.tiangolo.com
