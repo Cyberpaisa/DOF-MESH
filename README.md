@@ -4,7 +4,7 @@
 >
 > This repository formalizes reproducible experimentation, resilience metrics, controlled degradation modeling, governance invariance, and deterministic evaluation in heterogeneous provider environments.
 
-Python 3.11+ | Apache-2.0 | 24,000+ LOC | 71 modules | 475 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | Avalanche Mainnet | 7 on-chain attestations | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install dof-sdk
+Python 3.11+ | Apache-2.0 | 24,000+ LOC | 71 modules | 510 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | Avalanche Mainnet | 7 on-chain attestations | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install dof-sdk
 
 ---
 
@@ -108,6 +108,8 @@ Without formal metrics and deterministic evaluation, observed performance differ
 28. Full Audit Pipeline with Cross-Verification — An end-to-end audit system (`scripts/full_audit_test.py`) executing four phases: MCP tool validation (10/10 tools), A2A skill verification (8 skills), cross-role governance pipeline (agents operating outside their primary role to test behavioral governance rather than identity-based trust), and bilateral peer verification (each agent governance-checks the other's output). Production results demonstrate: Z3 4/4 theorems verified, both agents governance-compliant, on-chain attestations confirmed on Avalanche mainnet, combined trust score 0.85.
 
 29. External Agent Audit — A cross-network audit system (`scripts/external_agent_audit.py`) executing 13 real tests against all active agents in the ERC-8004 registry across every chain indexed by erc-8004scan.xyz. The audit probes four protocols (A2A, x402, OASF, MCP) against 12 agent endpoints and applies DOF governance cross-verification to all collected outputs. Production results: 8/13 endpoints active, 2 x402 payment-gated agents (Quick Intel at $0.03/scan across 14 networks, Tator Trader at $0.20/prompt), 2 OASF agents (Apex v1.3.0 with 7 skills, AvaBuilder v0.8.0 with 5 skills), 1 MCP manifest (quack_agent, 114 lines), 4 Snowrail A2A agents down, 1 Neo server error. DOF governance: 0 hard violations, 0 soft violations across all fetched outputs. Full JSONL audit trail at `logs/audit/`.
+
+30. Merkle Tree Batching — SHA256 Merkle tree aggregation (`core/merkle_tree.py`) enabling N attestation certificates to be published on-chain in a single transaction. MerkleTree builds balanced binary trees with canonical pair ordering, generates per-leaf inclusion proofs, and supports proof verification with zero external dependencies. MerkleBatcher provides a queue-based workflow with configurable auto-flush thresholds and JSONL batch persistence. Integration with OracleBridge (`publish_merkle_batch()`) and AvalancheBridge (`send_merkle_root()`) enables the full pipeline: collect attestations → build Merkle tree → publish root on-chain for ~$0.01 → verify individual leaves off-chain with proof + root. 35 dedicated tests covering tree construction, proof generation/verification, serialization round-trips, batcher queue mechanics, and OracleBridge integration.
 
 ---
 
@@ -929,7 +931,7 @@ scripts/
 
 hardhat.config.js            # Solidity compilation + Avalanche C-Chain deployment
 
-tests/                      # 475 tests across 18 test modules
+tests/                      # 510 tests across 19 test modules
 examples/
   quickstart.py             # SDK usage demonstration (no API key required)
   generic_example.py        # GenericAdapter governance example
@@ -948,7 +950,7 @@ logs/
   title={Deterministic Observability and Resilience Engineering for Multi-Agent LLM Systems: An Experimental Framework with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={24,000+ LOC, 71 modules, 475 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain mainnet (7 attestations, DOFValidationRegistry at 0x88f6...C052), Enigma Scanner integration via dof\_trust\_scores with combined\_trust\_view (governance weight 0.35), external agent audit (13 tests, 4 protocols, 8/13 active across x402/OASF/A2A/MCP), adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, MCP server (10 tools, 3 resources), REST API (14 endpoints), dual-backend storage (JSONL + PostgreSQL), framework-agnostic governance (GenericAdapter, LangGraphAdapter, CrewAIAdapter), Sovereign Dashboard, 120 parametric experiments, 52 production runs, 6 formal metrics, full audit pipeline with cross-verification}
+  note={24,000+ LOC, 71 modules, 510 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain mainnet (7 attestations, DOFValidationRegistry at 0x88f6...C052), Enigma Scanner integration via dof\_trust\_scores with combined\_trust\_view (governance weight 0.35), external agent audit (13 tests, 4 protocols, 8/13 active across x402/OASF/A2A/MCP), Merkle tree batching (N attestations in 1 transaction), adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, MCP server (10 tools, 3 resources), REST API (14 endpoints), dual-backend storage (JSONL + PostgreSQL), framework-agnostic governance (GenericAdapter, LangGraphAdapter, CrewAIAdapter), Sovereign Dashboard, 120 parametric experiments, 52 production runs, 6 formal metrics, full audit pipeline with cross-verification}
 }
 
 ---
