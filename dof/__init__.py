@@ -135,7 +135,7 @@ from core.oracle_bridge import (
 # Enigma Bridge (trust_scores → erc-8004scan.xyz)
 # ─────────────────────────────────────────────────────────────────────
 
-from core.enigma_bridge import EnigmaBridge, TrustScore
+from core.enigma_bridge import EnigmaBridge, DOFTrustScore, TrustScore
 
 # ─────────────────────────────────────────────────────────────────────
 # Avalanche Bridge (on-chain DOFValidationRegistry)
@@ -258,6 +258,7 @@ __all__ = [
     "CertificateSigner",
     # Enigma Bridge
     "EnigmaBridge",
+    "DOFTrustScore",
     "TrustScore",
     # Avalanche Bridge
     "AvalancheBridge",

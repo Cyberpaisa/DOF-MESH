@@ -33,25 +33,6 @@ from rich.panel import Panel
 console = Console()
 
 
-def _resolve_agent_address(engine, token_id: int) -> str | None:
-    """Look up the registered address in the agents table by token_id.
-
-    trust_scores.agent_id has FK to agents.address, so we must use
-    the address stored in agents — not the wallet from the NFT.
-    """
-    try:
-        from sqlalchemy import text
-        from sqlalchemy.orm import Session
-        with Session(engine) as session:
-            row = session.execute(
-                text("SELECT address FROM agents WHERE token_id = :tid"),
-                {"tid": token_id},
-            ).fetchone()
-            return row[0] if row else None
-    except Exception as e:
-        console.print(f"    [yellow]Could not resolve agent address: {e}[/yellow]")
-        return None
-
 # ─────────────────────────────────────────────────────────────────────
 # Agent Definitions
 # ─────────────────────────────────────────────────────────────────────
@@ -267,49 +248,28 @@ def main():
             "publishable": publishable,
         }
 
-        # ─── ENIGMA PUBLISH ──────────────────────────────────────────
+        # ─── ENIGMA PUBLISH (dof_trust_scores) ───────────────────────
         console.print("\n  [bold magenta]ENIGMA PUBLISH[/bold magenta]")
         if enigma.is_online:
             try:
-                # Resolve registered address from agents table by token_id
-                # trust_scores.agent_id FK → agents.address
-                registered_addr = _resolve_agent_address(
-                    enigma._engine, agent["token_id"]
-                )
-                if not registered_addr:
-                    raise RuntimeError(
-                        f"Agent #{agent['token_id']} not found in agents table — "
-                        f"register it first at erc-8004scan.xyz"
-                    )
-                console.print(f"    Resolved address: [dim]{registered_addr}[/dim]")
-
-                enigma_metrics = {
-                    "SS": metrics["SS"],
-                    "GCR": metrics["GCR"],
-                    "PFI": metrics["PFI"],
-                    "AST_score": ast_result.score,
-                    "ACR": metrics.get("ACR", 0.0),
-                }
-                snapshot = {
-                    "certificate_hash": cert.certificate_hash,
-                    "task_id": task_id,
-                    "agent_name": agent["name"],
-                    "token_id": agent["token_id"],
-                    "wallet": agent["wallet"],
-                    "registered_address": registered_addr,
-                }
                 trust_score = enigma.publish_trust_score(
-                    agent_id=registered_addr,
-                    metrics=enigma_metrics,
-                    snapshot_data=snapshot,
+                    attestation={
+                        "metrics": metrics,
+                        "governance_status": cert.governance_status,
+                        "certificate_hash": cert.certificate_hash,
+                        "z3_verified": cert.z3_verified,
+                        "ast_score": ast_result.score,
+                    },
+                    oags_identity=str(agent["token_id"]),
                 )
-                console.print(f"    [green]PUBLISHED[/green] to enigma-dev")
-                console.print(f"    overall={trust_score.overall_score:.2f} "
-                              f"uptime={trust_score.uptime_score:.2f} "
-                              f"proxy={trust_score.proxy_score:.2f} "
-                              f"oz_match={trust_score.oz_match_score:.2f} "
-                              f"community={trust_score.community_score:.2f}")
-                agent_result["enigma"] = {"status": "published", "overall_score": trust_score.overall_score}
+                console.print(f"    Resolved: [dim]{trust_score.agent_id}[/dim]")
+                console.print(f"    [green]PUBLISHED[/green] to dof_trust_scores")
+                console.print(f"    gov={trust_score.governance_score:.2f} "
+                              f"ss={trust_score.stability_score:.2f} "
+                              f"ast={trust_score.ast_score:.2f} "
+                              f"acr={trust_score.adversarial_score:.2f} "
+                              f"z3={trust_score.z3_verified}")
+                agent_result["enigma"] = {"status": "published", "governance_score": trust_score.governance_score}
             except Exception as e:
                 console.print(f"    [red]FAILED: {e}[/red]")
                 agent_result["enigma"] = {"status": "error", "error": str(e)}
