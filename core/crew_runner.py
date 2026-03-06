@@ -30,6 +30,8 @@ from core.observability import (
     RunTrace, StepTrace, RunTraceStore, compute_derived_metrics,
     estimate_tokens, get_session_id, DETERMINISTIC_MODE,
 )
+from core.execution_dag import ExecutionDAG
+from core.loop_guard import LoopGuard
 
 logger = logging.getLogger("core.crew_runner")
 
@@ -97,6 +99,11 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
         input_text=input_text[:500],
         input_hash=checkpoint._hash_input(input_text),
     )
+
+    # Initialize Execution DAG and Loop Guard
+    dag = ExecutionDAG()
+    dag.add_node("crew_start", "AGENT", {"agent_name": crew_name, "run_id": run_id})
+    loop_guard = LoopGuard(max_iterations=max_retries + 1)
 
     metrics.log_crew_start(run_id, crew_name, input_text)
     logger.info(f"[{run_id[:8]}] Starting crew '{crew_name}' (providers: {pm.get_active()})")
@@ -172,12 +179,44 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
 
             output = result.raw if hasattr(result, "raw") else str(result)
 
+            # Loop Guard check
+            guard_result = loop_guard.check(output, attempt - 1)
+            if guard_result.status == "LOOP_DETECTED":
+                logger.warning(
+                    f"[{run_id[:8]}] LoopGuard: output loop detected at attempt {attempt} "
+                    f"(similarity={guard_result.similarity_score:.3f} with attempt {guard_result.matched_iteration + 1})"
+                )
+                # Break out — don't retry with identical output
+                break
+
+            # DAG: add step node and edges
+            step_node_id = f"step_{attempt}"
+            dag.add_node(step_node_id, "AGENT", {
+                "agent_name": f"{crew_name}_attempt_{attempt}",
+                "provider": current_provider,
+                "duration_ms": round(step_ms, 1),
+            })
+            dag.nodes[step_node_id].duration_ms = round(step_ms, 1)
+            dag.nodes[step_node_id].status = "COMPLETED"
+            prev_dag_node = "crew_start" if attempt == 1 else f"step_{attempt - 1}"
+            dag.add_edge(prev_dag_node, step_node_id, "DELEGATES")
+
             checkpoint.complete_step(step_id, output[:2000])
             metrics.log_agent_step(run_id, crew_name, current_provider, step_ms, "ok", attempt)
 
             # Governance check
             gov_result = enforcer.check(output)
             metrics.log_governance(run_id, gov_result.passed, gov_result.score, gov_result.violations)
+
+            # DAG: governance node
+            gov_node_id = f"gov_{attempt}"
+            dag.add_node(gov_node_id, "GOVERNANCE", {
+                "agent_name": f"governance_{attempt}",
+                "passed": gov_result.passed,
+                "score": gov_result.score,
+            })
+            dag.nodes[gov_node_id].status = "COMPLETED"
+            dag.add_edge(step_node_id, gov_node_id, "VERIFIES")
 
             # Supervisor evaluation
             sup_verdict = None
@@ -259,6 +298,18 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
             elapsed_ms = (time.time() - start) * 1000
             metrics.log_crew_end(run_id, crew_name, "ok", elapsed_ms, len(output))
 
+            # Save DAG
+            try:
+                dag_cycles = dag.detect_cycles()
+                dag_cp = dag.critical_path()
+                dag_path = dag.save()
+                logger.info(f"[{run_id[:8]}] DAG saved: {len(dag.nodes)} nodes, {len(dag.edges)} edges, {len(dag_cycles)} cycles")
+            except Exception as e:
+                logger.warning(f"DAG save failed: {e}")
+                dag_path = ""
+                dag_cycles = []
+                dag_cp = {}
+
             result_dict = {
                 "status": "ok",
                 "output": output,
@@ -274,6 +325,14 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
                 "elapsed_ms": elapsed_ms,
                 "trace_path": trace_path,
                 "bayesian": bayesian.get_all_confidences(),
+                "dag": {
+                    "dag_id": dag.dag_id,
+                    "nodes": len(dag.nodes),
+                    "edges": len(dag.edges),
+                    "cycles": dag_cycles,
+                    "critical_path": dag_cp,
+                    "dag_path": dag_path,
+                },
             }
 
             # Adversarial evaluation (optional)

@@ -480,11 +480,12 @@ def run_interactive():
     console.print("  [magenta]25.[/magenta] [bold]Storage Backend Status[/bold] (JSONL / PostgreSQL)")
     console.print("  [magenta]26.[/magenta] [bold]Publish to Enigma Scanner[/bold] (trust_scores → erc-8004scan.xyz)")
     console.print("  [magenta]27.[/magenta] [bold]Merkle Batch & Verify[/bold] (N attestations → 1 on-chain root)")
+    console.print("  [magenta]28.[/magenta] [bold]Execution DAG Viewer[/bold] (dependency graph + critical path)")
     console.print("  [cyan]0.[/cyan]  Exit")
 
     choice = IntPrompt.ask(
         "\nOption",
-        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27"],
+        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28"],
     )
 
     if choice == 0:
@@ -599,6 +600,8 @@ def run_interactive():
         launch_enigma_publish()
     elif choice == 27:
         launch_merkle_batch()
+    elif choice == 28:
+        launch_execution_dag_viewer()
 
     # Track execution in session
     if result:
@@ -1282,6 +1285,87 @@ def launch_merkle_batch():
         console.print(f"\n  [yellow]On-chain publishing skipped: {e}[/yellow]")
 
     console.print(f"\n  [dim]Batch logged to logs/merkle_batches.jsonl[/dim]\n")
+
+
+def launch_execution_dag_viewer():
+    """Execution DAG Viewer — show dependency graph and critical path."""
+    console.print("\n[bold magenta]Execution DAG Viewer[/bold magenta]\n")
+
+    import glob as glob_mod
+    from core.execution_dag import ExecutionDAG
+
+    dag_dir = os.path.join(BASE_DIR, "logs", "execution_dags")
+
+    # Find latest DAG file
+    if not os.path.exists(dag_dir):
+        # Try building from agent_10_rounds.json
+        rounds_path = os.path.join(BASE_DIR, "logs", "agent_10_rounds.json")
+        if os.path.exists(rounds_path):
+            console.print("  [yellow]No saved DAGs found. Building from agent_10_rounds.json...[/yellow]\n")
+            with open(rounds_path) as f:
+                data = json.load(f)
+            records = data if isinstance(data, list) else data.get("rounds", data.get("traces", []))
+            dag = ExecutionDAG.from_trace_records(records)
+            dag.save()
+        else:
+            console.print("  [red]No DAG files found in logs/execution_dags/[/red]")
+            console.print("  [dim]Run a crew with oracle_mode=True or execute agent_10_rounds.py first.[/dim]\n")
+            return
+    else:
+        dag_files = sorted(glob_mod.glob(os.path.join(dag_dir, "*.json")))
+        if not dag_files:
+            rounds_path = os.path.join(BASE_DIR, "logs", "agent_10_rounds.json")
+            if os.path.exists(rounds_path):
+                console.print("  [yellow]No saved DAGs. Building from agent_10_rounds.json...[/yellow]\n")
+                with open(rounds_path) as f:
+                    data = json.load(f)
+                records = data if isinstance(data, list) else data.get("rounds", data.get("traces", []))
+                dag = ExecutionDAG.from_trace_records(records)
+                dag.save()
+                dag_files = sorted(glob_mod.glob(os.path.join(dag_dir, "*.json")))
+            else:
+                console.print("  [red]No DAG files found.[/red]\n")
+                return
+
+        latest = dag_files[-1]
+        with open(latest) as f:
+            data = json.load(f)
+
+        console.print(f"  [bold]DAG ID:[/bold] {data.get('dag_id', 'unknown')}")
+        console.print(f"  [bold]Start:[/bold]  {data.get('start_time', 'unknown')}")
+        console.print(f"  [bold]Nodes:[/bold]  {data.get('node_count', 0)}")
+        console.print(f"  [bold]Edges:[/bold]  {data.get('edge_count', 0)}")
+
+        cycles = data.get("cycles", [])
+        if cycles:
+            console.print(f"\n  [red]Cycles detected: {len(cycles)}[/red]")
+            for c in cycles:
+                console.print(f"    [red]{'→'.join(c)}[/red]")
+        else:
+            console.print(f"\n  [green]Cycles: 0 (valid DAG)[/green]")
+
+        cp = data.get("critical_path", {})
+        if cp.get("path"):
+            console.print(f"\n  [bold]Critical Path:[/bold]")
+            console.print(f"    Path: {' → '.join(cp['path'])}")
+            console.print(f"    Total: {cp.get('total_duration_ms', 0):.1f}ms")
+            console.print(f"    Bottleneck: [yellow]{cp.get('bottleneck_node', 'unknown')}[/yellow]")
+
+        # Rebuild DAG from data to generate Mermaid
+        records_path = os.path.join(BASE_DIR, "logs", "agent_10_rounds.json")
+        if os.path.exists(records_path):
+            with open(records_path) as f:
+                rdata = json.load(f)
+            records = rdata if isinstance(rdata, list) else rdata.get("rounds", rdata.get("traces", []))
+            if records:
+                dag = ExecutionDAG.from_trace_records(records)
+                mermaid = dag.to_mermaid()
+                console.print(f"\n  [bold]Mermaid Code (copy to Figma/editor):[/bold]")
+                console.print(f"  [dim]{'─' * 50}[/dim]")
+                console.print(mermaid)
+                console.print(f"  [dim]{'─' * 50}[/dim]")
+
+        console.print(f"\n  [dim]File: {latest}[/dim]\n")
 
 
 def launch_mcp_server():

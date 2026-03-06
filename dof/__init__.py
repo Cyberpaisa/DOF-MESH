@@ -150,6 +150,18 @@ from core.avalanche_bridge import AvalancheBridge
 from core.merkle_tree import MerkleTree, MerkleBatcher, MerkleBatch
 
 # ─────────────────────────────────────────────────────────────────────
+# Execution DAG
+# ─────────────────────────────────────────────────────────────────────
+
+from core.execution_dag import ExecutionDAG, DAGNode, DAGEdge
+
+# ─────────────────────────────────────────────────────────────────────
+# Loop Guard
+# ─────────────────────────────────────────────────────────────────────
+
+from core.loop_guard import LoopGuard, LoopGuardResult
+
+# ─────────────────────────────────────────────────────────────────────
 # Storage
 # ─────────────────────────────────────────────────────────────────────
 
@@ -272,6 +284,13 @@ __all__ = [
     "MerkleTree",
     "MerkleBatcher",
     "MerkleBatch",
+    # Execution DAG
+    "ExecutionDAG",
+    "DAGNode",
+    "DAGEdge",
+    # Loop Guard
+    "LoopGuard",
+    "LoopGuardResult",
     # Storage
     "StorageFactory",
     "JSONLBackend",
