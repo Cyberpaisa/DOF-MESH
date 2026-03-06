@@ -4,7 +4,7 @@
 >
 > This repository formalizes reproducible experimentation, resilience metrics, controlled degradation modeling, governance invariance, and deterministic evaluation in heterogeneous provider environments.
 
-Python 3.11+ | Apache-2.0 | 27,000+ LOC | 71 modules | 510 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | Avalanche Mainnet | 21 on-chain attestations | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install dof-sdk
+Python 3.11+ | Apache-2.0 | 27,000+ LOC | 71 modules | 581 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | Avalanche Mainnet | 21 on-chain attestations | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install dof-sdk
 
 ---
 
@@ -110,6 +110,10 @@ Without formal metrics and deterministic evaluation, observed performance differ
 29. External Agent Audit — A cross-network audit system (`scripts/external_agent_audit.py`) executing 13 real tests against all active agents in the ERC-8004 registry across every chain indexed by erc-8004scan.xyz. The audit probes four protocols (A2A, x402, OASF, MCP) against 12 agent endpoints and applies DOF governance cross-verification to all collected outputs. Production results: 8/13 endpoints active, 2 x402 payment-gated agents (Quick Intel at $0.03/scan across 14 networks, Tator Trader at $0.20/prompt), 2 OASF agents (Apex v1.3.0 with 7 skills, AvaBuilder v0.8.0 with 5 skills), 1 MCP manifest (quack_agent, 114 lines), 4 Snowrail A2A agents down, 1 Neo server error. DOF governance: 0 hard violations, 0 soft violations across all fetched outputs. Full JSONL audit trail at `logs/audit/`.
 
 30. Merkle Tree Batching — SHA256 Merkle tree aggregation (`core/merkle_tree.py`) enabling N attestation certificates to be published on-chain in a single transaction. MerkleTree builds balanced binary trees with canonical pair ordering, generates per-leaf inclusion proofs, and supports proof verification with zero external dependencies. MerkleBatcher provides a queue-based workflow with configurable auto-flush thresholds and JSONL batch persistence. Integration with OracleBridge (`publish_merkle_batch()`) and AvalancheBridge (`send_merkle_root()`) enables the full pipeline: collect attestations → build Merkle tree → publish root on-chain for ~$0.01 → verify individual leaves off-chain with proof + root. 35 dedicated tests covering tree construction, proof generation/verification, serialization round-trips, batcher queue mechanics, and OracleBridge integration.
+
+31. Execution DAG — Directed Acyclic Graph engine (`core/execution_dag.py`) for tracing dependencies between agents, tools, governance layers, and blockchain operations. DFS-based cycle detection, topological sorting, critical path computation (longest path by duration with bottleneck identification), Mermaid diagram generation with typed node shapes and color-coded classes, and `from_trace_records()` builder for reconstructing DAGs from agent execution logs. Integrated into `crew_runner.py` for automatic DAG construction during crew execution. DAG serialization to JSON with depth maps and critical path metadata. 40 dedicated tests covering node/edge creation, cycle detection, topological sort, critical path, dependencies, depth computation, serialization, Mermaid output, and real data reconstruction.
+
+32. Loop Guard — Deterministic loop detection engine (`core/loop_guard.py`) preventing agent output repetition via Jaccard similarity analysis. Configurable similarity threshold (default 0.85), max iteration limits, and timeout enforcement. The `check()` method evaluates each agent output against full history, returning structured `LoopGuardResult` with status (CONTINUE, LOOP_DETECTED, MAX_ITERATIONS_EXCEEDED, TIMEOUT), similarity score, matched iteration, and elapsed time. Integrated into `crew_runner.py` to break execution loops before retry exhaustion. Zero external dependencies — pure Python with case-insensitive word-set similarity. 31 dedicated tests covering similarity computation, loop detection, timeout, max iterations, reset, and edge cases.
 
 ---
 
@@ -493,7 +497,7 @@ DOF publishes governance attestations to Avalanche C-Chain mainnet via the DOFVa
 | Deployer | `0xB529f4f99ab244cfa7a48596Bf165CAc5B317929` |
 | Functions | `registerAttestation()`, `registerBatch()`, `isCompliant()`, `getAttestation()` |
 | Verified agents | Apex Arbitrage #1687, AvaBuilder Agent #1686 |
-| Total attestations | 7 (as of March 2026) |
+| Total attestations | 21 (as of March 2026) |
 
 The publication pipeline provides three independent verification layers:
 
@@ -931,7 +935,7 @@ scripts/
 
 hardhat.config.js            # Solidity compilation + Avalanche C-Chain deployment
 
-tests/                      # 510 tests across 19 test modules
+tests/                      # 581 tests across 21 test modules
 examples/
   quickstart.py             # SDK usage demonstration (no API key required)
   generic_example.py        # GenericAdapter governance example
@@ -950,7 +954,7 @@ logs/
   title={Deterministic Observability and Resilience Engineering for Multi-Agent LLM Systems: An Experimental Framework with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={27,000+ LOC, 71 modules, 510 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain mainnet (21 attestations, DOFValidationRegistry at 0x88f6...C052), Enigma Scanner integration via dof\_trust\_scores with combined\_trust\_view (governance weight 0.35), external agent audit (13 tests, 4 protocols, 8/13 active across x402/OASF/A2A/MCP), Merkle tree batching (N attestations in 1 transaction), adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, MCP server (10 tools, 3 resources), REST API (14 endpoints), dual-backend storage (JSONL + PostgreSQL), framework-agnostic governance (GenericAdapter, LangGraphAdapter, CrewAIAdapter), Sovereign Dashboard, 120 parametric experiments, 52 production runs, 6 formal metrics, full audit pipeline with cross-verification}
+  note={27,000+ LOC, 71 modules, 581 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain mainnet (21 attestations, DOFValidationRegistry at 0x88f6...C052), Enigma Scanner integration via dof\_trust\_scores with combined\_trust\_view (governance weight 0.35), external agent audit (13 tests, 4 protocols, 8/13 active across x402/OASF/A2A/MCP), Merkle tree batching (N attestations in 1 transaction), Execution DAG with cycle detection and critical path analysis, Loop Guard with Jaccard similarity-based repetition detection, adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, MCP server (10 tools, 3 resources), REST API (14 endpoints), dual-backend storage (JSONL + PostgreSQL), framework-agnostic governance (GenericAdapter, LangGraphAdapter, CrewAIAdapter), Sovereign Dashboard, 120 parametric experiments, 52 production runs, 6 formal metrics, full audit pipeline with cross-verification}
 }
 
 ---
