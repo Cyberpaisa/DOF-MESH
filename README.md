@@ -4,7 +4,7 @@
 >
 > This repository formalizes reproducible experimentation, resilience metrics, controlled degradation modeling, governance invariance, and deterministic evaluation in heterogeneous provider environments.
 
-Python 3.11+ | Apache-2.0 | 24,000+ LOC | 71 modules | 510 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | Avalanche Mainnet | 7 on-chain attestations | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install dof-sdk
+Python 3.11+ | Apache-2.0 | 27,000+ LOC | 71 modules | 510 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | Avalanche Mainnet | 21 on-chain attestations | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install dof-sdk
 
 ---
 
@@ -950,7 +950,7 @@ logs/
   title={Deterministic Observability and Resilience Engineering for Multi-Agent LLM Systems: An Experimental Framework with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={24,000+ LOC, 71 modules, 510 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain mainnet (7 attestations, DOFValidationRegistry at 0x88f6...C052), Enigma Scanner integration via dof\_trust\_scores with combined\_trust\_view (governance weight 0.35), external agent audit (13 tests, 4 protocols, 8/13 active across x402/OASF/A2A/MCP), Merkle tree batching (N attestations in 1 transaction), adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, MCP server (10 tools, 3 resources), REST API (14 endpoints), dual-backend storage (JSONL + PostgreSQL), framework-agnostic governance (GenericAdapter, LangGraphAdapter, CrewAIAdapter), Sovereign Dashboard, 120 parametric experiments, 52 production runs, 6 formal metrics, full audit pipeline with cross-verification}
+  note={27,000+ LOC, 71 modules, 510 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain mainnet (21 attestations, DOFValidationRegistry at 0x88f6...C052), Enigma Scanner integration via dof\_trust\_scores with combined\_trust\_view (governance weight 0.35), external agent audit (13 tests, 4 protocols, 8/13 active across x402/OASF/A2A/MCP), Merkle tree batching (N attestations in 1 transaction), adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, MCP server (10 tools, 3 resources), REST API (14 endpoints), dual-backend storage (JSONL + PostgreSQL), framework-agnostic governance (GenericAdapter, LangGraphAdapter, CrewAIAdapter), Sovereign Dashboard, 120 parametric experiments, 52 production runs, 6 formal metrics, full audit pipeline with cross-verification}
 }
 
 ---
