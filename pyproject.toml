@@ -67,7 +67,7 @@ langgraph = [
 all = ["dof-sdk[dev,data,interfaces,api,db,langgraph]"]
 
 [project.urls]
-Homepage = "https://github.com/jquiceno/dof-sdk"
+Homepage = "https://github.com/Cyberpaisa/deterministic-observability-framework"
 
 [tool.setuptools.packages.find]
 include = ["dof*", "core*", "integrations*"]
