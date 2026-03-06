@@ -1,6 +1,6 @@
 # SYSTEM — Fuente de Verdad del Kernel
 # CrewAI Pro — Cyber Paisa / Enigma Group
-# Actualizado: 2026-03-02
+# Actualizado: 2026-03-06
 
 ## Identidad
 - **Operador:** Juan Carlos Quiceno — Cyber Paisa
@@ -18,6 +18,33 @@
 - Pre-research programático (5 búsquedas antes del crew)
 - Retry automático con backoff para rate limits
 - Process: Sequential (sin planning)
+
+## DOF — Deterministic Observability Framework
+- **SDK:** dof-sdk 0.1.0 on PyPI
+- **Codebase:** 27,000+ LOC, 22 core modules, 510 tests
+- **On-chain:** 21 attestations on Avalanche C-Chain mainnet
+- **Contract:** DOFValidationRegistry at 0x88f6043B091055Bbd896Fc8D2c6234A47C02C052
+
+### 7 Governance Layers
+1. **Constitution** — HARD rules (block) + SOFT rules (warn) via `core/governance.py`
+2. **AST Verifier** — static analysis of generated code via `core/ast_verifier.py`
+3. **Meta-Supervisor** — Q(0.4)+A(0.25)+C(0.2)+F(0.15) quality gate via `core/supervisor.py`
+4. **Adversarial** — Red Team + Guardian + Arbiter protocol via `core/adversarial.py`
+5. **Memory Governance** — bi-temporal versioning + constitutional decay via `core/memory_governance.py`
+6. **Z3 Formal Verification** — 4 SMT theorems via `core/z3_verifier.py`
+7. **Oracle Attestation** — ERC-8004 certificates + on-chain via `core/oracle_bridge.py`
+
+### Bridges
+- **Avalanche Bridge** — real on-chain tx via web3.py (`core/avalanche_bridge.py`)
+- **Enigma Bridge** — dof_trust_scores to Supabase (`core/enigma_bridge.py`)
+- **OAGS Bridge** — BLAKE3 identity + policy conversion (`core/oags_bridge.py`)
+- **Merkle Tree** — batch N attestations in 1 transaction (`core/merkle_tree.py`)
+
+### Protocol Access
+- **MCP Server:** 10 tools, 3 resources, stdio JSON-RPC 2.0 (`dof/__main__.py`)
+- **REST API:** 14 FastAPI endpoints (`dof/__main__.py`)
+- **Dual Storage:** JSONL (default) + PostgreSQL (production via StorageFactory)
+- **Framework-Agnostic:** GenericAdapter, LangGraphAdapter, CrewAIAdapter
 
 ## Reglas Constitucionales
 1. Datos verificables con fuentes URL
@@ -86,6 +113,7 @@ t5: Strategist v2 (Cerebras) → plan FINAL mejorado
 - **Entity memory:** recuerda entidades mencionadas
 - **Embedder:** HuggingFace sentence-transformers/all-MiniLM-L6-v2 (384 dims)
 - **Storage:** ChromaDB local (~/.cache/chroma/)
+- **Governed Memory:** bi-temporal versioning + constitutional decay (core/memory_governance.py)
 
 ## MCP (Model Context Protocol) — 4 Servers
 | Server | Comando | Uso |
@@ -96,6 +124,15 @@ t5: Strategist v2 (Cerebras) → plan FINAL mejorado
 | Memory | @anthropics/mcp-server-memory | Knowledge graph persistente |
 
 Activar MCP por agente: `create_agent(use_mcp=True)`
+
+## DOF MCP Server (10 tools, 3 resources)
+- `python -m dof mcp` — expone governance, AST, metrics, observability via JSON-RPC 2.0
+- Tools: verify, check_governance, verify_ast, get_metrics, create_attestation, etc.
+- Resources: constitution, metrics, attestation_registry
+
+## DOF REST API (14 endpoints)
+- `python -m dof api` — FastAPI server
+- Endpoints: /health, /verify, /governance/check, /ast/verify, /metrics, /attestation/create, etc.
 
 ## A2A (Agent-to-Agent Protocol)
 - **Server:** http://localhost:8000
@@ -110,6 +147,20 @@ curl -X POST http://localhost:8000 \
   -H "Content-Type: application/json" \
   -d '{"skill": "research", "input": "DeFi lending protocols"}'
 ```
+
+## On-Chain (Avalanche C-Chain)
+- **Contract:** DOFValidationRegistry at 0x88f6043B091055Bbd896Fc8D2c6234A47C02C052
+- **Chain ID:** 43114 (Avalanche C-Chain mainnet)
+- **Deployer:** 0xB529f4f99ab244cfa7a48596Bf165CAc5B317929
+- **Agents:** Apex #1687 (0xcd59...a983), AvaBuilder #1686 (0x29a4...E71a)
+- **Attestations:** 21 on-chain
+- **Explorer:** https://snowtrace.io
+
+## Enigma Integration
+- **Table:** dof_trust_scores (DOF governance metrics, append-only)
+- **View:** combined_trust_view (Centinela + DOF + community)
+- **Agent resolution:** via token_id (oags_identity), NOT wallet address
+- **Scores:** #1686 = 0.85, #1687 = 0.85 combined trust
 
 ## Seguridad
 - Ejecución solo en output/ o ~/proyectos/
