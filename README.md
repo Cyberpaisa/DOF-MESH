@@ -4,7 +4,7 @@
 >
 > This repository formalizes reproducible experimentation, resilience metrics, controlled degradation modeling, governance invariance, and deterministic evaluation in heterogeneous provider environments.
 
-Python 3.11+ | Apache-2.0 | 24,000+ LOC | 71 modules | 475 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | Avalanche Mainnet | 7 on-chain attestations | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install dof-sdk
+Python 3.11+ | Apache-2.0 | 24,000+ LOC | 71 modules | 475 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | Avalanche Mainnet | 7 on-chain attestations | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install -e .
 
 ---
 
@@ -842,21 +842,21 @@ python examples/quickstart.py
 
 ## Quickstart
 
-1. Clone repository
+1. Clone and install
 git clone https://github.com/Cyberpaisa/deterministic-observability-framework.git
 cd deterministic-observability-framework
+pip install -e .
 
-2. Install dependencies
-pip install -r requirements.txt
-
-3. Configure providers
+2. Configure providers
 cp .env.example .env
 Edit .env with your API keys
 
-4. Run baseline experiment
+For full setup guide: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
+
+3. Run baseline experiment
 python -c "from core.experiment import run_experiment; result = run_experiment(n_runs=10, deterministic=True); print(result['aggregate'])"
 
-5. Run parametric sweep
+4. Run parametric sweep
 python -c "from core.experiment import run_parametric_sweep; run_parametric_sweep(rates=[0.0,0.1,0.2,0.3,0.5,0.7], n_runs=20)"
 
 ---
