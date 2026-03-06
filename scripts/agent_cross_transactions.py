@@ -52,6 +52,10 @@ AVA_KEY = os.environ.get("AVABUILDER_PRIVATE_KEY", "")
 APEX_OASF = "https://apex-arbitrage-agent-production.up.railway.app/oasf"
 AVA_OASF = "https://avariskscan-defi-production.up.railway.app/oasf"
 
+# ERC-721 token IDs on erc-8004scan.xyz
+APEX_TOKEN_ID = "1687"
+AVA_TOKEN_ID = "1686"
+
 TRANSFER_AMOUNT = Web3.to_wei(0.001, "ether")
 CHAIN_ID = 43114
 
@@ -291,30 +295,31 @@ def autofeedback_score(tx_result, governance_result, round_type):
 # Enigma trust score publish
 # ─────────────────────────────────────────────────────────────────────
 
-def publish_enigma_score(agent_address, score, round_name):
-    """Publish trust score to Enigma dof_trust_scores."""
+def publish_enigma_score(token_id, score, round_name, cert_hash=""):
+    """Publish trust score to Enigma dof_trust_scores using token_id."""
     try:
         from core.enigma_bridge import EnigmaBridge
         bridge = EnigmaBridge()
         if not bridge.is_online:
             return {"status": "offline"}
 
-        metrics = {
-            "SS": score / 100.0,
-            "GCR": 1.0 if score >= 70 else 0.0,
-            "PFI": 0.0,
-            "AST_score": 0.0,
-            "ACR": 0.0,
-        }
-        snapshot = {
-            "round": round_name,
-            "score": score,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+        attestation = {
+            "metrics": {
+                "SS": score / 100.0,
+                "GCR": 1.0 if score >= 70 else 0.0,
+                "PFI": 0.0,
+                "RP": 0.0,
+                "SSR": 0.0,
+                "ACR": 0.0,
+            },
+            "governance_status": "COMPLIANT" if score >= 70 else "NON_COMPLIANT",
+            "certificate_hash": cert_hash or f"cross_tx_{round_name}",
+            "z3_verified": False,
+            "ast_score": 0.0,
         }
         result = bridge.publish_trust_score(
-            agent_id=agent_address.lower(),
-            metrics=metrics,
-            snapshot_data=snapshot,
+            attestation=attestation,
+            oags_identity=token_id,
         )
         return {"status": "published", "overall": getattr(result, "overall_score", None)}
     except Exception as e:
@@ -326,7 +331,8 @@ def publish_enigma_score(agent_address, score, round_name):
 # ─────────────────────────────────────────────────────────────────────
 
 def run_round_transfer(w3, sender, sender_key, receiver, evaluator,
-                       evaluator_key, contract, round_num, round_name):
+                       evaluator_key, contract, round_num, round_name,
+                       sender_token_id=""):
     """Execute a transfer round: send AVAX → governance → score → attestation."""
     print(f"\n{'='*70}")
     print(f"  ROUND {round_num}: {round_name}")
@@ -363,7 +369,7 @@ def run_round_transfer(w3, sender, sender_key, receiver, evaluator,
           f"Gas: {att_result['gas_used']} | Time: {att_result['elapsed_sec']}s")
 
     # Enigma publish
-    enigma = publish_enigma_score(sender.address, score, round_name)
+    enigma = publish_enigma_score(sender_token_id, score, round_name, cert_hash)
     print(f"  Enigma: {enigma.get('status', 'n/a')}")
 
     return {
@@ -383,7 +389,8 @@ def run_round_transfer(w3, sender, sender_key, receiver, evaluator,
 
 
 def run_round_oasf(w3, caller, evaluator, evaluator_key, contract,
-                   oasf_url, target_name, round_num, round_name):
+                   oasf_url, target_name, round_num, round_name,
+                   evaluator_token_id=""):
     """Execute an OASF evaluation round: call OASF → governance → score → attestation."""
     print(f"\n{'='*70}")
     print(f"  ROUND {round_num}: {round_name}")
@@ -439,7 +446,7 @@ def run_round_oasf(w3, caller, evaluator, evaluator_key, contract,
           f"Gas: {att_result['gas_used']} | Time: {att_result['elapsed_sec']}s")
 
     # Enigma publish
-    enigma = publish_enigma_score(evaluator.address, score, round_name)
+    enigma = publish_enigma_score(evaluator_token_id, score, round_name, cert_hash)
     print(f"  Enigma: {enigma.get('status', 'n/a')}")
 
     return {
@@ -503,6 +510,7 @@ def main():
         w3, apex, APEX_KEY, ava, ava, AVA_KEY, contract,
         round_num=1,
         round_name="Apex→AvaBuilder transfer",
+        sender_token_id=APEX_TOKEN_ID,
     )
     results.append(r1)
 
@@ -511,6 +519,7 @@ def main():
         w3, ava, AVA_KEY, apex, apex, APEX_KEY, contract,
         round_num=2,
         round_name="AvaBuilder→Apex transfer",
+        sender_token_id=AVA_TOKEN_ID,
     )
     results.append(r2)
 
@@ -519,6 +528,7 @@ def main():
         w3, apex, apex, APEX_KEY, contract,
         AVA_OASF, "AvaBuilder", round_num=3,
         round_name="Apex evaluates AvaBuilder OASF",
+        evaluator_token_id=APEX_TOKEN_ID,
     )
     results.append(r3)
 
@@ -527,6 +537,7 @@ def main():
         w3, ava, ava, AVA_KEY, contract,
         APEX_OASF, "Apex", round_num=4,
         round_name="AvaBuilder evaluates Apex OASF",
+        evaluator_token_id=AVA_TOKEN_ID,
     )
     results.append(r4)
 
