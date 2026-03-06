@@ -4,7 +4,7 @@
 >
 > This repository formalizes reproducible experimentation, resilience metrics, controlled degradation modeling, governance invariance, and deterministic evaluation in heterogeneous provider environments.
 
-Python 3.11+ | Apache-2.0 | 12,000+ LOC | 30+ modules | 435 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install dof-sdk
+Python 3.11+ | Apache-2.0 | 24,000+ LOC | 71 modules | 475 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | Avalanche Mainnet | 7 on-chain attestations | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install dof-sdk
 
 ---
 
@@ -37,7 +37,7 @@ while constitutional governance enforcement remains invariant:
 
 GCR(f) = 1.0
 
-The system provides a reproducible experimental substrate for evaluating resilience in multi-agent LLM systems under adversarial infrastructure perturbations. The framework further provides constitutional memory governance with bi-temporal versioning and relevance decay, OAGS-conformant agent identity via BLAKE3 deterministic hashing, and compliance-gated on-chain attestation of governance metrics via ERC-8004 on Avalanche C-Chain.
+The system provides a reproducible experimental substrate for evaluating resilience in multi-agent LLM systems under adversarial infrastructure perturbations. The framework further provides constitutional memory governance with bi-temporal versioning and relevance decay, OAGS-conformant agent identity via BLAKE3 deterministic hashing, and compliance-gated on-chain attestation of governance metrics via ERC-8004 on Avalanche C-Chain. The framework now includes live on-chain attestation via a deployed Solidity smart contract (DOFValidationRegistry) on Avalanche C-Chain mainnet, with verified attestations for production agents indexed by the Enigma Scanner (erc-8004scan.xyz).
 
 ---
 
@@ -85,7 +85,7 @@ Without formal metrics and deterministic evaluation, observed performance differ
 
 17. OAGS Conformance Bridge — Compatibility layer implementing the Open Agent Governance Specification. OAGSIdentity computes deterministic agent identity via BLAKE3 hashing of model configuration, constitution hash, and tool manifest. OAGSPolicyBridge provides bidirectional conversion between dof.constitution.yml and sekuire.yml policy formats, enabling interoperability with OAGS-conformant systems. OAGSAuditBridge exports DOF JSONL execution traces as OAGS-formatted audit events. Conformance validation spans three levels: Level 1 (declarative governance policy exists), Level 2 (runtime enforcement active), Level 3 (attestation mechanism operational).
 
-18. ERC-8004 Oracle Bridge — On-chain attestation mechanism bridging off-chain governance verification with the ERC-8004 Validation Registry on Avalanche C-Chain. OracleBridge generates AttestationCertificates containing signed governance metrics (SS, GCR, PFI, RP, SSR) with BLAKE3 certificate hashing and HMAC-SHA256 signatures. Publishing is compliance-gated: only attestations with GCR = 1.0 are eligible for on-chain publication; governance failures produce no attestation, ensuring the on-chain record reflects only verified compliance. Batch attestation aggregation reduces gas cost for high-throughput deployments. AttestationRegistry maintains an off-chain JSONL ledger with export-for-chain capability. Transaction structures are prepared for Avalanche C-Chain without requiring live blockchain connectivity during testing.
+18. ERC-8004 Oracle Bridge — On-chain attestation mechanism bridging off-chain governance verification with the ERC-8004 Validation Registry on Avalanche C-Chain. OracleBridge generates AttestationCertificates containing signed governance metrics (SS, GCR, PFI, RP, SSR) with BLAKE3 certificate hashing and HMAC-SHA256 signatures. Publishing is compliance-gated: only attestations with GCR = 1.0 are eligible for on-chain publication; governance failures produce no attestation, ensuring the on-chain record reflects only verified compliance. Batch attestation aggregation reduces gas cost for high-throughput deployments. AttestationRegistry maintains an off-chain JSONL ledger with export-for-chain capability. The framework includes both offline simulation and live on-chain publishing via DOFValidationRegistry (`0x88f6043B091055Bbd896Fc8D2c6234A47C02C052`) on Avalanche C-Chain mainnet. Seven attestations have been confirmed on-chain for production agents Apex Arbitrage (#1687) and AvaBuilder Agent (#1686).
 
 19. MCP Server — DOF governance exposed as Model Context Protocol tools. 10 tools and 3 resources accessible from Claude Desktop, Cursor, Windsurf, and any MCP-compatible client via stdio JSON-RPC 2.0 transport. Tools cover governance verification, AST analysis, Z3 proofs, memory operations, attestation, and OAGS conformance.
 
@@ -96,6 +96,16 @@ Without formal metrics and deterministic evaluation, observed performance differ
 22. Framework-Agnostic Governance — FrameworkAdapter abstraction enabling DOF governance for any framework. LangGraphAdapter provides governance nodes as graph-compatible callables. GenericAdapter governs any system that produces string output with zero external dependencies. Philosophy: "if you can produce a string, DOF can govern it."
 
 23. Sovereign Dashboard — Liquid Glass 2026 observability interface with 6 sections: Causal Metrics (SS(f)=1-f³ visualization), Temporal Memory Radar, Z3 Proof Certificates, OAGS Conformance with holographic seal, Adversarial Dispute Log, and Constitution viewer with IDE-style syntax highlighting.
+
+24. Enigma Scanner Bridge — A bidirectional bridge (`core/enigma_bridge.py`) connecting DOF governance attestations to the Enigma Scanner ecosystem (erc-8004scan.xyz) via a dedicated `dof_trust_scores` table in the Enigma database. The bridge maps DOF metrics to scanner dimensions: GCR → governance_score, SS → stability_score, AST → ast_score, ACR → adversarial_score. Agent resolution occurs automatically via ERC-721 token_id lookup against the on-chain agent registry. Historical INSERT semantics provide full audit trail rather than destructive UPDATE, ensuring temporal completeness of governance records.
+
+25. DOFValidationRegistry Smart Contract — A Solidity smart contract (`contracts/DOFValidationRegistry.sol`, deployed at `0x88f6043B091055Bbd896Fc8D2c6234A47C02C052` on Avalanche C-Chain mainnet) providing immutable on-chain storage of governance attestations. Supports individual registration via `registerAttestation(bytes32 certificateHash, bytes32 agentId, bool compliant)` and gas-optimized batch operations via `registerBatch()`. Public verification through `isCompliant()` and `getAttestation()` enables zero-trust attestation verification by any third party without reliance on off-chain infrastructure.
+
+26. Avalanche Bridge — Real-time on-chain attestation publishing (`core/avalanche_bridge.py`) connecting DOF governance to Avalanche C-Chain via web3.py. The bridge signs transactions with the deployer wallet, estimates gas, broadcasts to mainnet, and awaits confirmation. Offline-safe design ensures graceful degradation when blockchain connectivity is unavailable. The complete publication pipeline follows: DOF governance → dof-storage (PostgreSQL) → Enigma Scanner (Supabase) → Avalanche C-Chain (on-chain), providing three independent verification layers.
+
+27. Combined Trust Architecture — A SQL materialized view (`combined_trust_view`) in the Enigma database that synthesizes three independent scoring sources into a unified trust metric: infrastructure monitoring (Centinela, weight 0.15 alive + 0.15 active), formal governance (DOF, weight 0.35 governance + 0.15 safety), and community assessment (user ratings, weight 0.20). Governance receives the highest individual weight (0.35) as the sole dimension backed by formal mathematical verification (Z3 SMT proofs). The architecture eliminates prior scoring collisions where multiple systems overwrote the same database rows with semantically incompatible values.
+
+28. Full Audit Pipeline with Cross-Verification — An end-to-end audit system (`scripts/full_audit_test.py`) executing four phases: MCP tool validation (10/10 tools), A2A skill verification (8 skills), cross-role governance pipeline (agents operating outside their primary role to test behavioral governance rather than identity-based trust), and bilateral peer verification (each agent governance-checks the other's output). Production results demonstrate: Z3 4/4 theorems verified, both agents governance-compliant, on-chain attestations confirmed on Avalanche mainnet, combined trust score 0.85.
 
 ---
 
@@ -468,6 +478,52 @@ result = adapter.wrap_code("def hello(): return 'world'")
 
 ---
 
+## On-Chain Attestation
+
+DOF publishes governance attestations to Avalanche C-Chain mainnet via the DOFValidationRegistry smart contract.
+
+| Component | Details |
+|-----------|---------|
+| Contract | `0x88f6043B091055Bbd896Fc8D2c6234A47C02C052` |
+| Network | Avalanche C-Chain (43114) |
+| Deployer | `0xB529f4f99ab244cfa7a48596Bf165CAc5B317929` |
+| Functions | `registerAttestation()`, `registerBatch()`, `isCompliant()`, `getAttestation()` |
+| Verified agents | Apex Arbitrage #1687, AvaBuilder Agent #1686 |
+| Total attestations | 7 (as of March 2026) |
+
+The publication pipeline provides three independent verification layers:
+
+| Layer | Storage | Latency | Persistence | Verification |
+|-------|---------|---------|-------------|-------------|
+| dof-storage | PostgreSQL (Supabase) | ~200ms | Mutable | Internal audit |
+| Enigma Scanner | PostgreSQL (Supabase) | ~900ms | Historical INSERT | Public via erc-8004scan.xyz |
+| Avalanche C-Chain | On-chain | ~2-3s | Immutable | Public via snowtrace.io |
+
+---
+
+## Enigma Scanner Integration
+
+DOF governance scores are published to the Enigma Scanner (erc-8004scan.xyz) via a dedicated `dof_trust_scores` table, architecturally separated from the Centinela infrastructure scores to prevent semantic collision.
+
+| DOF Metric | Scanner Dimension | Weight in Combined Score |
+|-----------|-------------------|-------------------------|
+| GCR | governance_score | 0.35 |
+| SS | stability_score | — (within governance) |
+| AST | ast_score (safety) | 0.15 |
+| ACR | adversarial_score | — (within governance) |
+
+The `combined_trust_view` materializes scores from three sources:
+
+| Source | Weight | Dimensions |
+|--------|--------|-----------|
+| Centinela (infrastructure) | 0.30 | alive (0.15) + active (0.15) |
+| DOF (formal governance) | 0.50 | governance (0.35) + safety (0.15) |
+| Community (ratings) | 0.20 | user ratings normalized to [0,1] |
+
+Governance receives the highest aggregate weight (0.50) as the only dimension with formal mathematical backing via Z3 SMT proofs.
+
+---
+
 ## Assumptions
 
 1. Independent Failure Events — Provider failures are statistically independent across execution steps.
@@ -800,6 +856,8 @@ core/
   memory_governance.py      # Constitutional memory store with temporal graph
   oags_bridge.py            # OAGS identity, policy bridge, audit export
   oracle_bridge.py          # ERC-8004 attestation and oracle bridge
+  enigma_bridge.py          # DOF → Enigma Scanner (dof_trust_scores)
+  avalanche_bridge.py       # DOF → Avalanche C-Chain (on-chain attestation)
   storage.py                # Dual-backend storage (JSONL + PostgreSQL)
 
 dof/
@@ -815,6 +873,8 @@ dashboard/
 
 dof.constitution.yml        # Policy-as-code: HARD/SOFT/AST rules + storage config
 contracts/
+  DOFValidationRegistry.sol # On-chain attestation contract (Avalanche C-Chain)
+  deployment_info.json      # Contract address, deployer, ABI
   RESEARCH_CONTRACT.md      # Reference task contract specification
 
 config/
@@ -828,12 +888,23 @@ experiments/
   schema.json
   parametric_sweep.csv
 
-tests/                      # 435 tests across 16 test modules
+scripts/
+  full_audit_test.py        # 4-phase audit: MCP + A2A + pipeline + cross-verification
+  full_pipeline_test.py     # Real E2E test (Supabase + Avalanche mainnet)
+  live_test_flow.py         # Quick live connection validation
+  deploy.js                 # Hardhat deployment script
+
+hardhat.config.js            # Solidity compilation + Avalanche C-Chain deployment
+
+tests/                      # 475 tests across 18 test modules
 examples/
   quickstart.py             # SDK usage demonstration (no API key required)
   generic_example.py        # GenericAdapter governance example
   langgraph_example.py      # LangGraph adapter example
 docs/
+
+logs/
+  audit/                    # JSONL audit logs from full_audit_test.py
 ```
 
 ---
@@ -844,7 +915,7 @@ docs/
   title={Deterministic Observability and Resilience Engineering for Multi-Agent LLM Systems: An Experimental Framework with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={12,000+ LOC, 30+ modules, 435 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain, adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, MCP server (10 tools, 3 resources), REST API (14 endpoints), dual-backend storage (JSONL + PostgreSQL), framework-agnostic governance (GenericAdapter, LangGraphAdapter, CrewAIAdapter), Sovereign Dashboard, 120 parametric experiments, 52 production runs, 6 formal metrics}
+  note={24,000+ LOC, 71 modules, 475 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain mainnet (7 attestations, DOFValidationRegistry at 0x88f6...C052), Enigma Scanner integration via dof\_trust\_scores with combined\_trust\_view (governance weight 0.35), adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, MCP server (10 tools, 3 resources), REST API (14 endpoints), dual-backend storage (JSONL + PostgreSQL), framework-agnostic governance (GenericAdapter, LangGraphAdapter, CrewAIAdapter), Sovereign Dashboard, 120 parametric experiments, 52 production runs, 6 formal metrics, full audit pipeline with cross-verification}
 }
 
 ---
