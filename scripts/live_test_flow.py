@@ -32,6 +32,26 @@ from rich.panel import Panel
 
 console = Console()
 
+
+def _resolve_agent_address(engine, token_id: int) -> str | None:
+    """Look up the registered address in the agents table by token_id.
+
+    trust_scores.agent_id has FK to agents.address, so we must use
+    the address stored in agents — not the wallet from the NFT.
+    """
+    try:
+        from sqlalchemy import text
+        from sqlalchemy.orm import Session
+        with Session(engine) as session:
+            row = session.execute(
+                text("SELECT address FROM agents WHERE token_id = :tid"),
+                {"tid": token_id},
+            ).fetchone()
+            return row[0] if row else None
+    except Exception as e:
+        console.print(f"    [yellow]Could not resolve agent address: {e}[/yellow]")
+        return None
+
 # ─────────────────────────────────────────────────────────────────────
 # Agent Definitions
 # ─────────────────────────────────────────────────────────────────────
@@ -251,7 +271,18 @@ def main():
         console.print("\n  [bold magenta]ENIGMA PUBLISH[/bold magenta]")
         if enigma.is_online:
             try:
-                # Use wallet address as agent_id for Enigma
+                # Resolve registered address from agents table by token_id
+                # trust_scores.agent_id FK → agents.address
+                registered_addr = _resolve_agent_address(
+                    enigma._engine, agent["token_id"]
+                )
+                if not registered_addr:
+                    raise RuntimeError(
+                        f"Agent #{agent['token_id']} not found in agents table — "
+                        f"register it first at erc-8004scan.xyz"
+                    )
+                console.print(f"    Resolved address: [dim]{registered_addr}[/dim]")
+
                 enigma_metrics = {
                     "SS": metrics["SS"],
                     "GCR": metrics["GCR"],
@@ -265,9 +296,10 @@ def main():
                     "agent_name": agent["name"],
                     "token_id": agent["token_id"],
                     "wallet": agent["wallet"],
+                    "registered_address": registered_addr,
                 }
                 trust_score = enigma.publish_trust_score(
-                    agent_id=agent["wallet"],
+                    agent_id=registered_addr,
                     metrics=enigma_metrics,
                     snapshot_data=snapshot,
                 )
