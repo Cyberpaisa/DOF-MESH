@@ -479,11 +479,12 @@ def run_interactive():
     console.print("  [magenta]24.[/magenta] [bold]Open Dashboard[/bold] (DOF Sovereign Dashboard)")
     console.print("  [magenta]25.[/magenta] [bold]Storage Backend Status[/bold] (JSONL / PostgreSQL)")
     console.print("  [magenta]26.[/magenta] [bold]Publish to Enigma Scanner[/bold] (trust_scores → erc-8004scan.xyz)")
+    console.print("  [magenta]27.[/magenta] [bold]Merkle Batch & Verify[/bold] (N attestations → 1 on-chain root)")
     console.print("  [cyan]0.[/cyan]  Exit")
 
     choice = IntPrompt.ask(
         "\nOption",
-        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26"],
+        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27"],
     )
 
     if choice == 0:
@@ -596,6 +597,8 @@ def run_interactive():
         launch_storage_status()
     elif choice == 26:
         launch_enigma_publish()
+    elif choice == 27:
+        launch_merkle_batch()
 
     # Track execution in session
     if result:
@@ -1189,6 +1192,96 @@ def launch_enigma_publish():
         console.print()
     except Exception as e:
         console.print(f"  [red]Error: {e}[/red]\n")
+
+
+def launch_merkle_batch():
+    """Merkle Batch & Verify — batch attestations into a single Merkle root."""
+    console.print("\n[bold magenta]Merkle Batch & Verify[/bold magenta]\n")
+
+    from core.merkle_tree import MerkleTree, MerkleBatcher
+
+    # Load pending attestations from registry
+    try:
+        from core.oracle_bridge import AttestationRegistry, OracleBridge
+        registry = AttestationRegistry()
+        pending = registry.export_for_chain()
+    except Exception as e:
+        console.print(f"  [red]Failed to load registry: {e}[/red]\n")
+        return
+
+    if not pending:
+        console.print("  [dim]No unpublished COMPLIANT attestations to batch.[/dim]")
+        console.print("  [dim]Run a crew with oracle_mode=True first.[/dim]\n")
+
+        # Demo mode: show how it works with sample data
+        console.print("  [cyan]Demo mode[/cyan] — generating 5 sample hashes:\n")
+        import hashlib
+        batcher = MerkleBatcher(threshold=0)
+        sample_leaves = []
+        for i in range(5):
+            h = hashlib.sha256(f"demo-attestation-{i}".encode()).hexdigest()
+            sample_leaves.append(h)
+            batcher.add(h)
+            console.print(f"    Leaf {i}: {h[:32]}...")
+
+        batch = batcher.flush()
+        console.print(f"\n  [bold]Merkle Root:[/bold] {batch.root[:32]}...")
+        console.print(f"  [bold]Leaves:[/bold] {batch.leaf_count}")
+        console.print(f"  [bold]Depth:[/bold] {MerkleTree(sample_leaves).depth}")
+
+        # Verify all proofs
+        verification = batcher.verify(batch)
+        status = "[green]ALL VALID[/green]" if verification["all_valid"] else "[red]SOME INVALID[/red]"
+        console.print(f"  [bold]Proofs:[/bold] {status} ({verification['verified']}/{verification['total']})")
+        console.print(f"\n  [dim]Batch logged to logs/merkle_batches.jsonl[/dim]\n")
+        return
+
+    console.print(f"  Found [cyan]{len(pending)}[/cyan] unpublished attestation(s)\n")
+
+    # Build Merkle tree from pending attestations
+    batcher = MerkleBatcher(threshold=0)
+    for cert_data in pending:
+        cert_hash = cert_data.get("certificate_hash", "")
+        if cert_hash:
+            batcher.add(cert_hash)
+            console.print(f"    Leaf: {cert_hash[:32]}...")
+
+    batch = batcher.flush()
+    if not batch:
+        console.print("  [red]No valid hashes to batch[/red]\n")
+        return
+
+    tree = MerkleTree(batch.leaves)
+    console.print(f"\n  [bold]Merkle Root:[/bold] {batch.root[:32]}...")
+    console.print(f"  [bold]Leaves:[/bold] {batch.leaf_count}")
+    console.print(f"  [bold]Depth:[/bold] {tree.depth}")
+
+    # Verify all proofs
+    verification = batcher.verify(batch)
+    status = "[green]ALL VALID[/green]" if verification["all_valid"] else "[red]SOME INVALID[/red]"
+    console.print(f"  [bold]Proofs:[/bold] {status} ({verification['verified']}/{verification['total']})")
+
+    # Attempt on-chain publishing
+    try:
+        from core.avalanche_bridge import AvalancheBridge
+        bridge = AvalancheBridge()
+        if bridge.is_online:
+            console.print(f"\n  [green]Publishing Merkle root on-chain...[/green]")
+            result = bridge.send_merkle_root(batch.root, batch.batch_id, batch.leaf_count)
+            if result.get("status") == "confirmed":
+                console.print(f"  [green]CONFIRMED[/green] tx={result['tx_hash'][:16]}... "
+                              f"block={result['block_number']} gas={result['gas_used']}")
+                batch.published = True
+                batch.tx_hash = result["tx_hash"]
+            else:
+                console.print(f"  [yellow]{result.get('status', 'unknown')}[/yellow]: {result.get('error', '')}")
+        else:
+            console.print(f"\n  [yellow]AvalancheBridge OFFLINE[/yellow] — root not published on-chain")
+            console.print(f"  [dim]Set AVALANCHE_RPC_URL and AVALANCHE_PRIVATE_KEY to publish[/dim]")
+    except Exception as e:
+        console.print(f"\n  [yellow]On-chain publishing skipped: {e}[/yellow]")
+
+    console.print(f"\n  [dim]Batch logged to logs/merkle_batches.jsonl[/dim]\n")
 
 
 def launch_mcp_server():

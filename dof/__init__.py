@@ -144,6 +144,12 @@ from core.enigma_bridge import EnigmaBridge, DOFTrustScore, TrustScore
 from core.avalanche_bridge import AvalancheBridge
 
 # ─────────────────────────────────────────────────────────────────────
+# Merkle Tree (batch attestations)
+# ─────────────────────────────────────────────────────────────────────
+
+from core.merkle_tree import MerkleTree, MerkleBatcher, MerkleBatch
+
+# ─────────────────────────────────────────────────────────────────────
 # Storage
 # ─────────────────────────────────────────────────────────────────────
 
@@ -262,6 +268,10 @@ __all__ = [
     "TrustScore",
     # Avalanche Bridge
     "AvalancheBridge",
+    # Merkle Tree
+    "MerkleTree",
+    "MerkleBatcher",
+    "MerkleBatch",
     # Storage
     "StorageFactory",
     "JSONLBackend",

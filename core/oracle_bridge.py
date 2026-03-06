@@ -250,6 +250,47 @@ class OracleBridge:
             "transaction_data": transaction_data,
         }
 
+    def publish_merkle_batch(self, certs: list[AttestationCertificate]) -> dict:
+        """Build a Merkle tree from attestation certificates and return batch info.
+
+        Collects certificate hashes, builds a MerkleTree, and returns a
+        MerkleBatch with root and per-leaf proofs. Does NOT send on-chain —
+        use AvalancheBridge.send_merkle_root() for that.
+
+        Args:
+            certs: List of AttestationCertificates to batch.
+
+        Returns:
+            Dict with batch_id, root, leaf_count, proofs, and the MerkleBatch object.
+        """
+        from core.merkle_tree import MerkleBatcher
+
+        if not certs:
+            return {"status": "error", "error": "No certificates to batch"}
+
+        batcher = MerkleBatcher()
+        for cert in certs:
+            batcher.add(cert.certificate_hash)
+
+        batch = batcher.flush()
+        if batch is None:
+            return {"status": "error", "error": "Flush returned empty batch"}
+
+        # Verify all proofs
+        verification = batcher.verify(batch)
+
+        for cert in certs:
+            self._log_attestation(cert, "merkle_batched")
+
+        return {
+            "status": "batched",
+            "batch_id": batch.batch_id,
+            "root": batch.root,
+            "leaf_count": batch.leaf_count,
+            "all_proofs_valid": verification["all_valid"],
+            "batch": batch,
+        }
+
     def verify_attestation(self, cert: AttestationCertificate) -> bool:
         """Verify attestation integrity: recalculate hash and verify signature."""
         # Reconstruct payload

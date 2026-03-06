@@ -306,6 +306,45 @@ class AvalancheBridge:
             logger.error(f"Batch tx failed: {e}")
             return error_result
 
+    def send_merkle_root(self, merkle_root: str, batch_id: str,
+                         leaf_count: int) -> dict:
+        """Send a Merkle root as a single attestation on-chain.
+
+        The root represents N attestation leaves. Individual proofs
+        are verifiable off-chain against this root.
+
+        Args:
+            merkle_root: SHA256 Merkle root hex string.
+            batch_id: Batch identifier for tracking.
+            leaf_count: Number of leaves in the batch.
+
+        Returns:
+            Dict with tx_hash, block_number, gas_used, status.
+        """
+        if self._offline:
+            logger.warning("Cannot send Merkle root in offline mode")
+            return {"status": "offline", "error": "Bridge not connected"}
+
+        # Use the merkle root as both certificate_hash and agent_id
+        # (agent_id encodes the batch metadata)
+        import hashlib
+        agent_bytes = hashlib.sha256(
+            f"merkle_batch:{batch_id}:leaves:{leaf_count}".encode()
+        ).hexdigest()
+
+        result = self.send_attestation(
+            certificate_hash=merkle_root,
+            agent_id=agent_bytes,
+            compliant=True,
+        )
+
+        # Augment result with batch metadata
+        result["batch_id"] = batch_id
+        result["leaf_count"] = leaf_count
+        result["type"] = "merkle_root"
+
+        return result
+
     def verify_on_chain(self, certificate_hash: str) -> dict:
         """Read attestation from on-chain registry (view call, no gas).
 
