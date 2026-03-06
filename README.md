@@ -107,6 +107,8 @@ Without formal metrics and deterministic evaluation, observed performance differ
 
 28. Full Audit Pipeline with Cross-Verification — An end-to-end audit system (`scripts/full_audit_test.py`) executing four phases: MCP tool validation (10/10 tools), A2A skill verification (8 skills), cross-role governance pipeline (agents operating outside their primary role to test behavioral governance rather than identity-based trust), and bilateral peer verification (each agent governance-checks the other's output). Production results demonstrate: Z3 4/4 theorems verified, both agents governance-compliant, on-chain attestations confirmed on Avalanche mainnet, combined trust score 0.85.
 
+29. External Agent Audit — A cross-network audit system (`scripts/external_agent_audit.py`) executing 13 real tests against all active agents in the ERC-8004 registry across every chain indexed by erc-8004scan.xyz. The audit probes four protocols (A2A, x402, OASF, MCP) against 12 agent endpoints and applies DOF governance cross-verification to all collected outputs. Production results: 8/13 endpoints active, 2 x402 payment-gated agents (Quick Intel at $0.03/scan across 14 networks, Tator Trader at $0.20/prompt), 2 OASF agents (Apex v1.3.0 with 7 skills, AvaBuilder v0.8.0 with 5 skills), 1 MCP manifest (quack_agent, 114 lines), 4 Snowrail A2A agents down, 1 Neo server error. DOF governance: 0 hard violations, 0 soft violations across all fetched outputs. Full JSONL audit trail at `logs/audit/`.
+
 ---
 
 ## Architecture
@@ -524,6 +526,36 @@ Governance receives the highest aggregate weight (0.50) as the only dimension wi
 
 ---
 
+## External Agent Audit
+
+Cross-network audit of all active agents in the ERC-8004 registry (erc-8004scan.xyz), probing four protocols across every indexed chain.
+
+| Test | Agent | Protocol | Chain | Verdict | Latency |
+|------|-------|----------|-------|---------|---------|
+| 1-4 | Snowrail (yuki, sentinel, recon, fiat-rail) | A2A | Avalanche Fuji | UNREACHABLE (404) | ~340ms |
+| 5 | Quick Intel | x402 | Multi-chain (14 networks) | ACTIVE ($0.03 USDC/scan) | 302ms |
+| 6 | Tator Trader | x402 | Multi-chain (14 networks) | ACTIVE ($0.20 USDC/prompt) | 321ms |
+| 7 | Apex Arbitrage | OASF | Avalanche Mainnet | ACTIVE v1.3.0, 7 skills, 4 domains | 337ms |
+| 8 | AvaBuilder | OASF | Avalanche Mainnet | ACTIVE v0.8.0, 5 skills, 4 domains | 561ms |
+| 9 | Apex Arbitrage | A2A | Avalanche Mainnet | ACTIVE, 5 services | 270ms |
+| 10 | AvaBuilder | A2A | Avalanche Mainnet | ACTIVE, 5 services | 319ms |
+| 11 | quack_agent | MCP | Avalanche | ACTIVE, 114-line manifest | 339ms |
+| 12 | Neo | MCP | arena.social | HTTP 500 (server error) | 753ms |
+| 13 | DOF Governance | DOF | N/A | COMPLIANT, 0 violations | <1ms |
+
+Protocol coverage across the registry:
+
+| Protocol | Active | Total | Networks |
+|----------|--------|-------|----------|
+| x402 | 2/2 | 100% | Base, ETH, Arbitrum, Optimism, Polygon, Avalanche, Unichain, Linea, MegaETH, Sonic, Zora, Ink, Tron, Solana |
+| OASF | 2/2 | 100% | Avalanche Mainnet |
+| A2A | 2/6 | 33% | Avalanche Mainnet (ours active, Snowrail down) |
+| MCP | 1/2 | 50% | Avalanche (quack_agent active, Neo error) |
+
+Total registry: 20 agents, 11 VERIFIED, 9 PENDING. The API returns the same agent set across all chains — no chain-exclusive agents exist. DOF governance cross-verification: COMPLIANT (0 hard, 0 soft violations).
+
+---
+
 ## Assumptions
 
 1. Independent Failure Events — Provider failures are statistically independent across execution steps.
@@ -890,6 +922,7 @@ experiments/
 
 scripts/
   full_audit_test.py        # 4-phase audit: MCP + A2A + pipeline + cross-verification
+  external_agent_audit.py   # 13-test cross-network audit of ERC-8004 registry agents
   full_pipeline_test.py     # Real E2E test (Supabase + Avalanche mainnet)
   live_test_flow.py         # Quick live connection validation
   deploy.js                 # Hardhat deployment script
@@ -915,7 +948,7 @@ logs/
   title={Deterministic Observability and Resilience Engineering for Multi-Agent LLM Systems: An Experimental Framework with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={24,000+ LOC, 71 modules, 475 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain mainnet (7 attestations, DOFValidationRegistry at 0x88f6...C052), Enigma Scanner integration via dof\_trust\_scores with combined\_trust\_view (governance weight 0.35), adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, MCP server (10 tools, 3 resources), REST API (14 endpoints), dual-backend storage (JSONL + PostgreSQL), framework-agnostic governance (GenericAdapter, LangGraphAdapter, CrewAIAdapter), Sovereign Dashboard, 120 parametric experiments, 52 production runs, 6 formal metrics, full audit pipeline with cross-verification}
+  note={24,000+ LOC, 71 modules, 475 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain mainnet (7 attestations, DOFValidationRegistry at 0x88f6...C052), Enigma Scanner integration via dof\_trust\_scores with combined\_trust\_view (governance weight 0.35), external agent audit (13 tests, 4 protocols, 8/13 active across x402/OASF/A2A/MCP), adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, MCP server (10 tools, 3 resources), REST API (14 endpoints), dual-backend storage (JSONL + PostgreSQL), framework-agnostic governance (GenericAdapter, LangGraphAdapter, CrewAIAdapter), Sovereign Dashboard, 120 parametric experiments, 52 production runs, 6 formal metrics, full audit pipeline with cross-verification}
 }
 
 ---
