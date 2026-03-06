@@ -4,7 +4,7 @@
 >
 > This repository formalizes reproducible experimentation, resilience metrics, controlled degradation modeling, governance invariance, and deterministic evaluation in heterogeneous provider environments.
 
-Python 3.11+ | Apache-2.0 | 24,000+ LOC | 71 modules | 475 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | Avalanche Mainnet | 7 on-chain attestations | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install -e .
+Python 3.11+ | Apache-2.0 | 24,000+ LOC | 71 modules | 475 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | Avalanche Mainnet | 7 on-chain attestations | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install dof-sdk
 
 ---
 
