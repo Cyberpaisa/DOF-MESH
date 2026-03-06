@@ -74,7 +74,7 @@ Evaluating stochastic systems requires either controlling randomness or running 
 
 Applying formal methods to machine learning systems has received increasing attention. The Z3 SMT solver [12] has been applied to neural network verification (Marabou [13]), constraint satisfaction in planning systems, and property verification in symbolic AI. SMT-based verification encodes system properties as satisfiability problems: if Z3 finds no counterexample (UNSAT), the property holds universally; if a counterexample exists (SAT), it constitutes a falsifying witness.
 
-OpenAI's governance documentation [14] states that deterministic behavioral guarantees are "currently not possible for a model developer," citing the stochastic nature of LLM inference. This framework challenges that position for *architectural* properties: while per-output determinism is indeed impossible for stochastic LLMs, architectural properties such as GCR(f) = 1.0 can be formally verified because they depend on code structure, not model outputs. The Z3 integration (Section 8) encodes ConstitutionEnforcer as an uninterpreted function of output content only and proves that no assignment of provider state variables can influence governance evaluation.
+The challenge of establishing deterministic behavioral guarantees for LLM-based systems has been acknowledged across the industry, notably in OpenAI's Preparedness Framework [14], which characterizes such guarantees as an open problem for model developers. This work presents an alternative approach: rather than attempting to constrain model behavior directly, DOF enforces governance at the architectural level through constitutional policy enforcement and Z3 formal verification, establishing compliance as a provable system invariant under bounded retry semantics (Theorem 1, §10).
 
 ### 2.6 Adversarial Evaluation and LLM-as-Judge
 
@@ -1430,7 +1430,7 @@ We evaluate five systems: CrewAI [1] (the orchestration layer used by this frame
 
 The comparison reveals that existing multi-agent frameworks prioritize *coordination semantics* over *experimental infrastructure*. The framework presented in this paper occupies a complementary position: it does not replace CrewAI's coordination capabilities (it uses CrewAI as its orchestration layer) but adds the experimental infrastructure necessary for systematic evaluation and formal assurance.
 
-The addition of Z3 formal verification represents the most significant differentiation from the existing ecosystem. No current multi-agent LLM framework provides machine-checkable proofs of any behavioral property. The GCR invariant proof directly challenges the claim that deterministic behavioral guarantees are impossible in LLM systems by demonstrating that *architectural* guarantees — properties that depend on code structure, not model outputs — are amenable to formal verification.
+The addition of Z3 formal verification represents the most significant differentiation from the existing ecosystem. No current multi-agent LLM framework provides machine-checkable proofs of any behavioral property. The GCR invariant proof addresses the open research challenge of deterministic behavioral guarantees in LLM systems by demonstrating that *architectural* guarantees — properties that depend on code structure, not model outputs — are amenable to formal verification.
 
 ---
 
