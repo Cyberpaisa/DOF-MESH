@@ -40,3 +40,4 @@ node_modules/
 artifacts/
 cache/
 contracts/deployed_address.txt
+keys/
