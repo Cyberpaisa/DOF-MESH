@@ -1,13 +1,28 @@
-![Tests](https://img.shields.io/badge/tests-631-green) ![Z3 Proofs](https://img.shields.io/badge/Z3_proofs-4%2F4-blue) ![On-Chain](https://img.shields.io/badge/attestations-21-red) ![PyPI](https://img.shields.io/pypi/v/dof-sdk) ![License](https://img.shields.io/badge/license-Apache%202.0-blue) ![LOC](https://img.shields.io/badge/LOC-27K%2B-purple) ![Avalanche](https://img.shields.io/badge/Avalanche-mainnet-red)
-
 <p align="center">
-  <img src="docs/diagrams/dof_banner.jpeg" alt="DOF - Deterministic Observability Framework" width="800">
+  <img src="docs/diagrams/dof_banner.jpeg" alt="DOF - Deterministic Observability Framework" width="700">
 </p>
+
 <h3 align="center">VERIFY. PROVE. ATTEST.</h3>
 
-# Deterministic Observability Framework (DOF)
+<p align="center">
+  <img src="https://img.shields.io/badge/tests-631-green" alt="tests">
+  <img src="https://img.shields.io/badge/Z3_proofs-4%2F4-blue" alt="Z3 proofs">
+  <img src="https://img.shields.io/badge/attestations-21-red" alt="attestations">
+  <img src="https://img.shields.io/pypi/v/dof-sdk" alt="PyPI">
+  <img src="https://img.shields.io/badge/license-Apache%202.0-blue" alt="license">
+  <img src="https://img.shields.io/badge/LOC-27K%2B-purple" alt="LOC">
+  <img src="https://img.shields.io/badge/Avalanche-mainnet-red" alt="Avalanche">
+</p>
 
-Deterministic governance for multi-agent LLM systems. Constitutional rules, formal proofs, and on-chain attestation on Avalanche.
+<h1 align="center">Deterministic Observability Framework (DOF)</h1>
+
+<p align="center">
+  Deterministic governance for multi-agent LLM systems. Constitutional rules, formal proofs, and on-chain attestation on Avalanche.
+</p>
+
+<p align="center">
+  <strong>Built with</strong> Python 3.11+ · Z3 SMT Solver · web3.py · BLAKE3 · Avalanche C-Chain · PostgreSQL
+</p>
 
 ```bash
 pip install dof-sdk
@@ -217,6 +232,12 @@ Combined trust score: 0.85 (governance 0.35 + safety 0.15 + infrastructure 0.15 
         21 Avalanche attestations, Apache 2.0, pip install dof-sdk}
 }
 ```
+
+---
+
+## Contributing
+
+Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
