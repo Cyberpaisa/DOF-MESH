@@ -87,3 +87,6 @@ GitHub Actions page shows all runs. Old failed runs stay visible. Always navigat
 
 ### #48: Badge order matters for README
 Optimal order: CI status (dynamic) → tests (static) → Z3 → attestations → PyPI → license → LOC → network. CI badge first because it's the only dynamic one — green = credibility.
+
+### #49: Community forums ban new accounts that self-promote
+CrewAI Forum silenced our account after community reports. Pattern: new account + multiple posts with links to own project = flagged as spam. The 90/10 rule: 90% value without links (answer questions, help others), 10% your project. Build reputation BEFORE sharing links. This applies to Reddit, CrewAI Forum, Discord communities, and any moderated forum. Dev.to, X, and PyPI don't have this filter.
