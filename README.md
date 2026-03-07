@@ -4,7 +4,7 @@
 >
 > This repository formalizes reproducible experimentation, resilience metrics, controlled degradation modeling, governance invariance, and deterministic evaluation in heterogeneous provider environments.
 
-Python 3.11+ | Apache-2.0 | 27,000+ LOC | 71 modules | 617 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | Avalanche Mainnet | 21 on-chain attestations | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install dof-sdk
+Python 3.11+ | Apache-2.0 | 27,000+ LOC | 71 modules | 631 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | Avalanche Mainnet | 21 on-chain attestations | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install dof-sdk
 
 ---
 
@@ -118,6 +118,8 @@ Without formal metrics and deterministic evaluation, observed performance differ
 33. Data Oracle — Deterministic fact-checking engine (`core/data_oracle.py`) resolving the DeterministicArbiter's semantic blindness via three zero-LLM verification strategies: (1) pattern-based fact check extracting year/count/chain_id/score claims via regex and verifying against `data/known_facts.json`, (2) cross-reference check validating agent token IDs (#1687, #1686) against known facts and optionally against Enigma Scanner DB, (3) intra-output consistency check detecting contradictions where the same entity has conflicting numeric values. Integrated into DeterministicArbiter: unresolved hallucination/factual_error issues are reviewed by the oracle — DISCREPANCY confirms RedTeam findings, VERIFIED resolves via oracle evidence, NO_REFERENCE stays honestly unresolved. OracleVerdict consolidates all claims with oracle_score in [0,1]. Addresses critical audit finding: "Arbiter blind to semantic hallucinations." 28 dedicated tests covering all 3 strategies, scoring, persistence, and graceful fallback.
 
 34. TokenTracker — Per-call LLM token flow observability (`core/observability.py`) tracking provider, model, prompt/completion tokens, latency, and cost estimate for every LLM call. Aggregation methods: `total_tokens()`, `total_cost()`, `calls_by_provider()`, `average_latency()`. Serialization via `to_dict()` for JSONL audit trails. Integrated into `crew_runner.py` — TokenTracker is created at the start of `run_crew()` and logs after each successful `crew.kickoff()`. Exported in `dof/__init__.py`. Addresses remaining tracing gap from external audit: "no per-call token accounting." 8 dedicated tests covering log_call, totals, cost, provider breakdown, latency, serialization, reset, and empty state.
+
+35. TestGenerator + BenchmarkRunner — Automated adversarial testing framework (`core/test_generator.py`) generating deterministic (seeded) test datasets across 4 categories: hallucination detection (date/number/entity/source fabrication), code safety (eval/import/secrets/clean), governance compliance (language/hallucination/length violations), and intra-output consistency (contradictions). `BenchmarkRunner` measures FDR, FPR, Precision, Recall, and F1 per category. `scripts/run_benchmark.py` executes the full 400-test benchmark and saves results to `logs/benchmark_{timestamp}.json`. Automated adversarial benchmark results (400 tests): Governance FDR 100% / FPR 0% / F1 100% (perfect detection), Code Safety FDR 86% / FPR 0% / F1 92.5% (strong detection), Hallucination FDR 0% (regex-based, semantic gap documented), Consistency FDR 0% (semantic gap documented), Overall F1 48.1%. Honest metrics — no inflated claims. 14 dedicated tests covering generation, split validation, FDR/FPR/F1 calculation, and live benchmark execution.
 
 ---
 
@@ -939,7 +941,7 @@ scripts/
 
 hardhat.config.js            # Solidity compilation + Avalanche C-Chain deployment
 
-tests/                      # 617 tests across 23 test modules
+tests/                      # 631 tests across 24 test modules
 examples/
   quickstart.py             # SDK usage demonstration (no API key required)
   generic_example.py        # GenericAdapter governance example
@@ -958,7 +960,7 @@ logs/
   title={Deterministic Observability and Resilience Engineering for Multi-Agent LLM Systems: An Experimental Framework with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={27,000+ LOC, 71 modules, 617 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain mainnet (21 attestations, DOFValidationRegistry at 0x88f6...C052), Enigma Scanner integration via dof\_trust\_scores with combined\_trust\_view (governance weight 0.35), external agent audit (13 tests, 4 protocols, 8/13 active across x402/OASF/A2A/MCP), Merkle tree batching (N attestations in 1 transaction), Execution DAG with cycle detection and critical path analysis, Loop Guard with Jaccard similarity-based repetition detection, Data Oracle deterministic fact-checking with 3 verification strategies, adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, MCP server (10 tools, 3 resources), REST API (14 endpoints), dual-backend storage (JSONL + PostgreSQL), framework-agnostic governance (GenericAdapter, LangGraphAdapter, CrewAIAdapter), Sovereign Dashboard, 120 parametric experiments, 52 production runs, 6 formal metrics, full audit pipeline with cross-verification}
+  note={27,000+ LOC, 71 modules, 631 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain mainnet (21 attestations, DOFValidationRegistry at 0x88f6...C052), Enigma Scanner integration via dof\_trust\_scores with combined\_trust\_view (governance weight 0.35), external agent audit (13 tests, 4 protocols, 8/13 active across x402/OASF/A2A/MCP), Merkle tree batching (N attestations in 1 transaction), Execution DAG with cycle detection and critical path analysis, Loop Guard with Jaccard similarity-based repetition detection, Data Oracle deterministic fact-checking with 3 verification strategies, adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, MCP server (10 tools, 3 resources), REST API (14 endpoints), dual-backend storage (JSONL + PostgreSQL), framework-agnostic governance (GenericAdapter, LangGraphAdapter, CrewAIAdapter), Sovereign Dashboard, 120 parametric experiments, 52 production runs, 6 formal metrics, full audit pipeline with cross-verification}
 }
 
 ---
