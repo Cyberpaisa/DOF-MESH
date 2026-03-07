@@ -1,0 +1,79 @@
+graph TD
+    START["Agent Output\n(crew.kickoff result)"]
+    DAG_BUILD["DAG Node Added\nExecutionDAG.add_node()"]
+    LOOP_CHECK{"LoopGuard.check()\nJaccard Similarity"}
+    LOOP_ABORT["ABORT\nLOOP_DETECTED\nBreak Execution"]
+    CONSTITUTION{"ConstitutionEnforcer\n4 HARD + 4 SOFT Rules"}
+    CONST_BLOCK["BLOCKED\nHard Rule Violation\nNo Attestation"]
+    AST{"ASTVerifier\nImports | Calls | Secrets | Resources"}
+    AST_FAIL["FAIL\nAST Violation\nSeverity Score"]
+    SUPERVISOR{"Meta-Supervisor\nS = Q(0.4)+A(0.25)+C(0.2)+F(0.15)"}
+    SUP_RETRY["RETRY\nS >= 5.0\ncrew_factory Rebuild"]
+    SUP_ESCALATE["ESCALATE\nS < 5.0\nTerminal"]
+    Z3["Z3 SMT Prover\n4 Theorems"]
+    REDBLUE{"Red vs Blue Protocol\nRedTeam | Guardian\nDeterministicArbiter"}
+    RB_UNRESOLVED["UNRESOLVED\nNo Deterministic Evidence"]
+    MEMORY["GovernedMemoryStore\nBi-Temporal Write\nConstitutional Decay"]
+    SIGNER["CertificateSigner\nBLAKE3 Hash\nHMAC-SHA256"]
+    GCR_GATE{"GCR Gate\nGCR = 1.0?"}
+    GCR_REJECT["NO ATTESTATION\nGCR < 1.0\nGovernance Failure"]
+    MERKLE_Q["MerkleBatcher\nQueue Certificate"]
+    MERKLE_FLUSH{"Batch Full?\nThreshold Check"}
+    MERKLE_BUILD["MerkleTree.build()\nSHA256 Root"]
+    PG_WRITE["PostgreSQL\ndof-storage\n~200ms"]
+    ENIGMA_WRITE["Enigma Scanner\ndof_trust_scores\n~900ms"]
+    AVAX_PUBLISH["Avalanche C-Chain\nDOFValidationRegistry\n~2-3s"]
+    DONE["COMPLETED\n3-Layer Verification"]
+
+    START --> DAG_BUILD
+    DAG_BUILD --> LOOP_CHECK
+    LOOP_CHECK -->|"LOOP_DETECTED\nsim >= 0.85"| LOOP_ABORT
+    LOOP_CHECK -->|"CONTINUE"| CONSTITUTION
+    CONSTITUTION -->|"Hard Violation"| CONST_BLOCK
+    CONSTITUTION -->|"PASS"| AST
+    AST -->|"Violation"| AST_FAIL
+    AST -->|"PASS"| SUPERVISOR
+    SUPERVISOR -->|"S >= 7.0 ACCEPT"| Z3
+    SUPERVISOR -->|"5.0 <= S < 7.0"| SUP_RETRY
+    SUPERVISOR -->|"S < 5.0"| SUP_ESCALATE
+    SUP_RETRY -->|"Rebuild crew"| START
+    Z3 --> REDBLUE
+    REDBLUE -->|"ACR < 1.0"| RB_UNRESOLVED
+    REDBLUE -->|"Resolved"| MEMORY
+    MEMORY --> SIGNER
+    SIGNER --> GCR_GATE
+    GCR_GATE -->|"GCR < 1.0"| GCR_REJECT
+    GCR_GATE -->|"GCR = 1.0"| MERKLE_Q
+    MERKLE_Q --> MERKLE_FLUSH
+    MERKLE_FLUSH -->|"Not Full"| PG_WRITE
+    MERKLE_FLUSH -->|"Flush"| MERKLE_BUILD
+    MERKLE_BUILD --> PG_WRITE
+    PG_WRITE --> ENIGMA_WRITE
+    ENIGMA_WRITE --> AVAX_PUBLISH
+    AVAX_PUBLISH --> DONE
+
+    style START fill:#2196F3,color:#fff,stroke:#1565C0
+    style DAG_BUILD fill:#FF5722,color:#fff,stroke:#BF360C
+    style LOOP_CHECK fill:#FF9800,color:#fff,stroke:#E65100
+    style LOOP_ABORT fill:#FF9800,color:#fff,stroke:#E65100
+    style CONSTITUTION fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style CONST_BLOCK fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style AST fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style AST_FAIL fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style SUPERVISOR fill:#FF9800,color:#fff,stroke:#E65100
+    style SUP_RETRY fill:#FF9800,color:#fff,stroke:#E65100
+    style SUP_ESCALATE fill:#FF9800,color:#fff,stroke:#E65100
+    style Z3 fill:#00BCD4,color:#fff,stroke:#00838F
+    style REDBLUE fill:#EF5350,color:#fff,stroke:#C62828
+    style RB_UNRESOLVED fill:#EF5350,color:#fff,stroke:#C62828
+    style MEMORY fill:#7E57C2,color:#fff,stroke:#4527A0
+    style SIGNER fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style GCR_GATE fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style GCR_REJECT fill:#EF5350,color:#fff,stroke:#C62828
+    style MERKLE_Q fill:#7E57C2,color:#fff,stroke:#4527A0
+    style MERKLE_FLUSH fill:#7E57C2,color:#fff,stroke:#4527A0
+    style MERKLE_BUILD fill:#7E57C2,color:#fff,stroke:#4527A0
+    style PG_WRITE fill:#607D8B,color:#fff,stroke:#37474F
+    style ENIGMA_WRITE fill:#00BCD4,color:#fff,stroke:#00838F
+    style AVAX_PUBLISH fill:#EF5350,color:#fff,stroke:#C62828
+    style DONE fill:#4CAF50,color:#fff,stroke:#2E7D32

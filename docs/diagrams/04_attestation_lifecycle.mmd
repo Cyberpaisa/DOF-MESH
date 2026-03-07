@@ -1,0 +1,58 @@
+stateDiagram-v2
+    [*] --> AgentExecution: crew.kickoff()
+
+    AgentExecution --> DAGBuild: Output received
+    DAGBuild --> LoopCheck: DAG node added
+
+    LoopCheck --> ConstitutionCheck: CONTINUE\nsimilarity < 0.85
+    LoopCheck --> LoopDetected: LOOP_DETECTED\nsimilarity >= 0.85
+    LoopCheck --> MaxIterExceeded: MAX_ITERATIONS_EXCEEDED
+    LoopCheck --> TimedOut: TIMEOUT\nelapsed > max_duration
+
+    LoopDetected --> [*]: Execution halted
+    MaxIterExceeded --> [*]: Execution halted
+    TimedOut --> [*]: Execution halted
+
+    ConstitutionCheck --> ASTVerification: PASS\n0 hard violations
+    ConstitutionCheck --> Blocked: Hard rule violated
+
+    Blocked --> [*]: No attestation generated
+
+    ASTVerification --> SupervisorScore: score > 0\nno blocked imports
+    ASTVerification --> ASTFailed: Blocked import\nor unsafe call
+
+    ASTFailed --> [*]: Attestation rejected
+
+    SupervisorScore --> Z3Proofs: ACCEPT\nS >= 7.0
+    SupervisorScore --> Retry: RETRY\n5.0 <= S < 7.0
+    SupervisorScore --> Escalated: ESCALATE\nS < 5.0
+
+    Retry --> AgentExecution: crew_factory rebuild\nfresh providers
+
+    Escalated --> [*]: Terminal failure
+
+    Z3Proofs --> RedBlueProtocol: 4/4 theorems verified
+
+    RedBlueProtocol --> GovernedMemory: Issues resolved\nACR computed
+    RedBlueProtocol --> Unresolved: No deterministic evidence
+
+    Unresolved --> GovernedMemory: Logged with warnings
+
+    GovernedMemory --> CertificateSigning: Bi-temporal write\nconstitutional decay applied
+
+    CertificateSigning --> ComplianceGate: BLAKE3 hash\nHMAC-SHA256 signature
+
+    ComplianceGate --> MerkleBatch: GCR = 1.0\nCOMPLIANT
+    ComplianceGate --> NoAttestation: GCR < 1.0\nNON_COMPLIANT
+
+    NoAttestation --> [*]: No on-chain trace
+
+    MerkleBatch --> PostgreSQL: Certificate queued\nor batch flushed
+
+    PostgreSQL --> EnigmaScanner: dof_trust_scores\nINSERT ~900ms
+
+    EnigmaScanner --> AvalanchePublish: combined_trust_view\nupdated
+
+    AvalanchePublish --> OnChainConfirmed: registerAttestation()\n~2-3s confirmation
+
+    OnChainConfirmed --> [*]: 3-layer verification complete

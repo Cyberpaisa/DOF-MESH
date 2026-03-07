@@ -1,0 +1,94 @@
+graph TD
+    subgraph Phase1["Phase 1: Action (~2.5s)"]
+        A1["Apex #1687 initiates\nround evaluation"]
+        A2["AvaBuilder #1686\nproduces output"]
+        A3["Output captured\n~2500 chars"]
+    end
+
+    subgraph Phase2["Phase 2: DAG Construction (~0.1s)"]
+        D1["DAG.add_node(R_action, AGENT)\ninitiator: Apex"]
+        D2["DAG.add_node(R_gov, GOVERNANCE)\nDOF Gov"]
+        D3["DAG.add_edge(action -> gov)\nVERIFIES"]
+        D4["DAG.add_node(R_chain, BLOCKCHAIN)\nAvalanche"]
+        D5["DAG.add_edge(gov -> chain)\nPUBLISHES"]
+    end
+
+    subgraph Phase3["Phase 3: Loop Guard (~0.01s)"]
+        L1["LoopGuard.check(output, iteration)"]
+        L2["Jaccard similarity\nvs all previous outputs"]
+        L3["Result: CONTINUE\nsimilarity < 0.85"]
+    end
+
+    subgraph Phase4["Phase 4: DOF Governance (~1.2s)"]
+        G1["ConstitutionEnforcer\n4 HARD + 4 SOFT rules"]
+        G2["ASTVerifier\n0 violations"]
+        G3["Meta-Supervisor\nS = 7.2 ACCEPT"]
+        G4["Z3 Prover\n4/4 UNSAT"]
+        G5["RedTeam vs Guardian\nACR = 1.0"]
+        G6["GovernedMemoryStore\nbi-temporal write"]
+    end
+
+    subgraph Phase5["Phase 5: Certification (~0.5s)"]
+        C1["AttestationCertificate\ngenerated"]
+        C2["BLAKE3 hash\ncomputed"]
+        C3["HMAC-SHA256\nsignature"]
+        C4["GCR Gate: 1.0\nCOMPLIANT"]
+    end
+
+    subgraph Phase6["Phase 6: Publication (~3.5s)"]
+        P1["PostgreSQL\ndof-storage\n~200ms"]
+        P2["Enigma Scanner\ndof_trust_scores\n~900ms"]
+        P3["Avalanche C-Chain\nregisterAttestation()\n~2400ms"]
+        P4["Confirmed on-chain\ntx hash logged"]
+    end
+
+    A1 --> A2
+    A2 --> A3
+    A3 --> D1
+    D1 --> D2
+    D2 --> D3
+    D3 --> D4
+    D4 --> D5
+    D5 --> L1
+    L1 --> L2
+    L2 --> L3
+    L3 --> G1
+    G1 --> G2
+    G2 --> G3
+    G3 --> G4
+    G4 --> G5
+    G5 --> G6
+    G6 --> C1
+    C1 --> C2
+    C2 --> C3
+    C3 --> C4
+    C4 --> P1
+    P1 --> P2
+    P2 --> P3
+    P3 --> P4
+
+    style A1 fill:#2196F3,color:#fff,stroke:#1565C0
+    style A2 fill:#2196F3,color:#fff,stroke:#1565C0
+    style A3 fill:#2196F3,color:#fff,stroke:#1565C0
+    style D1 fill:#FF5722,color:#fff,stroke:#BF360C
+    style D2 fill:#FF5722,color:#fff,stroke:#BF360C
+    style D3 fill:#FF5722,color:#fff,stroke:#BF360C
+    style D4 fill:#FF5722,color:#fff,stroke:#BF360C
+    style D5 fill:#FF5722,color:#fff,stroke:#BF360C
+    style L1 fill:#FF9800,color:#fff,stroke:#E65100
+    style L2 fill:#FF9800,color:#fff,stroke:#E65100
+    style L3 fill:#FF9800,color:#fff,stroke:#E65100
+    style G1 fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style G2 fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style G3 fill:#FF9800,color:#fff,stroke:#E65100
+    style G4 fill:#00BCD4,color:#fff,stroke:#00838F
+    style G5 fill:#EF5350,color:#fff,stroke:#C62828
+    style G6 fill:#7E57C2,color:#fff,stroke:#4527A0
+    style C1 fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style C2 fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style C3 fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style C4 fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style P1 fill:#607D8B,color:#fff,stroke:#37474F
+    style P2 fill:#00BCD4,color:#fff,stroke:#00838F
+    style P3 fill:#EF5350,color:#fff,stroke:#C62828
+    style P4 fill:#EF5350,color:#fff,stroke:#C62828
