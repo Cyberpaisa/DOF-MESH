@@ -1,0 +1,24 @@
+{
+  "blockchain": {
+    "bitcoin_creation_year": {"value": 2009, "source": "Bitcoin whitepaper"},
+    "ethereum_creation_year": {"value": 2015, "source": "Ethereum genesis block"},
+    "avalanche_creation_year": {"value": 2020, "source": "Avalanche mainnet launch"},
+    "avalanche_chain_id": {"value": 43114, "source": "Avalanche docs"},
+    "erc8004_registry_contract": {"value": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432", "source": "Enigma Scanner"}
+  },
+  "dof": {
+    "total_tests": {"value": 581, "source": "DOF test suite"},
+    "z3_theorems": {"value": 4, "source": "Z3 verifier"},
+    "governance_layers": {"value": 7, "source": "DOF architecture"},
+    "contract_address": {"value": "0x88f6043B091055Bbd896Fc8D2c6234A47C02C052", "source": "Avalanche deployment"},
+    "total_attestations": {"value": 21, "source": "DOFValidationRegistry"},
+    "loc": {"value": 27000, "source": "Codebase audit", "tolerance": 1000}
+  },
+  "agents": {
+    "apex_token_id": {"value": 1687, "source": "ERC-721 registry"},
+    "avabuilder_token_id": {"value": 1686, "source": "ERC-721 registry"},
+    "apex_wallet": {"value": "0xcd595a299ad1d5D088B7764e9330f7B0be7ca983", "source": "Railway"},
+    "avabuilder_wallet": {"value": "0x29a45b03F07D1207f2e3ca34c38e7BE5458CE71a", "source": "Railway"},
+    "registry_total_agents": {"value": 20, "source": "Enigma Scanner API", "tolerance": 5}
+  }
+}

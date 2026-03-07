@@ -481,11 +481,12 @@ def run_interactive():
     console.print("  [magenta]26.[/magenta] [bold]Publish to Enigma Scanner[/bold] (trust_scores → erc-8004scan.xyz)")
     console.print("  [magenta]27.[/magenta] [bold]Merkle Batch & Verify[/bold] (N attestations → 1 on-chain root)")
     console.print("  [magenta]28.[/magenta] [bold]Execution DAG Viewer[/bold] (dependency graph + critical path)")
+    console.print("  [magenta]29.[/magenta] [bold]Data Oracle Fact Check[/bold] (deterministic semantic verification)")
     console.print("  [cyan]0.[/cyan]  Exit")
 
     choice = IntPrompt.ask(
         "\nOption",
-        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28"],
+        choices=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29"],
     )
 
     if choice == 0:
@@ -602,6 +603,8 @@ def run_interactive():
         launch_merkle_batch()
     elif choice == 28:
         launch_execution_dag_viewer()
+    elif choice == 29:
+        launch_data_oracle()
 
     # Track execution in session
     if result:
@@ -1425,6 +1428,62 @@ def launch_all():
 
     # Dashboard en foreground (bloquea)
     launch_dashboard()
+
+
+def launch_data_oracle():
+    """Data Oracle Fact Check — deterministic semantic verification."""
+    console.print("\n[bold magenta]Data Oracle — Deterministic Fact Check[/bold magenta]\n")
+
+    from core.data_oracle import DataOracle
+
+    oracle = DataOracle()
+    console.print(f"[dim]Known facts loaded: {sum(len(v) for v in oracle.known_facts.values() if isinstance(v, dict))} facts across {len(oracle.known_facts)} categories[/dim]\n")
+
+    text = Prompt.ask("Enter text to verify")
+    if not text.strip():
+        console.print("[yellow]No text provided.[/yellow]")
+        return
+
+    verdict = oracle.verify(text)
+
+    console.print(f"\n[bold]Overall Status:[/bold] {verdict.overall_status}")
+    console.print(f"[bold]Oracle Score:[/bold] {verdict.oracle_score}")
+    console.print(f"[bold]Processing Time:[/bold] {verdict.processing_time_ms:.1f}ms")
+
+    if verdict.fact_claims:
+        table = Table(title="Fact Claims")
+        table.add_column("Claim", style="white", max_width=50)
+        table.add_column("Type", style="cyan")
+        table.add_column("Extracted", style="yellow")
+        table.add_column("Verified", style="green")
+        table.add_column("Status", style="bold")
+        table.add_column("Evidence", style="dim", max_width=40)
+        for claim in verdict.fact_claims:
+            status_color = {"VERIFIED": "green", "DISCREPANCY": "red",
+                            "NO_REFERENCE": "dim", "UNVERIFIED": "yellow"}.get(claim["status"], "white")
+            table.add_row(
+                str(claim["claim_text"])[:50],
+                claim["claim_type"],
+                str(claim["extracted_value"]),
+                str(claim.get("verified_value", "-")),
+                f"[{status_color}]{claim['status']}[/{status_color}]",
+                str(claim.get("evidence", ""))[:40],
+            )
+        console.print(table)
+
+    if verdict.contradictions:
+        table = Table(title="Contradictions")
+        table.add_column("Entity", style="yellow")
+        table.add_column("Value 1", style="red")
+        table.add_column("Value 2", style="red")
+        for c in verdict.contradictions:
+            table.add_row(c["entity"], c["value_1"], c["value_2"])
+        console.print(table)
+
+    console.print(f"\n[dim]Verified: {verdict.verified_count} | "
+                  f"Unverified: {verdict.unverified_count} | "
+                  f"Discrepancies: {verdict.discrepancy_count} | "
+                  f"Contradictions: {verdict.contradiction_count}[/dim]")
 
 
 def main():
