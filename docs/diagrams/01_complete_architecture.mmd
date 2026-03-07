@@ -1,0 +1,82 @@
+flowchart LR
+    subgraph Agents["Production Agents"]
+        AP(["Apex #1687"])
+        AB(["AvaBuilder #1686"])
+    end
+
+    subgraph Input["Input"]
+        TXT["Text Output"]
+        CODE["Code Snippet"]
+    end
+
+    subgraph Gov["7 Governance Layers"]
+        L1["L1 Constitution\n4 HARD + 4 SOFT"]
+        L2["L2 AST Verifier\neval/exec/secrets"]
+        L3{"L3 Supervisor\nACCEPT >= 7.0?"}
+        L4["L4 Z3 Proofs\n4 theorems UNSAT"]
+        L5{"L5 Red vs Blue\nArbiter verdict?"}
+        L6[("L6 Memory Gov\nBi-temporal")]
+        L7["L7 Signer\nBLAKE3 + HMAC"]
+    end
+
+    subgraph Engine["Execution Engine"]
+        DAG["ExecutionDAG\nCritical path"]
+        LG{"LoopGuard\nJaccard < 0.85?"}
+        TT["TokenTracker\nCost per call"]
+        DO["DataOracle\n3 strategies"]
+    end
+
+    subgraph Test["Benchmark"]
+        TG["TestGenerator\n400 tests"]
+        BR["BenchmarkRunner\nFDR / FPR / F1"]
+    end
+
+    subgraph Pub["3-Layer Publishing"]
+        PG[("PostgreSQL\n200ms")]
+        EN[("Enigma Scanner\n900ms")]
+        MK["MerkleTree\nN = 1 tx"]
+        AV["Avalanche C-Chain\n~2s immutable"]
+    end
+
+    AP -->|"output"| TXT
+    AB -->|"output"| TXT
+    AP -->|"code"| CODE
+    TXT --> L1
+    CODE --> L2
+    L1 --> L2
+    L2 --> L3
+    L3 -->|"ACCEPT"| L4
+    L3 -->|"RETRY"| L1
+    L4 --> L5
+    L5 -->|"PASS"| L6
+    L5 -->|"FAIL"| L1
+    L6 --> L7
+    DO -.->|"fact check"| L1
+    DAG -.->|"dependencies"| L1
+    LG -.->|"loop check"| L3
+    TT -.->|"cost"| L3
+    TG --> BR
+    L7 --> PG
+    L7 --> EN
+    L7 --> MK
+    MK --> AV
+
+    style AP fill:#FF6B35,stroke:#333,color:#fff
+    style AB fill:#FF6B35,stroke:#333,color:#fff
+    style L1 fill:#4ade80,stroke:#166534,color:#000
+    style L2 fill:#86efac,stroke:#166534,color:#000
+    style L3 fill:#fbbf24,stroke:#92400e,color:#000
+    style L4 fill:#22d3ee,stroke:#155e75,color:#000
+    style L5 fill:#f87171,stroke:#991b1b,color:#000
+    style L6 fill:#c084fc,stroke:#6b21a8,color:#fff
+    style L7 fill:#fcd34d,stroke:#92400e,color:#000
+    style DAG fill:#334155,stroke:#94a3b8,color:#fff
+    style LG fill:#334155,stroke:#94a3b8,color:#fff
+    style TT fill:#334155,stroke:#94a3b8,color:#fff
+    style DO fill:#334155,stroke:#94a3b8,color:#fff
+    style TG fill:#475569,stroke:#94a3b8,color:#fff
+    style BR fill:#475569,stroke:#94a3b8,color:#fff
+    style PG fill:#3b82f6,stroke:#1e3a5f,color:#fff
+    style EN fill:#3b82f6,stroke:#1e3a5f,color:#fff
+    style MK fill:#8b5cf6,stroke:#4c1d95,color:#fff
+    style AV fill:#ef4444,stroke:#7f1d1d,color:#fff

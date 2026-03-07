@@ -1,0 +1,56 @@
+flowchart LR
+    subgraph DOF["DOF — Independent Project"]
+        direction TB
+        GOV["7 Governance Layers\nConstitution + AST + Supervisor\nZ3 + Red/Blue + Memory"]
+        Z3{"Z3 Verified?\n4 theorems"}
+        CERT["Certificate Signer\nBLAKE3 + HMAC"]
+        DFTS[("dof_trust_scores\nPostgreSQL")]
+    end
+
+    subgraph Chain["Avalanche C-Chain"]
+        REG["DOFValidationRegistry\n0x88f6...C052"]
+        MK["MerkleTree\nN attestations = 1 tx\n$0.01"]
+    end
+
+    subgraph Scanner["erc-8004scan.xyz"]
+        direction TB
+        CV{"combined_trust_view\nSQL Materialized"}
+        INFRA[("infrastructure_scores\nCentinela v1")]
+        BEHAV[("behavior_scores\nTRACER")]
+        COMM[("community_scores\nUser Ratings")]
+    end
+
+    subgraph Agents["1,772 Agents"]
+        AP(["Apex #1687\nRank #1"])
+        AB(["AvaBuilder #1686\nRank #2"])
+        OTH["1,770 agents\nNo DOF"]
+    end
+
+    AP -->|"output"| GOV
+    AB -->|"output"| GOV
+    GOV --> Z3
+    Z3 -->|"UNSAT"| CERT
+    Z3 -->|"FAIL"| GOV
+    CERT --> DFTS
+    CERT --> REG
+    REG --> MK
+    DFTS -.->|"passive read"| CV
+    REG -.->|"on-chain read"| CV
+    INFRA --> CV
+    BEHAV --> CV
+    COMM --> CV
+    OTH --> INFRA
+
+    style AP fill:#FF6B35,stroke:#333,color:#fff
+    style AB fill:#FF6B35,stroke:#333,color:#fff
+    style OTH fill:#64748b,stroke:#333,color:#fff
+    style GOV fill:#4ade80,stroke:#166534,color:#000
+    style Z3 fill:#22d3ee,stroke:#155e75,color:#000
+    style CERT fill:#fcd34d,stroke:#92400e,color:#000
+    style DFTS fill:#3b82f6,stroke:#1e3a5f,color:#fff
+    style REG fill:#ef4444,stroke:#7f1d1d,color:#fff
+    style MK fill:#8b5cf6,stroke:#4c1d95,color:#fff
+    style CV fill:#f59e0b,stroke:#92400e,color:#000
+    style INFRA fill:#64748b,stroke:#334155,color:#fff
+    style BEHAV fill:#64748b,stroke:#334155,color:#fff
+    style COMM fill:#64748b,stroke:#334155,color:#fff
