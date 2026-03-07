@@ -18,7 +18,6 @@ import hashlib
 import logging
 import math
 import functools
-from collections import Counter
 from datetime import datetime, timezone
 from enum import Enum
 from dataclasses import dataclass, field, asdict
@@ -539,94 +538,56 @@ class TokenTracker:
         tracker.log_call("groq", "llama-3.3-70b", 500, 200, 1200.0, 0.0)
         tracker.log_call("minimax", "m2.1", 300, 150, 800.0, 0.0)
         print(tracker.total_tokens())   # 1150
-        print(tracker.calls_by_provider())  # Counter({'groq': 1, 'minimax': 1})
+        print(tracker.calls_by_provider())  # {'groq': 1, 'minimax': 1}
     """
 
     def __init__(self):
-        self.calls: list[dict] = []
+        self.calls = []
 
-    def log_call(self, provider: str, model: str, prompt_tokens: int,
-                 completion_tokens: int, latency_ms: float,
-                 cost_estimate: float = 0.0) -> dict:
-        """Record a single LLM call.
-
-        Args:
-            provider: Provider name (e.g., "groq", "minimax").
-            model: Model identifier (e.g., "llama-3.3-70b").
-            prompt_tokens: Number of input/prompt tokens.
-            completion_tokens: Number of output/completion tokens.
-            latency_ms: Call latency in milliseconds.
-            cost_estimate: Estimated cost in USD (0.0 for free-tier).
-
-        Returns:
-            The recorded call dict.
-        """
-        call = {
+    def log_call(self, provider, model, prompt_tokens, completion_tokens,
+                 latency_ms, cost_estimate=0.0):
+        """Record a single LLM call."""
+        self.calls.append({
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "provider": provider,
             "model": model,
             "prompt_tokens": prompt_tokens,
             "completion_tokens": completion_tokens,
             "total_tokens": prompt_tokens + completion_tokens,
-            "latency_ms": round(latency_ms, 2),
-            "cost_estimate": round(cost_estimate, 6),
-        }
-        self.calls.append(call)
-        return call
+            "latency_ms": latency_ms,
+            "cost_estimate": cost_estimate,
+        })
 
-    def total_tokens(self) -> int:
+    def total_tokens(self):
         """Total tokens across all logged calls."""
         return sum(c["total_tokens"] for c in self.calls)
 
-    def total_prompt_tokens(self) -> int:
-        """Total prompt/input tokens."""
-        return sum(c["prompt_tokens"] for c in self.calls)
-
-    def total_completion_tokens(self) -> int:
-        """Total completion/output tokens."""
-        return sum(c["completion_tokens"] for c in self.calls)
-
-    def total_cost(self) -> float:
+    def total_cost(self):
         """Total estimated cost in USD."""
-        return round(sum(c["cost_estimate"] for c in self.calls), 6)
+        return sum(c["cost_estimate"] for c in self.calls)
 
-    def total_latency_ms(self) -> float:
-        """Total latency across all calls."""
-        return round(sum(c["latency_ms"] for c in self.calls), 2)
-
-    def avg_latency_ms(self) -> float:
-        """Average latency per call."""
-        if not self.calls:
-            return 0.0
-        return round(self.total_latency_ms() / len(self.calls), 2)
-
-    def calls_by_provider(self) -> Counter:
+    def calls_by_provider(self):
         """Count of calls per provider."""
-        return Counter(c["provider"] for c in self.calls)
+        from collections import Counter
+        return dict(Counter(c["provider"] for c in self.calls))
 
-    def tokens_by_provider(self) -> dict[str, int]:
-        """Total tokens per provider."""
-        totals: dict[str, int] = {}
-        for c in self.calls:
-            p = c["provider"]
-            totals[p] = totals.get(p, 0) + c["total_tokens"]
-        return totals
+    def average_latency(self):
+        """Average latency per call in milliseconds."""
+        if not self.calls:
+            return 0
+        return sum(c["latency_ms"] for c in self.calls) / len(self.calls)
 
-    def to_dict(self) -> dict:
+    def to_dict(self):
         """Serialize tracker state for persistence/audit."""
         return {
-            "call_count": len(self.calls),
-            "total_tokens": self.total_tokens(),
-            "total_prompt_tokens": self.total_prompt_tokens(),
-            "total_completion_tokens": self.total_completion_tokens(),
-            "total_cost": self.total_cost(),
-            "total_latency_ms": self.total_latency_ms(),
-            "avg_latency_ms": self.avg_latency_ms(),
-            "calls_by_provider": dict(self.calls_by_provider()),
-            "tokens_by_provider": self.tokens_by_provider(),
             "calls": self.calls,
+            "total_tokens": self.total_tokens(),
+            "total_cost": self.total_cost(),
+            "total_calls": len(self.calls),
+            "calls_by_provider": self.calls_by_provider(),
+            "average_latency_ms": self.average_latency(),
         }
 
     def reset(self):
         """Clear all recorded calls."""
-        self.calls.clear()
+        self.calls = []
