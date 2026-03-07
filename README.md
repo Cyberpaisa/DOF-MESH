@@ -52,25 +52,25 @@ DOF solves this with 7 deterministic governance layers, formal Z3 proofs, and on
 ## Architecture
 
 ```
-┌────────────────────────────────────────────────┐
-│ L7  Signer        HMAC + Avalanche     ~2s     │
-├────────────────────────────────────────────────┤
-│ L6  Memory Gov    Bi-temporal + decay  <1ms    │
-├────────────────────────────────────────────────┤
-│ L5  Red/Blue      Red → Guard → Arb   ~50ms   │
-├────────────────────────────────────────────────┤
-│ L4  Z3 Proofs     4 theorems UNSAT    ~10ms    │
-├────────────────────────────────────────────────┤
-│ L3  Supervisor    Q+A+C+F scoring      ~5ms   │
-├────────────────────────────────────────────────┤
-│ L2  AST Verifier  eval/exec/secrets    <1ms   │
-├────────────────────────────────────────────────┤
-│ L1  Constitution  4 HARD + 4 SOFT      <1ms   │
-├────────────────────────────────────────────────┤
-│ Engine  DAG + LoopGuard + TokenTracker         │
-├────────────────────────────────────────────────┤
-│ Data Oracle  3 verification strategies <1ms   │
-└────────────────────────────────────────────────┘
++----------------------------------------------------+
+| L7  Signer       HMAC + Avalanche           ~2s    |
++----------------------------------------------------+
+| L6  Memory Gov   Bi-temporal + decay        <1ms   |
++----------------------------------------------------+
+| L5  Red/Blue     Red -> Guard -> Arb       ~50ms   |
++----------------------------------------------------+
+| L4  Z3 Proofs    4 theorems UNSAT          ~10ms   |
++----------------------------------------------------+
+| L3  Supervisor   Q+A+C+F scoring            ~5ms   |
++----------------------------------------------------+
+| L2  AST Verifier eval/exec/secrets          <1ms   |
++----------------------------------------------------+
+| L1  Constitution 4 HARD + 4 SOFT            <1ms   |
++----------------------------------------------------+
+| Engine  DAG + LoopGuard + TokenTracker             |
++----------------------------------------------------+
+| Data Oracle  3 verification strategies      <1ms   |
++----------------------------------------------------+
 ```
 
 Total governance latency: **< 70ms** (layers 1-6). On-chain signing adds ~2s when enabled.
