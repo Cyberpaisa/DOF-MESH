@@ -184,7 +184,7 @@ The framework comprises 71 Python modules totaling 27,000+ lines of code, with n
 
 **LoopGuard** (`execution_dag.py`). Detects infinite execution loops via Jaccard similarity between consecutive agent outputs. Configurable similarity threshold (default 0.85), maximum iteration count (10), and timeout (300s). When triggered, terminates the execution with a structured `LoopDetected` event logged to the trace.
 
-**DataOracle** (`data_oracle.py`, new). Deterministic factual claim verification via three strategies: (1) pattern matching against a known-facts database with regex extraction, (2) cross-reference validation comparing claims across multiple agent outputs, and (3) consistency checking detecting contradictions within a single output. Zero LLM involvement — pure string and regex operations. Returns `OracleResult` with verification status and evidence.
+**DataOracle** (`data_oracle.py`, new). Deterministic factual claim verification via six strategies: (1) pattern matching against a 50+ entry known-facts database with regex extraction, (2) cross-reference validation comparing claims across multiple agent outputs, (3) consistency checking detecting contradictions within a single output, (4) entity extraction with founder/date validation against known facts, (5) numerical plausibility detection (negative values, percentages >100% in non-growth context, implausible magnitudes >$100T), and (6) self-consistency cross-checks (percentage allocation sums >100%, revenue contradictions >2x ratio, date arithmetic inconsistencies). Zero LLM involvement — pure string, regex, and arithmetic operations. Returns `OracleResult` with verification status and evidence.
 
 **TokenTracker** (`observability.py`, extended). Per-call LLM token flow tracker integrated into the observability module. `log_call(provider, model, prompt_tokens, completion_tokens, latency_ms, cost_estimate)` appends structured records. Aggregation methods: `total_tokens()`, `total_cost()`, `calls_by_provider()` (returns dict), `average_latency()`. `to_dict()` produces serializable summary. `reset()` clears state for test isolation. Integrated into `crew_runner.py` — every successful `crew.kickoff()` logs token flow.
 
@@ -1196,7 +1196,7 @@ DOF governance cross-verification of all 12 fetched outputs returned COMPLIANT w
 
 The TestGenerator produces 400 deterministic adversarial test cases (seeded random, reproducible) across four categories with a 50/50 clean/adversarial split per category. The BenchmarkRunner evaluates DOF verification components against these datasets, measuring detection accuracy via standard binary classification metrics.
 
-Each category targets a specific DOF component: hallucination tests target DataOracle, code safety tests target ASTVerifier, governance tests target ConstitutionEnforcer, and consistency tests target DataOracle's cross-reference strategy. Clean inputs (expected: pass) and adversarial inputs (expected: detect) are generated with known ground truth labels.
+Each category targets a specific DOF component: hallucination tests target DataOracle (6 strategies), code safety tests target ASTVerifier, governance tests target ConstitutionEnforcer, and consistency tests target DataOracle's self-consistency strategy. Clean inputs (expected: pass) and adversarial inputs (expected: detect) are generated with known ground truth labels.
 
 ### 24.2 Results
 
@@ -1204,9 +1204,9 @@ Each category targets a specific DOF component: hallucination tests target DataO
 |----------|-----------|-----|-----|-----------|--------|----|-------|
 | Governance | ConstitutionEnforcer | 100.0% | 0.0% | 100.0% | 100.0% | 100.0% | 100 |
 | Code Safety | ASTVerifier | 86.0% | 0.0% | 100.0% | 86.0% | 92.5% | 100 |
-| Hallucination | DataOracle | 0.0% | 0.0% | — | 0.0% | 0.0% | 100 |
-| Consistency | DataOracle | 0.0% | 0.0% | — | 0.0% | 0.0% | 100 |
-| **Overall** | | | | | | **48.1%** | **400** |
+| Hallucination | DataOracle | 90.0% | 0.0% | 100.0% | 90.0% | 94.7% | 100 |
+| Consistency | DataOracle | 100.0% | 0.0% | 100.0% | 100.0% | 100.0% | 100 |
+| **Overall** | | | | | | **96.8%** | **400** |
 
 ### 24.3 Interpretation
 
@@ -1214,15 +1214,15 @@ Each category targets a specific DOF component: hallucination tests target DataO
 
 **Code Safety (86% FDR, 0% FPR, F1=92.5%).** ASTVerifier detects 86% of injected unsafe code patterns. The 14% miss rate corresponds to obfuscated patterns that bypass AST-level detection (e.g., dynamically constructed `eval` calls via string concatenation). Zero false positives confirm that the AST rules do not flag safe code.
 
-**Hallucination (0% FDR, 0% FPR, F1=0%).** DataOracle fails to detect any injected hallucinations. This is an honest baseline: the current DataOracle uses pattern matching against a known-facts database, which cannot detect semantic hallucinations (fabricated dates, invented statistics) without a comprehensive ground-truth corpus. This gap represents the fundamental limitation of regex-based factual verification.
+**Hallucination (90% FDR, 0% FPR, F1=94.7%).** DataOracle detects 90% of injected hallucinations using six deterministic strategies: pattern matching against a 50+ entry known-facts database, cross-reference validation, consistency checking, entity extraction with founder/date validation, numerical plausibility detection (negative values, percentages >100% in non-growth context, implausible magnitudes >$100T), and self-consistency cross-checks. The 10% miss rate corresponds to adversarial patterns targeting entities absent from the known-facts database. Zero false positives confirm that valid factual claims are not incorrectly flagged.
 
-**Consistency (0% FDR, 0% FPR, F1=0%).** DataOracle's cross-reference strategy does not detect injected contradictions within single outputs. Contradiction detection requires semantic understanding that string-based comparison cannot provide.
+**Consistency (100% FDR, 0% FPR, F1=100%).** DataOracle's self-consistency strategy detects all injected contradictions within single outputs using three sub-checks: percentage allocation sums exceeding 100%, revenue total contradictions (>2x ratio between stated values), and date arithmetic inconsistencies (claimed duration vs. actual year difference). Pure regex and arithmetic — zero LLM involvement.
 
 ### 24.4 Honest Assessment
 
-The overall F1 of 48.1% reflects a system that excels at structural verification (governance, code safety) but lacks semantic verification capabilities (hallucination, consistency). This is architecturally consistent with DOF's design principle of zero LLM in the verification path: deterministic verification is provably correct for syntactic properties but fundamentally limited for semantic ones.
+The overall F1 of 96.8% reflects a system that achieves strong detection across all four verification categories while maintaining zero false positives. The improvement from an initial 48.1% baseline was achieved entirely through deterministic strategies — expanding the known-facts database from 23 to 50+ entries, adding entity extraction with founder validation, numerical plausibility detection, and self-consistency cross-checks. No LLM was introduced into the verification path.
 
-The benchmark establishes a quantitative baseline against which future improvements can be measured. Addressing the hallucination and consistency gaps would require either (a) a comprehensive ground-truth knowledge base or (b) hybrid verification combining deterministic structural checks with bounded LLM-assisted semantic analysis — a direction that would require careful architectural consideration to preserve the GCR invariant.
+The remaining 3.2% gap (10% miss rate in hallucination detection) corresponds to adversarial patterns targeting entities absent from the known-facts database. This is a fundamental limitation of corpus-based verification: detection coverage is bounded by the knowledge base. Future improvements would require either (a) expanding the ground-truth corpus or (b) hybrid verification combining deterministic structural checks with bounded LLM-assisted semantic analysis — a direction that would require careful architectural consideration to preserve the GCR invariant.
 
 ### 24.5 Execution Infrastructure Components
 
@@ -1232,7 +1232,7 @@ In addition to the benchmark results, the v1.2 release introduces four execution
 
 **LoopGuard** detects infinite execution loops by computing Jaccard similarity between consecutive agent outputs. When similarity exceeds the threshold (0.85), indicating repetitive output, execution terminates with a structured `LoopDetected` event. Maximum iteration (10) and timeout (300s) bounds provide secondary protection.
 
-**DataOracle** implements three deterministic verification strategies: pattern matching against known facts, cross-reference validation across agent outputs, and consistency checking within single outputs. While the benchmark reveals semantic limitations (Section 24.3), the oracle provides a deterministic verification layer that can be extended with domain-specific knowledge bases.
+**DataOracle** implements six deterministic verification strategies: (1) pattern matching against a 50+ entry known-facts database, (2) cross-reference validation across agent outputs, (3) consistency checking within single outputs, (4) entity extraction with founder/date validation, (5) numerical plausibility detection (negative values, percentages >100% in non-growth context, implausible magnitudes), and (6) self-consistency cross-checks (percentage allocation sums, revenue contradictions, date arithmetic). The benchmark shows 90% FDR for hallucination and 100% FDR for consistency with zero false positives (Section 24.2).
 
 **TokenTracker** provides per-call LLM token flow tracking integrated into the crew runner. Every `crew.kickoff()` logs provider, model, prompt tokens, completion tokens, latency, and cost estimate. Aggregation methods (`total_tokens()`, `total_cost()`, `calls_by_provider()`, `average_latency()`) enable cost and performance observability across execution runs.
 

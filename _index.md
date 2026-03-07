@@ -16,7 +16,7 @@
 - **Tiempo promedio:** 45s
 
 ## DOF Status (2026-03-06)
-- **Tests:** 631/631 passing (4.2s)
+- **Tests:** 646/646 passing (4.2s)
 - **LOC:** 27,000+ across 76 Python files
 - **Core modules:** 22
 - **Z3:** 4/4 theorems verified

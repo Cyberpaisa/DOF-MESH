@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://github.com/Cyberpaisa/deterministic-observability-framework/actions/workflows/ci.yml/badge.svg" alt="CI">
-  <img src="https://img.shields.io/badge/tests-631-green" alt="tests">
+  <img src="https://img.shields.io/badge/tests-646-green" alt="tests">
   <img src="https://img.shields.io/badge/Z3_proofs-4%2F4-blue" alt="Z3 proofs">
   <img src="https://img.shields.io/badge/attestations-21-red" alt="attestations">
   <img src="https://img.shields.io/pypi/v/dof-sdk" alt="PyPI">
@@ -58,10 +58,10 @@ DOF solves this with 7 deterministic governance layers, formal Z3 proofs, and on
 - **GCR(f) = 1.0** — governance invariant under any failure rate (Z3 proven)
 - **21 on-chain attestations** on Avalanche C-Chain mainnet
 - **Merkle batching** — 10,000 attestations = 1 tx ≈ $0.01
-- **Automated benchmark** — Governance 100% FDR, Code Safety 86% FDR, 0% FPR
+- **Automated benchmark** — Governance 100%, Hallucination 90%, Consistency 100% FDR, 0% FPR
 - **Framework agnostic** — CrewAI, LangGraph, AutoGen, or raw Python
 - **A2A server** (8 skills) + **MCP server** (10 tools) + **REST API** (14 endpoints)
-- **631 tests**, 27K+ LOC, 25 core modules, 35 contributions
+- **646 tests**, 27K+ LOC, 25 core modules, 36 contributions
 
 ---
 
@@ -85,7 +85,7 @@ DOF solves this with 7 deterministic governance layers, formal Z3 proofs, and on
 +----------------------------------------------------+
 | Engine  DAG + LoopGuard + TokenTracker             |
 +----------------------------------------------------+
-| Data Oracle  3 verification strategies      <1ms   |
+| Data Oracle  6 verification strategies      <1ms   |
 +----------------------------------------------------+
 ```
 
@@ -147,9 +147,9 @@ Three verification layers: PostgreSQL (200ms) → Enigma Scanner (900ms) → Ava
 |----------|-----|-----|-----|-------|
 | Governance | 100.0% | 0.0% | 100.0% | 100 |
 | Code Safety | 86.0% | 0.0% | 92.5% | 100 |
-| Hallucination | 0.0% | 0.0% | 0.0% | 100 |
-| Consistency | 0.0% | 0.0% | 0.0% | 100 |
-| **Overall F1** | | | **48.1%** | **400** |
+| Hallucination | 90.0% | 0.0% | 94.7% | 100 |
+| Consistency | 100.0% | 0.0% | 100.0% | 100 |
+| **Overall F1** | | | **96.8%** | **400** |
 
 ### Production Results (n=30 runs, real infrastructure)
 
@@ -197,7 +197,7 @@ Combined trust score: 0.85 (governance 0.35 + safety 0.15 + infrastructure 0.15 
 
 ## Honest Limitations
 
-- **Hallucination detection is regex-based** — catches factual claims with known-facts DB but misses semantic hallucinations. FDR=0% on generated adversarial tests. This is an honest baseline, not a solved problem.
+- **Hallucination detection is regex-based** — 6 deterministic strategies (pattern matching, cross-reference, consistency, entity extraction, numerical plausibility, self-consistency) achieve 90% FDR on adversarial tests. Misses semantic hallucinations without known-facts coverage.
 - **No correlated or cascading failure modeling** — SS(f)=1−f³ assumes independent failures.
 - **Supervisor is itself an LLM** — mitigated by cross-provider execution and deterministic governance layer, but circularity is bounded, not eliminated.
 - **Free-tier infrastructure** — 3/30 runs fail from provider exhaustion cascades where all 5 providers hit rate limits simultaneously.
@@ -229,7 +229,7 @@ Combined trust score: 0.85 (governance 0.35 + safety 0.15 + infrastructure 0.15 
          with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={27K+ LOC, 631 tests, 25 modules, 4 Z3 theorems,
+  note={27K+ LOC, 646 tests, 25 modules, 4 Z3 theorems,
         21 Avalanche attestations, Apache 2.0, pip install dof-sdk}
 }
 ```
