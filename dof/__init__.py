@@ -196,6 +196,11 @@ from integrations.langgraph_adapter import (
 
 from core.crew_runner import run_crew
 
+# ─────────────────────────────────────────────────────────────────────
+# Test Generator + Benchmark
+# ─────────────────────────────────────────────────────────────────────
+
+from core.test_generator import TestGenerator, BenchmarkRunner, BenchmarkResult
 
 # ─────────────────────────────────────────────────────────────────────
 # Top-level convenience functions
@@ -319,4 +324,8 @@ __all__ = [
     "create_governed_pipeline",
     # Crew
     "run_crew",
+    # Test Generator + Benchmark
+    "TestGenerator",
+    "BenchmarkRunner",
+    "BenchmarkResult",
 ]
