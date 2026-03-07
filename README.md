@@ -1,6 +1,9 @@
 ![Tests](https://img.shields.io/badge/tests-631-green) ![Z3 Proofs](https://img.shields.io/badge/Z3_proofs-4%2F4-blue) ![On-Chain](https://img.shields.io/badge/attestations-21-red) ![PyPI](https://img.shields.io/pypi/v/dof-sdk) ![License](https://img.shields.io/badge/license-Apache%202.0-blue) ![LOC](https://img.shields.io/badge/LOC-27K%2B-purple) ![Avalanche](https://img.shields.io/badge/Avalanche-mainnet-red)
 
-![DOF Architecture](docs/diagrams/dof_cover.png)
+<p align="center">
+  <img src="docs/diagrams/dof_banner.jpeg" alt="DOF - Deterministic Observability Framework" width="800">
+</p>
+<h3 align="center">VERIFY. PROVE. ATTEST.</h3>
 
 # Deterministic Observability Framework (DOF)
 
