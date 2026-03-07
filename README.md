@@ -1,5 +1,7 @@
 ![Tests](https://img.shields.io/badge/tests-631-green) ![Z3 Proofs](https://img.shields.io/badge/Z3_proofs-4%2F4-blue) ![On-Chain](https://img.shields.io/badge/attestations-21-red) ![PyPI](https://img.shields.io/pypi/v/dof-sdk) ![License](https://img.shields.io/badge/license-Apache%202.0-blue) ![LOC](https://img.shields.io/badge/LOC-27K%2B-purple) ![Avalanche](https://img.shields.io/badge/Avalanche-mainnet-red)
 
+![DOF Architecture](docs/diagrams/dof_cover.png)
+
 # Deterministic Observability Framework (DOF)
 
 Deterministic governance for multi-agent LLM systems. Constitutional rules, formal proofs, and on-chain attestation on Avalanche.
@@ -15,6 +17,10 @@ result = GenericAdapter().wrap_output("your agent output here")
 ```
 
 30ms. Zero LLM tokens. Works with CrewAI, LangGraph, AutoGen, or anything that produces text.
+
+## Contents
+
+[The Problem](#the-problem) · [Highlights](#highlights) · [Architecture](#architecture) · [Governance Layers](#seven-governance-layers) · [Z3 Verification](#formal-verification-z3) · [On-Chain](#on-chain-attestation) · [Benchmarks](#benchmark-results) · [Comparison](#comparison) · [Limitations](#honest-limitations) · [Citation](#citation)
 
 ---
 
@@ -43,25 +49,25 @@ DOF solves this with 7 deterministic governance layers, formal Z3 proofs, and on
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│  Layer 7: Signer              HMAC-SHA256 + Avalanche    │  ~2s
-├──────────────────────────────────────────────────────────┤
-│  Layer 6: Memory Governance   Bi-temporal + decay        │  <1ms
-├──────────────────────────────────────────────────────────┤
-│  Layer 5: Red/Blue Adversarial  RedTeam → Guardian → Arbiter  │  ~50ms
-├──────────────────────────────────────────────────────────┤
-│  Layer 4: Z3 Formal Proofs    4 theorems, UNSAT verified │  ~10ms
-├──────────────────────────────────────────────────────────┤
-│  Layer 3: Meta-Supervisor     Q(0.4)+A(0.25)+C(0.2)+F(0.15)  │  ~5ms
-├──────────────────────────────────────────────────────────┤
-│  Layer 2: AST Verifier        eval/exec/secrets/imports  │  <1ms
-├──────────────────────────────────────────────────────────┤
-│  Layer 1: Constitution        4 HARD + 4 SOFT rules      │  <1ms
-├──────────────────────────────────────────────────────────┤
-│  Execution Engine             crew_runner + DAG + LoopGuard + TokenTracker  │
-├──────────────────────────────────────────────────────────┤
-│  Data Oracle                  3 verification strategies  │  <1ms
-└──────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────┐
+│ L7  Signer        HMAC + Avalanche     ~2s     │
+├────────────────────────────────────────────────┤
+│ L6  Memory Gov    Bi-temporal + decay  <1ms    │
+├────────────────────────────────────────────────┤
+│ L5  Red/Blue      Red → Guard → Arb   ~50ms   │
+├────────────────────────────────────────────────┤
+│ L4  Z3 Proofs     4 theorems UNSAT    ~10ms    │
+├────────────────────────────────────────────────┤
+│ L3  Supervisor    Q+A+C+F scoring      ~5ms   │
+├────────────────────────────────────────────────┤
+│ L2  AST Verifier  eval/exec/secrets    <1ms   │
+├────────────────────────────────────────────────┤
+│ L1  Constitution  4 HARD + 4 SOFT      <1ms   │
+├────────────────────────────────────────────────┤
+│ Engine  DAG + LoopGuard + TokenTracker         │
+├────────────────────────────────────────────────┤
+│ Data Oracle  3 verification strategies <1ms   │
+└────────────────────────────────────────────────┘
 ```
 
 Total governance latency: **< 70ms** (layers 1-6). On-chain signing adds ~2s when enabled.
@@ -204,14 +210,8 @@ Combined trust score: 0.85 (governance 0.35 + safety 0.15 + infrastructure 0.15 
          with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={27,000+ LOC, 25 core modules, 631 tests, 35 contributions,
-        Z3 formal verification (4 theorems), OAGS Level 3,
-        ERC-8004 on Chain attestation on Avalanche C-Chain mainnet
-        (21 attestations), Merkle batching, Execution DAG,
-        Loop Guard, Data Oracle, TokenTracker, TestGenerator,
-        adversarial Red-on-Blue, Bayesian provider selection,
-        MCP server (10 tools), REST API (14 endpoints),
-        framework-agnostic governance, pip install dof-sdk}
+  note={27K+ LOC, 631 tests, 25 modules, 4 Z3 theorems,
+        21 Avalanche attestations, Apache 2.0, pip install dof-sdk}
 }
 ```
 
