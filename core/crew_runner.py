@@ -28,7 +28,7 @@ from core.governance import ConstitutionEnforcer
 from core.supervisor import MetaSupervisor
 from core.observability import (
     RunTrace, StepTrace, RunTraceStore, compute_derived_metrics,
-    estimate_tokens, get_session_id, DETERMINISTIC_MODE,
+    estimate_tokens, get_session_id, DETERMINISTIC_MODE, TokenTracker,
 )
 from core.execution_dag import ExecutionDAG
 from core.loop_guard import LoopGuard
@@ -74,6 +74,7 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
     enforcer = ConstitutionEnforcer()
     supervisor = MetaSupervisor()
     trace_store = RunTraceStore()
+    token_tracker = TokenTracker()
 
     memory_store = None
     if governed_memory:
@@ -178,6 +179,15 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
             step_ms = (time.time() - step_start) * 1000
 
             output = result.raw if hasattr(result, "raw") else str(result)
+
+            # Log token usage
+            token_tracker.log_call(
+                provider=current_provider,
+                model=crew_name,
+                prompt_tokens=estimate_tokens(input_text),
+                completion_tokens=estimate_tokens(output),
+                latency_ms=step_ms,
+            )
 
             # Loop Guard check
             guard_result = loop_guard.check(output, attempt - 1)
@@ -333,6 +343,7 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
                     "critical_path": dag_cp,
                     "dag_path": dag_path,
                 },
+                "token_tracker": token_tracker.to_dict(),
             }
 
             # Adversarial evaluation (optional)

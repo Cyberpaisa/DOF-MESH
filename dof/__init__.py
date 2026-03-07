@@ -66,6 +66,7 @@ from core.observability import (
     set_deterministic,
     get_session_id,
     reset_session,
+    TokenTracker,
 )
 
 # ─────────────────────────────────────────────────────────────────────
@@ -253,6 +254,7 @@ __all__ = [
     "set_deterministic",
     "get_session_id",
     "reset_session",
+    "TokenTracker",
     # Verification
     "ASTVerifier",
     "AdversarialEvaluator",
