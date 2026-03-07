@@ -4,7 +4,7 @@
 >
 > This repository formalizes reproducible experimentation, resilience metrics, controlled degradation modeling, governance invariance, and deterministic evaluation in heterogeneous provider environments.
 
-Python 3.11+ | Apache-2.0 | 27,000+ LOC | 71 modules | 581 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | Avalanche Mainnet | 21 on-chain attestations | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install dof-sdk
+Python 3.11+ | Apache-2.0 | 27,000+ LOC | 71 modules | 609 tests | Z3 formal verification | OAGS Level 3 | ERC-8004 attestation | Avalanche Mainnet | 21 on-chain attestations | MCP Server | REST API | PostgreSQL | Multi-Framework | pip install dof-sdk
 
 ---
 
@@ -114,6 +114,8 @@ Without formal metrics and deterministic evaluation, observed performance differ
 31. Execution DAG — Directed Acyclic Graph engine (`core/execution_dag.py`) for tracing dependencies between agents, tools, governance layers, and blockchain operations. DFS-based cycle detection, topological sorting, critical path computation (longest path by duration with bottleneck identification), Mermaid diagram generation with typed node shapes and color-coded classes, and `from_trace_records()` builder for reconstructing DAGs from agent execution logs. Integrated into `crew_runner.py` for automatic DAG construction during crew execution. DAG serialization to JSON with depth maps and critical path metadata. 40 dedicated tests covering node/edge creation, cycle detection, topological sort, critical path, dependencies, depth computation, serialization, Mermaid output, and real data reconstruction.
 
 32. Loop Guard — Deterministic loop detection engine (`core/loop_guard.py`) preventing agent output repetition via Jaccard similarity analysis. Configurable similarity threshold (default 0.85), max iteration limits, and timeout enforcement. The `check()` method evaluates each agent output against full history, returning structured `LoopGuardResult` with status (CONTINUE, LOOP_DETECTED, MAX_ITERATIONS_EXCEEDED, TIMEOUT), similarity score, matched iteration, and elapsed time. Integrated into `crew_runner.py` to break execution loops before retry exhaustion. Zero external dependencies — pure Python with case-insensitive word-set similarity. 31 dedicated tests covering similarity computation, loop detection, timeout, max iterations, reset, and edge cases.
+
+33. Data Oracle — Deterministic fact-checking engine (`core/data_oracle.py`) resolving the DeterministicArbiter's semantic blindness via three zero-LLM verification strategies: (1) pattern-based fact check extracting year/count/chain_id/score claims via regex and verifying against `data/known_facts.json`, (2) cross-reference check validating agent token IDs (#1687, #1686) against known facts and optionally against Enigma Scanner DB, (3) intra-output consistency check detecting contradictions where the same entity has conflicting numeric values. Integrated into DeterministicArbiter: unresolved hallucination/factual_error issues are reviewed by the oracle — DISCREPANCY confirms RedTeam findings, VERIFIED resolves via oracle evidence, NO_REFERENCE stays honestly unresolved. OracleVerdict consolidates all claims with oracle_score in [0,1]. Addresses critical audit finding: "Arbiter blind to semantic hallucinations." 28 dedicated tests covering all 3 strategies, scoring, persistence, and graceful fallback.
 
 ---
 
@@ -935,7 +937,7 @@ scripts/
 
 hardhat.config.js            # Solidity compilation + Avalanche C-Chain deployment
 
-tests/                      # 581 tests across 21 test modules
+tests/                      # 609 tests across 22 test modules
 examples/
   quickstart.py             # SDK usage demonstration (no API key required)
   generic_example.py        # GenericAdapter governance example
@@ -954,7 +956,7 @@ logs/
   title={Deterministic Observability and Resilience Engineering for Multi-Agent LLM Systems: An Experimental Framework with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={27,000+ LOC, 71 modules, 581 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain mainnet (21 attestations, DOFValidationRegistry at 0x88f6...C052), Enigma Scanner integration via dof\_trust\_scores with combined\_trust\_view (governance weight 0.35), external agent audit (13 tests, 4 protocols, 8/13 active across x402/OASF/A2A/MCP), Merkle tree batching (N attestations in 1 transaction), Execution DAG with cycle detection and critical path analysis, Loop Guard with Jaccard similarity-based repetition detection, adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, MCP server (10 tools, 3 resources), REST API (14 endpoints), dual-backend storage (JSONL + PostgreSQL), framework-agnostic governance (GenericAdapter, LangGraphAdapter, CrewAIAdapter), Sovereign Dashboard, 120 parametric experiments, 52 production runs, 6 formal metrics, full audit pipeline with cross-verification}
+  note={27,000+ LOC, 71 modules, 609 tests, Z3 formal verification (4 theorems proven), constitutional memory governance with bi-temporal versioning, OAGS Level 3 conformance via BLAKE3 identity, ERC-8004 on-chain attestation on Avalanche C-Chain mainnet (21 attestations, DOFValidationRegistry at 0x88f6...C052), Enigma Scanner integration via dof\_trust\_scores with combined\_trust\_view (governance weight 0.35), external agent audit (13 tests, 4 protocols, 8/13 active across x402/OASF/A2A/MCP), Merkle tree batching (N attestations in 1 transaction), Execution DAG with cycle detection and critical path analysis, Loop Guard with Jaccard similarity-based repetition detection, Data Oracle deterministic fact-checking with 3 verification strategies, adversarial Red-on-Blue evaluation protocol, Bayesian provider selection via Thompson Sampling, causal error attribution, formal task contracts, constitutional policy-as-code, pip-installable SDK, MCP server (10 tools, 3 resources), REST API (14 endpoints), dual-backend storage (JSONL + PostgreSQL), framework-agnostic governance (GenericAdapter, LangGraphAdapter, CrewAIAdapter), Sovereign Dashboard, 120 parametric experiments, 52 production runs, 6 formal metrics, full audit pipeline with cross-verification}
 }
 
 ---
