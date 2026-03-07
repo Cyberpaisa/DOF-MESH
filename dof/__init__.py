@@ -162,6 +162,12 @@ from core.execution_dag import ExecutionDAG, DAGNode, DAGEdge
 from core.loop_guard import LoopGuard, LoopGuardResult
 
 # ─────────────────────────────────────────────────────────────────────
+# Data Oracle
+# ─────────────────────────────────────────────────────────────────────
+
+from core.data_oracle import DataOracle, OracleVerdict, FactClaim
+
+# ─────────────────────────────────────────────────────────────────────
 # Storage
 # ─────────────────────────────────────────────────────────────────────
 
@@ -291,6 +297,10 @@ __all__ = [
     # Loop Guard
     "LoopGuard",
     "LoopGuardResult",
+    # Data Oracle
+    "DataOracle",
+    "OracleVerdict",
+    "FactClaim",
     # Storage
     "StorageFactory",
     "JSONLBackend",

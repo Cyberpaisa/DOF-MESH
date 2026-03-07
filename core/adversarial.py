@@ -304,7 +304,13 @@ class DeterministicArbiter:
     - "structural_proof" → accepted only if ASTVerifier confirms
     - "test_passed" → accepted only if test actually passes
     - "argument" → always rejected (no LLM-based arguments accepted)
+    - After initial adjudication, unresolved issues are passed through
+      DataOracle for semantic fact-checking (zero LLM).
     """
+
+    def __init__(self, use_oracle: bool = True):
+        self.use_oracle = use_oracle
+        self._oracle = None
 
     def adjudicate(self, output: str, issues: list[Issue],
                    defenses: list[Defense]) -> AdversarialVerdict:
@@ -354,6 +360,10 @@ class DeterministicArbiter:
                     severity=issue.severity,
                 ))
 
+        # Phase 2: DataOracle fact-checking for unresolved issues
+        if self.use_oracle:
+            decisions = self._oracle_review(output, issues, decisions)
+
         resolved = [asdict(d) for d in decisions if d.status == "resolved"]
         unresolved = [asdict(d) for d in decisions if d.status == "unresolved"]
 
@@ -397,6 +407,65 @@ class DeterministicArbiter:
         )
         return result
 
+    def _oracle_review(self, output: str, issues: list[Issue],
+                       decisions: list[ArbiterDecision]) -> list[ArbiterDecision]:
+        """Use DataOracle to resolve remaining unresolved issues.
+
+        For issues categorized as hallucination or factual_error that remain
+        unresolved, the oracle checks the output text for factual accuracy.
+        - DISCREPANCY → RedTeam was right → stays unresolved (confirmed)
+        - VERIFIED → Guardian wins → resolved via oracle evidence
+        - NO_REFERENCE → honest: cannot verify → stays unresolved
+        """
+        unresolved_ids = {d.issue_id for d in decisions if d.status == "unresolved"}
+        if not unresolved_ids:
+            return decisions
+
+        # Only check categories where semantic verification helps
+        semantic_categories = {"hallucination", "factual_error"}
+        needs_oracle = any(
+            i.issue_id in unresolved_ids and i.category in semantic_categories
+            for i in issues
+        )
+        if not needs_oracle:
+            return decisions
+
+        # Lazy-load oracle
+        if self._oracle is None:
+            try:
+                from core.data_oracle import DataOracle
+                self._oracle = DataOracle()
+            except Exception as e:
+                logger.warning(f"DataOracle unavailable: {e}")
+                return decisions
+
+        verdict = self._oracle.verify(output)
+
+        # If oracle finds the output is factually clean, defend unresolved semantic issues
+        updated: list[ArbiterDecision] = []
+        for decision in decisions:
+            if (decision.status == "unresolved"
+                    and decision.issue_id in unresolved_ids):
+                # Find the original issue
+                issue = next((i for i in issues if i.issue_id == decision.issue_id), None)
+                if issue and issue.category in semantic_categories:
+                    if verdict.discrepancy_count > 0:
+                        # Oracle confirms factual problems — RedTeam was right
+                        decision.reason = (
+                            f"Oracle confirms discrepancy: {verdict.discrepancy_count} "
+                            f"fact(s) disputed (score={verdict.oracle_score})"
+                        )
+                    elif verdict.overall_status == "CLEAN" and verdict.verified_count > 0:
+                        # Oracle verified facts — defend the output
+                        decision.status = "resolved"
+                        decision.reason = (
+                            f"Oracle defense: {verdict.verified_count} fact(s) verified, "
+                            f"0 discrepancies (score={verdict.oracle_score})"
+                        )
+            updated.append(decision)
+
+        return updated
+
     def _validate_defense(self, output: str, defense: Defense,
                           gov_result, ast_verifier) -> bool:
         """Validate defense evidence. Only verifiable evidence accepted."""
@@ -428,10 +497,10 @@ class DeterministicArbiter:
 class AdversarialEvaluator:
     """Orchestrates Red Team → Guardian → Arbiter pipeline."""
 
-    def __init__(self, governed_memory: bool = False):
+    def __init__(self, governed_memory: bool = False, use_oracle: bool = True):
         self.red_team = RedTeamAgent()
         self.guardian = GuardianAgent()
-        self.arbiter = DeterministicArbiter()
+        self.arbiter = DeterministicArbiter(use_oracle=use_oracle)
         self._memory_store = None
         if governed_memory:
             try:
