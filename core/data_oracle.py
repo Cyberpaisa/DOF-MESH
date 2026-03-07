@@ -2,11 +2,14 @@
 Data Oracle — Deterministic fact-checking for semantic verification.
 
 Resolves the DeterministicArbiter's semantic blindness by providing
-three verification strategies that require ZERO LLM tokens:
+six verification strategies that require ZERO LLM tokens:
 
 1. Pattern-Based Fact Check — regex extraction + known_facts.json
 2. Cross-Reference Check — Enigma Scanner DB lookup
 3. Consistency Check — intra-output contradiction detection
+4. Entity Extraction + Validation — expanded entity/date/founder matching
+5. Numerical Plausibility — impossible percentages, negative values, implausible magnitudes
+6. Self-Consistency Cross-Check — percentage sums, number contradictions within output
 
 Usage:
     from core.data_oracle import DataOracle
@@ -127,6 +130,77 @@ _AGENT_REF = re.compile(
     re.IGNORECASE,
 )
 
+# ─── Strategy 4: Entity Extraction patterns ───────────────────────
+
+# Broader year extraction: "founded in YYYY", "since YYYY", "established YYYY", etc.
+_ENTITY_YEAR = re.compile(
+    r'(\b[A-Z][a-zA-Z0-9]+(?:\s+[A-Z][a-zA-Z0-9]+)*?)\s+'
+    r'(?:was\s+)?(?:created|launched|founded|started|released|deployed|'
+    r'established|introduced|invented|built|began|opened|incorporated)\s+'
+    r'(?:in\s+)?(\d{4})\b',
+    re.IGNORECASE,
+)
+
+# "X was founded by PERSON" / "X was created by PERSON"
+_ENTITY_FOUNDER = re.compile(
+    r'(\b[A-Z][a-zA-Z0-9]+(?:\s+[A-Z][a-zA-Z0-9]+)*?)\s+'
+    r'(?:was\s+)?(?:founded|created|co-?founded|started|built|launched)\s+'
+    r'(?:by|in\s+\d{4}\s+by)\s+'
+    r'([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)+)',
+)
+
+# Common words to strip from end of founder name captures
+_TRAILING_WORDS = {"in", "on", "at", "as", "and", "the", "with", "for", "from", "to"}
+
+# "$X billion/million/trillion" or "X million users/tokens"
+_MAGNITUDE_CLAIM = re.compile(
+    r'\$\s*([\d,.]+)\s*(billion|million|trillion|B|M|T)\b|'
+    r'([\d,.]+)\s*(billion|million|trillion|B|M|T)\s+'
+    r'(?:users?|tokens?|coins?|transactions?|dollars?|USD)',
+    re.IGNORECASE,
+)
+
+# ─── Strategy 5: Numerical Plausibility patterns ─────────────────
+
+# Percentages
+_PERCENTAGE = re.compile(r'([\d,.]+)\s*%')
+
+# Prices: "$X" or "X dollars"
+_PRICE = re.compile(
+    r'\$\s*([\d,.]+)\s*(?:per|/|each|a\s+)?\s*(?:coin|token|unit|share)?\b',
+    re.IGNORECASE,
+)
+
+# Negative quantities that should never be negative
+_NEGATIVE_VALUE = re.compile(
+    r'(-\s*[\d,.]+)\s*(?:seconds?|ms|milliseconds?|minutes?|hours?|'
+    r'users?|transactions?|TPS|nodes?|agents?|dollars?|USD|\$|%)',
+    re.IGNORECASE,
+)
+
+# Future years presented as past: "in YYYY ... was/has/had"
+_FUTURE_AS_PAST = re.compile(
+    r'(?:in|since|from)\s+(\d{4})\b',
+    re.IGNORECASE,
+)
+
+# ─── Strategy 6: Self-Consistency patterns ────────────────────────
+
+# "X% went to A, Y% to B" — percentage allocation
+_PERCENT_ALLOCATION = re.compile(
+    r'([\d,.]+)\s*%\s*(?:went|goes|allocated|for|to|of)',
+    re.IGNORECASE,
+)
+
+# Revenue/total with "$X" or "X million/billion" — matches both orders
+_REVENUE_CLAIM = re.compile(
+    r'(?:revenue|total|profit|cost|budget|funding|raised|worth|valued)\s+'
+    r'(?:was|is|of|at|:)?\s*\$?\s*([\d,.]+)\s*(billion|million|thousand|B|M|K)?|'
+    r'\$\s*([\d,.]+)\s*(billion|million|thousand|B|M|K)?\s+'
+    r'(?:in\s+)?(?:total\s+)?(?:revenue|profit|cost|budget|funding|worth)',
+    re.IGNORECASE,
+)
+
 
 # ─────────────────────────────────────────────────────────────────────
 # Data Oracle
@@ -174,7 +248,7 @@ class DataOracle:
         return flat
 
     def verify(self, text: str) -> OracleVerdict:
-        """Run all 3 verification strategies and return consolidated verdict.
+        """Run all 6 verification strategies and return consolidated verdict.
 
         Args:
             text: The text to verify.
@@ -193,6 +267,22 @@ class DataOracle:
 
         # Strategy 3: Consistency check
         contradictions = self.consistency_check(text)
+
+        # Strategy 4: Entity extraction + validation (deduplicated)
+        existing_texts = {c.claim_text for c in fact_claims}
+        entity_claims = self.entity_extraction_check(text)
+        for ec in entity_claims:
+            if ec.claim_text not in existing_texts:
+                fact_claims.append(ec)
+                existing_texts.add(ec.claim_text)
+
+        # Strategy 5: Numerical plausibility
+        plausibility_claims = self.numerical_plausibility_check(text)
+        fact_claims.extend(plausibility_claims)
+
+        # Strategy 6: Self-consistency cross-check
+        self_contradictions = self.self_consistency_check(text)
+        contradictions.extend(self_contradictions)
 
         # Compute statistics
         verified = sum(1 for c in fact_claims if c.status == "VERIFIED")
@@ -482,6 +572,311 @@ class DataOracle:
 
         return contradictions
 
+    # ─── Strategy 4: Entity Extraction + Validation ────────────────
+
+    def entity_extraction_check(self, text: str) -> list[FactClaim]:
+        """Extract entities (founders, dates with varied phrasing) and validate
+        against known_facts.json.
+
+        Catches variations like "founded by", "established in", "since YYYY".
+        Deduplicates against claims already found by pattern_check.
+        """
+        claims: list[FactClaim] = []
+        flat = self._flat_facts()
+
+        # Founder claims: "X was founded by PERSON"
+        for match in _ENTITY_FOUNDER.finditer(text):
+            entity = match.group(1).strip().lower()
+            founder = match.group(2).strip()
+            # Strip trailing common words (regex can overcapture with IGNORECASE off)
+            words = founder.split()
+            while words and words[-1].lower() in _TRAILING_WORDS:
+                words.pop()
+            founder = " ".join(words) if words else founder
+            claim = FactClaim(
+                claim_text=match.group(0),
+                claim_type="ENTITY",
+                extracted_value=founder,
+            )
+            fact_key = self._find_fact_key(entity, "founder", flat)
+            if fact_key:
+                known = flat[fact_key]
+                claim.verified_value = known["value"]
+                claim.source = known.get("source", "known_facts.json")
+                # Case-insensitive partial match (last name match)
+                known_lower = str(known["value"]).lower()
+                founder_lower = founder.lower()
+                if known_lower == founder_lower or known_lower in founder_lower or founder_lower in known_lower:
+                    claim.status = "VERIFIED"
+                    claim.confidence = 1.0
+                    claim.evidence = f"Founder matches: {known['value']}"
+                else:
+                    claim.status = "DISCREPANCY"
+                    claim.confidence = 0.9
+                    claim.evidence = f"Known founder is {known['value']}, not {founder}"
+            else:
+                claim.status = "NO_REFERENCE"
+                claim.confidence = 0.0
+            claims.append(claim)
+
+        # Extended year claims with broader verb set (deduplicated)
+        seen_positions = set()
+        for match in _ENTITY_YEAR.finditer(text):
+            pos = match.start()
+            # Skip if already captured by _YEAR_CLAIM in pattern_check
+            if any(abs(pos - p) < 5 for p in seen_positions):
+                continue
+            seen_positions.add(pos)
+
+            entity = match.group(1).strip().lower()
+            year = int(match.group(2))
+            claim = FactClaim(
+                claim_text=match.group(0),
+                claim_type="DATE",
+                extracted_value=year,
+            )
+            fact_key = self._find_fact_key(entity, "creation_year", flat)
+            if fact_key:
+                known = flat[fact_key]
+                claim.verified_value = known["value"]
+                claim.source = known.get("source", "known_facts.json")
+                if year == known["value"]:
+                    claim.status = "VERIFIED"
+                    claim.confidence = 1.0
+                    claim.evidence = f"Year matches: {known['value']}"
+                else:
+                    claim.status = "DISCREPANCY"
+                    claim.confidence = 0.95
+                    claim.evidence = f"Known year is {known['value']}, not {year}"
+            else:
+                claim.status = "NO_REFERENCE"
+                claim.confidence = 0.0
+            claims.append(claim)
+
+        return claims
+
+    # ─── Strategy 5: Numerical Plausibility ──────────────────────
+
+    def numerical_plausibility_check(self, text: str) -> list[FactClaim]:
+        """Detect implausible numerical claims without needing a fact database.
+
+        Rules:
+          - Percentages > 100% or < 0%
+          - Negative latencies, users, transactions
+          - Prices > $1M per coin (implausible for single units)
+          - Market caps > $100 trillion
+          - Future years (> current year) presented as past events
+        """
+        claims: list[FactClaim] = []
+        current_year = 2026  # Hardcoded for determinism
+
+        # Negative values in contexts that can't be negative
+        for match in _NEGATIVE_VALUE.finditer(text):
+            raw = match.group(1).replace(" ", "")
+            try:
+                val = float(raw.replace(",", ""))
+            except ValueError:
+                continue
+            if val < 0:
+                claims.append(FactClaim(
+                    claim_text=match.group(0),
+                    claim_type="NUMERIC",
+                    extracted_value=val,
+                    status="DISCREPANCY",
+                    confidence=0.95,
+                    evidence=f"Negative value ({val}) in context that requires non-negative",
+                    source="plausibility_check",
+                ))
+
+        # Percentages outside [0, 100] in non-growth contexts
+        for match in _PERCENTAGE.finditer(text):
+            raw = match.group(1).replace(",", "")
+            try:
+                pct = float(raw)
+            except ValueError:
+                continue
+            # Check surrounding context for growth/return (which can exceed 100%)
+            start = max(0, match.start() - 50)
+            context = text[start:match.end()].lower()
+            is_growth = any(w in context for w in ["growth", "increase", "return", "gain", "cagr", "roi", "apr", "apy"])
+            if not is_growth and (pct > 100.0 or pct < 0):
+                claims.append(FactClaim(
+                    claim_text=match.group(0),
+                    claim_type="NUMERIC",
+                    extracted_value=pct,
+                    status="DISCREPANCY",
+                    confidence=0.9,
+                    evidence=f"Percentage {pct}% is outside valid range [0, 100]",
+                    source="plausibility_check",
+                ))
+
+        # Future years presented as past events
+        for match in _FUTURE_AS_PAST.finditer(text):
+            year = int(match.group(1))
+            if year > current_year:
+                # Check if context uses past tense
+                start = match.start()
+                end = min(len(text), match.end() + 80)
+                context = text[start:end].lower()
+                past_markers = ["was", "had", "did", "launched", "created",
+                                "founded", "built", "achieved", "reached",
+                                "processed", "completed"]
+                if any(m in context for m in past_markers):
+                    claims.append(FactClaim(
+                        claim_text=text[start:end].strip()[:100],
+                        claim_type="DATE",
+                        extracted_value=year,
+                        status="DISCREPANCY",
+                        confidence=0.85,
+                        evidence=f"Year {year} is in the future but used with past tense",
+                        source="plausibility_check",
+                    ))
+
+        # Implausible magnitudes
+        for match in _MAGNITUDE_CLAIM.finditer(text):
+            if match.group(1):
+                raw = match.group(1).replace(",", "")
+                unit = match.group(2).lower()
+            else:
+                raw = match.group(3).replace(",", "")
+                unit = match.group(4).lower()
+
+            try:
+                val = float(raw)
+            except ValueError:
+                continue
+
+            multiplier = {"billion": 1e9, "b": 1e9, "million": 1e6, "m": 1e6,
+                          "trillion": 1e12, "t": 1e12}.get(unit, 1)
+            actual = val * multiplier
+
+            # Market cap / value > $100 trillion is implausible
+            if actual > 100e12:
+                claims.append(FactClaim(
+                    claim_text=match.group(0),
+                    claim_type="NUMERIC",
+                    extracted_value=actual,
+                    status="DISCREPANCY",
+                    confidence=0.85,
+                    evidence=f"Value ${actual:,.0f} exceeds plausible threshold ($100T)",
+                    source="plausibility_check",
+                ))
+
+            # Per-unit price > $1M is implausible (e.g., "$5 million per coin")
+            end_pos = match.end()
+            after = text[end_pos:end_pos + 30].lower()
+            if any(w in after for w in ["per", "each", "a coin", "per coin",
+                                         "per token", "per unit", "per share"]):
+                if actual > 1_000_000:
+                    claims.append(FactClaim(
+                        claim_text=match.group(0) + text[end_pos:end_pos + 15].strip(),
+                        claim_type="NUMERIC",
+                        extracted_value=actual,
+                        status="DISCREPANCY",
+                        confidence=0.85,
+                        evidence=f"Per-unit price ${actual:,.0f} exceeds plausible threshold ($1M)",
+                        source="plausibility_check",
+                    ))
+
+        return claims
+
+    # ─── Strategy 6: Self-Consistency Cross-Check ────────────────
+
+    def self_consistency_check(self, text: str) -> list[Contradiction]:
+        """Cross-check numbers and dates within the same output for internal
+        contradictions that the basic consistency_check might miss.
+
+        Checks:
+          - Percentage allocations that sum > 100%
+          - Revenue/total claims that contradict each other
+          - Date arithmetic inconsistencies ("founded in X" + "after Y years" = wrong)
+        """
+        contradictions: list[Contradiction] = []
+
+        # 1. Percentage allocation sum check
+        pct_matches = list(_PERCENT_ALLOCATION.finditer(text))
+        if len(pct_matches) >= 2:
+            total_pct = 0.0
+            for match in pct_matches:
+                raw = match.group(1).replace(",", "")
+                try:
+                    total_pct += float(raw)
+                except ValueError:
+                    continue
+            if total_pct > 100.5:  # 0.5% tolerance for rounding
+                contradictions.append(Contradiction(
+                    entity="percentage_allocation",
+                    value_1=f"{total_pct:.1f}%",
+                    value_2="100%",
+                    location_1=pct_matches[0].start(),
+                    location_2=pct_matches[-1].start(),
+                ))
+
+        # 2. Revenue/total contradictions
+        rev_matches = list(_REVENUE_CLAIM.finditer(text))
+        if len(rev_matches) >= 2:
+            values = []
+            for match in rev_matches:
+                # Handle both alternatives in the regex
+                raw = (match.group(1) or match.group(3) or "").replace(",", "")
+                unit = (match.group(2) or match.group(4) or "").lower()
+                if not raw:
+                    continue
+                try:
+                    val = float(raw)
+                except ValueError:
+                    continue
+                multiplier = {"billion": 1e9, "b": 1e9, "million": 1e6, "m": 1e6,
+                              "thousand": 1e3, "k": 1e3}.get(unit, 1)
+                values.append((val * multiplier, match.start(), match.group(0)))
+
+            for i in range(len(values)):
+                for j in range(i + 1, len(values)):
+                    v1, p1, t1 = values[i]
+                    v2, p2, t2 = values[j]
+                    # If same metric but values differ by > 2x, it's a contradiction
+                    if v1 > 0 and v2 > 0:
+                        ratio = max(v1, v2) / min(v1, v2)
+                        if ratio > 2.0:
+                            contradictions.append(Contradiction(
+                                entity="revenue_total",
+                                value_1=t1.strip(),
+                                value_2=t2.strip(),
+                                location_1=p1,
+                                location_2=p2,
+                            ))
+
+        # 3. Date arithmetic: "founded in YYYY" + "N years of operation" inconsistency
+        year_pattern = re.compile(
+            r'(?:founded|created|launched|started)\s+in\s+(\d{4})', re.IGNORECASE
+        )
+        duration_pattern = re.compile(
+            r'(\d+)\s+years?\s+(?:of\s+)?(?:operation|experience|history|existence)'
+            r'(?:\s+(?:in|by|as\s+of)\s+(\d{4}))?',
+            re.IGNORECASE,
+        )
+
+        year_matches = list(year_pattern.finditer(text))
+        duration_matches = list(duration_pattern.finditer(text))
+
+        if year_matches and duration_matches:
+            for ym in year_matches:
+                found_year = int(ym.group(1))
+                for dm in duration_matches:
+                    duration = int(dm.group(1))
+                    ref_year = int(dm.group(2)) if dm.group(2) else 2026
+                    expected_duration = ref_year - found_year
+                    if abs(duration - expected_duration) > 1:  # 1 year tolerance
+                        contradictions.append(Contradiction(
+                            entity="date_arithmetic",
+                            value_1=f"founded in {found_year}",
+                            value_2=f"{duration} years as of {ref_year} (expected {expected_duration})",
+                            location_1=ym.start(),
+                            location_2=dm.start(),
+                        ))
+
+        return contradictions
+
     def add_known_fact(self, category: str, key: str, value,
                        source: str, timestamp: str = "") -> None:
         """Add a verified fact to the knowledge base.
@@ -511,26 +906,44 @@ class DataOracle:
         except IOError as e:
             logger.error(f"Could not persist known fact: {e}")
 
+    # Synonyms for fact key matching
+    _METRIC_SYNONYMS = {
+        "founder": ["creator", "founder", "co_founder"],
+        "creator": ["creator", "founder", "co_founder"],
+        "creation_year": ["creation_year", "launch_year", "founded_year"],
+        "launch_year": ["creation_year", "launch_year"],
+    }
+
     def _find_fact_key(self, entity: str, metric: str,
                        flat: dict[str, dict]) -> str | None:
         """Find a matching fact key by fuzzy entity+metric matching."""
         entity_lower = entity.lower().replace(" ", "_")
         metric_lower = metric.lower().replace(" ", "_")
 
-        # Direct match attempts
-        for attempt in [
-            f"{entity_lower}_{metric_lower}",
-            f"{entity_lower}",
-            f"total_{metric_lower}",
-        ]:
-            if attempt in flat:
-                return attempt
+        # Expand metric synonyms
+        metric_variants = self._METRIC_SYNONYMS.get(metric_lower, [metric_lower])
+
+        # Direct match attempts with synonyms
+        for variant in metric_variants:
+            for attempt in [
+                f"{entity_lower}_{variant}",
+                f"total_{variant}",
+            ]:
+                if attempt in flat:
+                    return attempt
+
+        # Direct entity match
+        if entity_lower in flat:
+            return entity_lower
 
         # Partial match: key contains entity
         for key in flat:
             key_lower = key.lower()
             if entity_lower and entity_lower in key_lower:
-                if not metric_lower or metric_lower in key_lower:
+                if not metric_lower:
                     return key
+                for variant in metric_variants:
+                    if variant in key_lower:
+                        return key
 
         return None
