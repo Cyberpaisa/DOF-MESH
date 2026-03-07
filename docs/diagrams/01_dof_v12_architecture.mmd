@@ -1,0 +1,150 @@
+graph TB
+    subgraph Agents["Production Agents"]
+        APEX["Apex Arbitrage #1687\n0xB529f4f99ab244cfa7a48596Bf165CAc5B317929"]
+        AVA["AvaBuilder Agent #1686\n0x742d35Cc6634C0532925a3b844Bc9e7595f5bA16"]
+    end
+
+    subgraph Interfaces["Interfaces"]
+        CLI["main.py\n28 Options"]
+        A2A["A2A Server\nJSON-RPC + REST\nPort 8000"]
+        MCP["MCP Server\n10 Tools + 3 Resources\nstdio JSON-RPC 2.0"]
+        REST["REST API\n14 FastAPI Endpoints\nPort 8001"]
+        DASH["Sovereign Dashboard\nLiquid Glass 2026"]
+    end
+
+    subgraph CrewRunner["Crew Runner (core/crew_runner.py)"]
+        CR["crew_runner.run_crew()"]
+        CF["crew_factory\nProvider Rotation"]
+        PM["ProviderManager\nTTL Backoff\n5 Providers/Role"]
+        BPS["BayesianProviderSelector\nThompson Sampling\nBeta Distribution"]
+    end
+
+    subgraph DAGEngine["Execution DAG (v1.2)"]
+        DAG["ExecutionDAG\nDFS Cycle Detection\nTopological Sort"]
+        CP["Critical Path\nBottleneck Analysis"]
+        MERM["Mermaid Export\n6 Node Types"]
+    end
+
+    subgraph LoopEngine["Loop Guard (v1.2)"]
+        LG["LoopGuard\nJaccard Similarity"]
+        LGR["LoopGuardResult\nCONTINUE | LOOP_DETECTED\nMAX_ITER | TIMEOUT"]
+    end
+
+    subgraph GovernanceLayers["7 Governance Layers"]
+        GOV1["1. Constitution\nHARD: block | SOFT: warn\n4+4 Rules"]
+        GOV2["2. AST Verifier\nBlocked Imports\nUnsafe Calls\nSecret Detection"]
+        GOV3["3. Meta-Supervisor\nQ(0.4)+A(0.25)+C(0.2)+F(0.15)\nACCEPT/RETRY/ESCALATE"]
+        GOV4["4. Adversarial\nRedTeam vs Guardian\nDeterministicArbiter"]
+        GOV5["5. Memory Governance\nBi-Temporal Versioning\nConstitutional Decay"]
+        GOV6["6. Z3 SMT Prover\n4 Theorems Verified\nGCR Invariant"]
+        GOV7["7. Oracle Bridge\nERC-8004 Certificates\nHMAC-SHA256 + BLAKE3"]
+    end
+
+    subgraph OnChain["On-Chain (Avalanche C-Chain)"]
+        CONTRACT["DOFValidationRegistry\n0x88f6...C052\n21 Attestations"]
+        MERKLE["MerkleTree\nSHA256 Batch\nN certs in 1 tx"]
+        AVAX["Avalanche Bridge\nweb3.py\nGas Estimation"]
+    end
+
+    subgraph Storage["Storage Layer"]
+        PG["PostgreSQL\nSupabase\ndof-storage"]
+        JSONL["JSONL Backend\nAppend-Only\nAudit Trail"]
+        SF["StorageFactory\nAuto-Detection"]
+    end
+
+    subgraph ExternalSystems["External Systems"]
+        ENIGMA["Enigma Scanner\nerc-8004scan.xyz\ndof_trust_scores"]
+        CENT["Centinela\nInfrastructure\nalive + active"]
+        COMBINED["combined_trust_view\nDOF 0.50 + Centinela 0.30\n+ Community 0.20"]
+        OAGS["OAGS Bridge\nBLAKE3 Identity\nLevel 3 Conformance"]
+    end
+
+    subgraph Observability["Observability"]
+        RT["RunTrace\nUUID v4 Sessions"]
+        ST["StepTrace\nJSONL Checkpoints"]
+        METRICS["RuntimeObserver\nSS, PFI, RP, GCR, SSR"]
+        CAUSAL["Causal Attribution\n3-Class Taxonomy"]
+    end
+
+    APEX --> CR
+    AVA --> CR
+    CLI --> CR
+    A2A --> CR
+    MCP --> CR
+    REST --> CR
+
+    CR --> CF
+    CF --> PM
+    PM --> BPS
+
+    CR --> DAG
+    DAG --> CP
+    DAG --> MERM
+
+    CR --> LG
+    LG --> LGR
+
+    CR --> GOV1
+    GOV1 --> GOV2
+    GOV2 --> GOV3
+    GOV3 --> GOV4
+    GOV4 --> GOV5
+    GOV5 --> GOV6
+    GOV6 --> GOV7
+
+    GOV7 --> MERKLE
+    MERKLE --> AVAX
+    AVAX --> CONTRACT
+
+    GOV7 --> PG
+    PG --> ENIGMA
+    ENIGMA --> COMBINED
+    CENT --> COMBINED
+
+    SF --> PG
+    SF --> JSONL
+
+    CR --> RT
+    RT --> ST
+    ST --> METRICS
+    METRICS --> CAUSAL
+
+    GOV7 --> OAGS
+
+    style APEX fill:#2196F3,color:#fff,stroke:#1565C0
+    style AVA fill:#2196F3,color:#fff,stroke:#1565C0
+    style CLI fill:#90CAF9,color:#000,stroke:#1565C0
+    style A2A fill:#90CAF9,color:#000,stroke:#1565C0
+    style MCP fill:#90CAF9,color:#000,stroke:#1565C0
+    style REST fill:#90CAF9,color:#000,stroke:#1565C0
+    style DASH fill:#90CAF9,color:#000,stroke:#1565C0
+    style CR fill:#2196F3,color:#fff,stroke:#1565C0
+    style CF fill:#2196F3,color:#fff,stroke:#1565C0
+    style PM fill:#2196F3,color:#fff,stroke:#1565C0
+    style BPS fill:#2196F3,color:#fff,stroke:#1565C0
+    style DAG fill:#FF5722,color:#fff,stroke:#BF360C
+    style CP fill:#FF5722,color:#fff,stroke:#BF360C
+    style MERM fill:#FF5722,color:#fff,stroke:#BF360C
+    style LG fill:#FF9800,color:#fff,stroke:#E65100
+    style LGR fill:#FF9800,color:#fff,stroke:#E65100
+    style GOV1 fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style GOV2 fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style GOV3 fill:#FF9800,color:#fff,stroke:#E65100
+    style GOV4 fill:#EF5350,color:#fff,stroke:#C62828
+    style GOV5 fill:#7E57C2,color:#fff,stroke:#4527A0
+    style GOV6 fill:#00BCD4,color:#fff,stroke:#00838F
+    style GOV7 fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style CONTRACT fill:#EF5350,color:#fff,stroke:#C62828
+    style MERKLE fill:#7E57C2,color:#fff,stroke:#4527A0
+    style AVAX fill:#EF5350,color:#fff,stroke:#C62828
+    style PG fill:#607D8B,color:#fff,stroke:#37474F
+    style JSONL fill:#607D8B,color:#fff,stroke:#37474F
+    style SF fill:#607D8B,color:#fff,stroke:#37474F
+    style ENIGMA fill:#00BCD4,color:#fff,stroke:#00838F
+    style CENT fill:#00BCD4,color:#fff,stroke:#00838F
+    style COMBINED fill:#00BCD4,color:#fff,stroke:#00838F
+    style OAGS fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style RT fill:#78909C,color:#fff,stroke:#37474F
+    style ST fill:#78909C,color:#fff,stroke:#37474F
+    style METRICS fill:#78909C,color:#fff,stroke:#37474F
+    style CAUSAL fill:#78909C,color:#fff,stroke:#37474F

@@ -1,0 +1,64 @@
+gantt
+    title DOF v1.2 — 10-Round Agent Cross-Transaction Timeline
+    dateFormat ss
+    axisFormat %S s
+
+    section Round 1 - AVAX Transfer
+    Apex -> AvaBuilder transfer     :r1a, 00, 3s
+    DAG + LoopGuard                 :r1d, after r1a, 1s
+    DOF Governance (7 layers)       :r1g, after r1d, 4s
+    On-chain attestation #11        :r1c, after r1g, 3s
+
+    section Round 2 - AVAX Transfer
+    AvaBuilder -> Apex transfer     :r2a, after r1c, 3s
+    DAG + LoopGuard                 :r2d, after r2a, 1s
+    DOF Governance (7 layers)       :r2g, after r2d, 4s
+    On-chain attestation #12        :r2c, after r2g, 3s
+
+    section Round 3 - A2A Discovery
+    Apex A2A agent card request     :r3a, after r2c, 2s
+    DAG + LoopGuard                 :r3d, after r3a, 1s
+    DOF Governance (7 layers)       :r3g, after r3d, 4s
+    On-chain attestation #13        :r3c, after r3g, 3s
+
+    section Round 4 - A2A Discovery
+    AvaBuilder A2A skill enum       :r4a, after r3c, 2s
+    DAG + LoopGuard                 :r4d, after r4a, 1s
+    DOF Governance (7 layers)       :r4g, after r4d, 4s
+    On-chain attestation #14        :r4c, after r4g, 3s
+
+    section Round 5 - OASF Evaluation
+    Apex OASF manifest eval         :r5a, after r4c, 2s
+    DAG + LoopGuard                 :r5d, after r5a, 1s
+    DOF Governance (7 layers)       :r5g, after r5d, 4s
+    On-chain attestation #15        :r5c, after r5g, 3s
+
+    section Round 6 - OASF Evaluation
+    AvaBuilder OASF skill scoring   :r6a, after r5c, 2s
+    DAG + LoopGuard                 :r6d, after r6a, 1s
+    DOF Governance (7 layers)       :r6g, after r6d, 4s
+    On-chain attestation #16        :r6c, after r6g, 3s
+
+    section Round 7 - Micro-Payment
+    Apex x402 payment probe         :r7a, after r6c, 2s
+    DAG + LoopGuard                 :r7d, after r7a, 1s
+    DOF Governance (7 layers)       :r7g, after r7d, 4s
+    On-chain attestation #17        :r7c, after r7g, 3s
+
+    section Round 8 - Micro-Payment
+    AvaBuilder x402 verification    :r8a, after r7c, 2s
+    DAG + LoopGuard                 :r8d, after r8a, 1s
+    DOF Governance (7 layers)       :r8g, after r8d, 4s
+    On-chain attestation #18        :r8c, after r8g, 3s
+
+    section Round 9 - Capability Audit
+    Apex full capability audit      :r9a, after r8c, 3s
+    DAG cycle detection             :r9d, after r9a, 1s
+    DOF Governance (7 layers)       :r9g, after r9d, 4s
+    On-chain attestation #19        :r9c, after r9g, 3s
+
+    section Round 10 - Cross-Verification
+    AvaBuilder cross-verification   :r10a, after r9c, 3s
+    DAG topological sort + critical path :r10d, after r10a, 1s
+    DOF Governance (7 layers)       :r10g, after r10d, 4s
+    On-chain attestation #20        :r10c, after r10g, 3s

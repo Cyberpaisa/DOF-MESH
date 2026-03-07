@@ -1,0 +1,64 @@
+sequenceDiagram
+    participant APEX as Apex #1687<br/>0xB529...7929
+    participant DAG as ExecutionDAG
+    participant DOF as DOF Governance<br/>7 Layers
+    participant AVAX as Avalanche C-Chain<br/>DOFValidationRegistry
+    participant ENIGMA as Enigma Scanner<br/>erc-8004scan.xyz
+    participant AVA as AvaBuilder #1686<br/>0x742d...bA16
+
+    Note over APEX,AVA: Phase 1: AVAX Transfers (R1-R2)
+
+    APEX->>AVA: R1: Transfer 0.001 AVAX
+    AVA->>DAG: DAG.add_node(R1_action, AGENT)
+    DAG->>DOF: Constitution + AST + Supervisor
+    DOF->>DOF: GCR=1.0, SS=1.0, Z3 4/4
+    DOF->>AVAX: registerAttestation(cert_hash_11)
+    AVAX-->>ENIGMA: dof_trust_scores INSERT
+    AVA->>APEX: R2: Transfer 0.001 AVAX
+    APEX->>DAG: DAG.add_node(R2_action, AGENT)
+    DAG->>DOF: Constitution + AST + Supervisor
+    DOF->>AVAX: registerAttestation(cert_hash_12)
+    AVAX-->>ENIGMA: dof_trust_scores INSERT
+
+    Note over APEX,AVA: Phase 2: A2A Discovery (R3-R4)
+
+    APEX->>AVA: R3: A2A agent card discovery
+    AVA->>DAG: DAG.add_node(R3_action, AGENT)
+    DAG->>DOF: All 7 governance layers
+    DOF->>AVAX: registerAttestation(cert_hash_13)
+    AVA->>APEX: R4: A2A skill enumeration
+    APEX->>DAG: DAG.add_node(R4_action, AGENT)
+    DOF->>AVAX: registerAttestation(cert_hash_14)
+
+    Note over APEX,AVA: Phase 3: OASF Evaluation (R5-R6)
+
+    APEX->>AVA: R5: OASF manifest evaluation
+    AVA->>DAG: DAG.add_node(R5_action, AGENT)
+    DOF->>AVAX: registerAttestation(cert_hash_15)
+    AVA->>APEX: R6: OASF skill scoring
+    APEX->>DAG: DAG.add_node(R6_action, AGENT)
+    DOF->>AVAX: registerAttestation(cert_hash_16)
+
+    Note over APEX,AVA: Phase 4: Micro-Payments (R7-R8)
+
+    APEX->>AVA: R7: x402 micro-payment probe
+    AVA->>DAG: DAG.add_node(R7_action, AGENT)
+    DOF->>AVAX: registerAttestation(cert_hash_17)
+    AVA->>APEX: R8: x402 payment verification
+    APEX->>DAG: DAG.add_node(R8_action, AGENT)
+    DOF->>AVAX: registerAttestation(cert_hash_18)
+
+    Note over APEX,AVA: Phase 5: Capability Audits (R9-R10)
+
+    APEX->>AVA: R9: Full capability audit
+    AVA->>DAG: DAG.add_node(R9_action, AGENT)
+    DAG->>DAG: detect_cycles() = []
+    DAG->>DAG: critical_path() computed
+    DOF->>AVAX: registerAttestation(cert_hash_19)
+    AVA->>APEX: R10: Cross-verification audit
+    APEX->>DAG: DAG.add_node(R10_action, AGENT)
+    DAG->>DAG: topological_sort() complete
+    DOF->>AVAX: registerAttestation(cert_hash_20)
+    AVAX-->>ENIGMA: Final batch INSERT
+
+    Note over APEX,AVA: Result: 10/10 rounds, GCR=1.0, 21 attestations total
