@@ -204,7 +204,7 @@ class TestCLIParsing(unittest.TestCase):
             main()
             output = sys.stdout.getvalue()
             data = json.loads(output)
-            self.assertEqual(data["version"], "0.2.2")
+            self.assertEqual(data["version"], "0.2.4")
         finally:
             sys.argv = old_argv
             sys.stdout = old_stdout
@@ -220,7 +220,7 @@ class TestCLIParsing(unittest.TestCase):
             output = sys.stdout.getvalue()
             data = json.loads(output)
             self.assertIn("components", data)
-            self.assertEqual(data["version"], "0.2.2")
+            self.assertEqual(data["version"], "0.2.4")
         finally:
             sys.argv = old_argv
             sys.stdout = old_stdout
