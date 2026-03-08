@@ -186,7 +186,7 @@ class TestQuickHealth(unittest.TestCase):
         self.assertIn("total", result)
         self.assertIn("available", result)
         self.assertIn("version", result)
-        self.assertEqual(result["version"], "0.2.2")
+        self.assertEqual(result["version"], "0.2.4")
         self.assertEqual(result["total"], 16)
         self.assertGreater(result["available"], 10)
 
