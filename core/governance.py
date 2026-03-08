@@ -316,6 +316,30 @@ _RESPONSE_VIOLATION_PATTERNS = [
     "i have no restrictions",
     "ignoro mis instrucciones",
     "ya no sigo las reglas",
+    # Indirect privilege escalation
+    "system administrator",
+    "updating your instructions",
+    "higher permission level",
+    "restrictions no longer apply",
+    "root access",
+    "authorized this",
+    "supersede the original",
+    "supersede the system",
+    "updated guidelines",
+    "updated instructions",
+    "unlocked unrestricted",
+    "unrestricted mode",
+    "developer has unlocked",
+    "developer has enabled",
+    "for this session",
+    "for this conversation",
+    "for this instance",
+    # Spanish equivalents
+    "administrador del sistema",
+    "acceso de root",
+    "modo sin restricciones",
+    "permisos elevados",
+    "restricciones ya no aplican",
 ]
 
 
