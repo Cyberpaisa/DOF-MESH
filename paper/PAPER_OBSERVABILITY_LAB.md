@@ -1712,3 +1712,26 @@ The implementation comprises 27,000+ lines of Python across 71 modules, with 774
 [26] NVIDIA, "Garak: LLM Vulnerability Scanner," 2024. https://github.com/NVIDIA/garak
 
 [27] Microsoft, "PyRIT: Python Risk Identification Toolkit for generative AI," 2024. https://github.com/Azure/PyRIT
+
+
+## 17. x402 Trust Gateway
+
+### 17.1 Motivation
+The x402 payment protocol enables AI agents to autonomously transact on behalf of users.
+As of Q1 2026, x402 processes over 63 million monthly transactions. However, the protocol
+lacks a formal trust verification layer. DOF addresses this with the x402 Trust Gateway —
+a deterministic verification module that intercepts payment requests and applies formal
+DOF checks before authorizing the transaction.
+
+### 17.2 Decision Logic
+- adversarial detected → BLOCK (unconditional)
+- score < 0.4 → BLOCK
+- 0.4 <= score < 0.7 → WARN
+- score >= 0.7 → ALLOW
+
+### 17.3 Score Weights
+adversarial(35%) + hallucination(25%) + pii(20%) + structure(5%) + constitution(10%) + red_team(5%)
+
+### 17.4 On-Chain Evidence
+Every verdict produces an endpoint_hash (SHA-256) published to Enigma Scanner via EnigmaBridge,
+enabling immutable audit trail and cross-agent reputation scoring on Avalanche.
