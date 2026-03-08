@@ -2,6 +2,19 @@
 
 All notable changes to DOF. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.2.4] — 2026-03-08
+
+### Fixed
+- `__version__` string was 0.2.2 in PyPI build — bumped to 0.2.4 after forced republish
+- Version assertions in `tests/test_dof_sdk.py` updated to match current version
+
+### Validated
+- External validation v3 (Google Colab): 3/3 PASS
+  - LLM-as-Judge: score=9.0, verdict=PASS
+  - RedTeam indirect_prompt_injection: detected=True
+  - InstructionHierarchy: compliant=True, violation_level=NONE
+- Report: `tests/external/dof_enterprise_report_v3.json`
+
 ## [0.2.3] — 2026-03-08
 
 ### Added
