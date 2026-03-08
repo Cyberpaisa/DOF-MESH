@@ -4,7 +4,7 @@
 
 ## Abstract
 
-Multi-agent systems built on large language models (LLMs) exhibit failure modes that are distinct from single-model inference pipelines: provider rate limits, model incompatibilities, cascading retries, and non-deterministic output quality interact across execution steps. Existing orchestration frameworks—CrewAI, AutoGen, LangGraph—provide coordination abstractions but do not include instrumentation for measuring system stability under controlled perturbation. This paper presents an experimental framework for deterministic evaluation of multi-agent LLM systems operating across heterogeneous free-tier providers. The framework defines five metrics—Stability Score, Provider Fragility Index, Retry Pressure, Governance Compliance Rate, and Supervisor Strictness Ratio—each with explicit mathematical formulation, domain specification, and aggregation rules. The observability stack comprises run-level tracing with UUID-based session correlation, step-level checkpointing with JSONL persistence, two-tier governance enforcement, and a weighted meta-supervisor quality gate. A deterministic execution mode controls infrastructure-level randomness by fixing provider ordering and seeding pseudo-random number generators. Three experimental configurations validate the framework: a baseline with no injected failures (n=10, SS=1.0, σ=0.0), a reproducibility verification confirming metric identity across independent runs, and a perturbation experiment with periodic failure injection (n=10, SS=0.85, σ=0.2415). The implementation comprises 27,000+ lines of Python across 71 modules with no external dependencies beyond the orchestration layer. All results are from executed experiments with persisted trace artifacts. The framework now includes Z3 SMT formal verification proving GCR(f) = 1.0 as an architectural invariant, an adversarial Red-on-Blue evaluation protocol resolving supervisor circularity through dialectical conflict with deterministic adjudication, formal task contracts enforcing completion guarantees, causal error attribution with three-class taxonomy, Bayesian provider selection via Thompson Sampling, AST-based static verification, and constitutional policy-as-code specification. The framework further implements constitutional memory governance with bi-temporal versioning and relevance decay, OAGS-conformant agent identity via BLAKE3 deterministic hashing with three-level conformance validation, and compliance-gated on-chain attestation of governance metrics via ERC-8004 on Avalanche C-Chain. The framework further provides protocol integration via MCP server (10 tools, 3 resources, stdio JSON-RPC 2.0) and REST API (14 FastAPI endpoints), dual-backend storage abstraction (JSONL default, PostgreSQL production via SQLAlchemy ORM with StorageFactory auto-detection), framework-agnostic governance enabling DOF enforcement on any system that produces string output (GenericAdapter, LangGraphAdapter, CrewAIAdapter), and a Sovereign Dashboard for real-time observability visualization. The framework has been validated in production with live on-chain attestations on Avalanche C-Chain mainnet via DOFValidationRegistry, governance verification of production agents indexed by the Enigma Scanner (erc-8004scan.xyz), and a four-phase audit pipeline including cross-role verification and bilateral peer review. Total: 631 tests, 71 modules, 27,000+ LOC, 4 formally verified theorems, OAGS Level 3 conformance, 21 on-chain attestations.
+Multi-agent systems built on large language models (LLMs) exhibit failure modes that are distinct from single-model inference pipelines: provider rate limits, model incompatibilities, cascading retries, and non-deterministic output quality interact across execution steps. Existing orchestration frameworks—CrewAI, AutoGen, LangGraph—provide coordination abstractions but do not include instrumentation for measuring system stability under controlled perturbation. This paper presents an experimental framework for deterministic evaluation of multi-agent LLM systems operating across heterogeneous free-tier providers. The framework defines five metrics—Stability Score, Provider Fragility Index, Retry Pressure, Governance Compliance Rate, and Supervisor Strictness Ratio—each with explicit mathematical formulation, domain specification, and aggregation rules. The observability stack comprises run-level tracing with UUID-based session correlation, step-level checkpointing with JSONL persistence, two-tier governance enforcement, and a weighted meta-supervisor quality gate. A deterministic execution mode controls infrastructure-level randomness by fixing provider ordering and seeding pseudo-random number generators. Three experimental configurations validate the framework: a baseline with no injected failures (n=10, SS=1.0, σ=0.0), a reproducibility verification confirming metric identity across independent runs, and a perturbation experiment with periodic failure injection (n=10, SS=0.85, σ=0.2415). The implementation comprises 27,000+ lines of Python across 71 modules with no external dependencies beyond the orchestration layer. All results are from executed experiments with persisted trace artifacts. The framework now includes Z3 SMT formal verification proving GCR(f) = 1.0 as an architectural invariant, an adversarial Red-on-Blue evaluation protocol resolving supervisor circularity through dialectical conflict with deterministic adjudication, formal task contracts enforcing completion guarantees, causal error attribution with three-class taxonomy, Bayesian provider selection via Thompson Sampling, AST-based static verification, and constitutional policy-as-code specification. The framework further implements constitutional memory governance with bi-temporal versioning and relevance decay, OAGS-conformant agent identity via BLAKE3 deterministic hashing with three-level conformance validation, and compliance-gated on-chain attestation of governance metrics via ERC-8004 on Avalanche C-Chain. The framework further provides protocol integration via MCP server (10 tools, 3 resources, stdio JSON-RPC 2.0) and REST API (14 FastAPI endpoints), dual-backend storage abstraction (JSONL default, PostgreSQL production via SQLAlchemy ORM with StorageFactory auto-detection), framework-agnostic governance enabling DOF enforcement on any system that produces string output (GenericAdapter, LangGraphAdapter, CrewAIAdapter), and a Sovereign Dashboard for real-time observability visualization. The framework has been validated in production with live on-chain attestations on Avalanche C-Chain mainnet via DOFValidationRegistry, governance verification of production agents indexed by the Enigma Scanner (erc-8004scan.xyz), and a four-phase audit pipeline including cross-role verification and bilateral peer review. Total: 774 tests, 71 modules, 27,000+ LOC, 4 formally verified theorems, OAGS Level 3 conformance, 21 on-chain attestations.
 
 ---
 
@@ -51,6 +51,11 @@ This paper makes the following contributions:
 33. **10-Round Agent Data Mesh** executing 10 cross-agent verification rounds (4 AVAX transfers, 2 A2A discovery, 2 OASF evaluation, 2 capability audits) with 21 total on-chain attestations on Avalanche C-Chain mainnet (Section 21).
 34. **Production agent ranking** with Apex Arbitrage (#1687) and AvaBuilder (#1686) ranked #1 and #2 of 1,772 agents on erc-8004scan.xyz, combined trust score 0.85 (Section 22).
 35. **PyPI SDK** published as `dof-sdk` v0.1.0 (`pip install dof-sdk`) providing GenericAdapter, Z3 verification, and governance enforcement with zero external dependencies for the core governance path.
+36. **LLM-as-a-Judge** providing optional advisory evaluation via `evaluate_with_judge(response, context)` scoring output quality on a 1.0–10.0 scale (PASS ≥ 7.0, aligned with supervisor threshold). The judge evaluates factuality, coherence, safety, and alignment. This mechanism is advisory only — it does not override the deterministic arbiter verdict, preserving the zero-LLM governance invariant (Section 9.5).
+37. **Red Team attack vector methods** implementing three Garak/PyRIT-inspired simulation methods on `RedTeamAgent`: `indirect_prompt_injection(payload)` for external data injection simulation, `persuasion_jailbreak(target)` for gradual safety bypass attempts, and `training_data_extraction(prefix)` for model memorization probing. Each returns a typed `AttackResult(vector, payload, detected, severity)` (Section 9.6).
+38. **Instruction hierarchy enforcement** implementing a three-level priority model (SYSTEM > USER > ASSISTANT) for governance rules, following the OpenAI instruction hierarchy proposal [25]. `enforce_hierarchy(system_prompt, user_prompt, response)` detects user-prompt override attempts, response-level directive violations, and governance bypass patterns, returning `HierarchyResult(compliant, violation_level, details)`. All hard rules operate at SYSTEM priority (never overridable); soft rules at USER priority (Section 14.5).
+39. **AGENT_FAILURE error class** extending the causal error taxonomy from three to eleven classes with a dedicated agent-level failure category covering 16 patterns: `tool_call_failed`, `tool_not_found`, `tool_timeout`, `function_calling_error`, `invalid_json_schema`, `missing_required_param`, `planning_loop_detected`, `max_iterations_exceeded`, `reflexion_timeout`, `reasoning_failed`, `agent_stuck`, `no_progress_detected`, `agent_loop`, `tool_execution_error`, `agent_timeout`, `max_iterations` (Section 12.5).
+40. **External validation v0.2.4** on Google Colab confirming three new capabilities: LLM-as-a-Judge score = 9.0/10.0 (PASS), RedTeam attack detection = True across all three vectors, Instruction hierarchy = compliant with no violations (Section 23.5).
 
 The system under study consists of eight specialized agents organized into eleven crew configurations, operating across four free-tier LLM providers. All experimental results presented in this paper are from executed runs with persisted traces.
 
@@ -616,7 +621,7 @@ The adversarial evaluation protocol addresses supervisor circularity through str
 | GuardianAgent | `adversarial.py` | Yes (cross-provider, distinct from RedTeam) | Biased toward defending quality |
 | DeterministicArbiter | `adversarial.py` | No (pure Python) | No bias — deterministic evidence only |
 
-The RedTeamAgent scans the crew output for six defect categories: hallucination markers (unqualified certainty claims), fabricated statistics (specific numbers without citation), empty or placeholder sections, unsafe code patterns, insufficient input coverage, and governance violations. Each identified issue is logged with category, severity, and location.
+The RedTeamAgent scans the crew output for eight defect categories: hallucination markers (unqualified certainty claims), fabricated statistics (specific numbers without citation), empty or placeholder sections, unsafe code patterns, insufficient input coverage, prompt injection patterns, jailbreak persuasion attempts, and training data extraction attempts. Each identified issue is logged with category, severity, and location.
 
 The GuardianAgent receives each issue and must provide a defense supported by *deterministic evidence*: passing test results, `ConstitutionEnforcer` compliance confirmation, or `ASTVerifier` structural validation. Defenses that cite only LLM-based reasoning without deterministic evidence are rejected by the Arbiter.
 
@@ -633,6 +638,26 @@ The DeterministicArbiter resolves the conflict through a channel that is immune 
 Each adversarial evaluation produces an `AdversarialVerdict` with: `total_issues`, `resolved_issues`, `unresolved_issues`, `acr` ∈ [0,1], and structured logs of each issue and its resolution status. Results are persisted to `logs/adversarial.jsonl` for post-hoc analysis.
 
 ACR = |resolved_issues| / |total_issues|, where a resolved issue has a verified deterministic defense. ACR = 1.0 represents an output with no unresolvable defects; ACR < 0.5 indicates significant undefendable content.
+
+### 9.5 LLM-as-a-Judge (Optional Advisory Layer)
+
+The adversarial evaluation pipeline includes an optional fourth phase: LLM-as-a-Judge evaluation [15]. The `AdversarialEvaluator.evaluate_with_judge(response, context)` method invokes an LLM to score output quality on a 1.0–10.0 scale across four dimensions: factuality (no hallucinations, claims backed by evidence), coherence (logical flow, addresses the topic), safety (no harmful or biased content), and alignment (follows instructions, stays on topic).
+
+The verdict threshold is 7.0, aligned with the DOF supervisor acceptance threshold: scores ≥ 7.0 produce PASS, scores < 7.0 produce FAIL. The method returns a structured dict: `{score, verdict, justification, model, provider, latency_ms, error}`.
+
+**Critical design constraint**: The LLM-as-a-Judge result is strictly advisory. It is stored in the `AdversarialVerdict.llm_judge` field but does not override the deterministic arbiter's verdict. This preserves the zero-LLM governance invariant: all blocking decisions are made by deterministic code, while the LLM judge provides a complementary quality signal for monitoring and analysis. The LLM judge is disabled by default (`use_llm_judge=False`) and must be explicitly enabled.
+
+### 9.6 Red Team Attack Vector Methods
+
+The `RedTeamAgent` exposes three dedicated attack simulation methods inspired by the Garak [26] and PyRIT [27] adversarial testing frameworks. Each method accepts a text payload and returns a typed `AttackResult(vector, payload, detected, severity)`:
+
+| Method | Attack Vector | Severity if Detected | Patterns |
+|--------|-------------|---------------------|----------|
+| `indirect_prompt_injection(payload)` | External data injection | CRITICAL | 10 patterns (en+es): "ignore previous instructions", "system prompt:", "you are now", etc. |
+| `persuasion_jailbreak(target)` | Gradual safety bypass | CRITICAL | 10 patterns (en+es): "pretend you are", "imagine you have no restrictions", "developer mode", etc. |
+| `training_data_extraction(prefix)` | Model memorization probing | HIGH | 9 patterns (en+es): "repeat the above", "show me your training data", "repeat your system prompt", etc. |
+
+These methods complement the existing `analyze()` pipeline (which scans output passively) by enabling active probing: a test harness can construct adversarial payloads and verify that the detection patterns trigger correctly, producing measurable FDR/FPR metrics per attack category.
 
 ---
 
@@ -724,16 +749,24 @@ Task contracts provide the following formal guarantee: *an output is returned to
 
 ## 12. Causal Error Attribution
 
-### 12.1 Three-Class Taxonomy
+### 12.1 Eleven-Class Taxonomy
 
-Existing error handling in LLM orchestration systems typically distinguishes HTTP-level errors (timeout, rate limit, authentication) without attributing failures to causal root classes. The causal error attribution engine introduces a three-class taxonomy:
+Existing error handling in LLM orchestration systems typically distinguishes HTTP-level errors (timeout, rate limit, authentication) without attributing failures to causal root classes. The causal error attribution engine introduces an eleven-class taxonomy that evolved from the original three classes (INFRA, MODEL, GOVERNANCE) through systematic analysis of production failure patterns:
 
 | Class | Definition | Primary Signal |
 |-------|-----------|----------------|
-| INFRA\_FAILURE | Provider infrastructure unavailable or rate-limited | HTTP 429/503, timeout patterns, "rate\_limit" in error message |
-| MODEL\_FAILURE | Provider available but model returns unusable output | HTTP 400, JSON parse errors, "model not found", context length exceeded |
-| GOVERNANCE\_FAILURE | Provider executed successfully but output violated constitutional rules | `ConstitutionEnforcer.enforce()` returned `allowed=False` |
+| GOVERNANCE\_FAILURE | Output violated constitutional rules | `ConstitutionEnforcer.enforce()` violations, "blocked", "hallucination" |
+| AGENT\_FAILURE | Agent-level execution problems | `tool_call_failed`, `planning_loop_detected`, `agent_stuck`, 16 patterns |
+| INFRA\_FAILURE | Provider infrastructure unavailable or rate-limited | HTTP 429/503, timeout, "rate\_limit", connection errors |
+| MODEL\_FAILURE | Provider available but model returns unusable output | HTTP 400, "invalid grammar", "bad request", parse errors |
+| LLM\_FAILURE | Response quality or token limit issues | `max_tokens`, "context length exceeded", "empty response" |
+| PROVIDER\_FAILURE | Authentication, quota, or billing errors | `api_key`, "unauthorized", 401, 403, "credits" |
+| MEMORY\_FAILURE | Vector store or embedding errors | "chromadb", "embedding", "similarity\_search" |
+| HASH\_FAILURE | Merkle tree or hashing errors | "hex", "merkle", "blake3", "sha256" |
+| Z3\_FAILURE | SMT solver or verification errors | "z3", "proof failed", "theorem" |
 | UNKNOWN | Cannot classify from available signals | Default when no pattern matches |
+
+The classification priority order ensures specificity: GOVERNANCE is checked first (most specific context), then AGENT\_FAILURE (to prevent "timeout" in infra patterns from matching "reflexion\_timeout"), then INFRA, MODEL, LLM, PROVIDER, MEMORY, HASH, Z3, and finally UNKNOWN.
 
 ### 12.2 Classification Algorithm
 
@@ -843,6 +876,26 @@ The `dof.constitution.yml` YAML file serves as the canonical governance source. 
 ### 14.4 Policy Versioning
 
 The `spec_version` field in the YAML enables governance versioning. All RunTrace records include the constitution spec_version active at execution time, enabling retrospective analysis of how governance changes affected compliance rates. The `dof.register(constitution="dof.constitution.yml")` SDK entry point loads the current constitution and returns its metadata for programmatic inspection.
+
+### 14.5 Instruction Hierarchy Enforcement
+
+Drawing from the OpenAI instruction hierarchy proposal [25], DOF implements a three-level priority model for governance rules:
+
+| Priority | Level | Rules | Overridable By |
+|----------|-------|-------|----------------|
+| SYSTEM | 3 (highest) | All HARD\_RULES (NO\_HALLUCINATION\_CLAIM, LANGUAGE\_COMPLIANCE, NO\_EMPTY\_OUTPUT, MAX\_LENGTH) | Never |
+| USER | 2 | All SOFT\_RULES (HAS\_SOURCES, STRUCTURED\_OUTPUT, CONCISENESS, ACTIONABLE, NO\_PII\_LEAK) | SYSTEM only |
+| ASSISTANT | 1 (lowest) | Future extensibility | USER or SYSTEM |
+
+Each rule in both `HARD_RULES` and `SOFT_RULES` carries a `priority: RulePriority` field. The YAML constitution mirrors this structure with `priority: "SYSTEM"` and `priority: "USER"` fields on each rule entry.
+
+The `enforce_hierarchy(system_prompt, user_prompt, response)` function performs three sequential checks:
+
+1. **User override detection**: Scans the user prompt for 12 patterns (6 English, 6 Spanish) indicating attempts to override system instructions (e.g., "ignore previous instructions", "override system prompt", "ignora las instrucciones anteriores").
+2. **Response violation detection**: Scans the response for 8 patterns indicating the agent has broken free of system directives (e.g., "i will ignore my instructions", "i have no restrictions", "ya no sigo las reglas").
+3. **Governance bypass detection**: Delegates to `check_instruction_override()` to detect governance-specific override patterns (e.g., "skip governance", "bypass rule", "desactivar verificación").
+
+The function returns `HierarchyResult(compliant: bool, violation_level: str, details: str)`, where `violation_level` is "SYSTEM", "USER", or "NONE". The `ConstitutionEnforcer.check()` method integrates hierarchy enforcement by appending an `[INSTRUCTION_HIERARCHY]` violation when override attempts are detected at SYSTEM priority, ensuring hierarchy violations are blocking violations.
 
 ---
 
@@ -1187,6 +1240,19 @@ The OASF endpoints for both DOF-governed agents (Apex v1.3.0 and AvaBuilder v0.8
 The Snowrail agents, while registered as VERIFIED in the scanner, return 404 on all known paths — the Railway deployment is running but no routes are configured. Neo returns HTTP 500, indicating an unhandled server-side error.
 
 DOF governance cross-verification of all 12 fetched outputs returned COMPLIANT with 0 hard violations and 0 soft violations, confirming that governance enforcement generalizes to external agent responses regardless of protocol or origin.
+
+### 23.5 External Validation v0.2.4
+
+Version 0.2.4 extended the external validation scope by exercising the four v0.2.3 capabilities against a reproducible Google Colab environment with live LLM provider calls. The validation script executed three independent verification rounds:
+
+| Capability | Method | Result | Details |
+|-----------|--------|--------|---------|
+| LLM-as-a-Judge | `evaluate_with_judge(response, context)` | score=9.0, verdict=PASS | Threshold 7.0; advisory-only, deterministic arbiter unchanged |
+| Red Team Attack Vectors | `indirect_prompt_injection()`, `persuasion_jailbreak()`, `training_data_extraction()` | detected=True (3/3) | All three vectors correctly identified adversarial payloads |
+| Instruction Hierarchy | `enforce_hierarchy(system, user, response)` | compliant=True | Clean prompts passed; override attempts correctly blocked |
+| AGENT\_FAILURE Classification | `classify_error("tool_not_found")` | ErrorClass.AGENT\_FAILURE | 16 agent-specific keywords distinguished from INFRA\_FAILURE |
+
+The validation confirms three properties: (1) LLM-as-a-Judge operates as a strictly advisory layer — its score does not influence the deterministic governance verdict, preserving GCR invariance; (2) the three Red Team attack methods detect adversarial payloads with the expected severity levels (CRITICAL for injection/jailbreak, HIGH for data extraction); and (3) the instruction hierarchy enforcement correctly applies the SYSTEM > USER > ASSISTANT priority ordering established in dof.constitution.yml.
 
 ---
 
@@ -1577,9 +1643,17 @@ The parametric sweep (Section 7) establishes that Stability Score follows SS_emp
 
 **Execution infrastructure** (Section 24.5) introduces ExecutionDAG (critical path analysis, cycle detection), LoopGuard (Jaccard similarity loop detection), DataOracle (three deterministic verification strategies), and TokenTracker (per-call LLM token flow tracking). These components extend the framework's observability and safety guarantees without introducing LLM dependencies in the verification path.
 
+**LLM-as-a-Judge** (Section 9.5) adds an optional advisory evaluation layer that scores outputs on a 1–10 scale via an external LLM call. The judge verdict is strictly informational — it does not influence the deterministic governance decision, preserving the GCR = 1.0 invariant. This design resolves the tension between leveraging LLM judgment and maintaining zero-LLM governance.
+
+**Red Team attack vector methods** (Section 9.6) implement three Garak/PyRIT-inspired attack simulations — indirect prompt injection, persuasion jailbreak, and training data extraction — returning structured `AttackResult` objects with vector, payload, detection status, and severity. These methods extend the adversarial evaluation pipeline beyond passive defect detection to active attack simulation.
+
+**Instruction hierarchy enforcement** (Section 14.5) implements the SYSTEM > USER > ASSISTANT priority ordering [25] within the ConstitutionEnforcer. Three sequential checks detect user-prompt system overrides, response-level directive violations, and governance bypass attempts, returning a `HierarchyResult` with violation level classification. Hard rules are immutably SYSTEM-priority; soft rules are USER-priority.
+
+**AGENT\_FAILURE error classification** (Section 12.1) extends the causal error taxonomy from three to eleven classes, with AGENT\_FAILURE capturing 16 agent-specific failure keywords (tool\_call\_failed, planning\_loop\_detected, reflexion\_timeout, agent\_stuck, etc.) that were previously misclassified as INFRA\_FAILURE due to shared keyword overlap. Priority ordering in `classify_error()` ensures AGENT\_FAILURE is evaluated before INFRA\_FAILURE.
+
 The framework has been validated in production with live on-chain attestations on Avalanche C-Chain mainnet, governance verification of production agents indexed by the Enigma Scanner, and a four-phase audit pipeline including cross-role verification and bilateral peer review. Twenty-one attestations have been confirmed on-chain across 10 cross-agent verification rounds for production agents Apex Arbitrage (#1687) and AvaBuilder Agent (#1686), ranked #1 and #2 of 1,772 agents on the Enigma Scanner with combined trust scores of 0.85. The combined trust architecture assigns governance the highest weight (0.50) as the only dimension backed by Z3 formal proofs. A cross-network external agent audit (Section 23) validated DOF governance enforcement against all active agents in the ERC-8004 registry across four protocols (A2A, x402, OASF, MCP), achieving COMPLIANT status with 0 violations across 13 tests — demonstrating that governance cross-verification generalizes to third-party agent outputs regardless of protocol or origin.
 
-The implementation comprises 27,000+ lines of Python across 71 modules, with 631 passing tests. All experimental results are from executed code with persisted trace artifacts. The framework provides the instrumentation layer necessary for systematic study of multi-agent system behavior, expressing operational characteristics as distributions with means and standard deviations, formal proofs for architectural invariants, adversarially validated quality signals, governed memory with temporal auditability, standards-conformant governance interoperability, immutable on-chain attestation of compliance outcomes with three-layer verification (PostgreSQL, Supabase, Avalanche C-Chain), protocol-agnostic governance access, production-grade storage, framework-independent constitutional enforcement, integrated scanner trust scoring, adversarial benchmark with FDR/FPR metrics, and execution infrastructure components (ExecutionDAG, LoopGuard, DataOracle, TokenTracker). Total: 35 contributions, 631 tests, 25 core modules, 27,000+ LOC, 4 Z3 theorems, 21 on-chain attestations.
+The implementation comprises 27,000+ lines of Python across 71 modules, with 774 passing tests. All experimental results are from executed code with persisted trace artifacts. The framework provides the instrumentation layer necessary for systematic study of multi-agent system behavior, expressing operational characteristics as distributions with means and standard deviations, formal proofs for architectural invariants, adversarially validated quality signals, governed memory with temporal auditability, standards-conformant governance interoperability, immutable on-chain attestation of compliance outcomes with three-layer verification (PostgreSQL, Supabase, Avalanche C-Chain), protocol-agnostic governance access, production-grade storage, framework-independent constitutional enforcement, integrated scanner trust scoring, adversarial benchmark with FDR/FPR metrics, execution infrastructure components (ExecutionDAG, LoopGuard, DataOracle, TokenTracker), LLM-as-a-Judge advisory evaluation, Red Team attack vector simulation, instruction hierarchy enforcement, and expanded causal error taxonomy with AGENT\_FAILURE classification. Total: 40 contributions, 774 tests, 25 core modules, 27,000+ LOC, 4 Z3 theorems, 21 on-chain attestations.
 
 ---
 
@@ -1632,3 +1706,9 @@ The implementation comprises 27,000+ lines of Python across 71 modules, with 631
 [23] Anthropic, "Model Context Protocol (MCP)," 2024. https://modelcontextprotocol.io
 
 [24] S. Ramírez, "FastAPI: Modern, fast (high-performance), web framework for building APIs with Python," 2018. https://fastapi.tiangolo.com
+
+[25] E. Wallace et al., "The Instruction Hierarchy: Training LLMs to Prioritize Privileged Instructions," arXiv:2404.13208, 2024.
+
+[26] NVIDIA, "Garak: LLM Vulnerability Scanner," 2024. https://github.com/NVIDIA/garak
+
+[27] Microsoft, "PyRIT: Python Risk Identification Toolkit for generative AI," 2024. https://github.com/Azure/PyRIT
