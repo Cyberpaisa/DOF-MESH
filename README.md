@@ -10,7 +10,7 @@
   <img src="https://img.shields.io/badge/Z3_proofs-4%2F4-blue" alt="Z3 proofs">
   <img src="https://img.shields.io/badge/attestations-21-red" alt="attestations">
   <img src="https://img.shields.io/pypi/v/dof-sdk" alt="PyPI">
-  <img src="https://img.shields.io/badge/license-Apache%202.0-blue" alt="license">
+  <img src="https://img.shields.io/badge/license-BSL%201.1-orange" alt="license">
   <img src="https://img.shields.io/badge/LOC-27K%2B-purple" alt="LOC">
   <img src="https://img.shields.io/badge/Avalanche-mainnet-red" alt="Avalanche">
 </p>
@@ -270,4 +270,8 @@ Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-Apache License 2.0 — Copyright 2026 Cyber Paisa / Enigma Group.
+This project is licensed under the **Business Source License 1.1**.
+Free for non-commercial use, research, and personal projects. Commercial use requires a separate agreement.
+Contact: **@Cyber_paisa** on Telegram.
+
+On **2028-03-08** this project converts to Apache License 2.0.
