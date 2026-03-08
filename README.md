@@ -207,6 +207,22 @@ Combined trust score: 0.85 (governance 0.35 + safety 0.15 + infrastructure 0.15 
 
 ---
 
+## External Test Results
+
+Enterprise validation on Google Colab (external infrastructure, not the author's machine):
+
+| Test | Result |
+|------|--------|
+| Z3 Proofs | 4/4 VERIFIED |
+| Governance | PASS |
+| AST Safety | PASS |
+| Fact Checking | PASS |
+| Benchmark F1 | 96.8% |
+
+Full report: [`tests/external/dof_enterprise_report.json`](tests/external/dof_enterprise_report.json)
+
+---
+
 ## Honest Limitations
 
 - **Hallucination detection is regex-based** — 6 deterministic strategies (pattern matching, cross-reference, consistency, entity extraction, numerical plausibility, self-consistency) achieve 90% FDR on adversarial tests. Misses semantic hallucinations without known-facts coverage.
