@@ -2,6 +2,13 @@
 
 All notable changes to DOF. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.2.1] — 2026-03-08
+
+### Fixed
+- **z3-solver** added as required dependency (was dev-only, broke external installs)
+- **blake3** added as required dependency (needed for CertificateSigner/OAGSIdentity)
+- Both moved from `[dev]` extras to core `dependencies` in pyproject.toml
+
 ## [0.2.0] — 2026-03-07
 
 ### Added
