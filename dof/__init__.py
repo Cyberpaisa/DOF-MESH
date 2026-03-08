@@ -223,6 +223,18 @@ except ImportError:
 from core.otel_bridge import OTelBridge, LAYER_NAMES, METRIC_NAMES
 
 # ─────────────────────────────────────────────────────────────────────
+# Event Stream
+# ─────────────────────────────────────────────────────────────────────
+
+from core.event_stream import (
+    EventBus,
+    EventBackend,
+    InMemoryBackend,
+    EventType,
+    Event,
+)
+
+# ─────────────────────────────────────────────────────────────────────
 # Top-level convenience functions
 # ─────────────────────────────────────────────────────────────────────
 
@@ -361,4 +373,10 @@ __all__ = [
     "OTelBridge",
     "LAYER_NAMES",
     "METRIC_NAMES",
+    # Event Stream
+    "EventBus",
+    "EventBackend",
+    "InMemoryBackend",
+    "EventType",
+    "Event",
 ]
