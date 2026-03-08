@@ -19,7 +19,7 @@ class TestDOFImports(unittest.TestCase):
 
     def test_version(self):
         from dof import __version__
-        self.assertEqual(__version__, "0.2.4")
+        self.assertEqual(__version__, "0.2.5")
 
     def test_governance_exports(self):
         from dof import (
@@ -186,7 +186,7 @@ class TestQuickHealth(unittest.TestCase):
         self.assertIn("total", result)
         self.assertIn("available", result)
         self.assertIn("version", result)
-        self.assertEqual(result["version"], "0.2.4")
+        self.assertEqual(result["version"], "0.2.5")
         self.assertEqual(result["total"], 16)
         self.assertGreater(result["available"], 10)
 
@@ -204,7 +204,7 @@ class TestCLIParsing(unittest.TestCase):
             main()
             output = sys.stdout.getvalue()
             data = json.loads(output)
-            self.assertEqual(data["version"], "0.2.4")
+            self.assertEqual(data["version"], "0.2.5")
         finally:
             sys.argv = old_argv
             sys.stdout = old_stdout
@@ -220,7 +220,7 @@ class TestCLIParsing(unittest.TestCase):
             output = sys.stdout.getvalue()
             data = json.loads(output)
             self.assertIn("components", data)
-            self.assertEqual(data["version"], "0.2.4")
+            self.assertEqual(data["version"], "0.2.5")
         finally:
             sys.argv = old_argv
             sys.stdout = old_stdout

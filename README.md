@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://github.com/Cyberpaisa/deterministic-observability-framework/actions/workflows/ci.yml/badge.svg" alt="CI">
-  <img src="https://img.shields.io/badge/tests-719-green" alt="tests">
+  <img src="https://img.shields.io/badge/tests-774-green" alt="tests">
   <img src="https://img.shields.io/badge/Z3_proofs-4%2F4-blue" alt="Z3 proofs">
   <img src="https://img.shields.io/badge/attestations-21-red" alt="attestations">
   <img src="https://img.shields.io/pypi/v/dof-sdk" alt="PyPI">
@@ -37,6 +37,21 @@ result = GenericAdapter().wrap_output("your agent output here")
 
 30ms. Zero LLM tokens. Works with CrewAI, LangGraph, AutoGen, or anything that produces text.
 
+### x402 Trust Gateway (v0.2.5)
+
+First formal verification layer for x402 payments. Zero LLM in the critical path.
+
+```python
+from dof import TrustGateway
+
+gateway = TrustGateway()
+verdict = gateway.verify(response_body=response)
+# verdict.action → ALLOW / WARN / BLOCK
+# verdict.governance_score → 0.0–1.0
+```
+
+### CLI
+
 ```bash
 python -m dof verify "your text here"   # governance check
 python -m dof prove                      # Z3 formal verification
@@ -46,9 +61,13 @@ python -m dof privacy                    # privacy benchmark
 python -m dof version                    # show version
 ```
 
+### Key Exports
+
+`verify` · `classify_error` · `register` · `run_crew` · `MerkleBatcher` · `AdversarialEvaluator` · `RedTeamAgent` · `ConstitutionEnforcer` · `TrustGateway` · `GatewayVerdict` · `GatewayAction`
+
 ## Contents
 
-[The Problem](#the-problem) · [Highlights](#highlights) · [Architecture](#architecture) · [Governance Layers](#seven-governance-layers) · [Z3 Verification](#formal-verification-z3) · [On-Chain](#on-chain-attestation) · [Benchmarks](#benchmark-results) · [Comparison](#comparison) · [External Validation](#external-validation-google-colab) · [Limitations](#honest-limitations) · [Citation](#citation)
+[The Problem](#the-problem) · [Highlights](#highlights) · [Architecture](#architecture) · [Governance Layers](#seven-governance-layers) · [Z3 Verification](#formal-verification-z3) · [On-Chain](#on-chain-attestation) · [Benchmarks](#benchmark-results) · [External Validation](#external-validation-google-colab) · [Limitations](#honest-limitations) · [Citation](#citation)
 
 ---
 
@@ -63,17 +82,16 @@ DOF solves this with 7 deterministic governance layers, formal Z3 proofs, and on
 ## Highlights
 
 - **7 governance layers** — Constitution → AST → Supervisor → Z3 → Red/Blue → Memory → Signer
+- **x402 Trust Gateway** — formal verification for agent payments (ALLOW/WARN/BLOCK)
 - **SS(f) = 1 − f³** — Z3 verified stability formula under bounded retries
 - **GCR(f) = 1.0** — governance invariant under any failure rate (Z3 proven)
 - **21 on-chain attestations** on Avalanche C-Chain mainnet
 - **Merkle batching** — 10,000 attestations = 1 tx ≈ $0.01
 - **Automated benchmark** — Governance 100%, Hallucination 90%, Consistency 100% FDR, 0% FPR
-- **Privacy benchmark** — 71% detection rate across 7 AgentLeak channels (PII, API keys, memory, tool inputs)
-- **OpenTelemetry ready** — optional OTLP tracing (`pip install dof-sdk[otel]`)
-- **EventBus** — in-memory pub/sub with circular buffer, Redis/Kafka ready
+- **Privacy benchmark** — 71% detection rate across 7 AgentLeak channels
 - **Framework agnostic** — CrewAI, LangGraph, AutoGen, or raw Python
 - **A2A server** (8 skills) + **MCP server** (10 tools) + **REST API** (14 endpoints)
-- **719 tests**, 27K+ LOC, 25 core modules, 36 contributions
+- **774 tests**, 27K+ LOC, 25 core modules, 40 contributions
 
 ---
 
@@ -107,30 +125,26 @@ Total governance latency: **< 70ms** (layers 1-6). On-chain signing adds ~2s whe
 
 ## Seven Governance Layers
 
-**Layer 1 — Constitution.** Hard rules block output (hallucination claims without sources, non-English text, empty output, >50K chars). Soft rules score but don't block (missing sources, no structure, repetition, no actionable steps). Pure regex + keyword matching. <1ms.
-
-**Layer 2 — AST Verifier.** Static analysis of agent-generated code via Python `ast` module. Blocks `eval()`, `exec()`, `subprocess`, `os.system()`, `__import__()`, and hardcoded secrets (OpenAI, GitHub, AWS patterns). <1ms.
-
-**Layer 3 — Meta-Supervisor.** Weighted quality score: S = Q(0.40) + A(0.25) + C(0.20) + F(0.15). ACCEPT ≥ 7.0, RETRY ≥ 5.0, ESCALATE < 5.0. Cross-provider execution. ~5ms.
-
-**Layer 4 — Z3 Formal Proofs.** Four machine-checked theorems via Z3 SMT solver. GCR invariance, SS cubic derivation, SS strict monotonicity, SS boundary conditions. All UNSAT (no counterexample exists). ~10ms total.
-
-**Layer 5 — Red/Blue Adversarial.** RedTeamAgent finds defects, GuardianAgent defends with evidence, DeterministicArbiter adjudicates using only passing tests / governance compliance / AST results. Zero LLM in final adjudication. ACR metric. ~50ms.
-
-**Layer 6 — Memory Governance.** GovernedMemoryStore validates every write against Constitution. Bi-temporal versioning (valid_from, valid_to, recorded_at). Constitutional decay (λ=0.99/hour) with protected categories (decisions, errors immune to decay). <1ms.
-
-**Layer 7 — On-Chain Signer.** HMAC-SHA256 signed attestation certificates. Compliance-gated: only GCR=1.0 attestations are published. BLAKE3 certificate hashing. Avalanche C-Chain mainnet via web3.py. ~2s.
+| Layer | What | Latency |
+|-------|------|---------|
+| L1 Constitution | 4 HARD (block) + 5 SOFT (warn). Regex + keywords | <1ms |
+| L2 AST Verifier | Blocks eval/exec/subprocess/secrets via `ast` | <1ms |
+| L3 Supervisor | S = Q(0.40)+A(0.25)+C(0.20)+F(0.15). ACCEPT ≥ 7.0 | ~5ms |
+| L4 Z3 Proofs | 4 theorems (GCR invariance, SS cubic/mono/bounds) | ~10ms |
+| L5 Red/Blue | RedTeam → Guardian → DeterministicArbiter. Zero LLM | ~50ms |
+| L6 Memory Gov | Bi-temporal versioning, constitutional decay λ=0.99 | <1ms |
+| L7 On-Chain | HMAC-SHA256 + Avalanche. Only GCR=1.0 published | ~2s |
 
 ---
 
 ## Formal Verification (Z3)
 
-| Theorem | Math | English | Z3 Result |
-|---------|------|---------|-----------|
-| GCR Invariant | ∀f∈[0,1]: GCR(f)=1.0 | Governance is independent of failure rate | UNSAT |
-| SS Cubic | ∀f∈[0,1]: SS(f)=1−f³ | Stability follows cubic decay (r=2 retries) | UNSAT |
-| SS Monotonicity | f₁<f₂ ⟹ SS(f₁)>SS(f₂) | More failures = less stability | UNSAT |
-| SS Boundaries | SS(0)=1.0 ∧ SS(1)=0.0 | Perfect at 0% failure, zero at 100% | UNSAT |
+| Theorem | Math | Z3 Result |
+|---------|------|-----------|
+| GCR Invariant | ∀f∈[0,1]: GCR(f)=1.0 | UNSAT |
+| SS Cubic | ∀f∈[0,1]: SS(f)=1−f³ | UNSAT |
+| SS Monotonicity | f₁<f₂ ⟹ SS(f₁)>SS(f₂) | UNSAT |
+| SS Boundaries | SS(0)=1.0 ∧ SS(1)=0.0 | UNSAT |
 
 10ms total. Proof certificates: `logs/z3_proofs.json`.
 
@@ -138,16 +152,7 @@ Total governance latency: **< 70ms** (layers 1-6). On-chain signing adds ~2s whe
 
 ## On-Chain Attestation
 
-| Field | Value |
-|-------|-------|
-| Contract | [`0x88f6043B091055Bbd896Fc8D2c6234A47C02C052`](https://snowtrace.io/address/0x88f6043B091055Bbd896Fc8D2c6234A47C02C052) |
-| Network | Avalanche C-Chain (43114) |
-| Attestations | 21 (March 2026) |
-| Functions | `registerAttestation()`, `registerBatch()`, `isCompliant()`, `getAttestation()` |
-| Cost | ~$0.01 per attestation (~$0.01 per Merkle batch of 10,000) |
-| Deployer | [`0xB529f4f99ab244cfa7a48596Bf165CAc5B317929`](https://snowtrace.io/address/0xB529f4f99ab244cfa7a48596Bf165CAc5B317929) |
-
-Three verification layers: PostgreSQL (200ms) → Enigma Scanner (900ms) → Avalanche on-chain (2-3s, immutable).
+Contract [`0x88f6...C052`](https://snowtrace.io/address/0x88f6043B091055Bbd896Fc8D2c6234A47C02C052) on Avalanche C-Chain (43114). 21 attestations. ~$0.01/tx (~$0.01 per Merkle batch of 10,000). Three layers: PostgreSQL (200ms) → Enigma Scanner (900ms) → Avalanche (2-3s, immutable).
 
 ---
 
@@ -174,58 +179,25 @@ Three verification layers: PostgreSQL (200ms) → Enigma Scanner (900ms) → Ava
 
 ---
 
-## Comparison
-
-| Feature | DOF | LangChain | CrewAI | Langfuse |
-|---------|-----|-----------|--------|----------|
-| Constitutional governance | 7 layers | — | — | — |
-| Z3 formal proofs | 4 theorems | — | — | — |
-| AST code safety | Deterministic | — | — | — |
-| On-chain attestation | Avalanche | — | — | — |
-| Adversarial Red/Blue | DeterministicArbiter | — | — | — |
-| Governed memory | Bi-temporal + decay | — | — | — |
-| FDR/FPR benchmark | Automated | — | — | — |
-| Token tracking | Per-call | — | — | Per-call |
-| Execution DAG | Critical path | — | — | Trace tree |
-| Framework agnostic | Any string output | LangChain only | CrewAI only | Any (tracing) |
-| MCP server | 10 tools | — | — | — |
-| REST API | 14 endpoints | — | — | API |
-| Open source | Apache 2.0 | MIT | MIT | MIT/Commercial |
-
----
-
 ## Production Agents
 
-Two DOF-governed agents operating on Avalanche mainnet, ranked **#1 and #2** of 1,772 agents on [erc-8004scan.xyz](https://erc-8004scan.xyz):
-
-| Agent | Token ID | Wallet | Protocols | Status |
-|-------|----------|--------|-----------|--------|
-| Apex Arbitrage | #1687 | `0xcd59...a983` | A2A + OASF (7 skills) | ACTIVE |
-| AvaBuilder | #1686 | `0x29a4...E71a` | A2A + OASF (5 skills) | ACTIVE |
-
-Combined trust score: 0.85 (governance 0.35 + safety 0.15 + infrastructure 0.15 + activity 0.15 + community 0.20).
+Two DOF-governed agents on Avalanche mainnet, ranked **#1 and #2** of 1,772 agents on [erc-8004scan.xyz](https://erc-8004scan.xyz): Apex Arbitrage (#1687, A2A+OASF) and AvaBuilder (#1686, A2A+OASF). Combined trust score: 0.85.
 
 ---
 
 ## External Validation (Google Colab)
 
-Tested externally via `pip install dof-sdk` — zero internal dependencies, fresh Colab runtime.
+Tested externally via `pip install dof-sdk` — fresh Colab runtime, zero internal dependencies.
 
-**v0.2.4 — Latest** ([report](tests/external/dof_enterprise_report_v3.json))
-
-| Test | Result |
-|------|--------|
-| LLM-as-Judge (score 1-10) | 9.0 / PASS |
-| RedTeam indirect_prompt_injection | detected=True / PASS |
-| InstructionHierarchy (SYSTEM>USER>ASSISTANT) | compliant=True / PASS |
-
-**v0.2.2** ([report](tests/external/dof_enterprise_report_v2.json))
-
-| Test | Result | Time |
-|------|--------|------|
-| Z3 Formal Proofs (4/4) | VERIFIED | 19.25ms |
-| MerkleBatcher (plain text) | PASSED | 0.31ms |
-| Error Classifier (7/7 classes) | PASSED | 1.28ms |
+| Version | Test | Result |
+|---------|------|--------|
+| v0.2.5 | TrustGateway clean endpoint | ALLOW / score=0.85 |
+| v0.2.5 | TrustGateway adversarial payload | BLOCK / detected=True |
+| v0.2.5 | LLM-as-Judge (score 1-10) | 9.0 / PASS |
+| v0.2.5 | RedTeam prompt injection | detected=True / PASS |
+| v0.2.5 | InstructionHierarchy | compliant=True / PASS |
+| v0.2.2 | Z3 Formal Proofs (4/4) | VERIFIED / 19.25ms |
+| v0.2.2 | MerkleBatcher | PASSED / 0.31ms |
 
 Full reports: [`tests/external/`](tests/external/)
 
@@ -233,12 +205,11 @@ Full reports: [`tests/external/`](tests/external/)
 
 ## Honest Limitations
 
-- **Hallucination detection is regex-based** — 6 deterministic strategies (pattern matching, cross-reference, consistency, entity extraction, numerical plausibility, self-consistency) achieve 90% FDR on adversarial tests. Misses semantic hallucinations without known-facts coverage.
-- **No correlated or cascading failure modeling** — SS(f)=1−f³ assumes independent failures.
-- **Supervisor is itself an LLM** — mitigated by cross-provider execution and deterministic governance layer, but circularity is bounded, not eliminated.
-- **Free-tier infrastructure** — 3/30 runs fail from provider exhaustion cascades where all 5 providers hit rate limits simultaneously.
+- **Hallucination detection is regex-based** — 6 deterministic strategies achieve 90% FDR. Misses semantic hallucinations without known-facts coverage.
+- **No correlated failure modeling** — SS(f)=1−f³ assumes independent failures.
+- **Supervisor is itself an LLM** — mitigated by cross-provider execution and deterministic governance, but circularity is bounded, not eliminated.
+- **Free-tier infrastructure** — 3/30 runs fail from provider exhaustion cascades.
 - **Finite sample sizes** — n=20-30 per configuration; rare tail events not statistically guaranteed.
-- **No economic cost modeling** — token costs tracked but not optimized.
 
 ---
 
@@ -251,8 +222,6 @@ Full reports: [`tests/external/`](tests/external/)
 | Snowtrace | [snowtrace.io/address/0x88f6...C052](https://snowtrace.io/address/0x88f6043B091055Bbd896Fc8D2c6234A47C02C052) |
 | Enigma Scanner | [erc-8004scan.xyz](https://erc-8004scan.xyz) |
 | Paper | [paper/PAPER_OBSERVABILITY_LAB.md](paper/PAPER_OBSERVABILITY_LAB.md) |
-| Getting Started | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) |
-| Architecture | [docs/ARCHITECTURAL_REDESIGN_v1.md](docs/ARCHITECTURAL_REDESIGN_v1.md) |
 
 ---
 
@@ -265,16 +234,10 @@ Full reports: [`tests/external/`](tests/external/)
          with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={27K+ LOC, 719 tests, 25 modules, 4 Z3 theorems,
-        21 Avalanche attestations, Apache 2.0, pip install dof-sdk}
+  note={27K+ LOC, 774 tests, 25 modules, 4 Z3 theorems,
+        21 Avalanche attestations, BSL 1.1, pip install dof-sdk}
 }
 ```
-
----
-
-## Contributing
-
-Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
