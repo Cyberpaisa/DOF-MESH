@@ -16,12 +16,15 @@
 - **Tiempo promedio:** 45s
 
 ## DOF Status (2026-03-06)
-- **Tests:** 646/646 passing (4.2s)
+- **Tests:** 719/719 passing (3.9s)
 - **LOC:** 27,000+ across 76 Python files
-- **Core modules:** 22
+- **Core modules:** 25
 - **Z3:** 4/4 theorems verified
-- **Governance:** ready (4 HARD + 4 SOFT rules)
+- **Governance:** ready (4 HARD + 5 SOFT rules)
 - **AST Verifier:** ready
+- **Privacy benchmark:** 71% DR, 1% FPR
+- **OpenTelemetry:** optional (pip install dof-sdk[otel])
+- **EventBus:** in-memory, Redis/Kafka ready
 
 ## On-Chain Status
 - **Attestations:** 21 on Avalanche C-Chain mainnet
@@ -34,7 +37,7 @@
 - **combined_trust_view:** both agents COMPLIANT
 
 ## PyPI
-- **Package:** dof-sdk 0.1.0
+- **Package:** dof-sdk 0.2.0
 - **Install:** `pip install dof-sdk`
 
 ## Last Audit

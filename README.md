@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://github.com/Cyberpaisa/deterministic-observability-framework/actions/workflows/ci.yml/badge.svg" alt="CI">
-  <img src="https://img.shields.io/badge/tests-646-green" alt="tests">
+  <img src="https://img.shields.io/badge/tests-719-green" alt="tests">
   <img src="https://img.shields.io/badge/Z3_proofs-4%2F4-blue" alt="Z3 proofs">
   <img src="https://img.shields.io/badge/attestations-21-red" alt="attestations">
   <img src="https://img.shields.io/pypi/v/dof-sdk" alt="PyPI">
@@ -37,6 +37,15 @@ result = GenericAdapter().wrap_output("your agent output here")
 
 30ms. Zero LLM tokens. Works with CrewAI, LangGraph, AutoGen, or anything that produces text.
 
+```bash
+python -m dof verify "your text here"   # governance check
+python -m dof prove                      # Z3 formal verification
+python -m dof health                     # component status
+python -m dof benchmark                  # adversarial benchmark
+python -m dof privacy                    # privacy benchmark
+python -m dof version                    # show version
+```
+
 ## Contents
 
 [The Problem](#the-problem) · [Highlights](#highlights) · [Architecture](#architecture) · [Governance Layers](#seven-governance-layers) · [Z3 Verification](#formal-verification-z3) · [On-Chain](#on-chain-attestation) · [Benchmarks](#benchmark-results) · [Comparison](#comparison) · [Limitations](#honest-limitations) · [Citation](#citation)
@@ -59,9 +68,12 @@ DOF solves this with 7 deterministic governance layers, formal Z3 proofs, and on
 - **21 on-chain attestations** on Avalanche C-Chain mainnet
 - **Merkle batching** — 10,000 attestations = 1 tx ≈ $0.01
 - **Automated benchmark** — Governance 100%, Hallucination 90%, Consistency 100% FDR, 0% FPR
+- **Privacy benchmark** — 71% detection rate across 7 AgentLeak channels (PII, API keys, memory, tool inputs)
+- **OpenTelemetry ready** — optional OTLP tracing (`pip install dof-sdk[otel]`)
+- **EventBus** — in-memory pub/sub with circular buffer, Redis/Kafka ready
 - **Framework agnostic** — CrewAI, LangGraph, AutoGen, or raw Python
 - **A2A server** (8 skills) + **MCP server** (10 tools) + **REST API** (14 endpoints)
-- **646 tests**, 27K+ LOC, 25 core modules, 36 contributions
+- **719 tests**, 27K+ LOC, 25 core modules, 36 contributions
 
 ---
 
@@ -81,7 +93,7 @@ DOF solves this with 7 deterministic governance layers, formal Z3 proofs, and on
 +----------------------------------------------------+
 | L2  AST Verifier eval/exec/secrets          <1ms   |
 +----------------------------------------------------+
-| L1  Constitution 4 HARD + 4 SOFT            <1ms   |
+| L1  Constitution 4 HARD + 5 SOFT            <1ms   |
 +----------------------------------------------------+
 | Engine  DAG + LoopGuard + TokenTracker             |
 +----------------------------------------------------+
@@ -229,7 +241,7 @@ Combined trust score: 0.85 (governance 0.35 + safety 0.15 + infrastructure 0.15 
          with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={27K+ LOC, 646 tests, 25 modules, 4 Z3 theorems,
+  note={27K+ LOC, 719 tests, 25 modules, 4 Z3 theorems,
         21 Avalanche attestations, Apache 2.0, pip install dof-sdk}
 }
 ```
