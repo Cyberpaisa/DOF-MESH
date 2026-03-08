@@ -121,3 +121,7 @@ Issue: MerkleBatcher.add() lanzaba ValueError con texto plano. Fix: Auto-hash SH
 ### #57: Error classifier must cover ALL framework domains
 **Fecha:** 2026-03-08 | **Source:** Prueba externa Colab (dof-sdk 0.2.1)
 Issue: ErrorClass.UNKNOWN para patrones LLM/Provider/Memory/Hash/Z3. Fix: 9 categorias en v0.2.2 (era 4). Regla: El clasificador debe cubrir todos los dominios del sistema. UNKNOWN solo para errores genuinamente no clasificables.
+
+### #58: Non-SPDX licenses need table format in pyproject.toml
+**Fecha:** 2026-03-08 | **Source:** CI failure Python 3.12
+Issue: `license = "BSL-1.1"` como string directo rompe `pip install -e .` porque BSL-1.1 no es SPDX valido. Fix: `license = {text = "BSL-1.1"}` (formato tabla). Regla: Siempre usar SPDX valido o formato tabla para licencias no estandar. `test.yml` con `pip install -e .` valida el package — `ci.yml` no lo hacia.
