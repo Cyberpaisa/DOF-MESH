@@ -41,6 +41,24 @@ def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def _is_hex(s: str) -> bool:
+    """Check if string is a valid hex-encoded hash (even length, all hex chars)."""
+    if len(s) == 0 or len(s) % 2 != 0:
+        return False
+    try:
+        bytes.fromhex(s)
+        return True
+    except ValueError:
+        return False
+
+
+def _ensure_hex(value: str) -> str:
+    """Convert value to hex hash if it's plain text; pass through if already hex."""
+    if _is_hex(value):
+        return value
+    return _sha256(value.encode("utf-8"))
+
+
 def _hash_pair(left: str, right: str) -> str:
     """Hash two hex strings in sorted order (canonical pairing)."""
     # Sort to ensure deterministic ordering regardless of insertion order
@@ -234,10 +252,13 @@ class MerkleBatcher:
     def add(self, leaf_hash: str) -> MerkleBatch | None:
         """Add a leaf hash to the queue.
 
+        Accepts both hex-encoded hashes and plain text.  Plain text is
+        automatically SHA256-hashed before queuing.
+
         If threshold > 0 and queue reaches threshold, auto-flushes
         and returns the resulting MerkleBatch. Otherwise returns None.
         """
-        self._queue.append(leaf_hash)
+        self._queue.append(_ensure_hex(leaf_hash))
 
         if self._threshold > 0 and len(self._queue) >= self._threshold:
             return self.flush()

@@ -79,6 +79,11 @@ class ErrorClass(str, Enum):
     MODEL_FAILURE = "MODEL_FAILURE"
     INFRA_FAILURE = "INFRA_FAILURE"
     GOVERNANCE_FAILURE = "GOVERNANCE_FAILURE"
+    LLM_FAILURE = "LLM_FAILURE"
+    PROVIDER_FAILURE = "PROVIDER_FAILURE"
+    MEMORY_FAILURE = "MEMORY_FAILURE"
+    HASH_FAILURE = "HASH_FAILURE"
+    Z3_FAILURE = "Z3_FAILURE"
     UNKNOWN = "UNKNOWN"
 
 
@@ -139,6 +144,38 @@ def classify_error(exception: str | Exception, context: dict | None = None) -> E
                       "content_filter", "content filter"]
     if any(kw in error_str for kw in model_keywords):
         return ErrorClass.MODEL_FAILURE
+
+    # 6. LLM failure — response quality, token limits, empty outputs
+    llm_keywords = ["max_tokens", "token limit", "context_length",
+                     "context length exceeded", "empty response",
+                     "no response", "truncated", "finish_reason"]
+    if any(kw in error_str for kw in llm_keywords):
+        return ErrorClass.LLM_FAILURE
+
+    # 7. Provider failure — API key, auth, quota, billing
+    provider_keywords = ["api_key", "api key", "invalid key",
+                         "authentication", "unauthorized", "401",
+                         "403", "quota", "billing", "credits",
+                         "permission denied", "access denied"]
+    if any(kw in error_str for kw in provider_keywords):
+        return ErrorClass.PROVIDER_FAILURE
+
+    # 8. Memory failure — ChromaDB, embeddings, vector store
+    memory_keywords = ["chromadb", "embedding", "vector", "memory_manager",
+                       "collection", "chroma", "similarity_search"]
+    if any(kw in error_str for kw in memory_keywords):
+        return ErrorClass.MEMORY_FAILURE
+
+    # 9. Hash/Merkle failure — hex, hash, merkle
+    hash_keywords = ["hex", "hash", "merkle", "fromhex",
+                     "non-hexadecimal", "blake3", "sha256"]
+    if any(kw in error_str for kw in hash_keywords):
+        return ErrorClass.HASH_FAILURE
+
+    # 10. Z3/SMT failure — solver, verification
+    z3_keywords = ["z3", "smt", "proof failed", "theorem", "z3exception"]
+    if any(kw in error_str for kw in z3_keywords):
+        return ErrorClass.Z3_FAILURE
 
     return ErrorClass.UNKNOWN
 

@@ -2,6 +2,13 @@
 
 All notable changes to DOF. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.2.2] — 2026-03-08
+
+### Fixed
+- **MerkleBatcher.add()** now auto-detects plain text vs hex and hashes with SHA256 before queuing
+- **ErrorClass** expanded from 4 to 9 categories: added LLM_FAILURE, PROVIDER_FAILURE, MEMORY_FAILURE, HASH_FAILURE, Z3_FAILURE
+- **classify_error()** new pattern matching for token limits, API keys, ChromaDB, hex/Merkle, and Z3 errors
+
 ## [0.2.1] — 2026-03-08
 
 ### Fixed
