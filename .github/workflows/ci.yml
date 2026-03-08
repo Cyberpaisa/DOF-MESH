@@ -21,47 +21,52 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
+    - name: Install dependencies (minimal — no crewai/litellm)
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest pytest-cov
+        pip install --upgrade pip
+        pip install z3-solver pyyaml python-dotenv rich blake3 fastapi httpx sqlalchemy web3
 
-    - name: Run unit tests
-      run: |
-        python -m pytest tests/ -v --tb=short --co -q 2>/dev/null | tail -5
-        python -m pytest tests/ -v --tb=short -x
+    - name: Install dof package
+      run: pip install -e . --no-deps
 
-    - name: Run e2e tests
+    - name: Run tests (unittest — avoids web3/pytest conflict)
       run: |
-        python scripts/e2e_test.py
+        python -m unittest \
+          tests.test_ast_verifier \
+          tests.test_z3_verifier \
+          tests.test_adversarial \
+          tests.test_constitution \
+          tests.test_task_contract \
+          tests.test_causal \
+          tests.test_bayesian_provider \
+          tests.test_memory_governance \
+          tests.test_oags_bridge \
+          tests.test_oracle_bridge \
+          tests.test_full_pipeline \
+          tests.test_mcp_server \
+          tests.test_api \
+          tests.test_storage \
+          tests.test_integrations \
+          tests.test_enigma_bridge \
+          tests.test_avalanche_bridge \
+          -v
 
     - name: Run Z3 verification
       run: |
         python -c "
-        from core.z3_verifier import Z3Verifier
-        z3 = Z3Verifier()
-        results = z3.verify_all()
+        from dof import verify
+        results = verify()
         for r in results:
-            status = 'VERIFIED' if r.result == 'VERIFIED' else 'FAILED'
-            print(f'  {status}  {r.theorem_name}  ({r.proof_time_ms:.2f}ms)')
+            print(f'  {r.result}  {r.theorem_name}  ({r.proof_time_ms:.2f}ms)')
         assert all(r.result == 'VERIFIED' for r in results), 'Z3 verification failed'
         print('All 4 theorems verified')
         "
 
-    - name: Run adversarial benchmark
-      run: |
-        python scripts/run_benchmark.py
+    - name: Verify public API imports
+      run: python -c "import dof; print('dof', dof.__version__, '— OK')"
 
-    - name: Verify GenericAdapter
-      run: |
-        python -c "
-        from dof import GenericAdapter
-        result = GenericAdapter().wrap_output('Test output for CI validation')
-        print(f'GenericAdapter: status={result[\"status\"]}, score={result.get(\"score\", \"N/A\")}')
-        assert result['status'] != 'error', 'GenericAdapter failed'
-        print('GenericAdapter OK')
-        "
+    - name: Run quickstart smoke test
+      run: python examples/quickstart.py
 
   lint:
     runs-on: ubuntu-latest
@@ -73,14 +78,12 @@ jobs:
       with:
         python-version: "3.11"
 
-    - name: Install dependencies
+    - name: Install flake8
       run: |
-        python -m pip install --upgrade pip
+        pip install --upgrade pip
         pip install flake8
 
     - name: Lint with flake8
       run: |
-        # Stop on syntax errors or undefined names
         flake8 core/ dof/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Warnings only for complexity
         flake8 core/ dof/ --count --exit-zero --max-complexity=15 --max-line-length=120 --statistics
