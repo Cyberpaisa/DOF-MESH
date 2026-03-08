@@ -101,6 +101,22 @@ HARD_RULES = [
 ]
 
 # Soft rules — WARN but don't block
+PII_PATTERNS = {
+    "EMAIL": re.compile(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'),
+    "PHONE": re.compile(r'\+?1?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'),
+    "SSN": re.compile(r'\b\d{3}-\d{2}-\d{4}\b'),
+    "CREDIT_CARD": re.compile(r'\b4\d{3}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b'),
+}
+
+
+def _check_no_pii(text: str) -> bool:
+    """Check that text does not contain PII patterns (email, phone, SSN, credit card)."""
+    for pattern in PII_PATTERNS.values():
+        if pattern.search(text):
+            return False
+    return True
+
+
 SOFT_RULES = [
     {
         "id": "HAS_SOURCES",
@@ -127,6 +143,12 @@ SOFT_RULES = [
             kw in text.lower()
             for kw in ["recommend", "next step", "action", "implement", "recomend", "siguiente paso"]
         ),
+        "weight": 0.3,
+    },
+    {
+        "id": "NO_PII_LEAK",
+        "description": "Should not contain PII (emails, phones, SSNs, credit cards)",
+        "check": lambda text: _check_no_pii(text),
         "weight": 0.3,
     },
 ]

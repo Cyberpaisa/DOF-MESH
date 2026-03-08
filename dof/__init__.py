@@ -203,6 +203,16 @@ from core.crew_runner import run_crew
 from core.test_generator import TestGenerator, BenchmarkRunner, BenchmarkResult
 
 # ─────────────────────────────────────────────────────────────────────
+# AgentLeak Privacy Benchmark
+# ─────────────────────────────────────────────────────────────────────
+
+from core.agentleak_benchmark import (
+    AgentLeakMapper,
+    PrivacyLeakGenerator,
+    PrivacyBenchmarkRunner,
+)
+
+# ─────────────────────────────────────────────────────────────────────
 # Top-level convenience functions
 # ─────────────────────────────────────────────────────────────────────
 
@@ -328,4 +338,8 @@ __all__ = [
     "TestGenerator",
     "BenchmarkRunner",
     "BenchmarkResult",
+    # AgentLeak Privacy Benchmark
+    "AgentLeakMapper",
+    "PrivacyLeakGenerator",
+    "PrivacyBenchmarkRunner",
 ]

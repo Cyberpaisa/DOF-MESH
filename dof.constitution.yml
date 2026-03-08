@@ -249,6 +249,21 @@ rules:
           - "siguiente paso"
       evidence: "warning logged as '[ACTIONABLE] Should include actionable steps or recommendations'"
 
+    - id: "SOFT-005"
+      name: "No PII Leak"
+      rule_key: "NO_PII_LEAK"
+      severity: "warn"
+      action: "warn"
+      description: "Should not contain PII (emails, phones, SSNs, credit cards)"
+      weight: 0.3
+      pattern:
+        type: "regex_absent"
+        patterns:
+          - "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
+          - "\\b\\d{3}-\\d{2}-\\d{4}\\b"
+          - "\\b4\\d{3}[-\\s]?\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}\\b"
+      evidence: "warning logged as '[NO_PII_LEAK] Should not contain PII'"
+
 # ─────────────────────────────────────────────────────────────────────
 # Formal Metrics (5)
 # ─────────────────────────────────────────────────────────────────────
