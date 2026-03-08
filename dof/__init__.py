@@ -15,7 +15,7 @@ Quick start:
     bench = benchmark()
 """
 
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 import os as _os
 
@@ -380,3 +380,5 @@ __all__ = [
     "EventType",
     "Event",
 ]
+
+from dof.x402_gateway import TrustGateway, GatewayVerdict, GatewayAction
