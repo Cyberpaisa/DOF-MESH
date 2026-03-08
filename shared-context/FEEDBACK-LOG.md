@@ -90,3 +90,18 @@ Optimal order: CI status (dynamic) → tests (static) → Z3 → attestations �
 
 ### #49: Community forums ban new accounts that self-promote
 CrewAI Forum silenced our account after community reports. Pattern: new account + multiple posts with links to own project = flagged as spam. The 90/10 rule: 90% value without links (answer questions, help others), 10% your project. Build reputation BEFORE sharing links. This applies to Reddit, CrewAI Forum, Discord communities, and any moderated forum. Dev.to, X, and PyPI don't have this filter.
+
+### #50: SDK usability > SDK completeness
+v0.1.0 exported 1 thing (GenericAdapter). v0.2.0 exports 20+ components + quick functions + CLI. The difference: someone can use DOF in 3 seconds now. quick.verify() does in 1 line what used to take 15 lines of imports and setup. Always build the "easy door" first.
+
+### #51: Semantic hallucination detection needs multiple strategies
+One regex strategy = 0% FDR. Six strategies (pattern + cross-reference + consistency + entity extraction + numerical plausibility + self-consistency) = 96.8% F1. No single strategy catches everything. Stack them.
+
+### #52: Privacy benchmarks validate trust claims
+AgentLeak-inspired 200-test benchmark proved DOF catches 71% of privacy leaks across 7 channels. PII detection (92%) is strong, memory leaks (60%) need work. Publishing honest numbers builds more credibility than claiming 100%.
+
+### #53: OpenTelemetry integration must be zero-overhead
+No-op pattern: if OTel not installed, every operation is a pass-through. Zero import cost, zero runtime cost. Optional dependencies in pyproject.toml: pip install dof-sdk[otel]. Never force infrastructure on users.
+
+### #54: Event streaming starts in-memory
+EventBus with InMemoryBackend (deque 10K) is the right Phase 8 prep. Abstract EventBackend interface means swapping to Redis/Kafka later is one class. Don't install infrastructure before you need it (1000+ exec/day threshold).
