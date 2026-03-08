@@ -123,3 +123,7 @@
 ## Diagramas FigJam
 - Arquitectura completa: cb645608-3503-4150-891c-b6b91e1c2b86
 - Boot Sequence v2: 7971ddf2-5e4f-4f5c-9d85-3e5a51f72fa3
+- Bump `__version__` en `dof/__init__.py` ANTES de `python3 -m build` — si build corre primero con versión vieja, PyPI no acepta re-upload; hay que subir como versión nueva
+- HierarchyResult attrs: compliant, violation_level, details (NO status)
+- Siempre re-setear env vars después de reiniciar runtime Colab
+- Version assertions en tests deben actualizarse con cada bump de versión
