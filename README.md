@@ -37,7 +37,7 @@ result = GenericAdapter().wrap_output("your agent output here")
 
 30ms. Zero LLM tokens. Works with CrewAI, LangGraph, AutoGen, or anything that produces text.
 
-### x402 Trust Gateway (v0.2.5)
+### x402 Trust Gateway (v0.2.6)
 
 First formal verification layer for x402 payments. Zero LLM in the critical path.
 
@@ -191,11 +191,11 @@ Tested externally via `pip install dof-sdk` — fresh Colab runtime, zero intern
 
 | Version | Test | Result |
 |---------|------|--------|
-| v0.2.5 | TrustGateway clean endpoint | ALLOW / score=0.85 |
-| v0.2.5 | TrustGateway adversarial payload | BLOCK / detected=True |
-| v0.2.5 | LLM-as-Judge (score 1-10) | 9.0 / PASS |
-| v0.2.5 | RedTeam prompt injection | detected=True / PASS |
-| v0.2.5 | InstructionHierarchy | compliant=True / PASS |
+| v0.2.6 | TrustGateway clean endpoint | ALLOW / score=0.85 |
+| v0.2.6 | TrustGateway adversarial payload | BLOCK / detected=True |
+| v0.2.6 | LLM-as-Judge (score 1-10) | 9.0 / PASS |
+| v0.2.6 | RedTeam prompt injection | detected=True / PASS |
+| v0.2.6 | InstructionHierarchy | compliant=True / PASS |
 | v0.2.2 | Z3 Formal Proofs (4/4) | VERIFIED / 19.25ms |
 | v0.2.2 | MerkleBatcher | PASSED / 0.31ms |
 
