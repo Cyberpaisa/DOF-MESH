@@ -84,6 +84,7 @@ class ErrorClass(str, Enum):
     MEMORY_FAILURE = "MEMORY_FAILURE"
     HASH_FAILURE = "HASH_FAILURE"
     Z3_FAILURE = "Z3_FAILURE"
+    AGENT_FAILURE = "AGENT_FAILURE"
     UNKNOWN = "UNKNOWN"
 
 
@@ -114,7 +115,20 @@ def classify_error(exception: str | Exception, context: dict | None = None) -> E
     if any(kw in error_str for kw in gov_keywords):
         return ErrorClass.GOVERNANCE_FAILURE
 
-    # 2. Infrastructure failure — HTTP errors, rate limits, timeouts
+    # 2. Agent failure — agent-level execution problems (before INFRA to avoid
+    #    "timeout" in infra_patterns matching "reflexion_timeout" / "agent_timeout")
+    agent_keywords = ["tool_call_failed", "function_calling_error",
+                      "planning_loop_detected", "reflexion_timeout",
+                      "agent_timeout", "max_iterations",
+                      "agent_loop", "tool_execution_error",
+                      "tool_not_found", "tool_timeout",
+                      "invalid_json_schema", "missing_required_param",
+                      "max_iterations_exceeded", "reasoning_failed",
+                      "agent_stuck", "no_progress_detected"]
+    if any(kw in error_str for kw in agent_keywords):
+        return ErrorClass.AGENT_FAILURE
+
+    # 3. Infrastructure failure — HTTP errors, rate limits, timeouts
     infra_patterns = [
         r"429", r"500", r"502", r"503", r"504",
         r"rate.?limit", r"rate_limit", r"resource.?exhausted",

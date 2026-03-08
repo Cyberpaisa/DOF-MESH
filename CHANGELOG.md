@@ -2,7 +2,21 @@
 
 All notable changes to DOF. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.2.3] — 2026-03-08
+
+### Added
+- **LLM-as-a-Judge** — `evaluate_with_judge(response, context)` scores 1.0-10.0, PASS >= 7.0 (advisory, does NOT override deterministic arbiter)
+- **3 Attack Vector Methods** — `indirect_prompt_injection()`, `persuasion_jailbreak()`, `training_data_extraction()` with `AttackResult` dataclass (Garak/PyRIT-inspired)
+- **Instruction Hierarchy** — `enforce_hierarchy(system_prompt, user_prompt, response)` with `HierarchyResult`, SYSTEM > USER > ASSISTANT priority levels
+- **AGENT_FAILURE** — ErrorClass expanded with 16 agent patterns (tool_not_found, tool_timeout, invalid_json_schema, missing_required_param, agent_stuck, no_progress_detected, reasoning_failed, etc.)
+
 ## [0.2.2] — 2026-03-08
+
+### Added
+- **3 Attack Vectors** — RedTeamAgent detects prompt injection, jailbreak persuasion, training data extraction in `analyze()`
+- **Priority Fields** — `RulePriority` enum on HARD_RULES (SYSTEM) and SOFT_RULES (USER), `check_instruction_override()`, `get_rules_by_priority()`
+- **LLMJudge** — optional Phase 4 in adversarial pipeline via `LLMJudgeVerdict` dataclass
+- **AGENT_FAILURE** — ErrorClass category for tool_call_failed, planning_loop, reflexion_timeout
 
 ### Fixed
 - **MerkleBatcher.add()** now auto-detects plain text vs hex and hashes with SHA256 before queuing

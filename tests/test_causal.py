@@ -348,5 +348,68 @@ class TestDerivedMetricsErrorDistribution(unittest.TestCase):
         self.assertEqual(trace.provider_reliability["groq"]["rate"], 0.5)
 
 
+class TestClassifyAgentFailure(unittest.TestCase):
+    """AGENT_FAILURE: agent-level execution errors."""
+
+    def test_tool_call_failed(self):
+        self.assertEqual(classify_error("tool_call_failed: search_memory returned empty"),
+                         ErrorClass.AGENT_FAILURE)
+
+    def test_function_calling_error(self):
+        self.assertEqual(classify_error("function_calling_error: invalid arguments"),
+                         ErrorClass.AGENT_FAILURE)
+
+    def test_planning_loop_detected(self):
+        self.assertEqual(classify_error("planning_loop_detected after 10 iterations"),
+                         ErrorClass.AGENT_FAILURE)
+
+    def test_reflexion_timeout(self):
+        self.assertEqual(classify_error("reflexion_timeout: agent exceeded 300s"),
+                         ErrorClass.AGENT_FAILURE)
+
+    def test_agent_timeout(self):
+        self.assertEqual(classify_error("agent_timeout: no response in 60s"),
+                         ErrorClass.AGENT_FAILURE)
+
+    def test_max_iterations(self):
+        self.assertEqual(classify_error("max_iterations reached: 10/10"),
+                         ErrorClass.AGENT_FAILURE)
+
+    def test_agent_failure_enum_value(self):
+        self.assertEqual(ErrorClass.AGENT_FAILURE.value, "AGENT_FAILURE")
+
+    def test_tool_not_found(self):
+        self.assertEqual(classify_error("tool_not_found: web_search unavailable"),
+                         ErrorClass.AGENT_FAILURE)
+
+    def test_tool_timeout(self):
+        self.assertEqual(classify_error("tool_timeout: search took >30s"),
+                         ErrorClass.AGENT_FAILURE)
+
+    def test_invalid_json_schema(self):
+        self.assertEqual(classify_error("invalid_json_schema: missing 'action' field"),
+                         ErrorClass.AGENT_FAILURE)
+
+    def test_missing_required_param(self):
+        self.assertEqual(classify_error("missing_required_param: 'query' not provided"),
+                         ErrorClass.AGENT_FAILURE)
+
+    def test_max_iterations_exceeded(self):
+        self.assertEqual(classify_error("max_iterations_exceeded: 15/10"),
+                         ErrorClass.AGENT_FAILURE)
+
+    def test_reasoning_failed(self):
+        self.assertEqual(classify_error("reasoning_failed: could not derive conclusion"),
+                         ErrorClass.AGENT_FAILURE)
+
+    def test_agent_stuck(self):
+        self.assertEqual(classify_error("agent_stuck: repeated same action 5 times"),
+                         ErrorClass.AGENT_FAILURE)
+
+    def test_no_progress_detected(self):
+        self.assertEqual(classify_error("no_progress_detected after 3 iterations"),
+                         ErrorClass.AGENT_FAILURE)
+
+
 if __name__ == "__main__":
     unittest.main()
