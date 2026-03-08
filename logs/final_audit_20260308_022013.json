@@ -1,0 +1,489 @@
+{
+  "timestamp": "2026-03-08T02:20:13.096542+00:00",
+  "dof_version": "0.2.0",
+  "python_version": "3.13.2",
+  "platform": "macOS-26.3-arm64-arm-64bit-Mach-O",
+  "working_dir": "/Users/jquiceva/equipo de agentes",
+  "verdict": "ALL PASS",
+  "total_checks": 55,
+  "total_passed": 55,
+  "total_failed": 0,
+  "total_duration_ms": 57280.3,
+  "sections": [
+    {
+      "name": "Component Health",
+      "passed": true,
+      "total": 16,
+      "pass_count": 16,
+      "fail_count": 0,
+      "duration_ms": 3355.0,
+      "checks": [
+        {
+          "name": "ConstitutionEnforcer",
+          "passed": true,
+          "detail": "imported core.governance.ConstitutionEnforcer",
+          "duration_ms": 3322.1,
+          "error": ""
+        },
+        {
+          "name": "ASTVerifier",
+          "passed": true,
+          "detail": "imported core.ast_verifier.ASTVerifier",
+          "duration_ms": 0.8,
+          "error": ""
+        },
+        {
+          "name": "DataOracle",
+          "passed": true,
+          "detail": "imported core.data_oracle.DataOracle",
+          "duration_ms": 5.4,
+          "error": ""
+        },
+        {
+          "name": "GovernedMemoryStore",
+          "passed": true,
+          "detail": "imported core.memory_governance.GovernedMemoryStore",
+          "duration_ms": 0.9,
+          "error": ""
+        },
+        {
+          "name": "ExecutionDAG",
+          "passed": true,
+          "detail": "imported core.execution_dag.ExecutionDAG",
+          "duration_ms": 0.0,
+          "error": ""
+        },
+        {
+          "name": "LoopGuard",
+          "passed": true,
+          "detail": "imported core.loop_guard.LoopGuard",
+          "duration_ms": 0.0,
+          "error": ""
+        },
+        {
+          "name": "TokenTracker",
+          "passed": true,
+          "detail": "imported core.observability.TokenTracker",
+          "duration_ms": 0.0,
+          "error": ""
+        },
+        {
+          "name": "MerkleTree",
+          "passed": true,
+          "detail": "imported core.merkle_tree.MerkleTree",
+          "duration_ms": 0.5,
+          "error": ""
+        },
+        {
+          "name": "CertificateSigner",
+          "passed": true,
+          "detail": "imported core.oracle_bridge.CertificateSigner",
+          "duration_ms": 4.0,
+          "error": ""
+        },
+        {
+          "name": "OAGSIdentity",
+          "passed": true,
+          "detail": "imported core.oags_bridge.OAGSIdentity",
+          "duration_ms": 0.3,
+          "error": ""
+        },
+        {
+          "name": "GenericAdapter",
+          "passed": true,
+          "detail": "imported integrations.langgraph_adapter.GenericAdapter",
+          "duration_ms": 0.3,
+          "error": ""
+        },
+        {
+          "name": "TestGenerator",
+          "passed": true,
+          "detail": "imported core.test_generator.TestGenerator",
+          "duration_ms": 0.9,
+          "error": ""
+        },
+        {
+          "name": "AgentLeakMapper",
+          "passed": true,
+          "detail": "imported core.agentleak_benchmark.AgentLeakMapper",
+          "duration_ms": 1.5,
+          "error": ""
+        },
+        {
+          "name": "Z3Verifier",
+          "passed": true,
+          "detail": "imported core.z3_verifier.Z3Verifier",
+          "duration_ms": 17.4,
+          "error": ""
+        },
+        {
+          "name": "BayesianProviderSelector",
+          "passed": true,
+          "detail": "imported core.providers.BayesianProviderSelector",
+          "duration_ms": 0.0,
+          "error": ""
+        },
+        {
+          "name": "RuntimeObserver",
+          "passed": true,
+          "detail": "imported core.runtime_observer.RuntimeObserver",
+          "duration_ms": 0.7,
+          "error": ""
+        }
+      ]
+    },
+    {
+      "name": "CLI Commands",
+      "passed": true,
+      "total": 8,
+      "pass_count": 8,
+      "fail_count": 0,
+      "duration_ms": 38169.3,
+      "checks": [
+        {
+          "name": "dof version",
+          "passed": true,
+          "detail": "dof-sdk 0.2.0",
+          "duration_ms": 4719.0,
+          "error": ""
+        },
+        {
+          "name": "dof health",
+          "passed": true,
+          "detail": "DOF \u2014 Deterministic Observability Framework v0.2.0\nComponents: 16/16 available\n\n       OK  ConstitutionEnforcer\n       OK  ASTVerifier\n       OK  DataOracle\n       OK  GovernedMemoryStore\n       OK  E",
+          "duration_ms": 4701.0,
+          "error": ""
+        },
+        {
+          "name": "dof health --json",
+          "passed": true,
+          "detail": "{\n  \"components\": {\n    \"ConstitutionEnforcer\": true,\n    \"ASTVerifier\": true,\n    \"DataOracle\": true,\n    \"GovernedMemoryStore\": true,\n    \"ExecutionDAG\": true,\n    \"LoopGuard\": true,\n    \"TokenTrack",
+          "duration_ms": 4835.0,
+          "error": ""
+        },
+        {
+          "name": "dof prove",
+          "passed": true,
+          "detail": "All verified: True\nTotal time: 6.3ms\n\n  VERIFIED  GCR_INVARIANT  (2.96ms)\n  VERIFIED  SS_FORMULA  (0.43ms)\n  VERIFIED  SS_MONOTONICITY  (1.76ms)\n  VERIFIED  SS_BOUNDARIES  (0.68ms)",
+          "duration_ms": 4721.2,
+          "error": ""
+        },
+        {
+          "name": "dof verify",
+          "passed": true,
+          "detail": "Status: PASS\nScore:  0.62\nLatency: 1.7ms\n\nNo violations found.\n\nLayers:\n  Constitution: PASS (score=0.62)\n  AST: PASS (0 code blocks)\n  Oracle: CLEAN (verified=0, discrepancies=0)",
+          "duration_ms": 5066.8,
+          "error": ""
+        },
+        {
+          "name": "dof verify-code",
+          "passed": true,
+          "detail": "Passed: True\nScore:  1.0\nLatency: 1.1ms",
+          "duration_ms": 4674.2,
+          "error": ""
+        },
+        {
+          "name": "dof check-facts",
+          "passed": true,
+          "detail": "Status: CLEAN\nClaims checked: 2\nVerified: 2\nDiscrepancies: 0\nContradictions: 0\nOracle score: 1.0\nLatency: 0.8ms",
+          "duration_ms": 4706.6,
+          "error": ""
+        },
+        {
+          "name": "dof benchmark --category governance",
+          "passed": true,
+          "detail": "Category                  FDR      FPR       F1  Tests\n------------------------------------------------------\ngovernance            100.0%    0.0%  100.0%    100\n--------------------------------------",
+          "duration_ms": 4745.0,
+          "error": ""
+        }
+      ]
+    },
+    {
+      "name": "Quick Functions",
+      "passed": true,
+      "total": 8,
+      "pass_count": 8,
+      "fail_count": 0,
+      "duration_ms": 651.8,
+      "checks": [
+        {
+          "name": "verify(clean_text)",
+          "passed": true,
+          "detail": "status=pass, score=0.38, latency=1.18ms",
+          "duration_ms": 1.2,
+          "error": ""
+        },
+        {
+          "name": "verify(empty)",
+          "passed": true,
+          "detail": "status=blocked, violations=2",
+          "duration_ms": 0.3,
+          "error": ""
+        },
+        {
+          "name": "verify_code(safe)",
+          "passed": true,
+          "detail": "score=1.0, passed=True",
+          "duration_ms": 0.2,
+          "error": ""
+        },
+        {
+          "name": "verify_code(eval)",
+          "passed": true,
+          "detail": "score=0.75, violations=[{'rule_id': 'UNSAFE_CALLS', 'severity': 'block', 'line_number': 1, 'code_snippet': \"eval('hack')\", 'message': \"Unsafe call: 'eval()'\"}]",
+          "duration_ms": 0.2,
+          "error": ""
+        },
+        {
+          "name": "check_facts(correct)",
+          "passed": true,
+          "detail": "status=CLEAN, score=1.0",
+          "duration_ms": 0.2,
+          "error": ""
+        },
+        {
+          "name": "check_facts(wrong_year)",
+          "passed": true,
+          "detail": "status=DISCREPANCY_FOUND, discrepancies=1",
+          "duration_ms": 0.1,
+          "error": ""
+        },
+        {
+          "name": "prove()",
+          "passed": true,
+          "detail": "verified=True, theorems=4, total_ms=6.27",
+          "duration_ms": 6.3,
+          "error": ""
+        },
+        {
+          "name": "health()",
+          "passed": true,
+          "detail": "available=16/16, version=0.2.0",
+          "duration_ms": 0.0,
+          "error": ""
+        }
+      ]
+    },
+    {
+      "name": "Unit Tests",
+      "passed": true,
+      "total": 1,
+      "pass_count": 1,
+      "fail_count": 0,
+      "duration_ms": 8242.8,
+      "checks": [
+        {
+          "name": "unittest discover (719 tests)",
+          "passed": true,
+          "detail": "719 tests in in 3.754s",
+          "duration_ms": 8242.8,
+          "error": ""
+        }
+      ]
+    },
+    {
+      "name": "E2E Tests",
+      "passed": true,
+      "total": 1,
+      "pass_count": 1,
+      "fail_count": 0,
+      "duration_ms": 6744.0,
+      "checks": [
+        {
+          "name": "e2e_test.py (54 tests)",
+          "passed": true,
+          "detail": "54/54 passed, 0 failed",
+          "duration_ms": 6744.0,
+          "error": ""
+        }
+      ]
+    },
+    {
+      "name": "Governance Benchmark",
+      "passed": true,
+      "total": 5,
+      "pass_count": 5,
+      "fail_count": 0,
+      "duration_ms": 46.1,
+      "checks": [
+        {
+          "name": "benchmark:governance",
+          "passed": true,
+          "detail": "FDR=100.0%, FPR=0.0%, F1=100.0%",
+          "duration_ms": 0.0,
+          "error": ""
+        },
+        {
+          "name": "benchmark:code_safety",
+          "passed": true,
+          "detail": "FDR=86.0%, FPR=0.0%, F1=92.5%",
+          "duration_ms": 0.0,
+          "error": ""
+        },
+        {
+          "name": "benchmark:hallucination",
+          "passed": true,
+          "detail": "FDR=90.0%, FPR=0.0%, F1=94.7%",
+          "duration_ms": 0.0,
+          "error": ""
+        },
+        {
+          "name": "benchmark:consistency",
+          "passed": true,
+          "detail": "FDR=100.0%, FPR=0.0%, F1=100.0%",
+          "duration_ms": 0.0,
+          "error": ""
+        },
+        {
+          "name": "benchmark:overall",
+          "passed": true,
+          "detail": "Overall F1=96.8% (threshold: 90%)",
+          "duration_ms": 0.0,
+          "error": ""
+        }
+      ]
+    },
+    {
+      "name": "Privacy Benchmark",
+      "passed": true,
+      "total": 5,
+      "pass_count": 5,
+      "fail_count": 0,
+      "duration_ms": 3.3,
+      "checks": [
+        {
+          "name": "privacy:PII_LEAK",
+          "passed": true,
+          "detail": "DR=0.0%, FPR=0.0%",
+          "duration_ms": 0.0,
+          "error": ""
+        },
+        {
+          "name": "privacy:API_KEY_LEAK",
+          "passed": true,
+          "detail": "DR=0.0%, FPR=0.0%",
+          "duration_ms": 0.0,
+          "error": ""
+        },
+        {
+          "name": "privacy:MEMORY_LEAK",
+          "passed": true,
+          "detail": "DR=0.0%, FPR=0.0%",
+          "duration_ms": 0.0,
+          "error": ""
+        },
+        {
+          "name": "privacy:TOOL_INPUT_LEAK",
+          "passed": true,
+          "detail": "DR=0.0%, FPR=0.0%",
+          "duration_ms": 0.0,
+          "error": ""
+        },
+        {
+          "name": "privacy:overall",
+          "passed": true,
+          "detail": "DR=71.0%, FPR=1.0%, F1=82.6%",
+          "duration_ms": 0.0,
+          "error": ""
+        }
+      ]
+    },
+    {
+      "name": "Z3 Formal Verification",
+      "passed": true,
+      "total": 5,
+      "pass_count": 5,
+      "fail_count": 0,
+      "duration_ms": 4.7,
+      "checks": [
+        {
+          "name": "Z3:GCR_INVARIANT",
+          "passed": true,
+          "detail": "result=VERIFIED",
+          "duration_ms": 1.2,
+          "error": ""
+        },
+        {
+          "name": "Z3:SS_FORMULA",
+          "passed": true,
+          "detail": "result=VERIFIED",
+          "duration_ms": 0.5,
+          "error": ""
+        },
+        {
+          "name": "Z3:SS_MONOTONICITY",
+          "passed": true,
+          "detail": "result=VERIFIED",
+          "duration_ms": 1.9,
+          "error": ""
+        },
+        {
+          "name": "Z3:SS_BOUNDARIES",
+          "passed": true,
+          "detail": "result=VERIFIED",
+          "duration_ms": 0.7,
+          "error": ""
+        },
+        {
+          "name": "Z3:all_verified",
+          "passed": true,
+          "detail": "verified=True, theorems=4",
+          "duration_ms": 0.0,
+          "error": ""
+        }
+      ]
+    },
+    {
+      "name": "Full Pipeline",
+      "passed": true,
+      "total": 6,
+      "pass_count": 6,
+      "fail_count": 0,
+      "duration_ms": 15.8,
+      "checks": [
+        {
+          "name": "pipeline:constitution",
+          "passed": true,
+          "detail": "passed=True, score=0.38, violations=[]",
+          "duration_ms": 0.0,
+          "error": ""
+        },
+        {
+          "name": "pipeline:ast_verifier",
+          "passed": true,
+          "detail": "ran_ok=True, score=0.0, violations=1",
+          "duration_ms": 0.1,
+          "error": ""
+        },
+        {
+          "name": "pipeline:data_oracle",
+          "passed": true,
+          "detail": "status=CLEAN, score=1.00",
+          "duration_ms": 0.3,
+          "error": ""
+        },
+        {
+          "name": "pipeline:z3",
+          "passed": true,
+          "detail": "verified=True, theorems=4",
+          "duration_ms": 3.2,
+          "error": ""
+        },
+        {
+          "name": "pipeline:memory",
+          "passed": true,
+          "detail": "status=warning, id=3e70d756...",
+          "duration_ms": 11.9,
+          "error": ""
+        },
+        {
+          "name": "pipeline:total",
+          "passed": true,
+          "detail": "total=15.5ms, layers=5: constitution(0ms) \u2192 ast(0ms) \u2192 data_oracle(0ms) \u2192 z3(3ms) \u2192 memory(12ms)",
+          "duration_ms": 0.0,
+          "error": ""
+        }
+      ]
+    }
+  ]
+}
