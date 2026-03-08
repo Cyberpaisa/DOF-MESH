@@ -48,7 +48,7 @@ python -m dof version                    # show version
 
 ## Contents
 
-[The Problem](#the-problem) · [Highlights](#highlights) · [Architecture](#architecture) · [Governance Layers](#seven-governance-layers) · [Z3 Verification](#formal-verification-z3) · [On-Chain](#on-chain-attestation) · [Benchmarks](#benchmark-results) · [Comparison](#comparison) · [Limitations](#honest-limitations) · [Citation](#citation)
+[The Problem](#the-problem) · [Highlights](#highlights) · [Architecture](#architecture) · [Governance Layers](#seven-governance-layers) · [Z3 Verification](#formal-verification-z3) · [On-Chain](#on-chain-attestation) · [Benchmarks](#benchmark-results) · [Comparison](#comparison) · [External Validation](#external-validation-google-colab) · [Limitations](#honest-limitations) · [Citation](#citation)
 
 ---
 
@@ -207,19 +207,17 @@ Combined trust score: 0.85 (governance 0.35 + safety 0.15 + infrastructure 0.15 
 
 ---
 
-## External Test Results
+## External Validation (Google Colab)
 
-Enterprise validation on Google Colab (external infrastructure, not the author's machine):
+Tested externally via `pip install dof-sdk==0.2.2` — zero internal dependencies.
 
-| Test | Result |
-|------|--------|
-| Z3 Proofs | 4/4 VERIFIED |
-| Governance | PASS |
-| AST Safety | PASS |
-| Fact Checking | PASS |
-| Benchmark F1 | 96.8% |
+| Test | Result | Time |
+|------|--------|------|
+| Z3 Formal Proofs (4/4) | VERIFIED | 19.25ms |
+| MerkleBatcher (plain text) | PASSED | 0.31ms |
+| Error Classifier (7/7 classes) | PASSED | 1.28ms |
 
-Full report: [`tests/external/dof_enterprise_report.json`](tests/external/dof_enterprise_report.json)
+Full reports: [`tests/external/dof_enterprise_report.json`](tests/external/dof_enterprise_report.json) (v0.2.1) and [`tests/external/dof_enterprise_report_v2.json`](tests/external/dof_enterprise_report_v2.json) (v0.2.2)
 
 ---
 

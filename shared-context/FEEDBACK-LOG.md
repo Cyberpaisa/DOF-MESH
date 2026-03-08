@@ -111,13 +111,13 @@ EventBus with InMemoryBackend (deque 10K) is the right Phase 8 prep. Abstract Ev
 ## Session: March 8, 2026 — Enterprise Colab Test (dof-sdk 0.2.1)
 
 ### #55: Runtime deps MUST be in required, not [dev]
-**Source:** Prueba externa Colab (dof-sdk 0.2.1)
-z3-solver and blake3 were in `[dev]` extras only. `pip install dof-sdk` on Colab installed without them → ImportError on first use. Fix: moved both to required dependencies in pyproject.toml (v0.2.1). Rule: ALWAYS verify that ALL runtime imports have corresponding entries in `dependencies`, not just `[dev]`. Test with a clean `pip install` on external infra before every PyPI release.
+**Fecha:** 2026-03-08 | **Source:** Prueba externa Colab (dof-sdk 0.2.1)
+Issue: z3-solver y blake3 no estaban en deps PyPI. Fix: Movidos a required en pyproject.toml v0.2.1. Regla: Todas las deps de runtime van en `required`, no en `[dev]`.
 
 ### #56: Public APIs must be tolerant to input format
-**Source:** Prueba externa Colab (dof-sdk 0.2.1)
-MerkleBatcher.add() expected hex-encoded strings. Passing plain text like `"Z3 proof VERIFIED"` caused `ValueError: non-hexadecimal number`. Fix (v0.2.2): auto-detect hex vs plain text, SHA256 hash plain text internally. Rule: SDK-facing APIs must never expose internal format requirements. If the user passes text, the SDK must handle it. Internal invariants are the SDK's problem, not the user's.
+**Fecha:** 2026-03-08 | **Source:** Prueba externa Colab (dof-sdk 0.2.1)
+Issue: MerkleBatcher.add() lanzaba ValueError con texto plano. Fix: Auto-hash SHA256 interno en v0.2.2. Regla: APIs publicas deben ser tolerantes al input del usuario.
 
 ### #57: Error classifier must cover ALL framework domains
-**Source:** Prueba externa Colab (dof-sdk 0.2.1)
-ErrorClass had only 4 categories (MODEL, INFRA, GOVERNANCE, UNKNOWN). Real errors from LLM token limits, API key failures, ChromaDB issues, hex parsing, and Z3 solver all fell into UNKNOWN. Fix (v0.2.2): expanded to 9 categories (added LLM_FAILURE, PROVIDER_FAILURE, MEMORY_FAILURE, HASH_FAILURE, Z3_FAILURE). Rule: UNKNOWN should only appear for genuinely unclassifiable errors. Every subsystem in the framework must have a corresponding error class.
+**Fecha:** 2026-03-08 | **Source:** Prueba externa Colab (dof-sdk 0.2.1)
+Issue: ErrorClass.UNKNOWN para patrones LLM/Provider/Memory/Hash/Z3. Fix: 9 categorias en v0.2.2 (era 4). Regla: El clasificador debe cubrir todos los dominios del sistema. UNKNOWN solo para errores genuinamente no clasificables.
