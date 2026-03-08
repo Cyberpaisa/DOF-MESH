@@ -217,6 +217,12 @@ except ImportError:
     Z3Verifier = None
 
 # ─────────────────────────────────────────────────────────────────────
+# OpenTelemetry Bridge (optional — requires opentelemetry-api)
+# ─────────────────────────────────────────────────────────────────────
+
+from core.otel_bridge import OTelBridge, LAYER_NAMES, METRIC_NAMES
+
+# ─────────────────────────────────────────────────────────────────────
 # Top-level convenience functions
 # ─────────────────────────────────────────────────────────────────────
 
@@ -351,4 +357,8 @@ __all__ = [
     "AgentLeakMapper",
     "PrivacyLeakGenerator",
     "PrivacyBenchmarkRunner",
+    # OpenTelemetry Bridge
+    "OTelBridge",
+    "LAYER_NAMES",
+    "METRIC_NAMES",
 ]

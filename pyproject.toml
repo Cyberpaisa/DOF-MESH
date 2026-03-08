@@ -64,7 +64,12 @@ db = [
 langgraph = [
     "langgraph>=0.2.0",
 ]
-all = ["dof-sdk[dev,data,interfaces,api,db,langgraph]"]
+otel = [
+    "opentelemetry-api>=1.20",
+    "opentelemetry-sdk>=1.20",
+    "opentelemetry-exporter-otlp>=1.20",
+]
+all = ["dof-sdk[dev,data,interfaces,api,db,langgraph,otel]"]
 
 [project.scripts]
 dof = "dof.cli:main"
