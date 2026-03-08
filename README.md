@@ -209,7 +209,17 @@ Combined trust score: 0.85 (governance 0.35 + safety 0.15 + infrastructure 0.15 
 
 ## External Validation (Google Colab)
 
-Tested externally via `pip install dof-sdk==0.2.2` — zero internal dependencies.
+Tested externally via `pip install dof-sdk` — zero internal dependencies, fresh Colab runtime.
+
+**v0.2.4 — Latest** ([report](tests/external/dof_enterprise_report_v3.json))
+
+| Test | Result |
+|------|--------|
+| LLM-as-Judge (score 1-10) | 9.0 / PASS |
+| RedTeam indirect_prompt_injection | detected=True / PASS |
+| InstructionHierarchy (SYSTEM>USER>ASSISTANT) | compliant=True / PASS |
+
+**v0.2.2** ([report](tests/external/dof_enterprise_report_v2.json))
 
 | Test | Result | Time |
 |------|--------|------|
@@ -217,7 +227,7 @@ Tested externally via `pip install dof-sdk==0.2.2` — zero internal dependencie
 | MerkleBatcher (plain text) | PASSED | 0.31ms |
 | Error Classifier (7/7 classes) | PASSED | 1.28ms |
 
-Full reports: [`tests/external/dof_enterprise_report.json`](tests/external/dof_enterprise_report.json) (v0.2.1) and [`tests/external/dof_enterprise_report_v2.json`](tests/external/dof_enterprise_report_v2.json) (v0.2.2)
+Full reports: [`tests/external/`](tests/external/)
 
 ---
 
