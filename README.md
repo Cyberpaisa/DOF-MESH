@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://github.com/Cyberpaisa/deterministic-observability-framework/actions/workflows/ci.yml/badge.svg" alt="CI">
-  <img src="https://img.shields.io/badge/tests-774-green" alt="tests">
+  <img src="https://img.shields.io/badge/tests-779-green" alt="tests">
   <img src="https://img.shields.io/badge/Z3_proofs-4%2F4-blue" alt="Z3 proofs">
   <img src="https://img.shields.io/badge/attestations-21-red" alt="attestations">
   <img src="https://img.shields.io/pypi/v/dof-sdk" alt="PyPI">
