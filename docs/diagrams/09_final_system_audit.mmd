@@ -1,0 +1,104 @@
+flowchart TB
+    subgraph Final["DOF v0.2.0 — Final Audit Status"]
+        direction LR
+        V1["719 Tests\nALL PASS"]
+        V2["55/55 Audit\nALL GREEN"]
+        V3["CI GREEN\nGitHub Actions"]
+        V4["PyPI LIVE\nv0.2.0"]
+    end
+
+    subgraph SDK["SDK Layer"]
+        CLI["CLI\n8 commands"]
+        QF["Quick Functions\n7 functions"]
+        EXP["88 Exports"]
+    end
+
+    subgraph Gov["7 Governance Layers < 70ms"]
+        L1["L1 Constitution\n4 HARD + 5 SOFT\n< 1ms"]
+        L2["L2 AST Verifier\neval/exec/secrets\n< 1ms"]
+        L3{"L3 Supervisor\nACCEPT >= 7.0?"}
+        L4["L4 Z3 Proofs\n4/4 UNSAT\n~10ms"]
+        L5{"L5 Red vs Blue\nArbiter verdict?"}
+        L6[("L6 Memory Gov\nBi-temporal + decay")]
+        L7["L7 Signer\nBLAKE3 + HMAC"]
+    end
+
+    subgraph Engine["Execution Engine"]
+        DAG["ExecutionDAG\nCritical path"]
+        LG{"LoopGuard\nJaccard < 0.85?"}
+        DO["DataOracle\n6 strategies"]
+        TT["TokenTracker"]
+    end
+
+    subgraph Bench["Benchmarks"]
+        B1["Governance\nFDR 100% FPR 0%"]
+        B2["Code Safety\nFDR 86% FPR 0%"]
+        B3["Hallucination\nFDR 90% FPR 0%"]
+        B4["Consistency\nFDR 100% FPR 0%"]
+        B5["Privacy\nDR 71% FPR 1%"]
+        BF["Overall F1\n96.8%"]
+    end
+
+    subgraph Infra["Infrastructure"]
+        OTEL["OpenTelemetry\nOptional OTLP"]
+        EB["EventBus\n12 types 10K buffer"]
+        COLAB["Google Colab\nExternal validation"]
+    end
+
+    subgraph Pub["Publishing"]
+        PG[("PostgreSQL\n200ms")]
+        EN[("Enigma Scanner\n900ms")]
+        MK["MerkleTree\nN = 1 tx = $0.01"]
+        AV["Avalanche C-Chain\n21 attestations"]
+    end
+
+    subgraph Agents["Production Agents"]
+        AP(["Apex #1687 Rank #1"])
+        AB(["AvaBuilder #1686 Rank #2"])
+        SCAN["erc-8004scan.xyz\n1,772 agents"]
+    end
+
+    CLI --> QF
+    QF --> L1
+    L1 --> L2
+    L2 --> L3
+    L3 -->|"ACCEPT"| L4
+    L3 -->|"RETRY"| L1
+    L4 --> L5
+    L5 -->|"PASS"| L6
+    L5 -->|"FAIL"| L1
+    L6 --> L7
+    DO -.-> L1
+    DAG -.-> L1
+    LG -.-> L3
+    TT -.-> L3
+    L7 --> PG
+    L7 --> EN
+    L7 --> MK
+    MK --> AV
+    AP --> SCAN
+    AB --> SCAN
+    B1 --> BF
+    B2 --> BF
+    B3 --> BF
+    B4 --> BF
+    B5 --> BF
+
+    style V1 fill:#4ade80,stroke:#166534,color:#000
+    style V2 fill:#4ade80,stroke:#166534,color:#000
+    style V3 fill:#4ade80,stroke:#166534,color:#000
+    style V4 fill:#4ade80,stroke:#166534,color:#000
+    style AP fill:#FF6B35,stroke:#333,color:#fff
+    style AB fill:#FF6B35,stroke:#333,color:#fff
+    style L1 fill:#4ade80,stroke:#166534,color:#000
+    style L2 fill:#86efac,stroke:#166534,color:#000
+    style L3 fill:#fbbf24,stroke:#92400e,color:#000
+    style L4 fill:#22d3ee,stroke:#155e75,color:#000
+    style L5 fill:#f87171,stroke:#991b1b,color:#000
+    style L6 fill:#c084fc,stroke:#6b21a8,color:#fff
+    style L7 fill:#fcd34d,stroke:#92400e,color:#000
+    style BF fill:#22d3ee,stroke:#155e75,color:#000
+    style AV fill:#ef4444,stroke:#7f1d1d,color:#fff
+    style MK fill:#8b5cf6,stroke:#4c1d95,color:#fff
+    style SCAN fill:#3b82f6,stroke:#1e3a5f,color:#fff
+    style COLAB fill:#f59e0b,stroke:#92400e,color:#000
