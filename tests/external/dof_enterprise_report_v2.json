@@ -1,0 +1,65 @@
+{
+  "sdk_version": "0.2.2",
+  "results": {
+    "z3": {
+      "passed": 4,
+      "total": 4,
+      "ms": 19.25
+    },
+    "merkle": {
+      "status": "PASSED",
+      "leaves": 5,
+      "root": "9ccf3ea8d601288bfbccc23e087584c6ea8ed461e8b23a210743d2c614bc144d",
+      "ms": 0.31
+    },
+    "classifier": {
+      "passed": 7,
+      "total": 7,
+      "ms": 1.28,
+      "details": [
+        {
+          "msg": "LLM returned empty response",
+          "expected": "LLM_FAILURE",
+          "got": "ErrorClass.LLM_FAILURE",
+          "ok": true
+        },
+        {
+          "msg": "api_key invalid 401 unauthorized",
+          "expected": "PROVIDER_FAILURE",
+          "got": "ErrorClass.PROVIDER_FAILURE",
+          "ok": true
+        },
+        {
+          "msg": "chromadb embedding vector error",
+          "expected": "MEMORY_FAILURE",
+          "got": "ErrorClass.MEMORY_FAILURE",
+          "ok": true
+        },
+        {
+          "msg": "fromhex merkle blake3 hash error",
+          "expected": "HASH_FAILURE",
+          "got": "ErrorClass.HASH_FAILURE",
+          "ok": true
+        },
+        {
+          "msg": "z3 smt theorem proof failed",
+          "expected": "Z3_FAILURE",
+          "got": "ErrorClass.Z3_FAILURE",
+          "ok": true
+        },
+        {
+          "msg": "Connection timeout after 30s",
+          "expected": "INFRA_FAILURE",
+          "got": "ErrorClass.INFRA_FAILURE",
+          "ok": true
+        },
+        {
+          "msg": "Constitution violation PII detected",
+          "expected": "GOVERNANCE_FAILURE",
+          "got": "ErrorClass.GOVERNANCE_FAILURE",
+          "ok": true
+        }
+      ]
+    }
+  }
+}
