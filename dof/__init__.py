@@ -5,24 +5,17 @@ Thin public API wrapping the core/ modules. No files are moved;
 dof/ re-exports the existing infrastructure for external consumption.
 
 Quick start:
-    from dof import register, verify, Metrics, Constitution
+    from dof import GenericAdapter
+    result = GenericAdapter().wrap_output("your agent output here")
+    # → {status: "pass", violations: [], score: 8.5}
 
-    # Initialize governance from constitution YAML
-    register(constitution="dof.constitution.yml")
-
-    # Run formal Z3 proofs
-    results = verify()
-
-    # Access runtime metrics
-    metrics = Metrics()
-    report = metrics.compute_all(window=100)
-
-    # Access governance rules
-    constitution = Constitution()
-    result = constitution.check(output_text)
+    from dof.quick import verify, prove, benchmark
+    result = verify("Bitcoin was created in 2009")
+    proofs = prove()
+    bench = benchmark()
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 import os as _os
 
@@ -34,11 +27,13 @@ _BASE_DIR = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
 
 from core.governance import (
     ConstitutionEnforcer as Constitution,
+    ConstitutionEnforcer,
     GovernanceResult,
     load_constitution,
     get_constitution,
     HARD_RULES,
     SOFT_RULES,
+    PII_PATTERNS,
 )
 
 # ─────────────────────────────────────────────────────────────────────
@@ -213,6 +208,15 @@ from core.agentleak_benchmark import (
 )
 
 # ─────────────────────────────────────────────────────────────────────
+# Z3 Verifier (optional — requires z3-solver)
+# ─────────────────────────────────────────────────────────────────────
+
+try:
+    from core.z3_verifier import Z3Verifier
+except ImportError:
+    Z3Verifier = None
+
+# ─────────────────────────────────────────────────────────────────────
 # Top-level convenience functions
 # ─────────────────────────────────────────────────────────────────────
 
@@ -238,7 +242,8 @@ def verify() -> list:
     Returns:
         List of ProofResult objects from Z3Verifier.verify_all().
     """
-    from core.z3_verifier import Z3Verifier
+    if Z3Verifier is None:
+        raise ImportError("z3-solver is required: pip install z3-solver")
     verifier = Z3Verifier()
     return verifier.verify_all()
 
@@ -249,11 +254,13 @@ __all__ = [
     "verify",
     # Governance
     "Constitution",
+    "ConstitutionEnforcer",
     "GovernanceResult",
     "load_constitution",
     "get_constitution",
     "HARD_RULES",
     "SOFT_RULES",
+    "PII_PATTERNS",
     # Metrics
     "Metrics",
     "MetricResult",
@@ -276,6 +283,8 @@ __all__ = [
     "RedTeamAgent",
     "GuardianAgent",
     "DeterministicArbiter",
+    # Z3 (optional)
+    "Z3Verifier",
     # Contracts
     "TaskContract",
     "ContractResult",
