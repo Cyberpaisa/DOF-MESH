@@ -19,7 +19,7 @@ class TestDOFImports(unittest.TestCase):
 
     def test_version(self):
         from dof import __version__
-        self.assertEqual(__version__, "0.2.2")
+        self.assertEqual(__version__, "0.2.4")
 
     def test_governance_exports(self):
         from dof import (
