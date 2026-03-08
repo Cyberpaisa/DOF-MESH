@@ -1,3 +1,18 @@
+## [0.2.5] — 2026-03-08
+
+### Added
+- `dof/x402_gateway.py` — x402 Trust Gateway con verificación formal DOF
+  - `TrustGateway`: intercepta x402 payment requests, corre checks determinísticos
+  - `GatewayVerdict`: ALLOW / WARN / BLOCK + governance_score + evidence
+  - Checks: adversarial_scan, hallucination_scan, pii_scan, response_structure
+  - DOF SDK integration: ConstitutionEnforcer + RedTeamAgent (opcional)
+  - `EnigmaBridge`: publicación opcional de score a Enigma Scanner on-chain
+  - `verify_batch()`: verificación de múltiples requests
+  - Zero LLM en el path crítico — 100% determinístico
+
+### Tests
+- `tests/test_x402_gateway.py` — 27 passed, 1 xfailed
+
 # Changelog
 
 All notable changes to DOF. Format follows [Keep a Changelog](https://keepachangelog.com/).
