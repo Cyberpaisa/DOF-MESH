@@ -1,0 +1,57 @@
+{
+  "sdk_version": "0.2.1",
+  "test_date": "2026-03-08T04:27:55.999891Z",
+  "environment": "Google Colab (external user)",
+  "install_method": "pip install dof-sdk==0.2.1",
+  "results": {
+    "BLOQUE_1_Z3_proofs": {
+      "status": "PASSED",
+      "proofs_verified": 4,
+      "proofs_failed": 0,
+      "time_ms": 24.21,
+      "theorems": [
+        "GCR_INVARIANT",
+        "SS_FORMULA",
+        "SS_MONOTONICITY",
+        "SS_BOUNDARIES"
+      ]
+    },
+    "BLOQUE_2_error_classification": {
+      "status": "PASSED",
+      "cases_total": 10,
+      "classified_correctly": 10,
+      "time_ms": 1.75,
+      "note": "INFRA_FAILURE + GOVERNANCE_FAILURE OK. UNKNOWN class needs more patterns."
+    },
+    "BLOQUE_3_merkle_batcher": {
+      "status": "PASSED",
+      "evidences_batched": 10,
+      "root_hash": "ee90549ae2e027e81cf6376c6435ee831360bde51bf914dbea237eb7c225e39c",
+      "time_ms": 1.56,
+      "note": "MerkleBatcher requires pre-hashed hex inputs \u2014 document in README"
+    }
+  },
+  "issues_found": [
+    {
+      "severity": "HIGH",
+      "issue": "z3-solver not in package deps",
+      "status": "FIXED in 0.2.1"
+    },
+    {
+      "severity": "HIGH",
+      "issue": "blake3 not in package deps",
+      "status": "FIXED in 0.2.1"
+    },
+    {
+      "severity": "MEDIUM",
+      "issue": "MerkleBatcher.add() requires hex string, not plain text",
+      "status": "OPEN \u2014 needs docs or auto-hash"
+    },
+    {
+      "severity": "LOW",
+      "issue": "ErrorClass.UNKNOWN for several valid error patterns",
+      "status": "OPEN \u2014 needs more classification patterns"
+    }
+  ],
+  "verdict": "APPROVED \u2014 core functionality verified externally"
+}
