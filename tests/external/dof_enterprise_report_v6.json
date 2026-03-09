@@ -1,0 +1,52 @@
+{
+  "report_version": "v6",
+  "dof_version": "0.3.3",
+  "date": "2026-03-09T19:27:28",
+  "environment": "Google Colab",
+  "source": "PyPI (pip install dof-sdk==0.3.3)",
+  "verdict": "APPROVED",
+  "total_pass": 10,
+  "total_blocks": 10,
+  "blocks": {
+    "B1": {
+      "name": "Z3 Static Proofs (4 theorems)",
+      "pass": true
+    },
+    "B2": {
+      "name": "Z3 State Transitions (8 invariants)",
+      "pass": true
+    },
+    "B3": {
+      "name": "Z3 Hierarchy (42 patterns)",
+      "pass": true
+    },
+    "B4": {
+      "name": "Z3 Gate (neurosymbolic)",
+      "pass": true
+    },
+    "B5": {
+      "name": "Proof Hash (deterministic)",
+      "pass": true
+    },
+    "B6": {
+      "name": "Error Classification (11 cat)",
+      "pass": true
+    },
+    "B7": {
+      "name": "Merkle Batcher",
+      "pass": true
+    },
+    "B8": {
+      "name": "Red Team + Threats (12 cat)",
+      "pass": true
+    },
+    "B9": {
+      "name": "enforce_hierarchy",
+      "pass": true
+    },
+    "B10": {
+      "name": "x402 Trust Gateway",
+      "pass": true
+    }
+  }
+}

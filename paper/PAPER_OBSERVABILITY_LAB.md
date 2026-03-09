@@ -1851,6 +1851,33 @@ DOF v0.2.8 was validated externally via Google Colab on 2026-03-09. The audit in
 
 **Verdict: APPROVED.** BLOQUE 4 gap (indirect injection phrases undetected in v0.2.7) closed by adding 2 missing patterns. BLOQUE 5 gap (privilege escalation phrases) closed in v0.2.6. All 6/6 blocks pass with 3/3 coverage in previously failing sub-tests.
 
+### 31.4 External Validation (Enterprise Report v6 — v0.3.3)
+
+DOF v0.3.3 was validated externally via Google Colab on 2026-03-09. The audit installed `dof-sdk==0.3.3` from PyPI and executed 10 validation blocks — the most comprehensive external validation to date:
+
+| Block | Component                                | Result |
+|:------|:-----------------------------------------|:------:|
+| B1    | Z3 Static Proofs — 4 theorems            | PASS   |
+| B2    | Z3 State Transitions — 8 invariants      | PASS   |
+| B3    | Z3 Hierarchy — 42 patterns               | PASS   |
+| B4    | Z3 Gate — neurosymbolic validation       | PASS   |
+| B5    | Proof Hash — deterministic serialization | PASS   |
+| B6    | Error Classification — 8/8 categories    | PASS   |
+| B7    | Merkle Batcher — 10 attestations batched | PASS   |
+| B8    | Red Team + Threats — 3/3 detected        | PASS   |
+| B9    | enforce_hierarchy — instruction priority  | PASS   |
+| B10   | x402 Trust Gateway — ALLOW/BLOCK         | PASS   |
+
+**Verdict: APPROVED** — 10/10 blocks passed. First external validation of trust-by-proof features.
+
+### 31.5 Lessons Learned (v0.3.3)
+
+- `ProofSerializer.serialize_proof()` requires 3 args: `solver_assertions` (list), `result` (str), `invariants` (list)
+- `MerkleBatcher` API: `add(str)` → `flush()` → `batches`; `queue_size` is property not method
+- `classify_error` patterns are exact: use `"bad request"` for MODEL\_FAILURE, `"embedding"` for MEMORY\_FAILURE
+- `persuasion_jailbreak` needs keyword `"developer mode"` or `"no restrictions"` to trigger detection
+- Enterprise Report v6 validates 10 blocks (vs 6 in v5) — most comprehensive external validation
+
 ---
 
 ## 32. Neurosymbolic Formal Verification Layer (v0.3.x)
