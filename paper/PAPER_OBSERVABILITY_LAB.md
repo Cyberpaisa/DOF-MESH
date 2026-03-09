@@ -1711,6 +1711,21 @@ DOF v0.2.6 was validated externally via Google Colab on 2026-03-08 by an indepen
 - Simple pattern detection does not capture compound threats — reading env vars is not dangerous, making POST requests is not dangerous, but both together constitute exfiltration. `composite_detection` resolves this without full taint analysis.
 - Payloads encoded in base64 evade all pattern matchers. A second decoding pass before scanning closes this entire class of evasion.
 
+### 31.3 External Validation (Enterprise Report v5 — v0.2.8)
+
+DOF v0.2.8 was validated externally via Google Colab on 2026-03-09. The audit installed `dof-sdk==0.2.8` from PyPI and re-executed 6 validation blocks:
+
+| Block | Component | Result |
+|-------|-----------|--------|
+| B1 | Z3 Formal Verification — 4 theorems | PASS |
+| B2 | Error Classification — 8/8 categories | PASS |
+| B3 | Merkle Batcher — 10 attestations → 1 root | PASS |
+| B4 | Red Team + LLM-as-Judge (Groq 8.5/10) — gap cerrado 3/3 | PASS |
+| B5 | enforce_hierarchy — gap cerrado 3/3 | PASS |
+| B6 | x402 Trust Gateway — ALLOW/BLOCK verified | PASS |
+
+**Verdict: APPROVED.** BLOQUE 4 gap (indirect injection phrases undetected in v0.2.7) closed by adding 2 missing patterns. BLOQUE 5 gap (privilege escalation phrases) closed in v0.2.6. All 6/6 blocks pass with 3/3 coverage in previously failing sub-tests.
+
 ---
 
 ## References
