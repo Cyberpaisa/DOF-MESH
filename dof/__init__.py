@@ -268,6 +268,12 @@ except ImportError:
 from core.otel_bridge import OTelBridge, LAYER_NAMES, METRIC_NAMES
 
 # ─────────────────────────────────────────────────────────────────────
+# Regression Tracker (v0.3.3)
+# ─────────────────────────────────────────────────────────────────────
+
+from core.regression_tracker import RegressionTracker, RegressionReport, ChangeType
+
+# ─────────────────────────────────────────────────────────────────────
 # Event Stream
 # ─────────────────────────────────────────────────────────────────────
 
@@ -439,6 +445,10 @@ __all__ = [
     "InMemoryBackend",
     "EventType",
     "Event",
+    # Regression Tracker
+    "RegressionTracker",
+    "RegressionReport",
+    "ChangeType",
 ]
 
 from dof.x402_gateway import TrustGateway, GatewayVerdict, GatewayAction
