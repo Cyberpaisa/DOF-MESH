@@ -154,25 +154,25 @@ Z3 is cross-cutting in v0.3.x: gates Meta-Supervisor decisions, validates Red/Bl
 
 ### Static Proofs (v0.2.x)
 
-| Theorem | Math | Z3 Result |
-|---------|------|-----------|
-| GCR Invariant | ∀f∈[0,1]: GCR(f)=1.0 | PROVEN |
-| SS Cubic | ∀f∈[0,1]: SS(f)=1−f³ | PROVEN |
-| SS Monotonicity | f₁<f₂ ⟹ SS(f₁)>SS(f₂) | PROVEN |
-| SS Boundaries | SS(0)=1.0 ∧ SS(1)=0.0 | PROVEN |
+| Theorem         | Math                      | Z3 Result |
+|-----------------|---------------------------|-----------|
+| GCR Invariant   | ∀f∈[0,1]: GCR(f)=1.0      | PROVEN    |
+| SS Cubic        | ∀f∈[0,1]: SS(f)=1−f³      | PROVEN    |
+| SS Monotonicity | f₁<f₂ ⟹ SS(f₁)>SS(f₂)    | PROVEN    |
+| SS Boundaries   | SS(0)=1.0 ∧ SS(1)=0.0     | PROVEN    |
 
 ### Dynamic Invariants (v0.3.x)
 
-| ID | Invariant | Status |
-|----|-----------|--------|
-| INV-1 | Threat detected → publish blocked | PROVEN |
-| INV-2 | Low trust → no attestation | PROVEN |
-| INV-3 | No hierarchy jumps without auth | PROVEN |
-| INV-4 | Trust score always in [0,1] | PROVEN |
-| INV-5 | Cooldown prevents re-publish | PROVEN |
-| INV-6 | Governor requires trust > 0.8 | PROVEN |
-| INV-7 | SS(f)=1−f³ consistency | PROVEN |
-| INV-8 | Governance violation → auto-demote | PROVEN |
+| ID    | Invariant                            | Status |
+|-------|--------------------------------------|--------|
+| INV-1 | Threat detected → publish blocked    | PROVEN |
+| INV-2 | Low trust → no attestation           | PROVEN |
+| INV-3 | No hierarchy jumps without auth      | PROVEN |
+| INV-4 | Trust score always in [0,1]          | PROVEN |
+| INV-5 | Cooldown prevents re-publish         | PROVEN |
+| INV-6 | Governor requires trust > 0.8        | PROVEN |
+| INV-7 | SS(f)=1−f³ consistency               | PROVEN |
+| INV-8 | Governance violation → auto-demote   | PROVEN |
 
 42 hierarchy patterns verified in 4.9ms. Total: 107.7ms for all proofs.
 
