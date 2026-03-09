@@ -69,6 +69,7 @@ from core.observability import (
 # ─────────────────────────────────────────────────────────────────────
 
 from core.ast_verifier import ASTVerifier
+from core.entropy_detector import EntropyDetector
 
 # ─────────────────────────────────────────────────────────────────────
 # Adversarial Evaluation
@@ -341,6 +342,7 @@ __all__ = [
     "TokenTracker",
     # Verification
     "ASTVerifier",
+    "EntropyDetector",
     "AdversarialEvaluator",
     "RedTeamAgent",
     "GuardianAgent",

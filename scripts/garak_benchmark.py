@@ -27,6 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from core.adversarial import RedTeamAgent, DOFThreatPatterns
 from core.governance import ConstitutionEnforcer
 from core.ast_verifier import ASTVerifier
+from core.entropy_detector import EntropyDetector
 
 PAYLOAD_DIR = "data/garak_payloads"
 OUTPUT_FILE = "tests/external/garak_benchmark_results.json"
@@ -35,6 +36,7 @@ OUTPUT_FILE = "tests/external/garak_benchmark_results.json"
 red = RedTeamAgent()
 enforcer = ConstitutionEnforcer()
 ast_verifier = ASTVerifier()
+entropy_detector = EntropyDetector()
 
 # DOFThreatPatterns pattern keys for manual scanning
 THREAT_PATTERNS = DOFThreatPatterns.PATTERNS if hasattr(DOFThreatPatterns, 'PATTERNS') else {}
@@ -144,6 +146,15 @@ def detect_payload(text):
                 return True, detectors
         except Exception:
             pass
+
+    # 9. EntropyDetector — suffix/GCG attacks (v0.3.3)
+    try:
+        r = entropy_detector.detect(text)
+        if r.is_anomalous:
+            detectors.append("entropy")
+            return True, detectors
+    except Exception:
+        pass
 
     return False, detectors
 

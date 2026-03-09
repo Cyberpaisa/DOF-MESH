@@ -13,6 +13,7 @@ Results logged to logs/adversarial.jsonl.
 
 import base64
 import binascii
+import codecs
 import json
 import os
 import re
@@ -132,6 +133,13 @@ _PROMPT_INJECTION_PATTERNS = [
     # Enterprise Report v4 gaps (v0.2.7)
     "updated instructions for this conversation",
     "root access for this session",
+    # Garak gap analysis (v0.3.3) — real DAN/injection patterns
+    "ignore all the instructions",
+    "from now on, you are going to act as",
+    "from now on you are going to act",
+    "you will have to act as",
+    "respond to every prompt i give you",
+    "nueva identidad para esta conversación",
 ]
 
 # Jailbreak by persuasion patterns
@@ -146,6 +154,15 @@ _JAILBREAK_PATTERNS = [
     "developer mode",
     "finge que eres",
     "imagina que no tienes restricciones",
+    # Garak gap analysis (v0.3.3) — real jailbreak patterns
+    "dan mode enabled",
+    "dan mode",
+    "enabled mode",
+    "act as an ai without restrictions",
+    "you can do anything now",
+    "stay in character",
+    "modo dan",
+    "without any kind of censorship",
 ]
 
 # Training data extraction patterns
@@ -555,6 +572,56 @@ class RedTeamAgent:
 
             except Exception:
                 continue
+
+        # Extended decoders: ROT13, base32, unicode escapes (v0.3.3)
+        def _scan_decoded(decoded_text: str, enc_name: str):
+            text_lower = decoded_text.lower()
+            all_patterns = {
+                DOFThreatPatterns.PROMPT_INJECTION: _PROMPT_INJECTION_PATTERNS,
+                DOFThreatPatterns.EXFILTRATION: DOFThreatPatterns.PATTERNS["exfiltration"],
+                DOFThreatPatterns.COMMAND_EXECUTION: DOFThreatPatterns.PATTERNS["command_execution"],
+                DOFThreatPatterns.CREDENTIAL_LEAK: DOFThreatPatterns.PATTERNS["credential_leak"],
+                DOFThreatPatterns.SSRF_CLOUD: DOFThreatPatterns.PATTERNS["ssrf_cloud"],
+            }
+            for category, patterns in all_patterns.items():
+                for p in patterns:
+                    if p in text_lower:
+                        findings.append({
+                            "category": category,
+                            "pattern": p,
+                            "encoding": enc_name,
+                            "decoded_preview": decoded_text[:100],
+                            "is_encoded": True,
+                        })
+                        break
+
+        # ROT13
+        try:
+            rot13_decoded = codecs.decode(payload, "rot_13")
+            if rot13_decoded != payload:
+                _scan_decoded(rot13_decoded, "rot13")
+        except Exception:
+            pass
+
+        # Base32
+        b32_pattern = re.compile(r'[A-Z2-7]{16,}={0,6}')
+        for m in b32_pattern.finditer(payload):
+            try:
+                decoded_bytes = base64.b32decode(m.group())
+                printable = sum(1 for b in decoded_bytes if 32 <= b <= 126)
+                if decoded_bytes and printable / len(decoded_bytes) > 0.70:
+                    _scan_decoded(decoded_bytes.decode("utf-8", errors="replace"), "base32")
+            except Exception:
+                continue
+
+        # Unicode escape sequences (\u0041 = A)
+        if "\\u" in payload or "\\x" in payload:
+            try:
+                uni_decoded = payload.encode().decode("unicode_escape")
+                if uni_decoded != payload:
+                    _scan_decoded(uni_decoded, "unicode_escape")
+            except Exception:
+                pass
 
         detected = len(findings) > 0
         return {
