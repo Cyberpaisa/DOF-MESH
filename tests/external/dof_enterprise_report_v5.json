@@ -1,0 +1,17 @@
+{
+  "version": "0.2.8",
+  "fecha": "2026-03-09T01:14:41.533313+00:00",
+  "auditor": "Google Colab — External",
+  "bloques": {
+    "B1_z3_formal": "PASS",
+    "B2_error_classification": "PASS",
+    "B3_merkle_batcher": "PASS",
+    "B4_red_team_llm_judge": "PASS",
+    "B5_enforce_hierarchy": "PASS",
+    "B6_x402_gateway": "PASS"
+  },
+  "merkle_root": "b5f51c38fcca9020c667f248ce5f4bbdf5c8ab1d188f806a3d9cca08e32be570",
+  "llm_judge_score": 8.5,
+  "gateway_3_3": true,
+  "verdict": "APPROVED"
+}
