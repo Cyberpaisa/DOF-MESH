@@ -1,0 +1,69 @@
+name: Z3 Formal Verification
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'core/state_model.py'
+      - 'core/transitions.py'
+      - 'core/hierarchy_z3.py'
+      - 'core/z3_gate.py'
+      - 'core/z3_verifier.py'
+      - 'core/governance.py'
+      - 'tests/test_transitions.py'
+      - 'tests/test_hierarchy_z3.py'
+      - 'tests/test_z3_gate.py'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  z3-verify:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install z3-solver pyyaml python-dotenv rich blake3
+
+    - name: Install dof package
+      run: pip install -e . --no-deps
+
+    - name: Run Z3 state transition verification (8 invariants)
+      run: python -m dof verify-states
+
+    - name: Run Z3 hierarchy verification (42 patterns)
+      run: python -m dof verify-hierarchy
+
+    - name: Run Z3 theorem verification (4 theorems)
+      run: |
+        python -c "
+        from dof import verify
+        results = verify()
+        for r in results:
+            print(f'  {r.result}  {r.theorem_name}  ({r.proof_time_ms:.2f}ms)')
+        assert all(r.result == 'VERIFIED' for r in results), 'Z3 verification failed'
+        print('All 4 theorems verified')
+        "
+
+    - name: Run Z3 unit tests
+      run: |
+        python -m unittest \
+          tests.test_state_model \
+          tests.test_transitions \
+          tests.test_hierarchy_z3 \
+          tests.test_z3_gate \
+          tests.test_agent_output \
+          tests.test_boundary \
+          tests.test_z3_test_generator \
+          -v

@@ -15,7 +15,7 @@ Quick start:
     bench = benchmark()
 """
 
-__version__ = "0.2.8"
+__version__ = "0.3.3"
 
 import os as _os
 
@@ -208,6 +208,21 @@ from core.agentleak_benchmark import (
 )
 
 # ─────────────────────────────────────────────────────────────────────
+# Z3 Test Generator + Boundary Engine (v0.3.2)
+# ─────────────────────────────────────────────────────────────────────
+
+from core.z3_test_generator import Z3TestGenerator, GenerationReport
+from core.boundary import BoundaryEngine
+
+# ─────────────────────────────────────────────────────────────────────
+# Z3 Proof Attestations (v0.3.3)
+# ─────────────────────────────────────────────────────────────────────
+
+from core.z3_proof import Z3ProofAttestation
+from core.proof_hash import ProofSerializer
+from core.proof_storage import ProofStorage
+
+# ─────────────────────────────────────────────────────────────────────
 # Z3 Verifier (optional — requires z3-solver)
 # ─────────────────────────────────────────────────────────────────────
 
@@ -215,6 +230,35 @@ try:
     from core.z3_verifier import Z3Verifier
 except ImportError:
     Z3Verifier = None
+
+# ─────────────────────────────────────────────────────────────────────
+# Z3 State Verification (v0.3.0)
+# ─────────────────────────────────────────────────────────────────────
+
+try:
+    from core.state_model import DOFAgentState
+    from core.transitions import TransitionVerifier, TransitionType, VerificationResult
+    from core.hierarchy_z3 import HierarchyZ3
+except ImportError:
+    DOFAgentState = None
+    TransitionVerifier = None
+    TransitionType = None
+    VerificationResult = None
+    HierarchyZ3 = None
+
+# ─────────────────────────────────────────────────────────────────────
+# Z3 Gate (v0.3.1)
+# ─────────────────────────────────────────────────────────────────────
+
+try:
+    from core.z3_gate import Z3Gate, GateResult, GateVerification
+    from core.agent_output import AgentOutput, OutputType
+except ImportError:
+    Z3Gate = None
+    GateResult = None
+    GateVerification = None
+    AgentOutput = None
+    OutputType = None
 
 # ─────────────────────────────────────────────────────────────────────
 # OpenTelemetry Bridge (optional — requires opentelemetry-api)
@@ -303,6 +347,12 @@ __all__ = [
     "DeterministicArbiter",
     # Z3 (optional)
     "Z3Verifier",
+    # Z3 State Verification (v0.3.0)
+    "DOFAgentState",
+    "TransitionVerifier",
+    "TransitionType",
+    "VerificationResult",
+    "HierarchyZ3",
     # Contracts
     "TaskContract",
     "ContractResult",
@@ -369,6 +419,14 @@ __all__ = [
     "AgentLeakMapper",
     "PrivacyLeakGenerator",
     "PrivacyBenchmarkRunner",
+    # Z3 Test Generator + Boundary Engine (v0.3.2)
+    "Z3TestGenerator",
+    "GenerationReport",
+    "BoundaryEngine",
+    # Z3 Proof Attestations (v0.3.3)
+    "Z3ProofAttestation",
+    "ProofSerializer",
+    "ProofStorage",
     # OpenTelemetry Bridge
     "OTelBridge",
     "LAYER_NAMES",
