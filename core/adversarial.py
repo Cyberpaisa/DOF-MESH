@@ -129,6 +129,9 @@ _PROMPT_INJECTION_PATTERNS = [
     "you are now operating as",
     "disregard your training",
     "acting as an unrestricted",
+    # Enterprise Report v4 gaps (v0.2.7)
+    "updated instructions for this conversation",
+    "root access for this session",
 ]
 
 # Jailbreak by persuasion patterns
@@ -228,6 +231,8 @@ class DOFThreatPatterns:
             "as the system prompt instructs", "override previous context",
             "you are now operating as", "disregard your training",
             "acting as an unrestricted",
+            "updated instructions for this conversation",
+            "root access for this session",
         ],
         "unicode_attack": [
             "\u200b", "\u200c", "\u200d", "\u2060", "\ufeff",
