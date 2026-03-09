@@ -258,6 +258,85 @@ def cmd_verify_hierarchy(args):
         sys.exit(1)
 
 
+def cmd_regression_baseline(args):
+    """Capture current state as regression baseline."""
+    from core.regression_tracker import RegressionTracker
+
+    tracker = RegressionTracker()
+    baseline = tracker.capture_baseline()
+
+    if args.json:
+        print(json.dumps(baseline, indent=2, default=str))
+        return
+
+    print(f"Regression baseline captured — {baseline['git_commit']}")
+    print(f"  Z3 invariants: {baseline['z3_invariants']['proven_count']}/{baseline['z3_invariants']['total_count']} PROVEN")
+    print(f"  Z3 hierarchy:  {baseline['z3_hierarchy']['status']}")
+    print(f"  Tests:         {baseline['tests']['passed']} passed, {baseline['tests']['failures']} failed")
+    garak = baseline["garak"]
+    if garak.get("available"):
+        print(f"  Garak:         {garak['overall_detection_rate']}% ({garak['total_payloads']} payloads)")
+    else:
+        print(f"  Garak:         N/A (no results file)")
+    print(f"\n  Saved: {tracker.BASELINE_FILE}")
+
+
+def cmd_regression_check(args):
+    """Compare current state vs saved baseline."""
+    from core.regression_tracker import RegressionTracker
+
+    tracker = RegressionTracker()
+
+    try:
+        report = tracker.compare()
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        print("Run 'dof regression-baseline' first.")
+        sys.exit(1)
+
+    if args.json:
+        print(json.dumps(report.to_dict(), indent=2, default=str))
+        if report.has_regressions:
+            sys.exit(1)
+        return
+
+    print()
+    print(report.summary())
+    print()
+
+    if report.has_regressions:
+        sys.exit(1)
+
+
+def cmd_regression_history(args):
+    """Show last N regression reports."""
+    from core.regression_tracker import RegressionTracker
+
+    tracker = RegressionTracker()
+    history = tracker.get_history(n=args.count)
+
+    if not history:
+        print("No regression reports found.")
+        return
+
+    if args.json:
+        print(json.dumps(history, indent=2, default=str))
+        return
+
+    print(f"Last {len(history)} regression reports:\n")
+    for report in history:
+        commit = report.get("git_commit", "?")
+        base = report.get("baseline_commit", "?")
+        regs = report.get("regression_count", 0)
+        imps = report.get("improvement_count", 0)
+        stable = report.get("stable_count", 0)
+        has_reg = report.get("has_regressions", False)
+        ts = report.get("timestamp", "?")[:19]
+
+        icon = "FAIL" if has_reg else "PASS"
+        print(f"  {icon}  {commit} vs {base}  ({regs}R/{imps}I/{stable}S)  {ts}")
+
+
 def cmd_version(args):
     """Show version."""
     from dof import __version__
@@ -318,6 +397,19 @@ def main():
     # verify-hierarchy
     p_hier = subparsers.add_parser("verify-hierarchy", help="Z3 hierarchy enforcement verification")
     p_hier.set_defaults(func=cmd_verify_hierarchy)
+
+    # regression-baseline
+    p_regbase = subparsers.add_parser("regression-baseline", help="Capture regression baseline")
+    p_regbase.set_defaults(func=cmd_regression_baseline)
+
+    # regression-check
+    p_regcheck = subparsers.add_parser("regression-check", help="Compare vs baseline (exit 1 if regressions)")
+    p_regcheck.set_defaults(func=cmd_regression_check)
+
+    # regression-history
+    p_reghist = subparsers.add_parser("regression-history", help="Show regression report history")
+    p_reghist.add_argument("--count", type=int, default=10, help="Number of reports to show")
+    p_reghist.set_defaults(func=cmd_regression_history)
 
     # version
     p_ver = subparsers.add_parser("version", help="Show version")
