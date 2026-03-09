@@ -112,3 +112,22 @@ survives goal changes.
 
 **L-45: Enterprise Reports grow with the project.**
 v1-v3: 3-5 blocks. v4-v5: 6 blocks. v6: 10 blocks. Each version adds validation blocks for new features. The report is a living document that tracks capability growth.
+
+---
+
+## RegressionTracker + Garak External Benchmark (2026-03-09)
+
+**L-46: External benchmarks reveal what internal tests miss.**
+DOF internal F1 was 96.8% (400 self-generated tests). Against NVIDIA Garak's 12,229 payloads, detection dropped to 58.4%. The gap isn't a failure — it's the difference between testing what you thought to check vs what an adversary actually throws at you. Both numbers are valuable. Internal = coverage depth. External = coverage breadth.
+
+**L-47: Honest numbers build more trust than perfect numbers.**
+Publishing 58.4% (with the misses documented) builds more credibility than claiming 96.8% alone. The Garak benchmark shows exactly where DOF is strong (goodside 90%, malwaregen 82.5%) and where it's weak (suffix 11.5%, packagehallucination 17.6%). Evaluators respect honesty over polish.
+
+**L-48: Regression tracking must be automated, not manual.**
+Before RegressionTracker, checking if a merge improved or hurt DOF required running verify-states, verify-hierarchy, and tests manually and comparing mentally. Now `dof regression-check` does it in one command with exit code 1 on regressions. CI blocks bad merges automatically.
+
+**L-49: Four subsystems are enough to catch most regressions.**
+Z3 invariants (correctness), hierarchy patterns (security), test suite (functionality), Garak benchmark (adversarial resilience). These four dimensions cover the critical surface. Adding more subsystems later is easy — the tracker is extensible.
+
+**L-50: EntropyDetector catches a new class of attacks.**
+Shannon entropy + special char ratio + sliding window detects GCG/suffix attacks that regex can't see. Moved suffix detection from 0% to 11.5%. Not a complete solution, but a legitimate new detection signal that has value independent of any benchmark.

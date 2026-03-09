@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://github.com/Cyberpaisa/deterministic-observability-framework/actions/workflows/ci.yml/badge.svg" alt="CI">
-  <img src="https://img.shields.io/badge/tests-986%20passed-brightgreen" alt="tests">
+  <img src="https://img.shields.io/badge/tests-1008%20passed-brightgreen" alt="tests">
   <img src="https://img.shields.io/badge/Z3-8%2F8%20PROVEN-blue" alt="Z3 proofs">
   <img src="https://img.shields.io/badge/attestations-21-red" alt="attestations">
   <img src="https://img.shields.io/pypi/v/dof-sdk" alt="PyPI">
@@ -89,12 +89,15 @@ python -m dof privacy                   # privacy benchmark
 python -m dof health                    # component status
 python -m dof verify-states             # Z3 state transition verification (8/8 PROVEN)
 python -m dof verify-hierarchy          # hierarchy enforcement verification (42 patterns)
+python -m dof regression-baseline       # capture current state as regression baseline
+python -m dof regression-check          # compare vs baseline (exit 1 if regressed)
+python -m dof regression-history        # show last 10 regression reports
 python -m dof version                   # show version
 ```
 
 ### Key Exports
 
-`verify` · `classify_error` · `register` · `run_crew` · `MerkleBatcher` · `AdversarialEvaluator` · `RedTeamAgent` · `ConstitutionEnforcer` · `TrustGateway` · `Z3Gate` · `GateResult` · `TransitionVerifier` · `DOFAgentState` · `Z3ProofAttestation` · `ProofSerializer` · `ProofStorage`
+`verify` · `classify_error` · `register` · `run_crew` · `MerkleBatcher` · `AdversarialEvaluator` · `RedTeamAgent` · `ConstitutionEnforcer` · `TrustGateway` · `Z3Gate` · `GateResult` · `TransitionVerifier` · `DOFAgentState` · `Z3ProofAttestation` · `ProofSerializer` · `ProofStorage` · `RegressionTracker` · `RegressionReport` · `ChangeType` · `EntropyDetector`
 
 ## Contents
 
@@ -115,8 +118,10 @@ python -m dof version                   # show version
 - **Merkle batching** — 10,000 attestations = 1 tx ≈ $0.01
 - **Automated benchmark** — Governance 100%, Hallucination 90%, Consistency 100% FDR, 0% FPR
 - **Privacy benchmark** — 71% detection rate across 7 AgentLeak channels
+- **External benchmark** — 58.4% detection against 12,229 NVIDIA Garak payloads (12 categories)
+- **Regression tracking** — 4 subsystems monitored post-merge, CI blocks regressions automatically
 - **Framework agnostic** — CrewAI, LangGraph, AutoGen, or raw Python
-- **986 tests**, 27K+ LOC, 35 core modules, 40 contributions
+- **1,008 tests**, 27K+ LOC, 35 core modules, 13 CLI commands
 
 ---
 
@@ -190,6 +195,8 @@ Contract [`0x88f6...C052`](https://snowtrace.io/address/0x88f6043B091055Bbd896Fc
 
 Adversarial (400 tests): Gov 100%, Code 86%, Hallucination 90%, Consistency 100%. **Overall F1: 96.8%**. Zero FPR.
 
+External (NVIDIA Garak v0.14.0): **58.4% detection** against 12,229 payloads across 12 categories. DAN 63.4%, malwaregen 82.5%, goodside 90%. [Full results](tests/external/garak_benchmark_results.json).
+
 Production (n=30): SS=0.90, GCR=1.00, PFI=0.61, 27/30 ACCEPT. Two agents ranked **#1 and #2** of 1,772 on [erc-8004scan.xyz](https://erc-8004scan.xyz).
 
 ---
@@ -253,7 +260,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
          with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={27K+ LOC, 986 tests, 35 modules, 8 Z3 invariants PROVEN,
+  note={27K+ LOC, 1008 tests, 35 modules, 8 Z3 invariants PROVEN,
         42 hierarchy patterns, 21+ Avalanche attestations,
         neurosymbolic Z3 Gate, on-chain proof hash,
         BSL 1.1, pip install dof-sdk}
