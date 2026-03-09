@@ -1872,11 +1872,11 @@ DOF v0.3.3 was validated externally via Google Colab on 2026-03-09. The audit in
 
 ### 31.5 Lessons Learned (v0.3.3)
 
-- `ProofSerializer.serialize_proof()` requires 3 args: `solver_assertions` (list), `result` (str), `invariants` (list)
-- `MerkleBatcher` API: `add(str)` → `flush()` → `batches`; `queue_size` is property not method
-- `classify_error` patterns are exact: use `"bad request"` for MODEL\_FAILURE, `"embedding"` for MEMORY\_FAILURE
-- `persuasion_jailbreak` needs keyword `"developer mode"` or `"no restrictions"` to trigger detection
-- Enterprise Report v6 validates 10 blocks (vs 6 in v5) — most comprehensive external validation
+- `ProofSerializer.serialize_proof()` requires 3 args: `solver_assertions` (list), `result` (str), `invariants` (list) — None not accepted
+- `MerkleBatcher` API: `add(str)` → `flush()` → `batches`; `queue_size` is a property not a method; input must be strings not dicts
+- `classify_error` patterns are exact keyword matching: use `"bad request"` for MODEL\_FAILURE, `"embedding"` for MEMORY\_FAILURE, `"model not found"` maps to UNKNOWN
+- `persuasion_jailbreak` detection needs specific keywords like `"developer mode"` or `"no restrictions"` to trigger — generic phrasing returns LOW severity
+- Enterprise Report v6 validates 10 blocks (vs 6 in v5) — most comprehensive external validation to date
 
 ---
 
