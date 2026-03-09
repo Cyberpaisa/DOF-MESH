@@ -659,6 +659,33 @@ The `RedTeamAgent` exposes three dedicated attack simulation methods inspired by
 
 These methods complement the existing `analyze()` pipeline (which scans output passively) by enabling active probing: a test harness can construct adversarial payloads and verify that the detection patterns trigger correctly, producing measurable FDR/FPR metrics per attack category.
 
+### 9.7 DOFThreatPatterns — Compound Threat Taxonomy (v0.2.7)
+
+The Enterprise Report v4 (Section 31) revealed that individual pattern matching fails to detect threats that emerge only from the *combination* of benign-looking operations. Reading environment variables is legitimate; making HTTP POST requests is legitimate; but both in the same output constitute credential exfiltration. This gap motivated `DOFThreatPatterns`, a 12-category threat taxonomy for multi-agent LLM systems:
+
+| Category | Description | Example Pattern |
+|----------|-------------|-----------------|
+| `credential_leak` | API keys, passwords, tokens in output | `api_key`, `bearer `, `client_secret` |
+| `supply_chain` | Untrusted package installation | `curl \| bash`, `eval(requests.get` |
+| `prompt_injection` | Direct instruction override | `ignore previous instructions` |
+| `mcp_attack` | MCP protocol exploitation | `mcp://`, `tool_use`, `function_call` |
+| `external_download` | Downloading from untrusted sources | `wget `, `urllib.request.urlretrieve` |
+| `exfiltration` | Data exfiltration via HTTP | `requests.post(`, `webhook.site` |
+| `command_execution` | Arbitrary code execution | `os.system(`, `subprocess.run(` |
+| `ssrf_cloud` | Cloud metadata SSRF | `169.254.169.254`, `computeMetadata` |
+| `indirect_injection` | Indirect prompt injection via data | `override previous context` |
+| `unicode_attack` | Zero-width and BiDi control chars | `U+200B`, `U+202E` |
+| `cross_context_injection` | False context continuity claims | `you already agreed`, `as you told me before` |
+| `composite_detection` | Compound multi-signal threats | env\_read + POST, exec + network |
+
+**Composite Detection.** The `composite_detection(payload)` method detects three compound threat patterns that individual pattern matchers miss:
+
+1. **Credential exfiltration**: environment variable read (`os.environ`, `os.getenv`, `api_key`) combined with external POST (`requests.post(`, `webhook.site`) — severity CRITICAL.
+2. **Reverse shell**: command execution (`os.system(`, `subprocess.run(`) combined with network call (`socket(`, `requests.get(`) — severity CRITICAL.
+3. **Encoded payload execution**: base64 blob (≥20 chars matching `[A-Za-z0-9+/]{20,}`) combined with `eval()`/`exec()` — severity CRITICAL.
+
+**Decode and Scan.** The `decode_and_scan(payload)` method closes the encoded evasion gap. Adversarial payloads encoded in base64 or hex bypass all pattern matchers because the dangerous strings are not present in plaintext. The method: (1) extracts base64 and hex blobs from the payload, (2) decodes blobs where ≥70% of bytes are printable ASCII, (3) re-runs the full pattern detection suite on the decoded content, and (4) returns findings with `is_encoded=True`. This eliminates an entire class of evasion without requiring taint analysis or symbolic execution.
+
 ---
 
 ## 10. AST-Based Static Verification
@@ -1678,6 +1705,11 @@ DOF v0.2.6 was validated externally via Google Colab on 2026-03-08 by an indepen
 - `enforce_hierarchy` is not exported in PyPI — use `RedTeamAgent.indirect_prompt_injection`
 - Pattern matching is case-sensitive and exact — compound phrases need explicit pattern entries
 - External audit from PyPI is strongest credibility signal — zero local deps
+
+### 31.2 Lessons Learned (v0.2.7)
+
+- Simple pattern detection does not capture compound threats — reading env vars is not dangerous, making POST requests is not dangerous, but both together constitute exfiltration. `composite_detection` resolves this without full taint analysis.
+- Payloads encoded in base64 evade all pattern matchers. A second decoding pass before scanning closes this entire class of evasion.
 
 ---
 

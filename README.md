@@ -91,7 +91,8 @@ DOF solves this with 7 deterministic governance layers, formal Z3 proofs, and on
 - **Privacy benchmark** — 71% detection rate across 7 AgentLeak channels
 - **Framework agnostic** — CrewAI, LangGraph, AutoGen, or raw Python
 - **A2A server** (8 skills) + **MCP server** (10 tools) + **REST API** (14 endpoints)
-- **774 tests**, 27K+ LOC, 25 core modules, 40 contributions
+- **DOFThreatPatterns** — 12 threat categories, composite detection (env+POST=exfil, exec+network=revshell, b64+eval=encoded payload), decode_and_scan for encoded evasion
+- **779 tests**, 27K+ LOC, 25 core modules, 40 contributions
 
 ---
 
@@ -234,7 +235,7 @@ Full reports: [`tests/external/`](tests/external/)
          with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={27K+ LOC, 774 tests, 25 modules, 4 Z3 theorems,
+  note={27K+ LOC, 779 tests, 25 modules, 4 Z3 theorems,
         21 Avalanche attestations, BSL 1.1, pip install dof-sdk}
 }
 ```
