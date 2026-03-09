@@ -1,86 +1,127 @@
 # Getting Started with DOF
 
-## 30-Second Start (no API keys needed)
+## Installation (30 seconds)
 
 ```bash
-pip install -e .
-python -c "from dof import GenericAdapter; print(GenericAdapter().wrap_output('Hello world'))"
+pip install dof-sdk
 ```
 
-## 5-Minute Start
-
-### Install
-
-```bash
-git clone https://github.com/Cyberpaisa/deterministic-observability-framework.git
-cd deterministic-observability-framework
-pip install -e .
-```
-
-### Verify governance on any text
+## Quick Verification (1 minute)
 
 ```python
 from dof import GenericAdapter
 
 adapter = GenericAdapter()
-
-# Check any LLM output
-result = adapter.wrap_output("Your agent's output here")
-print(result)  # {status: "pass", score: 8.2, violations: []}
-
-# Check generated code
-result = adapter.wrap_code("print('hello')")
-print(result)  # {score: 1.0, violations: []}
+result = adapter.wrap_output("Your agent output here")
+print(result)
+# {'status': 'pass', 'violations': [], 'score': 8.5}
 ```
 
-### Run Z3 formal proofs
+## Z3 Formal Verification (2 minutes)
 
 ```python
 from dof import verify
-results = verify()
-print(results)  # 4 theorems VERIFIED
+
+# Verify all 4 static theorems
+proofs = verify()
+for p in proofs:
+    print(f"{p.theorem_name}: {p.result} ({p.proof_time_ms:.1f}ms)")
 ```
 
-### Run full quickstart
+## Z3 State Transition Verification (2 minutes)
+
+```python
+from dof import TransitionVerifier
+
+verifier = TransitionVerifier()
+results = verifier.verify_all()
+for inv_id, result in results.items():
+    print(f"{inv_id}: {result.status} ({result.verification_time_ms:.1f}ms)")
+# INV-1: PROVEN (12.3ms)
+# ... 8/8 PROVEN
+```
+
+## Z3 Gate — Validate Before Execute (3 minutes)
+
+```python
+from dof import Z3Gate, GateResult
+
+# Create gate with your constitution rules
+gate = Z3Gate(constitution_rules, timeout_ms=5000)
+
+# Validate a trust score assignment
+result = gate.validate_trust_score(
+    agent_id="my-agent-001",
+    proposed_score=0.95,
+    evidence={"tests_passed": True, "governance_compliant": True}
+)
+
+if result.result == GateResult.APPROVED:
+    print("Safe to execute — Z3 proved it")
+elif result.result == GateResult.REJECTED:
+    print(f"Blocked — counterexample: {result.counterexample}")
+```
+
+## x402 Trust Gateway (3 minutes)
+
+```python
+from dof import TrustGateway
+
+gateway = TrustGateway()
+verdict = gateway.verify(response_body=agent_response)
+print(f"Action: {verdict.action}")  # ALLOW / WARN / BLOCK
+print(f"Score: {verdict.governance_score}")
+```
+
+## On-Chain Proof Attestation (3 minutes)
+
+```python
+from dof import Z3ProofAttestation
+
+# Create attestation with proof hash
+proof = Z3ProofAttestation.from_gate_verification(
+    gate_result=result,
+    agent_id="my-agent-001",
+    trust_score=0.95
+)
+
+print(f"Proof hash: {proof.z3_proof_hash.hex()}")
+print(f"Verified: {proof.verify()}")  # True
+print(f"Invariants: {proof.invariants_verified}")  # ['INV-1', ..., 'INV-8']
+```
+
+## CLI Commands
 
 ```bash
-python examples/quickstart.py       # Governance + Z3 + metrics
-python examples/generic_example.py  # Framework-agnostic adapter
+dof verify "your text"     # Governance check
+dof prove                  # Z3 static proofs
+dof verify-states          # 8 dynamic invariants
+dof verify-hierarchy       # 42 hierarchy patterns
+dof health                 # Component status
+dof benchmark              # Adversarial benchmark
+dof privacy                # Privacy benchmark
+dof version                # Show version
 ```
 
-## Optional: Add LLM Providers
+## Architecture at a Glance
 
-```bash
-cp .env.example .env
-# Edit .env — minimum: GROQ_API_KEY (free at console.groq.com)
-python main.py  # Full interactive menu with 25 options
+```text
+5 Deterministic Layers (no LLM):
+  Constitution → AST → Z3 → Arbiter → LoopGuard
+
+2 LLM Layers (gated by Z3 in v0.3.x):
+  Meta-Supervisor → [Z3 Gate] → Execute
+  Red/Blue Output → [Z3 Gate] → Apply
+
+Attestation Pipeline:
+  PG (200ms) → Enigma (900ms) → Avalanche (2s) + DOFProofRegistry
+                                                    ↑
+                                            z3_proof_hash included
 ```
 
-## Optional: MCP Server (Claude Desktop / Cursor)
+## Next Steps
 
-```bash
-python mcp_server.py
-# Add to Claude Desktop config — see docs/MCP_SETUP.md
-```
-
-## Optional: REST API
-
-```bash
-pip install -e ".[api]"
-python -m api.server
-# API at http://localhost:8080, docs at http://localhost:8080/docs
-```
-
-## Optional: PostgreSQL (production)
-
-```bash
-pip install -e ".[db]"
-# Add to .env: DOF_DATABASE_URL=postgresql://...
-# Supports Supabase, Neon, or any PostgreSQL
-```
-
-## What DOF Does
-
-DOF is a governance verification system for AI agents. It proves mathematically (Z3 SMT solver) that governance compliance is an architectural invariant. See README.md for the full technical paper.
-
-No API keys needed for governance verification, Z3 proofs, AST analysis, and memory operations.
+- [Full Paper](../paper/PAPER_OBSERVABILITY_LAB.md) — 32 sections of technical depth
+- [CHANGELOG](../CHANGELOG.md) — Version history
+- [Lessons Learned](../LESSONS_LEARNED.md) — 40+ operational lessons
+- [PyPI](https://pypi.org/project/dof-sdk/) — Package page
