@@ -193,6 +193,71 @@ def cmd_health(args):
         print(f"  {icon:>7}  {name}")
 
 
+def cmd_verify_states(args):
+    """Run Z3 state transition verification."""
+    from core.transitions import TransitionVerifier
+
+    verifier = TransitionVerifier()
+
+    if args.invariant:
+        results = {args.invariant: verifier.verify_invariant(args.invariant)}
+    else:
+        results = verifier.verify_all()
+
+    if args.json:
+        out = {k: {"status": v.status, "time_ms": v.verification_time_ms,
+                    "counterexample": v.counterexample}
+               for k, v in results.items()}
+        print(json.dumps(out, indent=2, default=str))
+        if any(v.status != "PROVEN" for v in results.values()):
+            sys.exit(1)
+        return
+
+    total = len(results)
+    proven = sum(1 for v in results.values() if v.status == "PROVEN")
+    total_ms = sum(v.verification_time_ms for v in results.values())
+
+    print(f"DOF State Transition Verification — {proven}/{total} PROVEN")
+    print(f"{'ID':<8} {'Status':<10} {'Time':>8}  Description")
+    print("-" * 65)
+    for inv_id, r in results.items():
+        icon = "PROVEN" if r.status == "PROVEN" else r.status
+        print(f"{inv_id:<8} {icon:<10} {r.verification_time_ms:>7.1f}ms  {r.description}")
+        if args.verbose and r.counterexample:
+            print(f"         Counterexample: {r.counterexample}")
+    print(f"\nTotal: {total_ms:.1f}ms")
+
+    if proven < total:
+        sys.exit(1)
+
+
+def cmd_verify_hierarchy(args):
+    """Run Z3 hierarchy enforcement verification."""
+    from core.hierarchy_z3 import HierarchyZ3
+
+    h = HierarchyZ3()
+    result = h.verify_hierarchy_inviolable()
+
+    if args.json:
+        out = {"status": result.status, "patterns": result.patterns_checked,
+               "categories": result.categories_checked,
+               "time_ms": result.verification_time_ms,
+               "counterexample": result.counterexample}
+        print(json.dumps(out, indent=2, default=str))
+        if result.status != "PROVEN":
+            sys.exit(1)
+        return
+
+    print(f"DOF Hierarchy Verification — {result.status}")
+    print(f"Patterns checked: {result.patterns_checked} (2 categories)")
+    print(f"Time: {result.verification_time_ms:.1f}ms")
+    if result.counterexample:
+        print(f"Counterexample: {result.counterexample}")
+
+    if result.status != "PROVEN":
+        sys.exit(1)
+
+
 def cmd_version(args):
     """Show version."""
     from dof import __version__
@@ -243,6 +308,16 @@ def main():
     # health
     p_health = subparsers.add_parser("health", help="Show component status")
     p_health.set_defaults(func=cmd_health)
+
+    # verify-states
+    p_states = subparsers.add_parser("verify-states", help="Z3 state transition verification")
+    p_states.add_argument("--invariant", help="Verify only this invariant (e.g. INV-1)")
+    p_states.add_argument("--verbose", action="store_true", help="Show counterexamples")
+    p_states.set_defaults(func=cmd_verify_states)
+
+    # verify-hierarchy
+    p_hier = subparsers.add_parser("verify-hierarchy", help="Z3 hierarchy enforcement verification")
+    p_hier.set_defaults(func=cmd_verify_hierarchy)
 
     # version
     p_ver = subparsers.add_parser("version", help="Show version")
