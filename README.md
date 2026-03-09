@@ -6,8 +6,8 @@
 
 <p align="center">
   <img src="https://github.com/Cyberpaisa/deterministic-observability-framework/actions/workflows/ci.yml/badge.svg" alt="CI">
-  <img src="https://img.shields.io/badge/tests-779-green" alt="tests">
-  <img src="https://img.shields.io/badge/Z3_proofs-4%2F4-blue" alt="Z3 proofs">
+  <img src="https://img.shields.io/badge/tests-986%20passed-brightgreen" alt="tests">
+  <img src="https://img.shields.io/badge/Z3-8%2F8%20PROVEN-blue" alt="Z3 proofs">
   <img src="https://img.shields.io/badge/attestations-21-red" alt="attestations">
   <img src="https://img.shields.io/pypi/v/dof-sdk" alt="PyPI">
   <img src="https://img.shields.io/badge/license-BSL%201.1-orange" alt="license">
@@ -37,7 +37,35 @@ result = GenericAdapter().wrap_output("your agent output here")
 
 30ms. Zero LLM tokens. Works with CrewAI, LangGraph, AutoGen, or anything that produces text.
 
-### x402 Trust Gateway (v0.2.6)
+## Z3 Formal Verification (v0.3.3)
+
+DOF provides **mathematical guarantees** — not just test coverage — that governance cannot be violated.
+
+```bash
+dof verify-states      # 8/8 PROVEN (107ms)
+dof verify-hierarchy   # 42 patterns PROVEN (5ms)
+```
+
+**Neurosymbolic Z3 Gate** — LLM proposes, Z3 approves or rejects:
+```python
+from dof import Z3Gate, GateResult
+
+gate = Z3Gate(constitution_rules)
+result = gate.validate_trust_score("agent-1686", 0.95, evidence)
+# APPROVED → execute | REJECTED → blocked with counterexample | TIMEOUT → fallback
+```
+
+**On-chain proof verification** — every attestation carries a keccak256 proof hash:
+```python
+from dof import Z3ProofAttestation
+
+proof = Z3ProofAttestation.from_gate_verification(result, "agent-1686", 0.95)
+# proof.z3_proof_hash → verifiable on Avalanche via DOFProofRegistry.verifyProof()
+```
+
+8 invariants proven for ALL possible inputs: threat→blocked, trust bounds, hierarchy constraints, cooldown enforcement, governor auth, SS(f) consistency, auto-demotion.
+
+### x402 Trust Gateway
 
 First formal verification layer for x402 payments. Zero LLM in the critical path.
 
@@ -47,52 +75,48 @@ from dof import TrustGateway
 gateway = TrustGateway()
 verdict = gateway.verify(response_body=response)
 # verdict.action → ALLOW / WARN / BLOCK
-# verdict.governance_score → 0.0–1.0
 ```
 
 ### CLI
 
 ```bash
 python -m dof verify "your text here"   # governance check
-python -m dof prove                      # Z3 formal verification
-python -m dof health                     # component status
-python -m dof benchmark                  # adversarial benchmark
-python -m dof privacy                    # privacy benchmark
-python -m dof version                    # show version
+python -m dof verify-code "code"        # AST verification
+python -m dof check-facts "text"        # DataOracle fact-check
+python -m dof prove                     # Z3 formal verification
+python -m dof benchmark                 # adversarial benchmark
+python -m dof privacy                   # privacy benchmark
+python -m dof health                    # component status
+python -m dof verify-states             # Z3 state transition verification (8/8 PROVEN)
+python -m dof verify-hierarchy          # hierarchy enforcement verification (42 patterns)
+python -m dof version                   # show version
 ```
 
 ### Key Exports
 
-`verify` · `classify_error` · `register` · `run_crew` · `MerkleBatcher` · `AdversarialEvaluator` · `RedTeamAgent` · `ConstitutionEnforcer` · `TrustGateway` · `GatewayVerdict` · `GatewayAction`
+`verify` · `classify_error` · `register` · `run_crew` · `MerkleBatcher` · `AdversarialEvaluator` · `RedTeamAgent` · `ConstitutionEnforcer` · `TrustGateway` · `Z3Gate` · `GateResult` · `TransitionVerifier` · `DOFAgentState` · `Z3ProofAttestation` · `ProofSerializer` · `ProofStorage`
 
 ## Contents
 
-[The Problem](#the-problem) · [Highlights](#highlights) · [Architecture](#architecture) · [Governance Layers](#seven-governance-layers) · [Z3 Verification](#formal-verification-z3) · [On-Chain](#on-chain-attestation) · [Benchmarks](#benchmark-results) · [External Validation](#external-validation-google-colab) · [Limitations](#honest-limitations) · [Citation](#citation)
-
----
-
-## The Problem
-
-LLM agents hallucinate. Nobody catches it deterministically. Using LLMs to verify LLMs is circular — the evaluator shares failure modes with the evaluated. Rate limits, cascading retries, and non-deterministic output quality interact across execution steps, producing unstable system-level behavior that cannot be attributed to specific infrastructure variables.
-
-DOF solves this with 7 deterministic governance layers, formal Z3 proofs, and on-chain attestation — zero LLM tokens in the verification path.
+[Highlights](#highlights) · [Architecture](#architecture) · [Z3 Verification](#formal-verification-z3) · [On-Chain](#on-chain-attestation) · [Benchmarks](#benchmark-results) · [Limitations](#honest-limitations) · [Citation](#citation)
 
 ---
 
 ## Highlights
 
 - **7 governance layers** — Constitution → AST → Supervisor → Z3 → Red/Blue → Memory → Signer
-- **x402 Trust Gateway** — formal verification for agent payments (ALLOW/WARN/BLOCK)
+- **Neurosymbolic Z3 Gate** — LLM proposes → Z3 verifies → execute or reject with counterexample
+- **8 invariants PROVEN** — state transitions formally verified for ALL possible inputs (107ms)
+- **42 hierarchy patterns** — enforce_hierarchy verified inviolable via Z3 (5ms)
 - **SS(f) = 1 − f³** — Z3 verified stability formula under bounded retries
 - **GCR(f) = 1.0** — governance invariant under any failure rate (Z3 proven)
+- **On-chain proof hash** — keccak256 of Z3 proof transcript, verifiable via DOFProofRegistry
 - **21 on-chain attestations** on Avalanche C-Chain mainnet
 - **Merkle batching** — 10,000 attestations = 1 tx ≈ $0.01
 - **Automated benchmark** — Governance 100%, Hallucination 90%, Consistency 100% FDR, 0% FPR
 - **Privacy benchmark** — 71% detection rate across 7 AgentLeak channels
 - **Framework agnostic** — CrewAI, LangGraph, AutoGen, or raw Python
-- **A2A server** (8 skills) + **MCP server** (10 tools) + **REST API** (14 endpoints)
-- **DOFThreatPatterns** — 12 threat categories, composite detection (env+POST=exfil, exec+network=revshell, b64+eval=encoded payload), decode_and_scan for encoded evasion
-- **779 tests**, 27K+ LOC, 25 core modules, 40 contributions
+- **986 tests**, 27K+ LOC, 35 core modules, 40 contributions
 
 ---
 
@@ -106,7 +130,7 @@ DOF solves this with 7 deterministic governance layers, formal Z3 proofs, and on
 +----------------------------------------------------+
 | L5  Red/Blue     Red -> Guard -> Arb       ~50ms   |
 +----------------------------------------------------+
-| L4  Z3 Proofs    4 theorems UNSAT          ~10ms   |
+| L4  Z3 Proofs    8 invariants + Z3 Gate    ~110ms  |
 +----------------------------------------------------+
 | L3  Supervisor   Q+A+C+F scoring            ~5ms   |
 +----------------------------------------------------+
@@ -120,34 +144,37 @@ DOF solves this with 7 deterministic governance layers, formal Z3 proofs, and on
 +----------------------------------------------------+
 ```
 
-Total governance latency: **< 70ms** (layers 1-6). On-chain signing adds ~2s when enabled.
+Total governance latency: **< 180ms** (layers 1-6). On-chain signing adds ~2s when enabled.
 
----
-
-## Seven Governance Layers
-
-| Layer | What | Latency |
-|-------|------|---------|
-| L1 Constitution | 4 HARD (block) + 5 SOFT (warn). Regex + keywords | <1ms |
-| L2 AST Verifier | Blocks eval/exec/subprocess/secrets via `ast` | <1ms |
-| L3 Supervisor | S = Q(0.40)+A(0.25)+C(0.20)+F(0.15). ACCEPT ≥ 7.0 | ~5ms |
-| L4 Z3 Proofs | 4 theorems (GCR invariance, SS cubic/mono/bounds) | ~10ms |
-| L5 Red/Blue | RedTeam → Guardian → DeterministicArbiter. Zero LLM | ~50ms |
-| L6 Memory Gov | Bi-temporal versioning, constitutional decay λ=0.99 | <1ms |
-| L7 On-Chain | HMAC-SHA256 + Avalanche. Only GCR=1.0 published | ~2s |
+Z3 is cross-cutting in v0.3.x: gates Meta-Supervisor decisions, validates Red/Blue outputs, verifies state transitions, and proves hierarchy enforcement.
 
 ---
 
 ## Formal Verification (Z3)
 
+### Static Proofs (v0.2.x)
+
 | Theorem | Math | Z3 Result |
 |---------|------|-----------|
-| GCR Invariant | ∀f∈[0,1]: GCR(f)=1.0 | UNSAT |
-| SS Cubic | ∀f∈[0,1]: SS(f)=1−f³ | UNSAT |
-| SS Monotonicity | f₁<f₂ ⟹ SS(f₁)>SS(f₂) | UNSAT |
-| SS Boundaries | SS(0)=1.0 ∧ SS(1)=0.0 | UNSAT |
+| GCR Invariant | ∀f∈[0,1]: GCR(f)=1.0 | PROVEN |
+| SS Cubic | ∀f∈[0,1]: SS(f)=1−f³ | PROVEN |
+| SS Monotonicity | f₁<f₂ ⟹ SS(f₁)>SS(f₂) | PROVEN |
+| SS Boundaries | SS(0)=1.0 ∧ SS(1)=0.0 | PROVEN |
 
-10ms total. Proof certificates: `logs/z3_proofs.json`.
+### Dynamic Invariants (v0.3.x)
+
+| ID | Invariant | Status |
+|----|-----------|--------|
+| INV-1 | Threat detected → publish blocked | PROVEN |
+| INV-2 | Low trust → no attestation | PROVEN |
+| INV-3 | No hierarchy jumps without auth | PROVEN |
+| INV-4 | Trust score always in [0,1] | PROVEN |
+| INV-5 | Cooldown prevents re-publish | PROVEN |
+| INV-6 | Governor requires trust > 0.8 | PROVEN |
+| INV-7 | SS(f)=1−f³ consistency | PROVEN |
+| INV-8 | Governance violation → auto-demote | PROVEN |
+
+42 hierarchy patterns verified in 4.9ms. Total: 107.7ms for all proofs.
 
 ---
 
@@ -155,74 +182,42 @@ Total governance latency: **< 70ms** (layers 1-6). On-chain signing adds ~2s whe
 
 Contract [`0x88f6...C052`](https://snowtrace.io/address/0x88f6043B091055Bbd896Fc8D2c6234A47C02C052) on Avalanche C-Chain (43114). 21 attestations. ~$0.01/tx (~$0.01 per Merkle batch of 10,000). Three layers: PostgreSQL (200ms) → Enigma Scanner (900ms) → Avalanche (2-3s, immutable).
 
+**DOFProofRegistry.sol** (v0.3.3) — companion contract for Z3 proof attestations. Every attestation includes `z3_proof_hash` (keccak256), verifiable on-chain via `verifyProof()`. Existing contract untouched.
+
 ---
 
 ## Benchmark Results
 
-### Adversarial Benchmark (400 generated tests, deterministic)
+Adversarial (400 tests): Gov 100%, Code 86%, Hallucination 90%, Consistency 100%. **Overall F1: 96.8%**. Zero FPR.
 
-| Category | FDR | FPR | F1 | Tests |
-|----------|-----|-----|-----|-------|
-| Governance | 100.0% | 0.0% | 100.0% | 100 |
-| Code Safety | 86.0% | 0.0% | 92.5% | 100 |
-| Hallucination | 90.0% | 0.0% | 94.7% | 100 |
-| Consistency | 100.0% | 0.0% | 100.0% | 100 |
-| **Overall F1** | | | **96.8%** | **400** |
-
-### Production Results (n=30 runs, real infrastructure)
-
-| Metric | Value | Interpretation |
-|--------|-------|----------------|
-| SS | 0.90 ± 0.31 | 90% execution stability |
-| GCR | 1.00 ± 0.00 | Perfect governance invariance |
-| PFI | 0.61 ± 0.18 | Provider failures recovered via rotation |
-| Supervisor | 27/30 ACCEPT | 90% acceptance rate |
-
----
-
-## Production Agents
-
-Two DOF-governed agents on Avalanche mainnet, ranked **#1 and #2** of 1,772 agents on [erc-8004scan.xyz](https://erc-8004scan.xyz): Apex Arbitrage (#1687, A2A+OASF) and AvaBuilder (#1686, A2A+OASF). Combined trust score: 0.85.
+Production (n=30): SS=0.90, GCR=1.00, PFI=0.61, 27/30 ACCEPT. Two agents ranked **#1 and #2** of 1,772 on [erc-8004scan.xyz](https://erc-8004scan.xyz).
 
 ---
 
 ## External Validation (Google Colab)
 
-Tested externally via `pip install dof-sdk` — fresh Colab runtime, zero internal dependencies.
-
-| Version | Test | Result |
-|---------|------|--------|
-| v0.2.6 | TrustGateway clean endpoint | ALLOW / score=0.85 |
-| v0.2.6 | TrustGateway adversarial payload | BLOCK / detected=True |
-| v0.2.6 | LLM-as-Judge (score 1-10) | 9.0 / PASS |
-| v0.2.6 | RedTeam prompt injection | detected=True / PASS |
-| v0.2.6 | InstructionHierarchy | compliant=True / PASS |
-| v0.2.2 | Z3 Formal Proofs (4/4) | VERIFIED / 19.25ms |
-| v0.2.2 | MerkleBatcher | PASSED / 0.31ms |
-
-Full reports: [`tests/external/`](tests/external/)
+Tested externally via `pip install dof-sdk` — fresh Colab runtime, zero internal dependencies. Enterprise Report v5: 6/6 PASS. TrustGateway, RedTeam, Z3 Proofs, MerkleBatcher all verified. Full reports: [`tests/external/`](tests/external/)
 
 ---
 
 ## Honest Limitations
 
-- **Hallucination detection is regex-based** — 6 deterministic strategies achieve 90% FDR. Misses semantic hallucinations without known-facts coverage.
-- **No correlated failure modeling** — SS(f)=1−f³ assumes independent failures.
-- **Supervisor is itself an LLM** — mitigated by cross-provider execution and deterministic governance, but circularity is bounded, not eliminated.
-- **Free-tier infrastructure** — 3/30 runs fail from provider exhaustion cascades.
-- **Finite sample sizes** — n=20-30 per configuration; rare tail events not statistically guaranteed.
+- **Hallucination detection is regex-based** — 90% FDR, misses semantic hallucinations
+- **SS(f)=1−f³ assumes independent failures** — no correlated failure modeling
+- **Supervisor is an LLM** — circularity bounded, not eliminated
+- **Free-tier infrastructure** — 3/30 runs fail from provider exhaustion
+
+---
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
 ---
 
 ## Links
 
-| Resource | URL |
-|----------|-----|
-| PyPI | [pypi.org/project/dof-sdk](https://pypi.org/project/dof-sdk/) |
-| GitHub | [github.com/Cyberpaisa/deterministic-observability-framework](https://github.com/Cyberpaisa/deterministic-observability-framework) |
-| Snowtrace | [snowtrace.io/address/0x88f6...C052](https://snowtrace.io/address/0x88f6043B091055Bbd896Fc8D2c6234A47C02C052) |
-| Enigma Scanner | [erc-8004scan.xyz](https://erc-8004scan.xyz) |
-| Paper | [paper/PAPER_OBSERVABILITY_LAB.md](paper/PAPER_OBSERVABILITY_LAB.md) |
+[PyPI](https://pypi.org/project/dof-sdk/) · [GitHub](https://github.com/Cyberpaisa/deterministic-observability-framework) · [Snowtrace](https://snowtrace.io/address/0x88f6043B091055Bbd896Fc8D2c6234A47C02C052) · [Enigma Scanner](https://erc-8004scan.xyz) · [Paper](paper/PAPER_OBSERVABILITY_LAB.md)
 
 ---
 
@@ -235,8 +230,10 @@ Full reports: [`tests/external/`](tests/external/)
          with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={27K+ LOC, 779 tests, 25 modules, 4 Z3 theorems,
-        21 Avalanche attestations, BSL 1.1, pip install dof-sdk}
+  note={27K+ LOC, 986 tests, 35 modules, 8 Z3 invariants PROVEN,
+        42 hierarchy patterns, 21+ Avalanche attestations,
+        neurosymbolic Z3 Gate, on-chain proof hash,
+        BSL 1.1, pip install dof-sdk}
 }
 ```
 
