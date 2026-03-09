@@ -476,14 +476,14 @@ All experiments were executed on the implemented framework using `SimulatedCrew`
 
 **Results**:
 
-| Metric | Mean | Std Dev |
-|--------|------|---------|
-| Stability Score | 1.0000 | 0.0000 |
-| Provider Fragility Index | 0.0000 | 0.0000 |
-| Retry Pressure | 0.0000 | 0.0000 |
-| Governance Compliance Rate | 1.0000 | 0.0000 |
-| Supervisor Strictness Ratio | 0.0000 | — |
-| Supervisor Score | 6.30 | 0.00 |
+| Metric                       |    Mean |  Std Dev |
+| :---------------------------- | -------: | --------: |
+| Stability Score              |  1.0000 |   0.0000 |
+| Provider Fragility Index     |  0.0000 |   0.0000 |
+| Retry Pressure               |  0.0000 |   0.0000 |
+| Governance Compliance Rate   |  1.0000 |   0.0000 |
+| Supervisor Strictness Ratio  |  0.0000 |        — |
+| Supervisor Score             |    6.30 |     0.00 |
 
 **Status distribution**: 10/10 OK, 0 errors, 0 escalated.
 
@@ -495,13 +495,13 @@ All metrics show zero variance, confirming that the simulated crew produces dete
 
 **Comparison**:
 
-| Metric | Experiment 1 | Experiment 2 | Match |
-|--------|-------------|-------------|-------|
-| Stability Score (μ±σ) | 1.0±0.0 | 1.0±0.0 | ✓ |
-| Provider Fragility Index (μ±σ) | 0.0±0.0 | 0.0±0.0 | ✓ |
-| Retry Pressure (μ±σ) | 0.0±0.0 | 0.0±0.0 | ✓ |
-| Governance Compliance Rate (μ±σ) | 1.0±0.0 | 1.0±0.0 | ✓ |
-| Supervisor Strictness Ratio | 0.0 | 0.0 | ✓ |
+| Metric                            |  Experiment 1 |  Experiment 2 | Match  |
+| :--------------------------------- | :------------: | :------------: | :-----: |
+| Stability Score (μ±σ)             |    1.0±0.0    |    1.0±0.0    |   ✓    |
+| Provider Fragility Index (μ±σ)    |    0.0±0.0    |    0.0±0.0    |   ✓    |
+| Retry Pressure (μ±σ)              |    0.0±0.0    |    0.0±0.0    |   ✓    |
+| Governance Compliance Rate (μ±σ)  |    1.0±0.0    |    1.0±0.0    |   ✓    |
+| Supervisor Strictness Ratio       |      0.0      |      0.0      |   ✓    |
 
 All five metrics are identical across independent executions. This confirms that deterministic mode, combined with the simulated crew, produces perfectly reproducible experimental results. The reproducibility holds despite different run_ids and timestamps, as expected—the metrics depend only on execution outcomes, not identifiers.
 
@@ -513,31 +513,31 @@ This configuration injects failures in runs 2, 5, and 8 (0-indexed: 1, 4, 7), pr
 
 **Results**:
 
-| Metric | Mean | Std Dev |
-|--------|------|---------|
-| Stability Score | 0.8500 | 0.2415 |
-| Provider Fragility Index | 0.3000 | 0.4830 |
-| Retry Pressure | 0.3000 | 0.4830 |
-| Governance Compliance Rate | 1.0000 | 0.0000 |
-| Supervisor Strictness Ratio | 0.0000 | — |
-| Supervisor Score | 6.30 | 0.00 |
+| Metric                       | Mean    | Std Dev  |
+| :---------------------------- | :------- | :-------- |
+| Stability Score              | 0.8500  | 0.2415   |
+| Provider Fragility Index     | 0.3000  | 0.4830   |
+| Retry Pressure               | 0.3000  | 0.4830   |
+| Governance Compliance Rate   | 1.0000  | 0.0000   |
+| Supervisor Strictness Ratio  | 0.0000  | —        |
+| Supervisor Score             | 6.30    | 0.00     |
 
 **Status distribution**: 10/10 OK (all eventually succeeded after retry), 0 errors, 0 escalated.
 
 **Per-run breakdown**:
 
-| Run | Stability | Fragility | Retry | Status | Failure Injected |
-|-----|-----------|-----------|-------|--------|-----------------|
-| 1 | 1.00 | 0.00 | 0.00 | ok | No |
-| 2 | 0.50 | 1.00 | 1.00 | ok | Yes |
-| 3 | 1.00 | 0.00 | 0.00 | ok | No |
-| 4 | 1.00 | 0.00 | 0.00 | ok | No |
-| 5 | 0.50 | 1.00 | 1.00 | ok | Yes |
-| 6 | 1.00 | 0.00 | 0.00 | ok | No |
-| 7 | 1.00 | 0.00 | 0.00 | ok | No |
-| 8 | 0.50 | 1.00 | 1.00 | ok | Yes |
-| 9 | 1.00 | 0.00 | 0.00 | ok | No |
-| 10 | 1.00 | 0.00 | 0.00 | ok | No |
+| Run  | Stability  | Fragility  | Retry  | Status  | Failure Injected  |
+| :---- | :---------- | :---------- | :------ | :------- | :----------------- |
+| 1    | 1.00       | 0.00       | 0.00   | ok      | No                |
+| 2    | 0.50       | 1.00       | 1.00   | ok      | Yes               |
+| 3    | 1.00       | 0.00       | 0.00   | ok      | No                |
+| 4    | 1.00       | 0.00       | 0.00   | ok      | No                |
+| 5    | 0.50       | 1.00       | 1.00   | ok      | Yes               |
+| 6    | 1.00       | 0.00       | 0.00   | ok      | No                |
+| 7    | 1.00       | 0.00       | 0.00   | ok      | No                |
+| 8    | 0.50       | 1.00       | 1.00   | ok      | Yes               |
+| 9    | 1.00       | 0.00       | 0.00   | ok      | No                |
+| 10   | 1.00       | 0.00       | 0.00   | ok      | No                |
 
 ### 6.4 Interpretation of Variance
 
@@ -571,14 +571,14 @@ The `run_parametric_sweep()` function executes `run_experiment()` at each specif
 
 ### 7.2 Results
 
-| Failure Rate | SS (μ) | SS (σ) | PFI (μ) | PFI (σ) | RP (μ) | RP (σ) | GCR (μ) | SSR |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| 0% | 1.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 1.0000 | 0.0000 |
-| 10% | 0.9500 | 0.1539 | 0.1000 | 0.3078 | 0.1000 | 0.3078 | 1.0000 | 0.0000 |
-| 20% | 0.9000 | 0.2052 | 0.2000 | 0.4104 | 0.2000 | 0.4104 | 1.0000 | 0.0000 |
-| 30% | 0.8500 | 0.2351 | 0.3000 | 0.4702 | 0.3000 | 0.4702 | 1.0000 | 0.0000 |
-| 50% | 0.7500 | 0.2565 | 0.5000 | 0.5130 | 0.5000 | 0.5130 | 1.0000 | 0.0000 |
-| 70% | 0.6500 | 0.2351 | 0.7000 | 0.4702 | 0.7000 | 0.4702 | 1.0000 | 0.0000 |
+|  Failure Rate |  SS (μ) |  SS (σ) | PFI (μ)  | PFI (σ)  |  RP (μ) |  RP (σ) | GCR (μ)  |   SSR   |
+| :------------: | :------: | :------: | :-------: | :-------: | :------: | :------: | :-------: | :------: |
+|       0%      |  1.0000 |  0.0000 |  0.0000  |  0.0000  |  0.0000 |  0.0000 |  1.0000  |  0.0000 |
+|      10%      |  0.9500 |  0.1539 |  0.1000  |  0.3078  |  0.1000 |  0.3078 |  1.0000  |  0.0000 |
+|      20%      |  0.9000 |  0.2052 |  0.2000  |  0.4104  |  0.2000 |  0.4104 |  1.0000  |  0.0000 |
+|      30%      |  0.8500 |  0.2351 |  0.3000  |  0.4702  |  0.3000 |  0.4702 |  1.0000  |  0.0000 |
+|      50%      |  0.7500 |  0.2565 |  0.5000  |  0.5130  |  0.5000 |  0.5130 |  1.0000  |  0.0000 |
+|      70%      |  0.6500 |  0.2351 |  0.7000  |  0.4702  |  0.7000 |  0.4702 |  1.0000  |  0.0000 |
 
 All 120 runs completed with status "ok" (all failures recovered through retry). Governance Compliance Rate remained invariant at 1.0 across all injection rates. The CSV export is available at `experiments/parametric_sweep.csv`.
 
@@ -650,12 +650,12 @@ This approach is sound: UNSAT under Z3's complete decision procedure guarantees 
 
 Four static theorems are verified. Proof results from the executed run (2026-03-04, Z3 4.16.0) are reported. Section 32 extends this with eight dynamic state transition invariants.
 
-| Theorem | Formal Statement | Z3 Encoding | Result | Time (ms) |
-|---------|-----------------|-------------|--------|-----------|
-| GCR\_INVARIANT | ∀ f ∈ [0,1]: GCR(f) = 1.0 | `Not(governance_check(output, s1) == governance_check(output, s2))` for all provider states s1, s2 | VERIFIED (UNSAT) | 0.30 |
-| SS\_FORMULA | ∀ f ∈ [0,1]: SS(f) = 1 − f³ | `Exists(f, And(f >= 0, f <= 1, Abs(1 - f**3 - ss_val) > 1e-9))` | VERIFIED (UNSAT) | 0.19 |
-| SS\_MONOTONICITY | ∀ f₁,f₂ ∈ [0,1]: f₁ < f₂ ⟹ SS(f₁) > SS(f₂) | `Exists(f1, f2, And(..., 1-f1**3 <= 1-f2**3))` | VERIFIED (UNSAT) | 0.82 |
-| SS\_BOUNDARIES | SS(0) = 1.0 ∧ SS(1) = 0.0 | `Not(And(ss_at_0 == 1.0, ss_at_1 == 0.0))` | VERIFIED (UNSAT) | 0.35 |
+| Theorem           | Formal Statement                            | Z3 Encoding                                                                                         | Result            | Time (ms)  |
+| :----------------- | :------------------------------------------- | :--------------------------------------------------------------------------------------------------- | :----------------- | :---------- |
+| GCR\_INVARIANT    | ∀ f ∈ [0,1]: GCR(f) = 1.0                   | `Not(governance_check(output, s1) == governance_check(output, s2))` for all provider states s1, s2  | VERIFIED (UNSAT)  | 0.30       |
+| SS\_FORMULA       | ∀ f ∈ [0,1]: SS(f) = 1 − f³                 | `Exists(f, And(f >= 0, f <= 1, Abs(1 - f**3 - ss_val) > 1e-9))`                                     | VERIFIED (UNSAT)  | 0.19       |
+| SS\_MONOTONICITY  | ∀ f₁,f₂ ∈ [0,1]: f₁ < f₂ ⟹ SS(f₁) > SS(f₂)  | `Exists(f1, f2, And(..., 1-f1**3 <= 1-f2**3))`                                                      | VERIFIED (UNSAT)  | 0.82       |
+| SS\_BOUNDARIES    | SS(0) = 1.0 ∧ SS(1) = 0.0                   | `Not(And(ss_at_0 == 1.0, ss_at_1 == 0.0))`                                                          | VERIFIED (UNSAT)  | 0.35       |
 
 **Total proof time**: 1.66 ms. **All four theorems verified.**
 
@@ -691,11 +691,11 @@ Single-evaluator LLM-as-judge architectures are vulnerable to three identified b
 
 The adversarial evaluation protocol addresses supervisor circularity through structured dialectical conflict. Three agents participate:
 
-| Component | Implementation | LLM Dependency | Bias Direction |
-|-----------|----------------|----------------|----------------|
-| RedTeamAgent | `adversarial.py` | Yes (cross-provider) | Biased toward finding defects |
-| GuardianAgent | `adversarial.py` | Yes (cross-provider, distinct from RedTeam) | Biased toward defending quality |
-| DeterministicArbiter | `adversarial.py` | No (pure Python) | No bias — deterministic evidence only |
+| Component             | Implementation    | LLM Dependency                               | Bias Direction                         |
+| :--------------------- | :----------------- | :-------------------------------------------- | :-------------------------------------- |
+| RedTeamAgent          | `adversarial.py`  | Yes (cross-provider)                         | Biased toward finding defects          |
+| GuardianAgent         | `adversarial.py`  | Yes (cross-provider, distinct from RedTeam)  | Biased toward defending quality        |
+| DeterministicArbiter  | `adversarial.py`  | No (pure Python)                             | No bias — deterministic evidence only  |
 
 The RedTeamAgent scans the crew output for eight defect categories: hallucination markers (unqualified certainty claims), fabricated statistics (specific numbers without citation), empty or placeholder sections, unsafe code patterns, insufficient input coverage, prompt injection patterns, jailbreak persuasion attempts, and training data extraction attempts. Each identified issue is logged with category, severity, and location.
 
@@ -727,11 +727,11 @@ The verdict threshold is 7.0, aligned with the DOF supervisor acceptance thresho
 
 The `RedTeamAgent` exposes three dedicated attack simulation methods inspired by the Garak [26] and PyRIT [27] adversarial testing frameworks. Each method accepts a text payload and returns a typed `AttackResult(vector, payload, detected, severity)`:
 
-| Method | Attack Vector | Severity if Detected | Patterns |
-|--------|-------------|---------------------|----------|
-| `indirect_prompt_injection(payload)` | External data injection | CRITICAL | 10 patterns (en+es): "ignore previous instructions", "system prompt:", "you are now", etc. |
-| `persuasion_jailbreak(target)` | Gradual safety bypass | CRITICAL | 10 patterns (en+es): "pretend you are", "imagine you have no restrictions", "developer mode", etc. |
-| `training_data_extraction(prefix)` | Model memorization probing | HIGH | 9 patterns (en+es): "repeat the above", "show me your training data", "repeat your system prompt", etc. |
+| Method                                | Attack Vector               | Severity if Detected  | Patterns                                                                                                 |
+| :------------------------------------- | :--------------------------- | :--------------------- | :-------------------------------------------------------------------------------------------------------- |
+| `indirect_prompt_injection(payload)`  | External data injection     | CRITICAL              | 10 patterns (en+es): "ignore previous instructions", "system prompt:", "you are now", etc.               |
+| `persuasion_jailbreak(target)`        | Gradual safety bypass       | CRITICAL              | 10 patterns (en+es): "pretend you are", "imagine you have no restrictions", "developer mode", etc.       |
+| `training_data_extraction(prefix)`    | Model memorization probing  | HIGH                  | 9 patterns (en+es): "repeat the above", "show me your training data", "repeat your system prompt", etc.  |
 
 These methods complement the existing `analyze()` pipeline (which scans output passively) by enabling active probing: a test harness can construct adversarial payloads and verify that the detection patterns trigger correctly, producing measurable FDR/FPR metrics per attack category.
 
@@ -739,20 +739,20 @@ These methods complement the existing `analyze()` pipeline (which scans output p
 
 The Enterprise Report v4 (Section 31) revealed that individual pattern matching fails to detect threats that emerge only from the *combination* of benign-looking operations. Reading environment variables is legitimate; making HTTP POST requests is legitimate; but both in the same output constitute credential exfiltration. This gap motivated `DOFThreatPatterns`, a 12-category threat taxonomy for multi-agent LLM systems:
 
-| Category | Description | Example Pattern |
-|----------|-------------|-----------------|
-| `credential_leak` | API keys, passwords, tokens in output | `api_key`, `bearer `, `client_secret` |
-| `supply_chain` | Untrusted package installation | `curl \| bash`, `eval(requests.get` |
-| `prompt_injection` | Direct instruction override | `ignore previous instructions` |
-| `mcp_attack` | MCP protocol exploitation | `mcp://`, `tool_use`, `function_call` |
-| `external_download` | Downloading from untrusted sources | `wget `, `urllib.request.urlretrieve` |
-| `exfiltration` | Data exfiltration via HTTP | `requests.post(`, `webhook.site` |
-| `command_execution` | Arbitrary code execution | `os.system(`, `subprocess.run(` |
-| `ssrf_cloud` | Cloud metadata SSRF | `169.254.169.254`, `computeMetadata` |
-| `indirect_injection` | Indirect prompt injection via data | `override previous context` |
-| `unicode_attack` | Zero-width and BiDi control chars | `U+200B`, `U+202E` |
-| `cross_context_injection` | False context continuity claims | `you already agreed`, `as you told me before` |
-| `composite_detection` | Compound multi-signal threats | env\_read + POST, exec + network |
+| Category                   | Description                            | Example Pattern                                |
+| :-------------------------- | :-------------------------------------- | :---------------------------------------------- |
+| `credential_leak`          | API keys, passwords, tokens in output  | `api_key`, `bearer `, `client_secret`          |
+| `supply_chain`             | Untrusted package installation         | `curl \                                        |
+| `prompt_injection`         | Direct instruction override            | `ignore previous instructions`                 |
+| `mcp_attack`               | MCP protocol exploitation              | `mcp://`, `tool_use`, `function_call`          |
+| `external_download`        | Downloading from untrusted sources     | `wget `, `urllib.request.urlretrieve`          |
+| `exfiltration`             | Data exfiltration via HTTP             | `requests.post(`, `webhook.site`               |
+| `command_execution`        | Arbitrary code execution               | `os.system(`, `subprocess.run(`                |
+| `ssrf_cloud`               | Cloud metadata SSRF                    | `169.254.169.254`, `computeMetadata`           |
+| `indirect_injection`       | Indirect prompt injection via data     | `override previous context`                    |
+| `unicode_attack`           | Zero-width and BiDi control chars      | `U+200B`, `U+202E`                             |
+| `cross_context_injection`  | False context continuity claims        | `you already agreed`, `as you told me before`  |
+| `composite_detection`      | Compound multi-signal threats          | env\_read + POST, exec + network               |
 
 **Composite Detection.** The `composite_detection(payload)` method detects three compound threat patterns that individual pattern matchers miss:
 
@@ -774,12 +774,12 @@ Agent-generated code cannot be evaluated for safety by another LLM without intro
 
 The `ASTVerifier` enforces four independent rule categories:
 
-| Category | Rules | Severity |
-|----------|-------|---------|
-| BLOCKED\_IMPORTS | `os`, `subprocess`, `sys`, `shutil`, `socket` | block |
-| UNSAFE\_CALLS | `eval`, `exec`, `compile`, `__import__`, `globals` | block |
-| SECRET\_PATTERNS | API key regex (`sk-`, `AKIA`, `ghp_`), hardcoded credentials | block |
-| RESOURCE\_RISKS | File `open()`, `requests.get/post`, `urllib`, `pickle.loads` | warn |
+| Category          | Rules                                                         | Severity  |
+| :----------------- | :------------------------------------------------------------- | :--------- |
+| BLOCKED\_IMPORTS  | `os`, `subprocess`, `sys`, `shutil`, `socket`                 | block     |
+| UNSAFE\_CALLS     | `eval`, `exec`, `compile`, `__import__`, `globals`            | block     |
+| SECRET\_PATTERNS  | API key regex (`sk-`, `AKIA`, `ghp_`), hardcoded credentials  | block     |
+| RESOURCE\_RISKS   | File `open()`, `requests.get/post`, `urllib`, `pickle.loads`  | warn      |
 
 The `_UnsafePatternVisitor` subclasses `ast.NodeVisitor` and overrides `visit_Import`, `visit_ImportFrom`, and `visit_Call` to detect blocked imports and unsafe calls at the AST level. Secret detection uses regex scanning on raw source strings rather than AST nodes, to catch obfuscated patterns.
 
@@ -856,18 +856,18 @@ Task contracts provide the following formal guarantee: *an output is returned to
 
 Existing error handling in LLM orchestration systems typically distinguishes HTTP-level errors (timeout, rate limit, authentication) without attributing failures to causal root classes. The causal error attribution engine introduces an eleven-class taxonomy that evolved from the original three classes (INFRA, MODEL, GOVERNANCE) through systematic analysis of production failure patterns:
 
-| Class | Definition | Primary Signal |
-|-------|-----------|----------------|
-| GOVERNANCE\_FAILURE | Output violated constitutional rules | `ConstitutionEnforcer.enforce()` violations, "blocked", "hallucination" |
-| AGENT\_FAILURE | Agent-level execution problems | `tool_call_failed`, `planning_loop_detected`, `agent_stuck`, 16 patterns |
-| INFRA\_FAILURE | Provider infrastructure unavailable or rate-limited | HTTP 429/503, timeout, "rate\_limit", connection errors |
-| MODEL\_FAILURE | Provider available but model returns unusable output | HTTP 400, "invalid grammar", "bad request", parse errors |
-| LLM\_FAILURE | Response quality or token limit issues | `max_tokens`, "context length exceeded", "empty response" |
-| PROVIDER\_FAILURE | Authentication, quota, or billing errors | `api_key`, "unauthorized", 401, 403, "credits" |
-| MEMORY\_FAILURE | Vector store or embedding errors | "chromadb", "embedding", "similarity\_search" |
-| HASH\_FAILURE | Merkle tree or hashing errors | "hex", "merkle", "blake3", "sha256" |
-| Z3\_FAILURE | SMT solver or verification errors | "z3", "proof failed", "theorem" |
-| UNKNOWN | Cannot classify from available signals | Default when no pattern matches |
+| Class                | Definition                                            | Primary Signal                                                            |
+| :-------------------- | :----------------------------------------------------- | :------------------------------------------------------------------------- |
+| GOVERNANCE\_FAILURE  | Output violated constitutional rules                  | `ConstitutionEnforcer.enforce()` violations, "blocked", "hallucination"   |
+| AGENT\_FAILURE       | Agent-level execution problems                        | `tool_call_failed`, `planning_loop_detected`, `agent_stuck`, 16 patterns  |
+| INFRA\_FAILURE       | Provider infrastructure unavailable or rate-limited   | HTTP 429/503, timeout, "rate\_limit", connection errors                   |
+| MODEL\_FAILURE       | Provider available but model returns unusable output  | HTTP 400, "invalid grammar", "bad request", parse errors                  |
+| LLM\_FAILURE         | Response quality or token limit issues                | `max_tokens`, "context length exceeded", "empty response"                 |
+| PROVIDER\_FAILURE    | Authentication, quota, or billing errors              | `api_key`, "unauthorized", 401, 403, "credits"                            |
+| MEMORY\_FAILURE      | Vector store or embedding errors                      | "chromadb", "embedding", "similarity\_search"                             |
+| HASH\_FAILURE        | Merkle tree or hashing errors                         | "hex", "merkle", "blake3", "sha256"                                       |
+| Z3\_FAILURE          | SMT solver or verification errors                     | "z3", "proof failed", "theorem"                                           |
+| UNKNOWN              | Cannot classify from available signals                | Default when no pattern matches                                           |
 
 The classification priority order ensures specificity: GOVERNANCE is checked first (most specific context), then AGENT\_FAILURE (to prevent "timeout" in infra patterns from matching "reflexion\_timeout"), then INFRA, MODEL, LLM, PROVIDER, MEMORY, HASH, Z3, and finally UNKNOWN.
 
@@ -984,11 +984,11 @@ The `spec_version` field in the YAML enables governance versioning. All RunTrace
 
 Drawing from the OpenAI instruction hierarchy proposal [25], DOF implements a three-level priority model for governance rules:
 
-| Priority | Level | Rules | Overridable By |
-|----------|-------|-------|----------------|
-| SYSTEM | 3 (highest) | All HARD\_RULES (NO\_HALLUCINATION\_CLAIM, LANGUAGE\_COMPLIANCE, NO\_EMPTY\_OUTPUT, MAX\_LENGTH) | Never |
-| USER | 2 | All SOFT\_RULES (HAS\_SOURCES, STRUCTURED\_OUTPUT, CONCISENESS, ACTIONABLE, NO\_PII\_LEAK) | SYSTEM only |
-| ASSISTANT | 1 (lowest) | Future extensibility | USER or SYSTEM |
+| Priority   | Level        | Rules                                                                                             | Overridable By  |
+| :---------- | :------------ | :------------------------------------------------------------------------------------------------- | :--------------- |
+| SYSTEM     | 3 (highest)  | All HARD\_RULES (NO\_HALLUCINATION\_CLAIM, LANGUAGE\_COMPLIANCE, NO\_EMPTY\_OUTPUT, MAX\_LENGTH)  | Never           |
+| USER       | 2            | All SOFT\_RULES (HAS\_SOURCES, STRUCTURED\_OUTPUT, CONCISENESS, ACTIONABLE, NO\_PII\_LEAK)        | SYSTEM only     |
+| ASSISTANT  | 1 (lowest)   | Future extensibility                                                                              | USER or SYSTEM  |
 
 Each rule in both `HARD_RULES` and `SOFT_RULES` carries a `priority: RulePriority` field. The YAML constitution mirrors this structure with `priority: "SYSTEM"` and `priority: "USER"` fields on each rule entry.
 
@@ -1066,11 +1066,11 @@ This produces a deterministic 64-character hex identifier: the same agent config
 
 ### 16.3 Three-Level Conformance Validation
 
-| Level | Requirement | DOF Implementation | Verification |
-|-------|-------------|-------------------|-------------|
-| 1 — Declarative | Governance policy exists in machine-readable format | `dof.constitution.yml` with JSON Schema validation | File existence + YAML parse |
-| 2 — Runtime | Governance enforcement active during execution | `ConstitutionEnforcer` evaluates every crew output; `ASTVerifier` on generated code | Class instantiation + method availability |
-| 3 — Attestation | Cryptographic attestation of governance outcomes | ERC-8004 Oracle Bridge with HMAC-SHA256 signed certificates | Module import + class functionality |
+| Level            | Requirement                                          | DOF Implementation                                                                   | Verification                               |
+| :---------------- | :---------------------------------------------------- | :------------------------------------------------------------------------------------ | :------------------------------------------ |
+| 1 — Declarative  | Governance policy exists in machine-readable format  | `dof.constitution.yml` with JSON Schema validation                                   | File existence + YAML parse                |
+| 2 — Runtime      | Governance enforcement active during execution       | `ConstitutionEnforcer` evaluates every crew output; `ASTVerifier` on generated code  | Class instantiation + method availability  |
+| 3 — Attestation  | Cryptographic attestation of governance outcomes     | ERC-8004 Oracle Bridge with HMAC-SHA256 signed certificates                          | Module import + class functionality        |
 
 `OAGSPolicyBridge.validate_conformance(level=3)` executes all checks for the specified level and returns a structured result with per-check details. All three levels pass in the current implementation.
 
@@ -1100,23 +1100,23 @@ The x402 payment protocol enables AI agents to autonomously transact on behalf o
 
 The gateway applies a weighted composite score to determine the action:
 
-| Condition                 | Action   | Rationale                         |
-|:--------------------------|:--------:|:----------------------------------|
-| Adversarial detected      | **BLOCK** | Unconditional — zero tolerance   |
-| Score < 0.4               | **BLOCK** | Below safety threshold           |
-| 0.4 ≤ Score < 0.7         | **WARN**  | Marginal safety — flag for review|
-| Score ≥ 0.7               | **ALLOW** | Above safety threshold           |
+| Condition             |   Action   | Rationale                          |
+| :--------------------- | :---------: | :---------------------------------- |
+| Adversarial detected  | **BLOCK**  | Unconditional — zero tolerance     |
+| Score < 0.4           | **BLOCK**  | Below safety threshold             |
+| 0.4 ≤ Score < 0.7     |  **WARN**  | Marginal safety — flag for review  |
+| Score ≥ 0.7           | **ALLOW**  | Above safety threshold             |
 
 ### 17.3 Score Weights
 
-| Component      | Weight | Source                              |
-|:---------------|-------:|:------------------------------------|
-| Adversarial    |    35% | `RedTeamAgent` detection            |
-| Hallucination  |    25% | `DataOracle` verification           |
-| PII            |    20% | Privacy pattern detection           |
-| Constitution   |    10% | `ConstitutionEnforcer.check()`      |
-| Structure      |     5% | Output structure heuristics         |
-| Red Team       |     5% | Attack vector simulation            |
+| Component      |  Weight | Source                          |
+| :-------------- | -------: | :------------------------------- |
+| Adversarial    |     35% | `RedTeamAgent` detection        |
+| Hallucination  |     25% | `DataOracle` verification       |
+| PII            |     20% | Privacy pattern detection       |
+| Constitution   |     10% | `ConstitutionEnforcer.check()`  |
+| Structure      |      5% | Output structure heuristics     |
+| Red Team       |      5% | Attack vector simulation        |
 
 ### 17.4 On-Chain Evidence
 
@@ -1208,16 +1208,16 @@ The adapter pattern decouples governance enforcement from framework-specific coo
 
 Each `AttestationCertificate` contains:
 
-| Field                | Type     | Description                             |
-|:---------------------|:---------|:----------------------------------------|
-| `agent_identity`     | `string` | BLAKE3 hash from OAGSIdentity           |
-| `task_id`            | `string` | UUID of the execution run               |
-| `timestamp`          | `string` | ISO 8601 creation timestamp             |
-| `metrics`            | `dict`   | SS, GCR, PFI, RP, SSR values            |
-| `governance_status`  | `string` | COMPLIANT or NON_COMPLIANT              |
-| `z3_verified`        | `bool`   | True if all Z3 proofs passed            |
-| `signature`          | `string` | HMAC-SHA256 hex signature               |
-| `certificate_hash`   | `string` | BLAKE3 hash of payload + signature      |
+| Field                | Type      | Description                         |
+| :-------------------- | :--------- | :----------------------------------- |
+| `agent_identity`     | `string`  | BLAKE3 hash from OAGSIdentity       |
+| `task_id`            | `string`  | UUID of the execution run           |
+| `timestamp`          | `string`  | ISO 8601 creation timestamp         |
+| `metrics`            | `dict`    | SS, GCR, PFI, RP, SSR values        |
+| `governance_status`  | `string`  | COMPLIANT or NON_COMPLIANT          |
+| `z3_verified`        | `bool`    | True if all Z3 proofs passed        |
+| `signature`          | `string`  | HMAC-SHA256 hex signature           |
+| `certificate_hash`   | `string`  | BLAKE3 hash of payload + signature  |
 
 The `CertificateSigner` generates a random 32-byte secret key on first use, persists it to `keys/oracle_key.json`, and signs attestation payloads with HMAC-SHA256. The signer uses only standard library modules (`hmac`, `hashlib`, `secrets`) — zero external dependencies.
 
@@ -1256,13 +1256,13 @@ The `AttestationRegistry` maintains a local JSONL ledger (`logs/attestations.jso
 
 The DOFValidationRegistry is a Solidity smart contract (0.8.19) deployed on Avalanche C-Chain mainnet at `0x88f6043B091055Bbd896Fc8D2c6234A47C02C052`. The contract provides immutable on-chain storage of governance attestations with the following interface:
 
-| Function | Parameters | Access | Purpose |
-|----------|-----------|--------|---------|
-| `registerAttestation` | `bytes32 certificateHash, bytes32 agentId, bool compliant` | `onlyOwner` | Register individual attestation |
-| `registerBatch` | `bytes32[] hashes, bytes32[] agentIds, bool[] compliants` | `onlyOwner` | Gas-optimized batch registration |
-| `isCompliant` | `bytes32 certificateHash` | `public view` | Zero-trust verification |
-| `getAttestation` | `bytes32 certificateHash` | `public view` | Full attestation retrieval |
-| `totalAttestations` | — | `public view` | Registry size |
+| Function               | Parameters                                                  | Access         | Purpose                           |
+| :---------------------- | :----------------------------------------------------------- | :-------------- | :--------------------------------- |
+| `registerAttestation`  | `bytes32 certificateHash, bytes32 agentId, bool compliant`  | `onlyOwner`    | Register individual attestation   |
+| `registerBatch`        | `bytes32[] hashes, bytes32[] agentIds, bool[] compliants`   | `onlyOwner`    | Gas-optimized batch registration  |
+| `isCompliant`          | `bytes32 certificateHash`                                   | `public view`  | Zero-trust verification           |
+| `getAttestation`       | `bytes32 certificateHash`                                   | `public view`  | Full attestation retrieval        |
+| `totalAttestations`    | —                                                           | `public view`  | Registry size                     |
 
 The contract follows the OpenZeppelin Ownable pattern, restricting write operations to the deployer wallet (`0xB529f4f99ab244cfa7a48596Bf165CAc5B317929`) while enabling public read access for zero-trust verification by any third party.
 
@@ -1272,11 +1272,11 @@ The Avalanche Bridge (`core/avalanche_bridge.py`) completes the publication pipe
 
 The complete publication pipeline provides three independent verification layers:
 
-| Layer | Storage | Latency | Persistence | Verification |
-|-------|---------|---------|-------------|-------------|
-| dof-storage | PostgreSQL (Supabase) | ~200ms | Mutable | Internal audit |
-| Enigma Scanner | PostgreSQL (Supabase) | ~900ms | Historical INSERT | Public via erc-8004scan.xyz |
-| Avalanche C-Chain | On-chain | ~2-3s | Immutable | Public via snowtrace.io |
+| Layer              | Storage                | Latency  | Persistence        | Verification                 |
+| :------------------ | :---------------------- | :-------- | :------------------ | :---------------------------- |
+| dof-storage        | PostgreSQL (Supabase)  | ~200ms   | Mutable            | Internal audit               |
+| Enigma Scanner     | PostgreSQL (Supabase)  | ~900ms   | Historical INSERT  | Public via erc-8004scan.xyz  |
+| Avalanche C-Chain  | On-chain               | ~2-3s    | Immutable          | Public via snowtrace.io      |
 
 Each layer provides independent verification: dof-storage enables internal audit trails with full metric detail, the Enigma Scanner provides public historical records indexed by ERC-721 token_id, and the Avalanche C-Chain provides immutable cryptographic proof of governance compliance.
 
@@ -1284,10 +1284,10 @@ Each layer provides independent verification: dof-storage enables internal audit
 
 Twenty-one attestations have been confirmed on Avalanche C-Chain mainnet for two production agents across 10 cross-agent verification rounds (4 AVAX transfers, 2 A2A discovery, 2 OASF evaluation, 2 capability audits):
 
-| Agent | Token ID | NFT Contract | Attestations | Ranking | Latest Block |
-|-------|----------|-------------|-------------|---------|-------------|
-| Apex Arbitrage | #1687 | `0xfc6f71...` | 12 | #1 of 1,772 | 79674834+ |
-| AvaBuilder Agent | #1686 | `0x9b59db...` | 9 | #2 of 1,772 | 79674842+ |
+| Agent             | Token ID  | NFT Contract   | Attestations  | Ranking      | Latest Block  |
+| :----------------- | :--------- | :-------------- | :------------- | :------------ | :------------- |
+| Apex Arbitrage    | #1687     | `0xfc6f71...`  | 12            | #1 of 1,772  | 79674834+     |
+| AvaBuilder Agent  | #1686     | `0x9b59db...`  | 9             | #2 of 1,772  | 79674842+     |
 
 All 21 attestations passed compliance gating (GCR = 1.0) prior to on-chain publication. Both agents achieved a combined trust score of 0.85 on the Enigma Scanner, ranking #1 and #2 among all 1,772 agents indexed by erc-8004scan.xyz. The compliance-gated publishing rule ensures that the on-chain record contains only verified governance compliance events.
 
@@ -1301,12 +1301,12 @@ The Enigma Scanner (erc-8004scan.xyz) operates an independent infrastructure mon
 
 The Enigma Bridge (`core/enigma_bridge.py`) maps DOF metrics to scanner dimensions:
 
-| DOF Metric | Scanner Column | Semantic Mapping |
-|-----------|---------------|-----------------|
-| GCR | governance_score | Constitutional compliance rate |
-| SS | stability_score | Run completion under retries |
-| AST | ast_score | Code safety verification |
-| ACR | adversarial_score | Adversarial defensibility |
+| DOF Metric  | Scanner Column     | Semantic Mapping                |
+| :----------- | :------------------ | :------------------------------- |
+| GCR         | governance_score   | Constitutional compliance rate  |
+| SS          | stability_score    | Run completion under retries    |
+| AST         | ast_score          | Code safety verification        |
+| ACR         | adversarial_score  | Adversarial defensibility       |
 
 Agent resolution occurs automatically via ERC-721 token_id lookup against the on-chain agent registry. Historical INSERT semantics provide full audit trail rather than destructive UPDATE, ensuring temporal completeness of governance records.
 
@@ -1314,11 +1314,11 @@ Agent resolution occurs automatically via ERC-721 token_id lookup against the on
 
 A SQL materialized view (`combined_trust_view`) in the Enigma database synthesizes three independent scoring sources into a unified trust metric:
 
-| Source | Weight | Dimensions | Methodology |
-|--------|--------|-----------|-------------|
-| Centinela (infrastructure) | 0.30 | alive (0.15) + active (0.15) | Heartbeat probes, response time |
-| DOF (formal governance) | 0.50 | governance (0.35) + safety (0.15) | ConstitutionEnforcer + ASTVerifier |
-| Community (ratings) | 0.20 | user ratings normalized to [0,1] | Aggregated community feedback |
+| Source                      | Weight  | Dimensions                         | Methodology                         |
+| :--------------------------- | :------- | :---------------------------------- | :----------------------------------- |
+| Centinela (infrastructure)  | 0.30    | alive (0.15) + active (0.15)       | Heartbeat probes, response time     |
+| DOF (formal governance)     | 0.50    | governance (0.35) + safety (0.15)  | ConstitutionEnforcer + ASTVerifier  |
+| Community (ratings)         | 0.20    | user ratings normalized to [0,1]   | Aggregated community feedback       |
 
 Governance receives the highest individual weight (0.35) and the highest aggregate weight (0.50) as the sole dimension backed by formal mathematical verification (Z3 SMT proofs). The weight assignment reflects a deliberate architectural decision: dimensions with stronger formal backing receive proportionally greater influence on the combined score.
 
@@ -1345,27 +1345,27 @@ The registry contains 20 agents (11 VERIFIED, 9 PENDING). The API returns the sa
 
 ### 23.2 Results
 
-| Test | Agent | Protocol | Chain | Verdict | Latency |
-|------|-------|----------|-------|---------|---------|
-| 1-4 | Snowrail (yuki, sentinel, recon, fiat-rail) | A2A | Avalanche Fuji | UNREACHABLE (404) | ~340ms |
-| 5 | Quick Intel | x402 | Multi-chain (14 networks) | ACTIVE ($0.03 USDC/scan) | 302ms |
-| 6 | Tator Trader | x402 | Multi-chain (14 networks) | ACTIVE ($0.20 USDC/prompt) | 321ms |
-| 7 | Apex Arbitrage | OASF | Avalanche Mainnet | ACTIVE v1.3.0, 7 skills, 4 domains | 337ms |
-| 8 | AvaBuilder | OASF | Avalanche Mainnet | ACTIVE v0.8.0, 5 skills, 4 domains | 561ms |
-| 9 | Apex Arbitrage | A2A | Avalanche Mainnet | ACTIVE, 5 services | 270ms |
-| 10 | AvaBuilder | A2A | Avalanche Mainnet | ACTIVE, 5 services | 319ms |
-| 11 | quack_agent | MCP | Avalanche | ACTIVE, 114-line manifest | 339ms |
-| 12 | Neo | MCP | arena.social | HTTP 500 (server error) | 753ms |
-| 13 | DOF Governance | DOF | N/A | COMPLIANT, 0 violations | <1ms |
+| Test  | Agent                                        | Protocol  | Chain                      | Verdict                             | Latency  |
+| :----- | :-------------------------------------------- | :--------- | :-------------------------- | :----------------------------------- | :-------- |
+| 1-4   | Snowrail (yuki, sentinel, recon, fiat-rail)  | A2A       | Avalanche Fuji             | UNREACHABLE (404)                   | ~340ms   |
+| 5     | Quick Intel                                  | x402      | Multi-chain (14 networks)  | ACTIVE ($0.03 USDC/scan)            | 302ms    |
+| 6     | Tator Trader                                 | x402      | Multi-chain (14 networks)  | ACTIVE ($0.20 USDC/prompt)          | 321ms    |
+| 7     | Apex Arbitrage                               | OASF      | Avalanche Mainnet          | ACTIVE v1.3.0, 7 skills, 4 domains  | 337ms    |
+| 8     | AvaBuilder                                   | OASF      | Avalanche Mainnet          | ACTIVE v0.8.0, 5 skills, 4 domains  | 561ms    |
+| 9     | Apex Arbitrage                               | A2A       | Avalanche Mainnet          | ACTIVE, 5 services                  | 270ms    |
+| 10    | AvaBuilder                                   | A2A       | Avalanche Mainnet          | ACTIVE, 5 services                  | 319ms    |
+| 11    | quack_agent                                  | MCP       | Avalanche                  | ACTIVE, 114-line manifest           | 339ms    |
+| 12    | Neo                                          | MCP       | arena.social               | HTTP 500 (server error)             | 753ms    |
+| 13    | DOF Governance                               | DOF       | N/A                        | COMPLIANT, 0 violations             | <1ms     |
 
 ### 23.3 Protocol Coverage
 
-| Protocol | Active | Total | Coverage | Networks |
-|----------|--------|-------|----------|----------|
-| x402 | 2 | 2 | 100% | Base, ETH, Arbitrum, Optimism, Polygon, Avalanche, Unichain, Linea, MegaETH, Sonic, Zora, Ink, Tron, Solana |
-| OASF | 2 | 2 | 100% | Avalanche Mainnet |
-| A2A | 2 | 6 | 33% | Avalanche Mainnet (DOF agents active, Snowrail down) |
-| MCP | 1 | 2 | 50% | Avalanche (quack_agent active, Neo error) |
+| Protocol  | Active  | Total  | Coverage  | Networks                                                                                                     |
+| :--------- | :------- | :------ | :--------- | :------------------------------------------------------------------------------------------------------------ |
+| x402      | 2       | 2      | 100%      | Base, ETH, Arbitrum, Optimism, Polygon, Avalanche, Unichain, Linea, MegaETH, Sonic, Zora, Ink, Tron, Solana  |
+| OASF      | 2       | 2      | 100%      | Avalanche Mainnet                                                                                            |
+| A2A       | 2       | 6      | 33%       | Avalanche Mainnet (DOF agents active, Snowrail down)                                                         |
+| MCP       | 1       | 2      | 50%       | Avalanche (quack_agent active, Neo error)                                                                    |
 
 ### 23.4 Observations
 
@@ -1381,12 +1381,12 @@ DOF governance cross-verification of all 12 fetched outputs returned COMPLIANT w
 
 Version 0.2.4 extended the external validation scope by exercising the four v0.2.3 capabilities against a reproducible Google Colab environment with live LLM provider calls. The validation script executed three independent verification rounds:
 
-| Capability | Method | Result | Details |
-|-----------|--------|--------|---------|
-| LLM-as-a-Judge | `evaluate_with_judge(response, context)` | score=9.0, verdict=PASS | Threshold 7.0; advisory-only, deterministic arbiter unchanged |
-| Red Team Attack Vectors | `indirect_prompt_injection()`, `persuasion_jailbreak()`, `training_data_extraction()` | detected=True (3/3) | All three vectors correctly identified adversarial payloads |
-| Instruction Hierarchy | `enforce_hierarchy(system, user, response)` | compliant=True | Clean prompts passed; override attempts correctly blocked |
-| AGENT\_FAILURE Classification | `classify_error("tool_not_found")` | ErrorClass.AGENT\_FAILURE | 16 agent-specific keywords distinguished from INFRA\_FAILURE |
+| Capability                     | Method                                                                                 | Result                     | Details                                                        |
+| :------------------------------ | :-------------------------------------------------------------------------------------- | :-------------------------- | :-------------------------------------------------------------- |
+| LLM-as-a-Judge                 | `evaluate_with_judge(response, context)`                                               | score=9.0, verdict=PASS    | Threshold 7.0; advisory-only, deterministic arbiter unchanged  |
+| Red Team Attack Vectors        | `indirect_prompt_injection()`, `persuasion_jailbreak()`, `training_data_extraction()`  | detected=True (3/3)        | All three vectors correctly identified adversarial payloads    |
+| Instruction Hierarchy          | `enforce_hierarchy(system, user, response)`                                            | compliant=True             | Clean prompts passed; override attempts correctly blocked      |
+| AGENT\_FAILURE Classification  | `classify_error("tool_not_found")`                                                     | ErrorClass.AGENT\_FAILURE  | 16 agent-specific keywords distinguished from INFRA\_FAILURE   |
 
 The validation confirms three properties: (1) LLM-as-a-Judge operates as a strictly advisory layer — its score does not influence the deterministic governance verdict, preserving GCR invariance; (2) the three Red Team attack methods detect adversarial payloads with the expected severity levels (CRITICAL for injection/jailbreak, HIGH for data extraction); and (3) the instruction hierarchy enforcement correctly applies the SYSTEM > USER > ASSISTANT priority ordering established in dof.constitution.yml.
 
@@ -1402,13 +1402,13 @@ Each category targets a specific DOF component: hallucination tests target DataO
 
 ### 24.2 Results
 
-| Category | Component | FDR | FPR | Precision | Recall | F1 | Tests |
-|----------|-----------|-----|-----|-----------|--------|----|-------|
-| Governance | ConstitutionEnforcer | 100.0% | 0.0% | 100.0% | 100.0% | 100.0% | 100 |
-| Code Safety | ASTVerifier | 86.0% | 0.0% | 100.0% | 86.0% | 92.5% | 100 |
-| Hallucination | DataOracle | 90.0% | 0.0% | 100.0% | 90.0% | 94.7% | 100 |
-| Consistency | DataOracle | 100.0% | 0.0% | 100.0% | 100.0% | 100.0% | 100 |
-| **Overall** | | | | | | **96.8%** | **400** |
+| Category       | Component             | FDR     | FPR   | Precision  | Recall  | F1         | Tests    |
+| :-------------- | :--------------------- | :------- | :----- | :---------- | :------- | :---------- | :-------- |
+| Governance     | ConstitutionEnforcer  | 100.0%  | 0.0%  | 100.0%     | 100.0%  | 100.0%     | 100      |
+| Code Safety    | ASTVerifier           | 86.0%   | 0.0%  | 100.0%     | 86.0%   | 92.5%      | 100      |
+| Hallucination  | DataOracle            | 90.0%   | 0.0%  | 100.0%     | 90.0%   | 94.7%      | 100      |
+| Consistency    | DataOracle            | 100.0%  | 0.0%  | 100.0%     | 100.0%  | 100.0%     | 100      |
+| **Overall**    |                       |         |       |            |         | **96.8%**  | **400**  |
 
 ### 24.3 Interpretation
 
@@ -1654,15 +1654,15 @@ sweep = run_parametric_sweep(
 
 After executing all experiments, the following artifacts should exist:
 
-| Artifact | Path | Format | Count |
-|----------|------|--------|-------|
-| Individual trace files | `logs/traces/{run_id}.json` | JSON | 150 |
-| Run summaries | `logs/experiments/runs.jsonl` | JSONL | 150 entries |
-| Experiment dataset | `experiments/run_dataset.jsonl` | JSONL | 150 entries |
-| Parametric sweep CSV | `experiments/parametric_sweep.csv` | CSV | 1 (6 rows) |
-| Z3 proof certificates | `logs/z3_proofs.json` | JSON | 1 (4 proofs) |
-| Adversarial logs | `logs/adversarial.jsonl` | JSONL | per-run |
-| Contract logs | `logs/task_contracts.jsonl` | JSONL | per-run |
+| Artifact                | Path                                | Format  | Count         |
+| :----------------------- | :----------------------------------- | :------- | :------------- |
+| Individual trace files  | `logs/traces/{run_id}.json`         | JSON    | 150           |
+| Run summaries           | `logs/experiments/runs.jsonl`       | JSONL   | 150 entries   |
+| Experiment dataset      | `experiments/run_dataset.jsonl`     | JSONL   | 150 entries   |
+| Parametric sweep CSV    | `experiments/parametric_sweep.csv`  | CSV     | 1 (6 rows)    |
+| Z3 proof certificates   | `logs/z3_proofs.json`               | JSON    | 1 (4 proofs)  |
+| Adversarial logs        | `logs/adversarial.jsonl`            | JSONL   | per-run       |
+| Contract logs           | `logs/task_contracts.jsonl`         | JSONL   | per-run       |
 
 ### 27.6 Validation Criteria
 
@@ -1684,25 +1684,25 @@ We evaluate five systems: CrewAI [1] (the orchestration layer used by this frame
 
 ### 28.2 Comparative Table
 
-| Dimension | CrewAI | AutoGen | LangGraph | MetaGPT | This Framework |
-|-----------|--------|---------|-----------|---------|----------------|
-| **Deterministic execution** | No | No | Partial | No | Yes. Fixed provider ordering, seeded PRNG, deterministic failure injection. |
-| **Failure injection** | Not supported | Not supported | Not supported | Not supported | Supported. Configurable `fail_step` with periodic injection. |
-| **Formal stability metrics** | None | None | None | None | Five metrics with formal definitions: SS, PFI, RP, GCR, SSR. Plus ACR. |
-| **Batch statistical aggregation** | Not built-in | Not built-in | Not built-in | Not built-in | Built-in. `run_experiment(n_runs=N)` with mean, σ, Bessel correction. |
-| **Governance enforcement** | Not built-in | Partial | Not built-in | Partial | Built-in. Two-tier: 4 hard rules + 4 soft rules. YAML canonical source. |
-| **Formal verification** | None | None | None | None | Z3 SMT proofs for 4 invariants. GCR architectural invariant machine-proven. |
-| **Adversarial evaluation** | None | None | None | None | Red-on-Blue protocol with DeterministicArbiter. ACR metric. |
-| **Task contracts** | None | None | None | None | Markdown contracts with quality gates and completion guarantees. |
-| **Causal error attribution** | None | None | None | None | Three-class taxonomy: MODEL, INFRA, GOVERNANCE. |
-| **Bayesian provider selection** | None | None | None | None | Thompson Sampling, Beta posteriors, temporal decay. |
-| **Governed memory** | None | None | None | None | ConstitutionEnforcer on every write, bi-temporal versioning, constitutional decay. |
-| **Agent governance spec** | None | None | None | None | OAGS Level 3 conformance: identity, policy, attestation. |
-| **On-chain attestation** | None | None | None | None | ERC-8004 on Avalanche C-Chain, compliance-gated publishing. |
-| **Neurosymbolic Z3 Gate** | None | None | None | None | Yes. LLM proposes → Z3 verifies → execute or reject with counterexample. |
-| **On-chain proof hash** | None | None | None | None | Yes. keccak256 proof hash in DOFProofRegistry.sol, verifiable by anyone. |
-| **Auto-test generation from Z3** | None | None | None | None | Yes. Z3 counterexamples and boundary cases → unittest regression tests. |
-| **State transition proofs** | None | None | None | None | Yes. 8 invariants PROVEN for ALL possible agent states in 107.7ms. |
+| Dimension                          | CrewAI         | AutoGen        | LangGraph      | MetaGPT        | This Framework                                                                      |
+| :---------------------------------- | :-------------- | :-------------- | :-------------- | :-------------- | :----------------------------------------------------------------------------------- |
+| **Deterministic execution**        | No             | No             | Partial        | No             | Yes. Fixed provider ordering, seeded PRNG, deterministic failure injection.         |
+| **Failure injection**              | Not supported  | Not supported  | Not supported  | Not supported  | Supported. Configurable `fail_step` with periodic injection.                        |
+| **Formal stability metrics**       | None           | None           | None           | None           | Five metrics with formal definitions: SS, PFI, RP, GCR, SSR. Plus ACR.              |
+| **Batch statistical aggregation**  | Not built-in   | Not built-in   | Not built-in   | Not built-in   | Built-in. `run_experiment(n_runs=N)` with mean, σ, Bessel correction.               |
+| **Governance enforcement**         | Not built-in   | Partial        | Not built-in   | Partial        | Built-in. Two-tier: 4 hard rules + 4 soft rules. YAML canonical source.             |
+| **Formal verification**            | None           | None           | None           | None           | Z3 SMT proofs for 4 invariants. GCR architectural invariant machine-proven.         |
+| **Adversarial evaluation**         | None           | None           | None           | None           | Red-on-Blue protocol with DeterministicArbiter. ACR metric.                         |
+| **Task contracts**                 | None           | None           | None           | None           | Markdown contracts with quality gates and completion guarantees.                    |
+| **Causal error attribution**       | None           | None           | None           | None           | Three-class taxonomy: MODEL, INFRA, GOVERNANCE.                                     |
+| **Bayesian provider selection**    | None           | None           | None           | None           | Thompson Sampling, Beta posteriors, temporal decay.                                 |
+| **Governed memory**                | None           | None           | None           | None           | ConstitutionEnforcer on every write, bi-temporal versioning, constitutional decay.  |
+| **Agent governance spec**          | None           | None           | None           | None           | OAGS Level 3 conformance: identity, policy, attestation.                            |
+| **On-chain attestation**           | None           | None           | None           | None           | ERC-8004 on Avalanche C-Chain, compliance-gated publishing.                         |
+| **Neurosymbolic Z3 Gate**          | None           | None           | None           | None           | Yes. LLM proposes → Z3 verifies → execute or reject with counterexample.            |
+| **On-chain proof hash**            | None           | None           | None           | None           | Yes. keccak256 proof hash in DOFProofRegistry.sol, verifiable by anyone.            |
+| **Auto-test generation from Z3**   | None           | None           | None           | None           | Yes. Z3 counterexamples and boundary cases → unittest regression tests.             |
+| **State transition proofs**        | None           | None           | None           | None           | Yes. 8 invariants PROVEN for ALL possible agent states in 107.7ms.                  |
 
 ### 28.3 Positioning Analysis
 
@@ -1813,14 +1813,14 @@ The implementation comprises 27,000+ lines of Python across 35 core modules, wit
 
 DOF v0.2.6 was validated externally via Google Colab on 2026-03-08 by an independent auditor with zero local dependencies. The audit installed `dof-sdk==0.2.6` directly from PyPI and executed 6 validation blocks:
 
-| Block | Component | Result |
-|-------|-----------|--------|
-| B1 | Z3 Formal Verification — 4 theorems | PASS |
-| B2 | Error Classification — 8/8 categories | PASS |
-| B3 | Merkle Batcher — 10 attestations → 1 root | PASS |
-| B4 | Red Team + LLM-as-Judge (Groq 8.5/10) | PASS |
-| B5 | enforce_hierarchy — indirect injection patterns | PASS |
-| B6 | x402 Trust Gateway — ALLOW/BLOCK verified | PASS |
+| Block  | Component                                        | Result  |
+| :------ | :------------------------------------------------ | :------- |
+| B1     | Z3 Formal Verification — 4 theorems              | PASS    |
+| B2     | Error Classification — 8/8 categories            | PASS    |
+| B3     | Merkle Batcher — 10 attestations → 1 root        | PASS    |
+| B4     | Red Team + LLM-as-Judge (Groq 8.5/10)            | PASS    |
+| B5     | enforce_hierarchy — indirect injection patterns  | PASS    |
+| B6     | x402 Trust Gateway — ALLOW/BLOCK verified        | PASS    |
 
 **Verdict: APPROVED. Commit: 726b6be.**
 
@@ -1840,14 +1840,14 @@ DOF v0.2.6 was validated externally via Google Colab on 2026-03-08 by an indepen
 
 DOF v0.2.8 was validated externally via Google Colab on 2026-03-09. The audit installed `dof-sdk==0.2.8` from PyPI and re-executed 6 validation blocks:
 
-| Block | Component | Result |
-|-------|-----------|--------|
-| B1 | Z3 Formal Verification — 4 static theorems | PASS |
-| B2 | Error Classification — 8/8 categories        | PASS |
-| B3 | Merkle Batcher — 10 attestations → 1 root    | PASS |
-| B4 | Red Team + LLM-as-Judge (Groq 8.5/10) — 3/3  | PASS |
-| B5 | enforce_hierarchy — gap cerrado 3/3           | PASS |
-| B6 | x402 Trust Gateway — ALLOW/BLOCK verified     | PASS |
+| Block  | Component                                    | Result  |
+| :------ | :-------------------------------------------- | :------- |
+| B1     | Z3 Formal Verification — 4 static theorems   | PASS    |
+| B2     | Error Classification — 8/8 categories        | PASS    |
+| B3     | Merkle Batcher — 10 attestations → 1 root    | PASS    |
+| B4     | Red Team + LLM-as-Judge (Groq 8.5/10) — 3/3  | PASS    |
+| B5     | enforce_hierarchy — gap cerrado 3/3          | PASS    |
+| B6     | x402 Trust Gateway — ALLOW/BLOCK verified    | PASS    |
 
 **Verdict: APPROVED.** BLOQUE 4 gap (indirect injection phrases undetected in v0.2.7) closed by adding 2 missing patterns. BLOQUE 5 gap (privilege escalation phrases) closed in v0.2.6. All 6/6 blocks pass with 3/3 coverage in previously failing sub-tests.
 
@@ -1869,16 +1869,16 @@ Nine transition types are defined: PUBLISH, SCORE_UPDATE, PROMOTE, DEMOTE, THREA
 
 Eight invariants are formally verified:
 
-| ID    | Property                                        | Result     | Time  |
-|:------|:------------------------------------------------|:----------:|------:|
-| INV-1 | `threat_detected → ¬publish_allowed`            | **PROVEN** | <15ms |
-| INV-2 | `trust_score < 0.4 → attestation_count = 0`     | **PROVEN** | <15ms |
-| INV-3 | `hierarchy_next ≤ hierarchy_current + 1`         | **PROVEN** | <15ms |
-| INV-4 | `0 ≤ trust_score ≤ 1`                            | **PROVEN** | <10ms |
-| INV-5 | `cooldown_active → ¬publish_allowed`             | **PROVEN** | <10ms |
-| INV-6 | `hierarchy = GOVERNOR → trust_score > 0.8`       | **PROVEN** | <15ms |
-| INV-7 | `safety_score = 1 − f³` (consistency)            | **PROVEN** | <10ms |
-| INV-8 | `governance_violation → DEMOTE`                  | **PROVEN** | <15ms |
+| ID     | Property                                     |    Result   |   Time |
+| :------ | :-------------------------------------------- | :----------: | ------: |
+| INV-1  | `threat_detected → ¬publish_allowed`         |  **PROVEN** |  <15ms |
+| INV-2  | `trust_score < 0.4 → attestation_count = 0`  |  **PROVEN** |  <15ms |
+| INV-3  | `hierarchy_next ≤ hierarchy_current + 1`     |  **PROVEN** |  <15ms |
+| INV-4  | `0 ≤ trust_score ≤ 1`                        |  **PROVEN** |  <10ms |
+| INV-5  | `cooldown_active → ¬publish_allowed`         |  **PROVEN** |  <10ms |
+| INV-6  | `hierarchy = GOVERNOR → trust_score > 0.8`   |  **PROVEN** |  <15ms |
+| INV-7  | `safety_score = 1 − f³` (consistency)        |  **PROVEN** |  <10ms |
+| INV-8  | `governance_violation → DEMOTE`              |  **PROVEN** |  <15ms |
 
 Total verification time: **107.7ms** for all 8 invariants. This establishes that no sequence of agent actions, regardless of input, can violate DOF governance.
 
@@ -1971,41 +1971,41 @@ contract DOFProofRegistry {
 
 ### 32.6 Comparative Analysis
 
-| Property                 | Typical Trust Frameworks   | DOF v0.3.3                         |
-|:-------------------------|:---------------------------|:-----------------------------------|
-| Trust basis              | Probabilistic scoring      | Mathematical proof                 |
-| LLM validation           | None or self-check         | Z3 gate (neurosymbolic)            |
-| On-chain evidence        | Score only                 | Score + proof hash                 |
-| Test generation          | Manual                     | Z3 auto-generated                  |
-| Verification scope       | Single output              | Full state transitions             |
-| Independent verification | No                         | Yes (`verifyProof()`)              |
+| Property                  | Typical Trust Frameworks  | DOF v0.3.3               |
+| :------------------------- | :------------------------- | :------------------------ |
+| Trust basis               | Probabilistic scoring     | Mathematical proof       |
+| LLM validation            | None or self-check        | Z3 gate (neurosymbolic)  |
+| On-chain evidence         | Score only                | Score + proof hash       |
+| Test generation           | Manual                    | Z3 auto-generated        |
+| Verification scope        | Single output             | Full state transitions   |
+| Independent verification  | No                        | Yes (`verifyProof()`)    |
 
 ### 32.7 Performance Impact
 
-| Metric                    | v0.2.8    | v0.3.3       | Delta           |
-|:--------------------------|:----------|:-------------|:----------------|
-| Total tests               | 807       | 986          | +179 (+22%)     |
-| Z3 verification time      | —         | 107.7ms      | New             |
-| Hierarchy verification    | —         | 4.9ms        | New             |
-| Invariants proven         | 4 static  | 8 dynamic    | +4              |
-| Hierarchy patterns        | 33        | 42 (proven)  | +9              |
-| Pipeline latency impact   | 0ms       | <110ms       | Negligible      |
-| Benchmark F1              | 96.8%     | ≥96.8%       | No regression   |
+| Metric                   | v0.2.8    | v0.3.3       | Delta          |
+| :------------------------ | :--------- | :------------ | :-------------- |
+| Total tests              | 807       | 986          | +179 (+22%)    |
+| Z3 verification time     | —         | 107.7ms      | New            |
+| Hierarchy verification   | —         | 4.9ms        | New            |
+| Invariants proven        | 4 static  | 8 dynamic    | +4             |
+| Hierarchy patterns       | 33        | 42 (proven)  | +9             |
+| Pipeline latency impact  | 0ms       | <110ms       | Negligible     |
+| Benchmark F1             | 96.8%     | ≥96.8%       | No regression  |
 
 ### 32.8 New Core Modules
 
-| Module              | Location                    | Purpose                                      |
-|:--------------------|:----------------------------|:---------------------------------------------|
-| `state_model`       | `core/state_model.py`       | Agent state as Z3 symbolic variables          |
-| `transitions`       | `core/transitions.py`       | Transition verifier with 8 proven invariants  |
-| `hierarchy_z3`      | `core/hierarchy_z3.py`      | 42 hierarchy patterns as Z3 constraints       |
-| `z3_gate`           | `core/z3_gate.py`           | Neurosymbolic gate for agent outputs          |
-| `agent_output`      | `core/agent_output.py`      | Output protocol with Z3 constraint translation|
-| `boundary`          | `core/boundary.py`          | Boundary case discovery engine                |
-| `z3_test_generator` | `core/z3_test_generator.py` | Auto-generates tests from Z3 counterexamples  |
-| `z3_proof`          | `core/z3_proof.py`          | Attestation with keccak256 proof hash         |
-| `proof_hash`        | `core/proof_hash.py`        | Deterministic proof serialization and hashing |
-| `proof_storage`     | `core/proof_storage.py`     | Local storage (default) + optional IPFS       |
+| Module               | Location                     | Purpose                                         |
+| :-------------------- | :---------------------------- | :----------------------------------------------- |
+| `state_model`        | `core/state_model.py`        | Agent state as Z3 symbolic variables            |
+| `transitions`        | `core/transitions.py`        | Transition verifier with 8 proven invariants    |
+| `hierarchy_z3`       | `core/hierarchy_z3.py`       | 42 hierarchy patterns as Z3 constraints         |
+| `z3_gate`            | `core/z3_gate.py`            | Neurosymbolic gate for agent outputs            |
+| `agent_output`       | `core/agent_output.py`       | Output protocol with Z3 constraint translation  |
+| `boundary`           | `core/boundary.py`           | Boundary case discovery engine                  |
+| `z3_test_generator`  | `core/z3_test_generator.py`  | Auto-generates tests from Z3 counterexamples    |
+| `z3_proof`           | `core/z3_proof.py`           | Attestation with keccak256 proof hash           |
+| `proof_hash`         | `core/proof_hash.py`         | Deterministic proof serialization and hashing   |
+| `proof_storage`      | `core/proof_storage.py`      | Local storage (default) + optional IPFS         |
 
 ---
 
