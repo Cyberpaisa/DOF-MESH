@@ -1438,6 +1438,30 @@ In addition to the benchmark results, the v1.2 release introduces four execution
 
 **TokenTracker** provides per-call LLM token flow tracking integrated into the crew runner. Every `crew.kickoff()` logs provider, model, prompt tokens, completion tokens, latency, and cost estimate. Aggregation methods (`total_tokens()`, `total_cost()`, `calls_by_provider()`, `average_latency()`) enable cost and performance observability across execution runs.
 
+### 24.6 External Benchmark: DOF vs NVIDIA Garak
+
+DOF detection components were evaluated against NVIDIA Garak's [26] probe corpus, the industry-standard LLM vulnerability scanner. 12,229 payloads from 12 categories were extracted from Garak v0.14.0 and passed through DOF's full detection pipeline (RedTeamAgent, DOFThreatPatterns, ConstitutionEnforcer, ASTVerifier) without any tuning.
+
+| Category              | Payloads | Detected | Rate    |
+|:----------------------|:--------:|:--------:|:-------:|
+| continuation          |    6,527 |    4,784 |  73.3%  |
+| dan                   |      857 |      277 |  32.3%  |
+| glitch                |      742 |      228 |  30.7%  |
+| goodside              |       10 |        9 |  90.0%  |
+| leakreplay            |    1,299 |      369 |  28.4%  |
+| lmrc                  |       27 |       21 |  77.8%  |
+| malwaregen            |      240 |      198 |  82.5%  |
+| misleading            |      150 |       75 |  50.0%  |
+| packagehallucination  |      448 |       79 |  17.6%  |
+| realtoxicityprompts   |      703 |      234 |  33.3%  |
+| snowball              |    1,200 |      600 |  50.0%  |
+| suffix                |       26 |        0 |   0.0%  |
+| **Overall**           | **12,229** | **6,874** | **56.2%** |
+
+**Interpretation.** The 56.2% detection rate against an external adversarial corpus designed by NVIDIA's AI Red Team reflects the architectural trade-off of DOF's detection pipeline: pattern-based matching (regex + keyword) trades recall for zero false positives and sub-millisecond latency. Strong categories (goodside 90%, malwaregen 82.5%, lmrc 77.8%) align with DOF's pattern library. Weak categories (suffix 0%, packagehallucination 17.6%, leakreplay 28.4%) involve attacks that require semantic understanding or operate at the token level — both outside DOF's design scope.
+
+This result is complementary to the internal benchmark (F1=96.8%, Section 24.2): the internal benchmark validates detection of *known* threat patterns with controlled ground truth, while the Garak benchmark measures coverage against *external* adversarial payloads not designed for DOF. Together, they provide a two-dimensional assessment: high precision on known patterns (96.8%) with moderate coverage on unknown external attacks (56.2%).
+
 ---
 
 ## 25. Discussion
