@@ -15,7 +15,7 @@ Quick start:
     bench = benchmark()
 """
 
-__version__ = "0.2.7"
+__version__ = "0.2.8"
 
 import os as _os
 
