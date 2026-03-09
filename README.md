@@ -196,7 +196,30 @@ Production (n=30): SS=0.90, GCR=1.00, PFI=0.61, 27/30 ACCEPT. Two agents ranked 
 
 ## External Validation (Google Colab)
 
-Tested externally via `pip install dof-sdk` — fresh Colab runtime, zero internal dependencies. Enterprise Report v5: 6/6 PASS. TrustGateway, RedTeam, Z3 Proofs, MerkleBatcher all verified. Full reports: [`tests/external/`](tests/external/)
+Tested externally via `pip install dof-sdk` — fresh Colab runtime, zero internal dependencies.
+
+<p align="center">
+  <a href="https://colab.research.google.com/drive/1GJQP7itj0d5z0UjWsqcyviSfev358pck?usp=sharing">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab">
+  </a>
+</p>
+
+**Enterprise Report v6 (v0.3.3) — 10/10 PASS:**
+
+| Block | Component                                | Result |
+|:------|:-----------------------------------------|:------:|
+| B1    | Z3 Static Proofs — 4 theorems            | PASS   |
+| B2    | Z3 State Transitions — 8 invariants      | PASS   |
+| B3    | Z3 Hierarchy — 42 patterns               | PASS   |
+| B4    | Z3 Gate — neurosymbolic validation       | PASS   |
+| B5    | Proof Hash — deterministic serialization | PASS   |
+| B6    | Error Classification — 8/8 categories    | PASS   |
+| B7    | Merkle Batcher — 10 attestations batched | PASS   |
+| B8    | Red Team + Threats — 3/3 detected        | PASS   |
+| B9    | enforce_hierarchy — instruction priority  | PASS   |
+| B10   | x402 Trust Gateway — ALLOW/BLOCK         | PASS   |
+
+Full reports: [`tests/external/`](tests/external/)
 
 ---
 
