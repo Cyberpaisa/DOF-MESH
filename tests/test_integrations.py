@@ -212,6 +212,73 @@ class TestGenericAdapter(unittest.TestCase):
             "provider": "test",
         })
 
+    def test_get_execution_trace_existing_run(self):
+        import uuid, os, json
+        run_id = str(uuid.uuid4())
+        
+        log_dir = os.path.join(BASE_DIR, "logs", "checkpoints")
+        os.makedirs(log_dir, exist_ok=True)
+        cp_path = os.path.join(log_dir, f"{run_id}.jsonl")
+        
+        step_data = {
+            "run_id": run_id,
+            "step_id": "step_1",
+            "provider": "openai",
+            "timestamp": "2026-03-10T15:00:00Z",
+            "latency_ms": 150.0,
+            "governance_result": "pass",
+            "error": None
+        }
+        with open(cp_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps(step_data) + "\n")
+            
+        try:
+            trace = self.adapter.get_execution_trace(run_id)
+            print("\nDEBUG TRACE:", trace); self.assertIsNotNone(trace)
+            self.assertEqual(trace["run_id"], run_id)
+            self.assertEqual(len(trace["steps"]), 1)
+            self.assertEqual(trace["steps"][0]["provider"], "openai")
+            self.assertEqual(trace["steps"][0]["governance_result"], "pass")
+            self.assertIsNone(trace["steps"][0]["error_class"])
+            self.assertIsNotNone(trace["steps"][0]["action_hash"])
+            self.assertIsNotNone(trace["trace_hash"])
+        finally:
+            if os.path.exists(cp_path):
+                os.remove(cp_path)
+
+    def test_get_execution_trace_nonexistent_run_returns_none(self):
+        trace = self.adapter.get_execution_trace("non-existent-run-id-invalid")
+        self.assertIsNone(trace)
+
+    def test_get_execution_trace_hash_deterministic(self):
+        import uuid, os, json
+        run_id = str(uuid.uuid4())
+        
+        log_dir = os.path.join(BASE_DIR, "logs", "checkpoints")
+        os.makedirs(log_dir, exist_ok=True)
+        cp_path = os.path.join(log_dir, f"{run_id}.jsonl")
+        
+        step_data = {
+            "run_id": run_id,
+            "step_id": 1,
+            "latency_ms": 100
+        }
+        with open(cp_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps(step_data) + "\n")
+            f.write(json.dumps(step_data) + "\n")
+            
+        try:
+            trace1 = self.adapter.get_execution_trace(run_id)
+            trace2 = self.adapter.get_execution_trace(run_id)
+            
+            self.assertEqual(trace1["trace_hash"], trace2["trace_hash"])
+            self.assertEqual(trace1["steps"][0]["action_hash"], trace2["steps"][0]["action_hash"])
+            # Both steps are identical strings, so action_hash should match
+            self.assertEqual(trace1["steps"][0]["action_hash"], trace1["steps"][1]["action_hash"])
+        finally:
+            if os.path.exists(cp_path):
+                os.remove(cp_path)
+
 
 # ── CrewAIAdapter ────────────────────────────────────────────────────────────
 

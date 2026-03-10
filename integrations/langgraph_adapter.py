@@ -293,6 +293,104 @@ class GenericAdapter(FrameworkAdapter):
         node = DOFObservabilityNode()
         node(step_data)
 
+    def get_execution_trace(self, run_id: str) -> dict | None:
+        """Read execution JSONL and return a structured trace for external kernels.
+        
+        Searches logs/execution_log.jsonl and logs/checkpoints/{run_id}.jsonl 
+        for steps belonging to the specified run_id.
+        """
+        import json
+        import hashlib
+        try:
+            from core.proof_hash import ProofSerializer
+            def _hash(text: str) -> str:
+                return ProofSerializer.hash_proof(text).hex()
+        except ImportError:
+            def _hash(text: str) -> str:
+                return hashlib.sha3_256(text.encode("utf-8")).hexdigest()
+
+        log_path = os.path.join(BASE_DIR, "logs", "execution_log.jsonl")
+        
+        steps = []
+        raw_trace_lines = []
+        found = False
+
+        if os.path.exists(log_path):
+            with open(log_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    if not line.strip():
+                        continue
+                    try:
+                        data = json.loads(line)
+                        if data.get("run_id") == run_id:
+                            found = True
+                            raw_trace_lines.append(line)
+                            
+                            gov_res = data.get("governance_result")
+                            if gov_res is None and "governance_passed" in data:
+                                gov_res = "pass" if data["governance_passed"] else "fail"
+                            
+                            steps.append({
+                                "step_id": data.get("step_index") or data.get("step_id") or len(steps) + 1,
+                                "timestamp": data.get("timestamp") or data.get("iso"),
+                                "provider": data.get("provider"),
+                                "latency_ms": data.get("latency_ms"),
+                                "governance_result": gov_res,
+                                "error_class": data.get("error_class"),
+                                "action_hash": _hash(line)
+                            })
+                    except json.JSONDecodeError:
+                        continue
+
+        if not found:
+            cp_path = os.path.join(BASE_DIR, "logs", "checkpoints", f"{run_id}.jsonl")
+            if os.path.exists(cp_path):
+                found = True
+                with open(cp_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if not line.strip():
+                            continue
+                        raw_trace_lines.append(line)
+                        try:
+                            data = json.loads(line)
+                            gov_res = data.get("governance_result")
+                            if gov_res is None and "governance_passed" in data:
+                                gov_res = "pass" if data["governance_passed"] else "fail"
+                                
+                            steps.append({
+                                "step_id": data.get("step_index") or data.get("step_id") or len(steps) + 1,
+                                "timestamp": data.get("timestamp"),
+                                "provider": data.get("provider"),
+                                "latency_ms": data.get("latency_ms"),
+                                "governance_result": gov_res,
+                                "error_class": data.get("error_class") or data.get("error"),
+                                "action_hash": _hash(line)
+                            })
+                        except json.JSONDecodeError:
+                            continue
+
+        if not found:
+            return None
+
+        trace_data = "".join(raw_trace_lines)
+        proof_hash = None
+        try:
+            from core.oracle_bridge import AttestationRegistry
+            registry = AttestationRegistry()
+            if hasattr(registry, "get_by_task_id"):
+                cert = registry.get_by_task_id(run_id)
+                if cert:
+                    proof_hash = cert.certificate_hash
+        except Exception:
+            pass
+
+        return {
+            "run_id": run_id,
+            "steps": steps,
+            "trace_hash": _hash(trace_data) if trace_data else _hash(""),
+            "proof_hash": proof_hash
+        }
+
 
 # ─────────────────────────────────────────────────────────────────────
 # CrewAI Adapter
