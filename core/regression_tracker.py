@@ -1,11 +1,12 @@
 """
 Regression Tracker — Detects improvements and regressions across DOF subsystems.
 
-Tracks 4 dimensions after every change:
+Tracks 5 dimensions after every change:
 1. Z3 Invariants: 8 invariants timing + status
 2. Z3 Hierarchy: 42 patterns timing + status
 3. Test Suite: pass/fail count + new failures
 4. Garak Benchmark: detection rate per category (if results exist)
+5. LLM Routing: provider failure rates, distribution, latency
 
 Usage:
     tracker = RegressionTracker()
@@ -249,8 +250,35 @@ class RegressionTracker:
             },
         }
 
+    def _measure_llm_routing(self) -> dict:
+        """Read LLM routing metrics from llm_config."""
+        try:
+            from llm_config import get_routing_stats, _circuit_breaker, _CIRCUIT_BREAKER_WINDOW_S
+            stats = get_routing_stats()
+            # Also capture Thompson Sampling state if available
+            try:
+                from core.providers import BayesianProviderSelector
+                selector = BayesianProviderSelector._instance if hasattr(BayesianProviderSelector, '_instance') else None
+                if selector:
+                    ts_state = selector.get_status()
+                else:
+                    ts_state = {}
+            except (ImportError, AttributeError):
+                ts_state = {}
+
+            return {
+                "available": True,
+                "total_decisions": stats.get("total_decisions", 0),
+                "provider_distribution": stats.get("provider_distribution", {}),
+                "provider_failure_rate": stats.get("provider_failure_rate", {}),
+                "avg_latency_ms": stats.get("avg_latency_ms", {}),
+                "thompson_sampling_state": ts_state,
+            }
+        except ImportError:
+            return {"available": False}
+
     def _measure_all(self) -> dict:
-        """Measure all 4 subsystems and return snapshot."""
+        """Measure all 5 subsystems and return snapshot."""
         return {
             "timestamp": datetime.now().isoformat(),
             "git_commit": self._get_git_commit(),
@@ -258,6 +286,7 @@ class RegressionTracker:
             "z3_hierarchy": self._measure_hierarchy(),
             "tests": self._measure_tests(),
             "garak": self._measure_garak(),
+            "llm_routing": self._measure_llm_routing(),
         }
 
     def capture_baseline(self) -> dict:
@@ -380,6 +409,37 @@ class RegressionTracker:
                 baseline_value="N/A",
                 current_value=f"{curr_garak['overall_detection_rate']}%",
                 delta="new",
+            ))
+
+        # --- LLM Routing ---
+        curr_routing = current.get("llm_routing", {})
+        base_routing = baseline.get("llm_routing", {})
+
+        if curr_routing.get("available"):
+            failure_rates = curr_routing.get("provider_failure_rate", {})
+            max_failure = max(failure_rates.values()) if failure_rates else 0
+            dist = curr_routing.get("provider_distribution", {})
+            max_conc = max(dist.values()) if dist else 0
+
+            details_parts = []
+            if max_failure > 15:
+                change = ChangeType.REGRESSED
+                details_parts.append(f"failure_rate {max_failure}% > 15% threshold")
+            elif base_routing.get("available"):
+                change = ChangeType.STABLE
+            else:
+                change = ChangeType.NEW
+
+            if max_conc > 40:
+                details_parts.append(f"WARNING: {max_conc}% concentrated on single provider")
+
+            subsystems.append(SubsystemResult(
+                name="llm_routing",
+                change=change,
+                baseline_value=f"{base_routing.get('total_decisions', 0)} decisions" if base_routing.get("available") else "N/A",
+                current_value=f"{curr_routing.get('total_decisions', 0)} decisions",
+                delta=f"max_fail={max_failure}%, max_conc={max_conc}%",
+                details="; ".join(details_parts) if details_parts else "",
             ))
 
         # Build report

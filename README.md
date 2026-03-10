@@ -13,6 +13,7 @@
   <img src="https://img.shields.io/badge/license-BSL%201.1-orange" alt="license">
   <img src="https://img.shields.io/badge/LOC-27K%2B-purple" alt="LOC">
   <img src="https://img.shields.io/badge/Avalanche-mainnet-red" alt="Avalanche">
+  <a href="https://eips.ethereum.org/EIPS/eip-8183"><img src="https://img.shields.io/badge/ERC--8183-Evaluator-blue?logo=ethereum" alt="ERC-8183 Evaluator"></a>
 </p>
 
 <h1 align="center">Deterministic Observability Framework (DOF)</h1>
@@ -227,6 +228,14 @@ Tested externally via `pip install dof-sdk` — fresh Colab runtime, zero intern
 | B10   | x402 Trust Gateway — ALLOW/BLOCK         | PASS   |
 
 Full reports: [`tests/external/`](tests/external/)
+
+---
+
+## On-chain Integration
+
+DOF acts as a trustless **Evaluator** in the [ERC-8183](https://eips.ethereum.org/EIPS/eip-8183)
+agentic commerce standard. Every Z3 proof becomes an on-chain attestation.
+Every agent job gets a verifiable outcome. [→ DOFEvaluator.sol](contracts/DOFEvaluator.sol)
 
 ---
 

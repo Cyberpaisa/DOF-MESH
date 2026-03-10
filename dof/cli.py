@@ -278,6 +278,11 @@ def cmd_regression_baseline(args):
         print(f"  Garak:         {garak['overall_detection_rate']}% ({garak['total_payloads']} payloads)")
     else:
         print(f"  Garak:         N/A (no results file)")
+    routing = baseline.get("llm_routing", {})
+    if routing.get("available"):
+        print(f"  LLM Routing:   {routing.get('total_decisions', 0)} decisions")
+    else:
+        print(f"  LLM Routing:   N/A (llm_config not available)")
     print(f"\n  Saved: {tracker.BASELINE_FILE}")
 
 

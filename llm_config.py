@@ -304,7 +304,7 @@ def get_llm_for_role(role: str) -> LLM:
 
 
 # ═══════════════════════════════════════════════════════
-# SMART ROUTER — Elige modelo por contexto + rol
+# SMART ROUTER — Elige modelo por contexto + task_type + rol
 # ═══════════════════════════════════════════════════════
 
 def estimate_tokens(text: str) -> int:
@@ -312,43 +312,227 @@ def estimate_tokens(text: str) -> int:
     return len(text) // 4
 
 
-def get_llm_smart(role: str, task_text: str = "", context_size: int = 0):
+# ── Circuit Breaker ──────────────────────────────────────────────────
+# Tracks failures per provider. 3+ failures within 5 minutes → degraded.
+# Structure: {provider: [(timestamp, ...), ...]}
+_circuit_breaker: dict[str, list[float]] = {}
+_CIRCUIT_BREAKER_THRESHOLD = 3
+_CIRCUIT_BREAKER_WINDOW_S = 300  # 5 minutes
+
+# ── Routing Decision Log ─────────────────────────────────────────────
+# Each entry: {timestamp, role, task_type, chosen_provider, chosen_model, reason}
+_routing_log: list[dict] = []
+
+
+def record_provider_failure(provider: str):
+    """Record a provider failure for circuit breaker tracking."""
+    provider = provider.lower()
+    now = time.time()
+    if provider not in _circuit_breaker:
+        _circuit_breaker[provider] = []
+    _circuit_breaker[provider].append(now)
+    # Prune old entries
+    _circuit_breaker[provider] = [
+        t for t in _circuit_breaker[provider]
+        if now - t < _CIRCUIT_BREAKER_WINDOW_S
+    ]
+    if len(_circuit_breaker[provider]) >= _CIRCUIT_BREAKER_THRESHOLD:
+        mark_provider_exhausted(provider)
+        logger.warning(
+            f"Circuit breaker OPEN for '{provider}': "
+            f"{len(_circuit_breaker[provider])} failures in {_CIRCUIT_BREAKER_WINDOW_S}s"
+        )
+
+
+def is_provider_degraded(provider: str) -> bool:
+    """Check if a provider is degraded (circuit breaker open)."""
+    provider = provider.lower()
+    if not _is_available(provider):
+        return True
+    now = time.time()
+    recent = [t for t in _circuit_breaker.get(provider, [])
+              if now - t < _CIRCUIT_BREAKER_WINDOW_S]
+    return len(recent) >= _CIRCUIT_BREAKER_THRESHOLD
+
+
+def get_routing_log(last_n: int = 100) -> list[dict]:
+    """Return last N routing decisions for analytics."""
+    return _routing_log[-last_n:]
+
+
+def get_routing_stats() -> dict:
+    """Return routing distribution and failure rates for monitoring."""
+    log = get_routing_log(100)
+    if not log:
+        return {
+            "total_decisions": 0,
+            "provider_distribution": {},
+            "provider_failure_rate": {},
+            "avg_latency_ms": {},
+        }
+
+    # Distribution
+    dist: dict[str, int] = {}
+    for entry in log:
+        p = entry.get("chosen_provider", "unknown")
+        dist[p] = dist.get(p, 0) + 1
+    total = len(log)
+    pct_dist = {k: round(v / total * 100, 1) for k, v in dist.items()}
+
+    # Failure rates from circuit breaker
+    now = time.time()
+    failure_rates: dict[str, float] = {}
+    for provider, timestamps in _circuit_breaker.items():
+        recent = [t for t in timestamps if now - t < _CIRCUIT_BREAKER_WINDOW_S]
+        provider_calls = dist.get(provider, 1)
+        failure_rates[provider] = round(len(recent) / max(provider_calls, 1) * 100, 1)
+
+    return {
+        "total_decisions": total,
+        "provider_distribution": pct_dist,
+        "provider_failure_rate": failure_rates,
+        "avg_latency_ms": {},  # Populated by caller with actual latency data
+    }
+
+
+def _log_routing_decision(role: str, task_type: str, provider: str, model: str, reason: str):
+    """Log a routing decision for analytics."""
+    entry = {
+        "timestamp": time.time(),
+        "role": role,
+        "task_type": task_type or "default",
+        "chosen_provider": provider,
+        "chosen_model": model,
+        "reason": reason,
+    }
+    _routing_log.append(entry)
+    # Cap log size at 1000 entries
+    if len(_routing_log) > 1000:
+        _routing_log[:] = _routing_log[-500:]
+    logger.info(f"Routing: {role}/{task_type} → {provider}/{model} ({reason})")
+
+
+# TODO paper — "Learning When to Act or Refuse" (KARL):
+# get_llm_smart implements neurosymbolic routing where the deterministic
+# router (task_type rules + circuit breaker) decides which LLM is invoked.
+# This is analogous to the Z3 gate: the router proposes → rules approve/reject.
+
+def get_llm_smart(role: str, task_text: str = "", context_size: int = 0,
+                  task_type: str = None):
     """
-    Router inteligente (respeta providers agotados):
-    - Si contexto > 200K tokens → Gemini (1M context)
-    - Si tarea de código → Kimi K2.5 (NVIDIA)
-    - Si tarea rápida/simple → Cerebras (0.3s)
-    - Default → routing por rol con fallback completo
+    Smart LLM router with task-type routing, circuit breaker, and analytics.
+
+    Routing priority:
+    1. Context size > 50K tokens → Gemini (1M context window)
+    2. Explicit task_type:
+       - "architecture" → Kimi K2.5 (NVIDIA NIM)
+       - "research"     → DeepSeek V3.2 (NVIDIA NIM)
+       - "verification" → MiniMax M2.1 (primary, 1000 req/day)
+       - "fast"         → Zhipu GLM-4.7 (17x faster)
+       - "fallback"     → Groq Llama 3.3
+    3. Keyword-based heuristics (code, reasoning)
+    4. Small context optimization (< 5K → Cerebras)
+    5. Default → role-based routing with full fallback chain
+
+    Circuit breaker: 3 failures in 5 minutes → provider degraded.
+    OpenAI: REMOVED (caused 33% of failures).
+    NVIDIA NIM: only at end of chains (no structured output).
+
+    Args:
+        role: Agent role name (e.g. "code_architect").
+        task_text: Optional task description for keyword-based routing.
+        context_size: Pre-computed token count of context already loaded.
+        task_type: Explicit routing hint. One of: architecture, research,
+                   verification, fast, fallback. If None, uses heuristics.
+
+    Returns:
+        LLM instance configured for the selected provider.
     """
     total_tokens = estimate_tokens(task_text) + context_size
 
-    if total_tokens > 200_000:
+    # ── 1. Large context → Gemini ────────────────────────────────────
+    if total_tokens > 50_000:
         gemini = get_gemini_llm(temperature=0.5)
         if gemini:
+            _log_routing_decision(role, task_type, "gemini", "gemini-2.5-flash",
+                                  f"large context ({total_tokens} tokens)")
             return gemini
 
-    code_keywords = ["código", "code", "script", "debug", "función", "api", "endpoint",
-                     "solidity", "rust", "python", "typescript", "smart contract"]
-    is_code_task = any(kw in task_text.lower() for kw in code_keywords)
-    if is_code_task and role != "code_architect":
-        nvidia = _try_get("nvidia", get_nvidia_llm, model="moonshotai/kimi-k2.5", temperature=0.2)
-        if nvidia:
+    # ── 2. Explicit task_type routing ────────────────────────────────
+    if task_type == "architecture":
+        nvidia = _try_get("nvidia", get_nvidia_llm,
+                          model="moonshotai/kimi-k2.5", temperature=0.2)
+        if nvidia and not is_provider_degraded("nvidia"):
+            _log_routing_decision(role, task_type, "nvidia", "kimi-k2.5",
+                                  "task_type=architecture")
             return nvidia
 
-    reasoning_keywords = ["analiza", "razona", "estrategia", "plan", "diseña", "architecture",
-                          "reasoning", "strategy", "evaluate", "compare"]
-    is_reasoning_task = any(kw in task_text.lower() for kw in reasoning_keywords)
-    if is_reasoning_task and role not in ("mvp_strategist", "code_architect"):
-        nvidia_qwen = _try_get("nvidia", get_nvidia_llm, model="qwen/qwen3.5-397b-a17b", temperature=0.4)
-        if nvidia_qwen:
-            return nvidia_qwen
+    elif task_type == "research":
+        nvidia = _try_get("nvidia", get_nvidia_llm,
+                          model="deepseek-ai/deepseek-v3.2", temperature=0.3)
+        if nvidia and not is_provider_degraded("nvidia"):
+            _log_routing_decision(role, task_type, "nvidia", "deepseek-v3.2",
+                                  "task_type=research")
+            return nvidia
 
+    elif task_type == "verification":
+        minimax = _try_get("minimax", get_minimax_llm, temperature=0.2)
+        if minimax and not is_provider_degraded("minimax"):
+            _log_routing_decision(role, task_type, "minimax", "MiniMax-M2.1",
+                                  "task_type=verification")
+            return minimax
+
+    elif task_type == "fast":
+        zhipu = _try_get("zhipu", get_zhipu_llm, temperature=0.3)
+        if zhipu and not is_provider_degraded("zhipu"):
+            _log_routing_decision(role, task_type, "zhipu", "glm-4.7-flash",
+                                  "task_type=fast")
+            return zhipu
+
+    elif task_type == "fallback":
+        groq = _try_get("groq", get_groq_llm, temperature=0.3)
+        if groq and not is_provider_degraded("groq"):
+            _log_routing_decision(role, task_type, "groq", "llama-3.3-70b",
+                                  "task_type=fallback")
+            return groq
+
+    # ── 3. Keyword heuristics (preserved from v0.3.2) ───────────────
+    if not task_type:
+        code_keywords = ["código", "code", "script", "debug", "función", "api",
+                         "endpoint", "solidity", "rust", "python", "typescript",
+                         "smart contract"]
+        is_code_task = any(kw in task_text.lower() for kw in code_keywords)
+        if is_code_task and role != "code_architect":
+            nvidia = _try_get("nvidia", get_nvidia_llm,
+                              model="moonshotai/kimi-k2.5", temperature=0.2)
+            if nvidia:
+                _log_routing_decision(role, task_type, "nvidia", "kimi-k2.5",
+                                      "code keywords detected")
+                return nvidia
+
+        reasoning_keywords = ["analiza", "razona", "estrategia", "plan", "diseña",
+                              "architecture", "reasoning", "strategy", "evaluate",
+                              "compare"]
+        is_reasoning_task = any(kw in task_text.lower() for kw in reasoning_keywords)
+        if is_reasoning_task and role not in ("mvp_strategist", "code_architect"):
+            nvidia_qwen = _try_get("nvidia", get_nvidia_llm,
+                                   model="qwen/qwen3.5-397b-a17b", temperature=0.4)
+            if nvidia_qwen:
+                _log_routing_decision(role, task_type, "nvidia", "qwen3.5-397b",
+                                      "reasoning keywords detected")
+                return nvidia_qwen
+
+    # ── 4. Small context → Cerebras ──────────────────────────────────
     if total_tokens < 5_000 and role not in ("research_analyst", "mvp_strategist"):
         cerebras = _try_get("cerebras", get_cerebras_llm, temperature=0.3)
         if cerebras:
+            _log_routing_decision(role, task_type, "cerebras", "gpt-oss-120b",
+                                  f"small context ({total_tokens} tokens)")
             return cerebras
 
-    # Fallback: routing por rol (ya tiene cadenas completas de 4 providers)
+    # ── 5. Fallback: role-based routing ──────────────────────────────
+    _log_routing_decision(role, task_type, "role_chain", "get_llm_for_role",
+                          "default fallback")
     return get_llm_for_role(role)
 
 
