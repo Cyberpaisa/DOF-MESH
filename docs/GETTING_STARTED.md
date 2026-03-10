@@ -1,5 +1,18 @@
 # Getting Started with DOF
 
+## Why DOF?
+
+Production AI agent systems face three unsolved problems: **hallucination governance** (who checks the checker?), **reproducibility** (can you reproduce a failure?), and **formal guarantees** (can you *prove* a safety property holds?). Existing frameworks delegate these to LLMs — creating circular dependencies where the evaluator shares the same failure modes as the evaluated [Huyen, *AI Engineering*, O'Reilly 2025].
+
+DOF takes a different approach: **zero-LLM governance**. Every governance decision — constitutional enforcement, AST verification, formal proofs — is made by deterministic code and Z3 SMT solvers, not by another language model. This means:
+
+- **GCR = 1.0 proven invariant** — Governance Compliance Rate cannot degrade, verified by Z3
+- **8 state-transition invariants** — machine-checkable proofs that trust scores, provider selection, and escalation paths behave correctly
+- **Adversarial benchmarking** — 58.4% detection rate against NVIDIA Garak attack probes, with regression tracking to prevent silent degradation
+- **Full auditability** — every decision logged in JSONL, every proof reproducible
+
+If your agents need to be *provably* safe rather than *probably* safe, DOF provides the formal foundation.
+
 ## Installation (30 seconds)
 
 ```bash

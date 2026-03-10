@@ -191,6 +191,10 @@ The Open Agent Governance Specification (OAGS), developed by Sekuire, proposes a
 
 The Model Context Protocol (MCP) [23] defines a standardized interface for exposing tools and resources to LLM-based agents via JSON-RPC 2.0 over stdio transport. FastAPI [24] provides high-performance HTTP APIs with automatic OpenAPI documentation. LangGraph [3] defines a graph-based orchestration model where nodes are callable functions operating on shared state dictionaries. The protocol integration layer (Section 18) and framework-agnostic governance system (Section 20) adapt DOF governance to these interfaces without embedding governance logic in the protocol or framework layer.
 
+### 2.11 AI Engineering Practice
+
+Huyen [31] provides a comprehensive treatment of the emerging discipline of AI Engineering, covering the full lifecycle of foundation-model applications: evaluation, RAG, agent design, dataset curation, and production monitoring. Huyen identifies hallucination detection, output governance, and systematic evaluation as open challenges in production agent systems. DOF addresses these gaps with a deterministic governance stack (zero-LLM constitutional enforcement, AST verification, Z3 formal proofs) that operates independently of the model layer — a design choice that aligns with Huyen's recommendation to decouple governance from generation. The adversarial benchmarking pipeline (Section 24) and regression tracking system (Section 24.7) provide the systematic evaluation infrastructure that Huyen identifies as essential for production readiness.
+
 ---
 
 ## 3. System Architecture
@@ -1514,19 +1518,23 @@ Provider Fragility Index and Retry Pressure show high standard deviation (0.4830
 
 The invariance of Governance Compliance Rate under perturbation (GCR = 1.0 in all experiments) is now elevated beyond an empirical observation: Section 8 provides a machine-checkable Z3 proof that this invariance holds for all f ∈ [0,1] by architectural construction. The constitutional enforcement model—hard rules that block and soft rules that score—provides a useful separation of concerns.
 
-### 25.5 Supervisor Circularity Resolution
+### 25.5 Hallucination and Governance Independence
+
+A recurring theme in production AI engineering is the circular dependency between generation and evaluation: if the same model that generates output also evaluates it, hallucinations propagate unchecked [31]. DOF resolves this by architectural construction — the governance stack (ConstitutionEnforcer, ASTVerifier, Z3Gate) contains zero LLM components. This ensures that hallucinated output is evaluated by deterministic rules and formal proofs rather than by another LLM that may share the same failure modes. The empirical evidence supports this design: GCR = 1.0 across all perturbation experiments (Section 6.3), formally proven invariant by Z3 (Section 8).
+
+### 25.6 Supervisor Circularity Resolution
 
 Section 9 addresses the fundamental limitation identified in the original framework: LLM-based supervision is subject to the same failure modes as the agents it evaluates. The adversarial Red-on-Blue protocol provides a partial resolution: LLM agents establish the dialectic (defect identification and defense), while a deterministic arbiter resolves it. This does not eliminate LLM involvement in evaluation but bounds its impact: the final quality determination is made by code, not by an LLM.
 
 The ACR metric provides a new signal complementary to the existing SSR: while SSR measures the fraction of outputs rejected by the supervisor (a pass/fail gate), ACR measures the fraction of adversarially identified defects that can be defended with verifiable evidence (a quality signal about the defensibility of the output).
 
-### 25.6 Bayesian vs. Static Provider Selection
+### 25.7 Bayesian vs. Static Provider Selection
 
 The introduction of Thompson Sampling (Section 13) addresses a limitation of the original static rotation: equal treatment of providers regardless of observed reliability. In production deployments where provider reliability is heterogeneous and time-varying, Thompson Sampling provides asymptotically optimal regret bounds under the 4/δ framework [18]. The temporal decay mechanism ensures that historical data does not permanently bias selection against a provider that was temporarily degraded.
 
 The empirical question — whether Bayesian selection produces measurably lower PFI than static selection over a multi-day deployment — is deferred to future work (Section 29.2).
 
-### 25.7 Protocol Integration and Framework-Agnostic Governance
+### 25.8 Protocol Integration and Framework-Agnostic Governance
 
 The MCP server and REST API (Section 18) extend the governance boundary from in-process Python calls to network-accessible protocol interfaces. The design principle is that governance semantics must be identical across all access paths: an output governed via MCP `governance_check` produces the same result as `ConstitutionEnforcer.check()` called in-process. Both protocol layers are thin translation adapters with no governance logic.
 
@@ -1534,13 +1542,13 @@ The dual-backend storage architecture (Section 19) addresses production deployme
 
 The framework-agnostic governance system (Section 20) demonstrates that the GCR invariant extends beyond the DOF execution pipeline. Because governance evaluation depends only on output content, any framework that produces text can be governed by DOF. The `GenericAdapter` with zero external dependencies makes this accessible without framework lock-in.
 
-### 25.8 Production On-Chain Validation
+### 25.9 Production On-Chain Validation
 
 The deployment of DOFValidationRegistry on Avalanche C-Chain mainnet (Section 21) and the integration with the Enigma Scanner (Section 22) constitute the first production validation of the framework's governance pipeline against real, indexed agents. The three-layer publication pipeline provides defense in depth: if any single layer fails or is compromised, the remaining layers provide independent verification. The combined trust architecture (Section 22) demonstrates that formal governance verification can be integrated into production scoring systems alongside infrastructure monitoring and community feedback, with the weight allocation reflecting the relative strength of each verification methodology.
 
 The cross-verification results (Section 22.3) address a limitation previously identified in the discussion: governance compliance was validated only against the framework's own agents. The bilateral peer verification, where each agent governance-checks the other's output, provides the first evidence that DOF governance enforcement generalizes across agent identities and operational roles.
 
-### 25.9 Limitations
+### 25.10 Limitations
 
 Several limitations should be acknowledged:
 
@@ -2147,4 +2155,6 @@ contract DOFProofRegistry {
 [29] SakuraSky, "Formal Verification of AI Agent State Transitions with Z3 Counterexample Replay," 2026. https://www.sakurasky.com/blog/missing-primitives-for-trustworthy-ai-part-9/
 
 [30] Asymptotic, "Sui Prover: Z3-Based Formal Verification for Smart Contracts," 2026. https://github.com/asymptotic-code/sui-prover
+
+[31] C. Huyen, "AI Engineering: Building Applications with Foundation Models," O'Reilly Media, 2025. ISBN 978-1098166304.
 
