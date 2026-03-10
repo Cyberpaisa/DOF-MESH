@@ -72,6 +72,8 @@
 - [30. Conclusion](#30-conclusion)
 - [31. External Validation](#31-external-validation-enterprise-reports)
 - [32. Neurosymbolic Formal Verification Layer](#32-neurosymbolic-formal-verification-layer-v03x)
+- [33. Neurosymbolic LLM Routing](#33-neurosymbolic-llm-routing)
+- [34. DOF as On-Chain Trust Infrastructure (ERC-8183)](#34-dof-as-on-chain-trust-infrastructure-erc-8183)
 - [References](#references)
 
 </details>
@@ -1483,6 +1485,7 @@ The RegressionTracker (`core/regression_tracker.py`) provides automated post-mer
 | Z3 Hierarchy      | 42 patterns verification status          | Status changed from PROVEN             |
 | Test Suite        | Pass/fail count across full suite        | Passed decreased or failures increased |
 | Garak Benchmark   | Overall detection rate (12 categories)   | Detection rate decreased > 2pp         |
+| LLM Routing       | Provider failure rate, routing distribution, latency | Any provider failure rate > 15% |
 
 The tracker captures baselines before changes (`dof regression-baseline`), compares current state against baseline (`dof regression-check`), and maintains a JSONL history of all comparisons with git commit hashes for traceability. Integration with GitHub Actions ensures that any commit introducing a regression is blocked before merging to main.
 
@@ -1757,7 +1760,7 @@ We evaluate five systems: CrewAI [1] (the orchestration layer used by this frame
 | **On-chain proof hash**            | None           | None           | None           | None           | Yes. keccak256 proof hash in DOFProofRegistry.sol, verifiable by anyone.            |
 | **Auto-test generation from Z3**   | None           | None           | None           | None           | Yes. Z3 counterexamples and boundary cases → unittest regression tests.             |
 | **State transition proofs**        | None           | None           | None           | None           | Yes. 8 invariants PROVEN for ALL possible agent states in 107.7ms.                  |
-| **Regression tracking**            | None           | None           | None           | None           | Yes. 4 subsystems monitored post-merge, CI blocks regressions automatically.        |
+| **Regression tracking**            | None           | None           | None           | None           | Yes. 5 subsystems monitored post-merge, CI blocks regressions automatically.        |
 | **External adversarial benchmark** | None           | None           | None           | None           | Yes. 58.4% detection against 12,229 NVIDIA Garak payloads (12 categories).          |
 
 ### 28.3 Positioning Analysis
@@ -2091,6 +2094,47 @@ contract DOFProofRegistry {
 | `z3_proof`           | `core/z3_proof.py`           | Attestation with keccak256 proof hash           |
 | `proof_hash`         | `core/proof_hash.py`         | Deterministic proof serialization and hashing   |
 | `proof_storage`      | `core/proof_storage.py`      | Local storage (default) + optional IPFS         |
+
+---
+
+## 33. Neurosymbolic LLM Routing
+
+DOF implements task-aware LLM selection as a first-class governance primitive. The routing function `get_llm_smart()` extends the existing Bayesian Thompson Sampling selector [Section 13] with two new dimensions:
+
+**(i) Context-size awareness**: requests exceeding 50k tokens are routed to large-context models (Gemini), preventing truncation-induced governance failures. This directly addresses the "Spilled Energy in LLMs" phenomenon [Turing Post FOD#143, 2026] where oversized contexts degrade reasoning quality unpredictably.
+
+**(ii) Task-type specialization**: verification tasks are routed exclusively to MiniMax M2.1 (primary) with Groq fallback, ensuring that the LLM layer of DOF's neurosymbolic pipeline — where LLM proposes and Z3 approves — uses models optimized for structured output generation.
+
+This is consistent with findings in KARL (Knowledge Agents via RL, 2026): agents that learn *when* to use which knowledge source outperform uniform routing by adapting to task structure rather than treating all queries as equivalent.
+
+The circuit breaker mechanism (3 failures within 5 minutes → provider degraded for the window duration) prevents cascading failures when a provider degrades. Unlike static cooldowns, the circuit breaker respects the sliding window and automatically recovers when the failure timestamps expire. The RegressionTracker (Section 24.7) monitors provider failure rates as a 5th subsystem, triggering CI failure (exit 1) when any provider exceeds 15% failure rate.
+
+Routing decisions are logged for analytics via `get_routing_stats()`, providing per-provider distribution, failure rates, and latency metrics. This data feeds into the regression tracking pipeline for post-merge health verification.
+
+---
+
+## 34. DOF as On-Chain Trust Infrastructure (ERC-8183)
+
+DOF v0.3.3 introduces `DOFEvaluator.sol`, positioning DOF as a trustless Evaluator in the ERC-8183 Agentic Commerce standard [EIP-8183, 2026].
+
+The ERC-8183 Job primitive defines a state machine:
+
+```
+Open → Funded → Submitted → Terminal (Completed | Rejected | Expired)
+```
+
+An Evaluator is any address that attests to whether a submitted deliverable meets agreed terms. DOF satisfies this role structurally: Z3 formal verification produces a deterministic binary outcome (PROVEN | COUNTEREXAMPLE), and `DOFProofRegistry.sol` records the keccak256 proof hash on-chain. `DOFEvaluator.sol` exposes this existing machinery as an ERC-8183-compatible interface without modifying deployed contracts (consistent with DOF Lesson #12: new contracts only).
+
+This creates a composable trust loop with ERC-8004:
+
+```
+Discovery (ERC-8004) → Commerce (ERC-8183, DOF as Evaluator)
+→ Reputation (ERC-8004) → Better Discovery
+```
+
+Critically, DOF's evaluation is non-custodial and deterministic. Unlike LLM-based evaluators that introduce subjectivity, DOF's Z3 proofs are verifiable by any party independently. This makes DOF suitable for high-stakes jobs (financial, legal, medical) where evaluator credibility must be auditable, not trusted.
+
+The "Learning When to Act or Refuse" paradigm [2026] maps directly to DOF's Red/Blue gate: the system learns refusal boundaries through adversarial payloads (12,229 tested via Garak v2) rather than hardcoded rules, maintaining 58.4% overall detection with 90% accuracy on goodside category attacks.
 
 ---
 

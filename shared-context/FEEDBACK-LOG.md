@@ -125,3 +125,36 @@ Issue: ErrorClass.UNKNOWN para patrones LLM/Provider/Memory/Hash/Z3. Fix: 9 cate
 ### #58: Non-SPDX licenses need table format in pyproject.toml
 **Fecha:** 2026-03-08 | **Source:** CI failure Python 3.12
 Issue: `license = "BSL-1.1"` como string directo rompe `pip install -e .` porque BSL-1.1 no es SPDX valido. Fix: `license = {text = "BSL-1.1"}` (formato tabla). Regla: Siempre usar SPDX valido o formato tabla para licencias no estandar. `test.yml` con `pip install -e .` valida el package — `ci.yml` no lo hacia.
+
+---
+
+## Session 2026-03-10 — ERC-8183 Integration + Smart Routing
+
+### L-49: Smart routing necesita task_type explícito en el callsite
+get_llm_smart() sin task_type cae al default silenciosamente.
+Regla: siempre pasar task_type= en cada invocación de agente.
+Patrón correcto: get_llm_smart(task_type="verification", context_tokens=est)
+
+### L-50: DOFEvaluator.sol es el puente, no el cerebro
+El contrato no ejecuta Z3 — solo consulta DOFProofRegistry.
+La lógica de verificación siempre vive en Python. Solidity = interface de salida.
+Regla: nunca mover lógica de verificación a Solidity.
+
+### L-51: RegressionTracker subsistemas deben ser independientes
+Cada subsistema trackea su propio estado. Un fallo en llm_routing
+no debe bloquear el reporte de Z3. Fallos son aditivos, no cascada.
+
+### L-52: circuit_breaker cooldown de 5min es demasiado corto para MiniMax
+MiniMax M2.1 tiene límite de 1000 req/day, no rate-limit por minuto.
+El circuit breaker debe distinguir entre timeout y quota exhausted.
+TODO: agregar error_type al circuit breaker en próxima iteración.
+
+### L-53: SOUL.md de agentes DOF debe referenciar enforce_hierarchy=33
+Los agentes CrewAI sin esta referencia explícita tienden a usar
+valores por defecto del framework. Siempre declarar en SOUL.md:
+"enforce_hierarchy: 33 patterns, 2 categories — no exceptions"
+
+### L-54: +66 tests en una sesión es el límite saludable
+Agregar más de ~70 tests por sesión sin revisión manual aumenta
+riesgo de tests que pasan por razones incorrectas. Auditar sampling
+de 10% de tests nuevos antes del próximo release.
