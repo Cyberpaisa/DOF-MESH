@@ -98,6 +98,8 @@ proves hierarchy enforcement, and feeds DOFEvaluator attestations.
 | LoopGuard                | `execution_dag.py`          | Jaccard similarity detection                 |
 | DataOracle               | `data_oracle.py`            | 6 verification strategies                    |
 | TokenTracker             | `observability.py`          | Per-call token flow                          |
+| Regression Tracker       | `core/regression_tracker.py` | 5-subsystem regression monitoring            |
+| LLM Router               | `llm_config.py`             | Smart task-aware routing                      |
 | TestGenerator            | `test_generator.py`         | Adversarial test datasets                    |
 | BenchmarkRunner          | `test_generator.py`         | FDR/FPR/F1 measurement                       |
 | Task Contract            | `task_contract.py`          | Completion guarantees                        |
@@ -116,9 +118,10 @@ proves hierarchy enforcement, and feeds DOFEvaluator attestations.
 
 | Metric                    | Value                      |
 |:--------------------------|:---------------------------|
-| Total tests               | 986                        |
-| Core modules              | 35                         |
+| Total tests               | 1052                       |
+| Core modules              | 37                         |
 | LOC                       | 27K+                       |
+| Monitoring Subsystems     | 5                          |
 | Z3 static theorems        | 4 VERIFIED                 |
 | Z3 dynamic invariants     | 8 PROVEN                   |
 | Hierarchy patterns        | 42 verified                |
