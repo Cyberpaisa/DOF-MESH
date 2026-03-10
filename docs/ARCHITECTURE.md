@@ -40,28 +40,42 @@
 ## Governance Stack (7 Layers)
 
 ```text
-+----------------------------------------------------+
-| L7  Signer       HMAC + Avalanche           ~2s    |
-+----------------------------------------------------+
-| L6  Memory Gov   Bi-temporal + decay        <1ms   |
-+----------------------------------------------------+
-| L5  Red/Blue     Red -> Guard -> Arb       ~50ms   |
-+----------------------------------------------------+
-| L4  Z3 Proofs    8 invariants + Z3 Gate    ~110ms  |
-+----------------------------------------------------+
-| L3  Supervisor   Q+A+C+F scoring            ~5ms   |
-+----------------------------------------------------+
-| L2  AST Verifier eval/exec/secrets          <1ms   |
-+----------------------------------------------------+
-| L1  Constitution 4 HARD + 5 SOFT            <1ms   |
-+----------------------------------------------------+
-| Engine  DAG + LoopGuard + TokenTracker             |
-+----------------------------------------------------+
-| Data Oracle  6 verification strategies      <1ms   |
-+----------------------------------------------------+
-```
++----------------------------------------------------------+
+| ERC-8183 Out   DOFEvaluator.sol  → complete() / reject() |
++----------------------------------------------------------+
+| L7  Signer        HMAC + Avalanche               ~2s     |
++----------------------------------------------------------+
+| L6  Memory Gov    Bi-temporal + decay            <1ms    |
++----------------------------------------------------------+
+| L5  Red/Blue      Red → Guard → Arb              ~50ms   |
++----------------------------------------------------------+
+| L4  Z3 Proofs     8 invariants + Z3 Gate         ~110ms  |
++----------------------------------------------------------+
+| L3  Supervisor    Q+A+C+F scoring                ~5ms    |
++----------------------------------------------------------+
+| L2  AST Verifier  eval/exec/secrets              <1ms    |
++----------------------------------------------------------+
+| L1  Constitution  4 HARD + 5 SOFT                <1ms    |
++----------------------------------------------------------+
+| Engine   DAG + LoopGuard + TokenTracker                  |
++----------------------------------------------------------+
+| Data Oracle   6 verification strategies          <1ms    |
++----------------------------------------------------------+
 
-Total governance latency: **< 180ms** (layers 1-6). On-chain signing adds ~2s.
+         ↕ cross-cutting (all layers)
++----------------------------------------------------------+
+| LLM Router   get_llm_smart()  task+context aware         |
+|              Thompson Sampling + circuit breaker         |
++----------------------------------------------------------+
+
+Total governance latency: < 180ms (layers 1-6).
+On-chain signing adds ~2s when enabled.
+ERC-8183 evaluation: DOFEvaluator.sol reads DOFProofRegistry
+and attests job outcomes trustlessly.
+
+Z3 is cross-cutting in v0.3.x: gates Meta-Supervisor decisions,
+validates Red/Blue outputs, verifies state transitions,
+proves hierarchy enforcement, and feeds DOFEvaluator attestations.
 
 ## Core Modules (35)
 
