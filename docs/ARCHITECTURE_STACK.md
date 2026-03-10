@@ -1,6 +1,4 @@
-# The AI Agent Security Stack
-
-This document formalizes the complete security stack for multi-agent systems, positioning the Deterministic Observability Framework (DOF) explicitly within the governance layer.
+# Architecture Stack
 
 ## 1. The AI Agent Security Stack
 
@@ -15,49 +13,50 @@ Execution Integrity Layer  (append-only traces, causal chain, replay)
         ↓
 Governance Layer           (DOF — policy enforcement, Z3, attestation)
         ↓
-Infrastructure             (models, compute, Avalanche)
+Infrastructure             (models, compute, Avalanche C-Chain)
 ```
 
 ## 2. Where DOF Sits
 
-DOF operates exclusively at the Governance Layer. It does not replace or abstract any of the higher-level frameworks (like CrewAI or LangGraph), nor does it manage agent memory or continuous execution states. Instead, it serves as an independent oversight mechanism.
+DOF is strictly the Governance Layer. It does not replace or abstract any of the higher-level frameworks like CrewAI or LangGraph, but acts as a transparent intermediary for output verification.
 
-It acts as a deterministic control boundary between the agent framework and the external world. Every output produced by the execution layer must pass through this boundary before it is allowed to interact with external APIs, databases, or smart contracts.
+It operates as a deterministic control boundary between the agent framework and the external world. Every action or payload meant for external execution must successfully pass this boundary before proceeding.
 
-Crucially, DOF is stateless with respect to the execution layer. The Z3 Gate and other governance modules do not read the execution trace or maintain long-term context of the agent's internal reasoning. They evaluate the final proposed action in strict isolation against the predefined constitutional constraints.
+DOF is primarily stateless with respect to the execution layer. The Z3 Gate and internal evaluations operate in isolation and do not read the execution trace during validation. The actual binding between the execution log and the governance decision occurs through the on-chain attestation (a `keccak256` proof hash anchored in Avalanche).
 
-## 3. What DOF Does at the Governance Layer
+## 3. DOF Internal Architecture
 
-DOF processes outputs through seven independent governance layers. Note that 5 of the 7 layers are strictly deterministic (zero LLM calls), providing mathematically verifiable bounds on agent behavior.
+| Layer | Component | Function | Latency |
+|-------|-----------|----------|---------|
+| L7 | Signer | HMAC + Avalanche | ~2s |
+| L6 | Memory Gov | Bi-temporal + decay | <1ms |
+| L5 | Red/Blue | Red → Guard → Arb | ~50ms |
+| L4 | Z3 Proofs | 8 invariants + Z3 Gate | ~110ms |
+| L3 | Supervisor | Q+A+C+F scoring | ~5ms |
+| L2 | AST Verifier | eval/exec/secrets | <1ms |
+| L1 | Constitution | 4 HARD + 5 SOFT | <1ms |
 
-| Layer | Component | Function | Latency | Paradigm |
-|-------|-----------|----------|---------|----------|
-| L7 | Signer | HMAC + Avalanche on-chain signing | ~2s | Crypto |
-| L6 | Memory Gov | Bi-temporal versioning + decay | <1ms | Deterministic |
-| L5 | Red/Blue | Red Team vs Guardian Arbitration | ~50ms | LLM |
-| L4 | Z3 Proofs | 8 invariants + Z3 Gate | ~110ms | Deterministic |
-| L3 | Supervisor | Q(0.4) + A(0.25) + C(0.2) + F(0.15) scoring | ~5ms | LLM |
-| L2 | AST Verifier | Blocked imports, unsafe calls, secrets | <1ms | Deterministic |
-| L1 | Constitution | 4 HARD + 5 SOFT rules enforcement | <1ms | Deterministic |
+*Note: 5 of the 7 layers are completely deterministic (zero LLM tokens).*
 
 ## 4. Integration Interface
 
-The framework exposes a unified interface pattern for integration:
-
-- `GenericAdapter`: Wraps any string output from an arbitrary agent framework into a processable object.
-- `TrustGateway.verify()`: The primary entry point. It receives the adapted output, evaluates it across all configured layers, and returns an actionable result containing an `.action` attribute (e.g., APPROVED, REJECTED).
-- `DOFProofRegistry`: Provides on-chain attestation by storing the `keccak256` proof hash of the verification process on the Avalanche network.
-- **Upcoming**: `get_execution_trace(run_id)` to facilitate seamless integration with external execution kernels.
+- **`GenericAdapter`**: Wraps any string output, typically executes in ~30ms, requiring zero LLM tokens.
+- **`TrustGateway.verify()`**: Principal endpoint that returns a deterministic `verdict.action` resolving to ALLOW, WARN, or BLOCK.
+- **`DOFProofRegistry`**: Stores the on-chain `keccak256` proof hash, which is independently verifiable via `verifyProof()` on the Avalanche C-Chain at `0x88f6...C052`.
+- **`get_execution_trace(run_id)`**: NEW in v0.3.3 — exposes execution steps, `action_hash`, `trace_hash`, and `proof_hash` for external kernel integration (compatible with append-only trace formats).
 
 ## 5. Relation to Adjacent Layers
 
-The Execution Integrity Layer (e.g., `fdo-kernel-mvk`) is responsible for immutably recording what occurred during an agent's runtime, creating a causal chain of events. DOF does not read this execution log. The binding between the execution trace and the governance decision occurs solely through the cryptographic attestation anchored on-chain.
+**Execution Integrity (e.g., `fdo-kernel-mvk`)**:
+Records what happened. DOF does not read that log during enforcement. Governance checks are stateless. The cryptographic binding between "what governance approved" and "what the trace recorded" happens via the on-chain attestation written to Avalanche.
 
-The Identity Layer (e.g., ERC-8004) defines who the agent is and manages its credentials. DOF utilizes the `token_id` from this layer strictly as a foreign key during the verification process. This ensures that governance decisions and attestations are correctly attributed and compatible with registries like the Enigma Scanner, without DOF needing to actively manage agent identities.
+**Identity Layer (e.g., ERC-8004 / Enigma Scanner)**:
+DOF uses the `token_id` (not the wallet address) as a foreign key for agent identity. This ensures full compatibility with the ERC-8004 registry hosted at erc-8004scan.xyz. The deployed `DOFEvaluator.sol` exposes DOF as a trustless Evaluator complying with the ERC-8183 agentic commerce standard.
 
-## 6. Citation
+## 6. References
 
-This architecture stack conceptualization builds upon the foundational principles detailed in the DOF Research Paper and implements the evaluation mechanics defined in ERC-8183.
-
-- **DOF Paper**: [Deterministic Observability Framework for AI Agents](../paper/PAPER_OBSERVABILITY_LAB.md)
-- **ERC-8183**: [Evaluator Standard for Agentic Commerce](https://eips.ethereum.org/EIPS/eip-8183)
+- **DOF Paper**: [paper/PAPER_OBSERVABILITY_LAB.md](../paper/PAPER_OBSERVABILITY_LAB.md)
+- **ERC-8004**: [https://eips.ethereum.org/EIPS/eip-8004](https://eips.ethereum.org/EIPS/eip-8004)
+- **ERC-8183**: [https://eips.ethereum.org/EIPS/eip-8183](https://eips.ethereum.org/EIPS/eip-8183)
+- **Enigma Scanner**: [https://erc-8004scan.xyz](https://erc-8004scan.xyz)
+- **PyPI Hub**: [https://pypi.org/project/dof-sdk/](https://pypi.org/project/dof-sdk/)
