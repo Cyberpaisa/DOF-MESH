@@ -49,6 +49,8 @@ jobs:
           tests.test_integrations \
           tests.test_enigma_bridge \
           tests.test_avalanche_bridge \
+          tests.test_entropy_detector \
+          tests.test_regression_tracker \
           -v
 
     - name: Run Z3 verification
@@ -64,6 +66,11 @@ jobs:
 
     - name: Verify public API imports
       run: python -c "import dof; print('dof', dof.__version__, '— OK')"
+
+    - name: Regression Check
+      run: |
+        python -m dof regression-baseline
+        python -m dof regression-check
 
     - name: Run quickstart smoke test
       run: python examples/quickstart.py
