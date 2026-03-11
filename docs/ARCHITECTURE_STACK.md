@@ -37,6 +37,7 @@ DOF is primarily stateless with respect to the execution layer. The Z3 Gate and 
 | L1 | Constitution | 4 HARD + 5 SOFT | <1ms |
 
 *Note: 5 of the 7 layers are completely deterministic (zero LLM tokens).*
+Total governance latency L1–L6: <180ms. On-chain signing (L7): ~2s. Cross-cutting: LLM Router — get_llm_smart() with Thompson Sampling + circuit breaker.
 
 ## 4. Integration Interface
 
@@ -56,6 +57,7 @@ DOF uses the `token_id` (not the wallet address) as a foreign key for agent iden
 ## 6. References
 
 - **DOF Paper**: [paper/PAPER_OBSERVABILITY_LAB.md](../paper/PAPER_OBSERVABILITY_LAB.md)
+- **Architecture diagram**: [docs/diagrams/01_dof_v12_architecture.mmd](diagrams/01_dof_v12_architecture.mmd)
 - **ERC-8004**: [https://eips.ethereum.org/EIPS/eip-8004](https://eips.ethereum.org/EIPS/eip-8004)
 - **ERC-8183**: [https://eips.ethereum.org/EIPS/eip-8183](https://eips.ethereum.org/EIPS/eip-8183)
 - **Enigma Scanner**: [https://erc-8004scan.xyz](https://erc-8004scan.xyz)
