@@ -2,7 +2,13 @@ require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 
 module.exports = {
-  solidity: "0.8.19",
+  solidity: {
+    compilers: [
+      { version: "0.8.19" },
+      { version: "0.8.20" },
+      { version: "0.8.27" }
+    ]
+  },
   networks: {
     avalanche: {
       url: process.env.AVALANCHE_RPC_URL || "https://api.avax.network/ext/bc/C/rpc",
@@ -17,7 +23,7 @@ module.exports = {
     conflux_testnet: {
       url: "https://evmtestnet.confluxrpc.com",
       chainId: 71,
-      accounts: process.env.DOF_PRIVATE_KEY ? [process.env.DOF_PRIVATE_KEY] : []
+      accounts: process.env.conflux_PRIVATE_KEY ? [process.env.conflux_PRIVATE_KEY] : []
     },
     conflux: {
       url: "https://evm.confluxrpc.com",
