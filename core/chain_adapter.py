@@ -256,7 +256,7 @@ class DOFChainAdapter:
         invariants = 8
 
         account = self._web3.eth.account.from_key(key)
-        gas_price = int(self._web3.eth.gas_price * self.config.gas_multiplier)
+        gas_price = int(self._web3.eth.gas_price * max(self.config.gas_multiplier, 1.2))
 
         tx = self._contract.functions.registerProof(
             agent_id,
