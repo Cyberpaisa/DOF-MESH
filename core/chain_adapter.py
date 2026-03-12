@@ -271,7 +271,7 @@ class DOFChainAdapter:
         })
 
         signed = self._web3.eth.account.sign_transaction(tx, key)
-        tx_hash = self._web3.eth.send_raw_transaction(signed.rawTransaction)
+        tx_hash = self._web3.eth.send_raw_transaction(signed.raw_transaction)
         receipt = self._web3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
 
         explorer_url = (
