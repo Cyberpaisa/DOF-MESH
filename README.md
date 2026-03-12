@@ -38,7 +38,7 @@ result = GenericAdapter().wrap_output("your agent output here")
 
 30ms. Zero LLM tokens. Works with CrewAI, LangGraph, AutoGen, or anything that produces text.
 
-## Z3 Formal Verification (v0.3.3)
+## Z3 Formal Verification (v0.4.1)
 
 DOF provides **mathematical guarantees** — not just test coverage — that governance cannot be violated.
 
@@ -199,9 +199,9 @@ proves hierarchy enforcement, and feeds DOFEvaluator attestations.
 
 ## On-Chain Attestation
 
-Contract [`0x88f6...C052`](https://snowtrace.io/address/0x88f6043B091055Bbd896Fc8D2c6234A47C02C052) on Avalanche C-Chain (43114). 21 attestations. ~$0.01/tx (~$0.01 per Merkle batch of 10,000). Three layers: PostgreSQL (200ms) → Enigma Scanner (900ms) → Avalanche (2-3s, immutable).
+Contract [`0x88f6...C052`](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6) on Avalanche C-Chain (43114). 20+ attestations live on Avalanche C-Chain + Conflux eSpace Testnet. ~$0.01/tx (~$0.01 per Merkle batch of 10,000). Three layers: PostgreSQL (200ms) → Enigma Scanner (900ms) → Avalanche (2-3s, immutable).
 
-**DOFProofRegistry.sol** (v0.3.3) — companion contract for Z3 proof attestations. Every attestation includes `z3_proof_hash` (keccak256), verifiable on-chain via `verifyProof()`. Existing contract untouched.
+**DOFProofRegistry.sol** (v0.4.1) — companion contract for Z3 proof attestations. Every attestation includes `z3_proof_hash` (keccak256), verifiable on-chain via `verifyProof()`. Existing contract untouched.
 
 ---
 
@@ -225,7 +225,7 @@ Tested externally via `pip install dof-sdk` — fresh Colab runtime, zero intern
   </a>
 </p>
 
-**Enterprise Report v6 (v0.3.3) — 10/10 PASS:**
+**Enterprise Report v6 (v0.4.1) — 10/10 PASS:**
 
 | Block | Component                                | Result |
 |:------|:-----------------------------------------|:------:|
@@ -269,7 +269,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
 ## Links
 
-[PyPI](https://pypi.org/project/dof-sdk/) · [GitHub](https://github.com/Cyberpaisa/deterministic-observability-framework) · [Snowtrace](https://snowtrace.io/address/0x88f6043B091055Bbd896Fc8D2c6234A47C02C052) · [Enigma Scanner](https://erc-8004scan.xyz) · [Paper](paper/PAPER_OBSERVABILITY_LAB.md)
+[PyPI](https://pypi.org/project/dof-sdk/) · [GitHub](https://github.com/Cyberpaisa/deterministic-observability-framework) · [Snowtrace](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6) · [Enigma Scanner](https://erc-8004scan.xyz) · [Paper](paper/PAPER_OBSERVABILITY_LAB.md)
 
 ---
 
