@@ -208,49 +208,17 @@ The system implements a layered architecture with clear separation between agent
 └─────────────────────────────────────────────────────────┘
 ```
 
-### 3.2 Core Modules
+### 3.2 Core Architectural Modules
 
-The framework comprises 35 core modules totaling 27,000+ lines of code, with no external dependencies beyond the orchestration layer (CrewAI) and its transitive dependency (LiteLLM). The original nine modules are extended by modules implementing formal verification (static and dynamic), adversarial evaluation, quality enforcement, constitutional memory governance, OAGS conformance, on-chain attestation, Enigma Scanner bridge, Avalanche C-Chain bridge, dual-backend storage, protocol integration (MCP server, REST API), framework-agnostic governance adapters, neurosymbolic Z3 gate, state transition verification, automated test generation, and on-chain proof hash attestations.
+The framework comprises 35 core modules totaling 27,000+ lines of code, with no external dependencies beyond the base orchestration layer (CrewAI/LangGraph). The architecture is defined by five specialized tiers:
 
-**Provider Manager** (`providers.py`). Implements per-provider state tracking with TTL-based exhaustion and exponential backoff recovery. Each provider maintains independent state: exhaustion flag, exhaust timestamp, failure count, and TTL. The backoff schedule follows `TTL = min(300 × 2^(failures-1), 1200)` seconds, producing a 5-minute, 10-minute, 20-minute progression capped at 20 minutes. Recovery is automatic: when `now - exhaust_time >= TTL`, the provider is reactivated. Now extended with `BayesianProviderSelector` (Section 13).
+1. **Deterministic Execution Control**: Implements provider state tracking, TTL-based exhaustion recovery, and Bayesian provider selection via Thompson Sampling. This tier ensures that infrastructure-level provider cascades are controlled deterministically rather than probabilistically.
+2. **Observability and Persistence**: A dual-backend storage architecture (JSONL/PostgreSQL) handling step-level checkpointing, memory governance with bi-temporal versioning, and causal error tracking.
+3. **Formal Governance**: The `ConstitutionEnforcer` applying declarative YAML-based policy checks, paired with an AST-based static verifier that deterministically analyzes agent-generated code structures prior to execution.
+4. **Neurosymbolic Verification**: The integration of the Z3 SMT solver, which formally proves static framework invariants and intercepts agent decisions dynamically via the `Z3Gate`.
+5. **Decentralized Cryptographic Attestation**: The bridging layer that serializes off-chain governance proofs into SHA-256 Merkle trees and anchors them to EVM-compatible networks via `DOFProofRegistry.sol`.
 
-**Checkpoint Manager** (`checkpointing.py`). Provides step-level persistence using JSONL files keyed by run ID. Each step records: run_id, step_id, agent name, task name, provider, status (pending/running/completed/failed), input hash, output truncated to 5,000 characters, error message, timestamps, and latency. The manager supports loading previous runs from disk to enable retry of only failed steps.
-
-**Constitution Enforcer** (`governance.py`). Implements two-tier rule enforcement. Four hard rules produce blocking violations: no hallucination claims without URLs, language compliance, non-empty output (minimum 50 characters), and maximum output length (50,000 characters). Four soft rules produce warning scores with configurable weights: source URLs present (weight 0.3), structured output markers (0.2), no paragraph repetition (0.2), and actionable recommendations (0.3). Rules are loaded at runtime from `dof.constitution.yml` (Section 14), with fallback to in-code defaults.
-
-**Meta-Supervisor** (`supervisor.py`). Evaluates final crew output on four weighted dimensions: Quality (0.40), Actionability (0.25), Completeness (0.20), and Factuality (0.15). Each dimension is scored 0–10 using heuristic indicators. The composite score determines the decision: ACCEPT (≥7.0), RETRY (5.0–7.0, maximum 2 retries), or ESCALATE (<5.0).
-
-**Metrics Logger** (`metrics.py`). Singleton logger writing structured JSONL events with automatic rotation at 10 MB. Events include: crew_start, crew_end, agent_step, provider_exhausted, governance_check, and supervisor_eval.
-
-**Memory Manager** (`memory_manager.py`). Provides three memory tiers without OpenAI dependencies: short-term (in-process with configurable TTL), long-term (JSONL-persisted with keyword search), and episodic (crew execution summaries).
-
-**Observability Module** (`observability.py`). Defines `RunTrace` and `StepTrace` data structures, session management via UUID v4, derived metric computation, and the `RunTraceStore` for persisting trace files. Extended with `ErrorClass` enum, `classify_error()` function, `@causal_trace` decorator, and `export_dashboard()` method (Section 12).
-
-**Experiment Module** (`experiment.py`). Provides the formal experimental schema, dataset management, a simulated crew for infrastructure validation, and the `run_experiment()` batch runner with configurable failure injection.
-
-**Crew Runner** (`crew_runner.py`). Integration layer that wraps `crew.kickoff()` with all infrastructure services. Each execution generates a `RunTrace`, passes through governance and supervisor gates, logs metrics, persists checkpoints, and returns a structured result dictionary. Extended with task contract verification and Bayesian provider recording.
-
-**AST Verifier** (`ast_verifier.py`, new). Deterministic structural analysis of agent-generated code via Python's `ast` module and regex scanning. Four rule categories: BLOCKED_IMPORTS (os, subprocess, sys), UNSAFE_CALLS (eval, exec, compile), SECRET_PATTERNS (API key detection via regex), and RESOURCE_RISKS (file open, network access). The `_UnsafePatternVisitor` walks the AST without executing code. Score computed as `1.0 − (unique_violated_categories / 4)` (Section 10).
-
-**Z3 Verifier** (`z3_verifier.py`, new). Integrates the Z3 SMT solver (version 4.16.0) to formally verify four static framework invariants. Proof results are persisted to `logs/z3_proofs.json` with theorem name, result, elapsed time, and Z3 version (Section 8). Extended in v0.3.x with eight dynamic state transition invariants (Section 32).
-
-**Adversarial Evaluator** (`adversarial.py`, new). Implements the three-agent Red-on-Blue protocol: `RedTeamAgent` (LLM-based defect detection), `GuardianAgent` (LLM-based defense), `DeterministicArbiter` (pure-Python adjudication using verifiable evidence). Logs to `logs/adversarial.jsonl` (Section 9).
-
-**Merkle Tree** (`merkle_tree.py`, new). SHA-256 Merkle tree with inclusion proof generation and verification. `MerkleBatcher` aggregates attestation certificates into batched transactions: N attestations = 1 on-chain tx. Economics: 10,000 attestations ≈ $0.01 gas on Avalanche C-Chain. Supports serialization and deserialization for persistence.
-
-**ExecutionDAG** (`execution_dag.py`, new). Directed acyclic graph modeling of agent execution steps. DFS-based cycle detection prevents infinite dependency chains. Topological sort establishes valid execution ordering. Critical path analysis identifies the longest execution dependency chain for latency attribution. Mermaid diagram export produces visualization of the execution graph.
-
-**LoopGuard** (`execution_dag.py`). Detects infinite execution loops via Jaccard similarity between consecutive agent outputs. Configurable similarity threshold (default 0.85), maximum iteration count (10), and timeout (300s). When triggered, terminates the execution with a structured `LoopDetected` event logged to the trace.
-
-**DataOracle** (`data_oracle.py`, new). Deterministic factual claim verification via six strategies: (1) pattern matching against a 50+ entry known-facts database with regex extraction, (2) cross-reference validation comparing claims across multiple agent outputs, (3) consistency checking detecting contradictions within a single output, (4) entity extraction with founder/date validation against known facts, (5) numerical plausibility detection (negative values, percentages >100% in non-growth context, implausible magnitudes >$100T), and (6) self-consistency cross-checks (percentage allocation sums >100%, revenue contradictions >2x ratio, date arithmetic inconsistencies). Zero LLM involvement — pure string, regex, and arithmetic operations. Returns `OracleResult` with verification status and evidence.
-
-**TokenTracker** (`observability.py`, extended). Per-call LLM token flow tracker integrated into the observability module. `log_call(provider, model, prompt_tokens, completion_tokens, latency_ms, cost_estimate)` appends structured records. Aggregation methods: `total_tokens()`, `total_cost()`, `calls_by_provider()` (returns dict), `average_latency()`. `to_dict()` produces serializable summary. `reset()` clears state for test isolation. Integrated into `crew_runner.py` — every successful `crew.kickoff()` logs token flow.
-
-**TestGenerator** (`test_generator.py`, new). Deterministic adversarial test dataset generator with seeded random (reproducible). Produces 50/50 clean/adversarial splits across four categories: hallucination (date/number/entity/source injection), code safety (eval/import_os/hardcoded_secret), governance (language/hallucination/length violations), and consistency (contradictions). `generate_full_dataset(n_per_category=100)` produces 400 tests saved to `data/`.
-
-**BenchmarkRunner** (`test_generator.py`). Runs DOF verification components against TestGenerator datasets. Measures True Positives, True Negatives, False Positives, False Negatives per category. Computes False Detection Rate (FDR), False Positive Rate (FPR), Precision, Recall, and F1. `run_full_benchmark()` produces per-category and overall results. `BenchmarkResult` dataclass provides structured output.
-
-**Task Contract** (`task_contract.py`, new). Loads formal task specifications from markdown files and verifies completion via `is_fulfilled(output, context) → ContractResult`. Quality gates include: governance compliance, AST verification, supervisor score thresholds, test execution, and adversarial evaluation. Logs to `logs/task_contracts.jsonl` (Section 11).
+By separating the generative capabilities of the LLM from the deterministic verification layer, the architecture circumvents the circularity problem inherent in LLM-evaluating-LLM paradigms [15].
 
 ### 3.3 Execution Pipeline
 
@@ -905,467 +873,52 @@ Beta posteriors are serialized to `logs/bayesian_state.json` after each update a
 
 ---
 
-## 14. Constitutional Policy-as-Code
+## 14. Constitutional Policy and Temporal Memory
 
-### 14.1 Motivation
+### 14.1 Declarative Governance Validation
 
-The original governance implementation embedded rule definitions directly in Python code (`HARD_RULES`, `SOFT_RULES` lists in `governance.py`). This creates a coupling between governance policy and implementation: changing a rule requires modifying and redeploying code. More critically, it provides no machine-readable canonical specification of the governance regime — it is impossible to validate external systems against the policy without reading Python source.
+The framework formalizes all governance rules within a canonical, versioned `dof.constitution.yml` specification, decoupling policy from the enforcement codebase. The specification implements a three-tier Instruction Hierarchy (SYSTEM > USER > ASSISTANT) aligned with emerging industry standards [25]. Hard rules (e.g., hallucination detection, minimum output lengths) operate at the SYSTEM priority, producing strict execution blocks upon violation, while soft rules (e.g., citation verification, structural formatting) operate at the USER priority, generating weighted warning scores. Enforcement occurs dynamically at runtime, applying these deterministic checks to all generated outputs prior to state transitions.
 
-### 14.2 dof.constitution.yml
+### 14.2 Constitutional Memory Governance
 
-All governance rules are formalized in `dof.constitution.yml`, structured as follows:
+Multi-agent architectures typically treat memory as an unconstrained store, introducing a vulnerability where non-compliant outputs can be appended to long-term memory, thereby contaminating future generational context. DOF intercepts all state persistence operations, interposing the `ConstitutionEnforcer` on the memory write path. Memory entries that violate the active policy are automatically rejected, and the violation is recorded in an immutable append-only ledger.
 
-```yaml
-metadata:
-  spec_version: "1.0"
-  project: "deterministic-observability-framework"
-  author: "Juan Carlos Quiceno Vasquez"
-  license: "Apache-2.0"
+### 14.3 Bi-Temporal Data Model and Relevance Decay
 
-rules:
-  hard:
-    - id: "H001"
-      name: "NO_HALLUCINATION_CLAIM"
-      pattern: "definitivamente|sin duda|garantizado"
-      action: "block"
-      evidence: "Hallucination claim without citation URL"
-  soft:
-    - id: "S001"
-      name: "HAS_SOURCES"
-      pattern: "http[s]?://"
-      weight: 0.3
+Agent memory is persisted using a bi-temporal data model that records both the assertion timestamp (when a fact became true in the domain) and the system recording timestamp (when the framework persisted the entry). This model guarantees historical fidelity, enabling the system to mathematically reconstruct the exact subset of knowledge available to any agent prior to a specific decision. Furthermore, memory relevance decays exponentially over time (`relevance(t) = relevance(t₀) × λ^(t - t₀)`), preventing context window saturation while maintaining protected categories (such as past adversarial defenses and governance errors) that retain permanent context value.
 
-metrics:
-  definitions:
-    SS: "1 - f³ under r=2 bounded retries"
-    GCR: "invariant = 1.0 ∀ f ∈ [0,1]"
+### 14.4 OAGS Conformance
 
-thresholds:
-  supervisor:
-    accept: 7.0
-    retry: 5.0
-    max_retries: 2
-```
-
-### 14.3 Runtime Loading
-
-`governance.py` loads the YAML file at module initialization via `load_constitution(path)`. If the YAML file is absent or malformed, the module falls back to in-code defaults to maintain backward compatibility. All rule categories (hard, soft, AST) are loaded from YAML, enabling governance updates without code changes.
-
-The `dof.constitution.yml` YAML file serves as the canonical governance source. The Python code is the enforcement mechanism. This separation enables: independent versioning of policy and implementation, external audit of the governance regime without reading Python, and machine-readable governance specification suitable for JSON Schema validation.
-
-### 14.4 Policy Versioning
-
-The `spec_version` field in the YAML enables governance versioning. All RunTrace records include the constitution spec_version active at execution time, enabling retrospective analysis of how governance changes affected compliance rates. The `dof.register(constitution="dof.constitution.yml")` SDK entry point loads the current constitution and returns its metadata for programmatic inspection.
-
-### 14.5 Instruction Hierarchy Enforcement
-
-Drawing from the OpenAI instruction hierarchy proposal [25], DOF implements a three-level priority model for governance rules:
-
-| Priority   | Level        | Rules                                                                                             | Overridable By  |
-| :---------- | :------------ | :------------------------------------------------------------------------------------------------- | :--------------- |
-| SYSTEM     | 3 (highest)  | All HARD\_RULES (NO\_HALLUCINATION\_CLAIM, LANGUAGE\_COMPLIANCE, NO\_EMPTY\_OUTPUT, MAX\_LENGTH)  | Never           |
-| USER       | 2            | All SOFT\_RULES (HAS\_SOURCES, STRUCTURED\_OUTPUT, CONCISENESS, ACTIONABLE, NO\_PII\_LEAK)        | SYSTEM only     |
-| ASSISTANT  | 1 (lowest)   | Future extensibility                                                                              | USER or SYSTEM  |
-
-Each rule in both `HARD_RULES` and `SOFT_RULES` carries a `priority: RulePriority` field. The YAML constitution mirrors this structure with `priority: "SYSTEM"` and `priority: "USER"` fields on each rule entry.
-
-The `enforce_hierarchy(system_prompt, user_prompt, response)` function performs three sequential checks:
-
-1. **User override detection**: Scans the user prompt for 12 patterns (6 English, 6 Spanish) indicating attempts to override system instructions (e.g., "ignore previous instructions", "override system prompt", "ignora las instrucciones anteriores").
-2. **Response violation detection**: Scans the response for 8 patterns indicating the agent has broken free of system directives (e.g., "i will ignore my instructions", "i have no restrictions", "ya no sigo las reglas").
-3. **Governance bypass detection**: Delegates to `check_instruction_override()` to detect governance-specific override patterns (e.g., "skip governance", "bypass rule", "desactivar verificación").
-
-The function returns `HierarchyResult(compliant: bool, violation_level: str, details: str)`, where `violation_level` is "SYSTEM", "USER", or "NONE". The `ConstitutionEnforcer.check()` method integrates hierarchy enforcement by appending an `[INSTRUCTION_HIERARCHY]` violation when override attempts are detected at SYSTEM priority, ensuring hierarchy violations are blocking violations.
+The architecture formally implements the Open Agent Governance Specification (OAGS). It generates a deterministic BLAKE3 identity hash for every agent by concatenating the model identifier, the active constitution hash, and the tool manifest. System state is subjected to three levels of conformance validation: declarative policy existence, runtime enforcement verification, and decentralized cryptographic attestation. This standardization ensures interoperability with external ecosystems and unified audit traceability.
 
 ---
 
-## 15. Constitutional Memory Governance
+## 15. Decentralized Verification and the Oracle Bridge
 
-### 15.1 Motivation
+### 15.1 The Oracle Bridge Architecture
 
-Conventional memory systems for LLM agents (Mem0, Graphiti, Cognee) treat memory as an unconstrained store: any content produced by an agent can be persisted without validation. In a governance-enforced framework, this creates an inconsistency — output is governance-checked before delivery, but the same content can be stored in memory without governance validation, potentially contaminating future agent context with non-compliant content.
+To resolve the trust boundaries inherent in centralized governance evaluation, the framework bridges deterministic off-chain verification to immutable on-chain ledgers. The Oracle Bridge generates cryptographic attestations for each governed execution. Instead of relying on traditional probabilistic trust scores, the system mandates a deterministic compliance-gating rule: governance attestations are only published if the Governance Compliance Rate (GCR) strictly equals 1.0.
 
-### 15.2 GovernedMemoryStore Architecture
+### 15.2 Structural Proof and Merkle Aggregation
 
-The `GovernedMemoryStore` interposes `ConstitutionEnforcer` validation on every write path. The `add(content, category, metadata)` method passes the content through `ConstitutionEnforcer.check()` before persistence. If governance validation fails, the memory entry is rejected and the violation is logged to `logs/memory_governance.jsonl`. The `update()` and `delete()` methods follow the same validation pattern.
-
-Memory entries are persisted to append-only JSONL (`logs/governed_memory.jsonl`), maintaining a complete audit trail of all memory operations including rejected writes.
-
-### 15.3 Bi-Temporal Versioning
-
-The `TemporalGraph` implements a bi-temporal data model where each memory entry maintains three temporal coordinates:
-
-- `valid_from`: timestamp when the fact became true in the domain
-- `valid_to`: timestamp when the fact ceased to be true (null if current)
-- `recorded_at`: timestamp when the system recorded the entry
-
-This enables three operations:
-
-1. **snapshot(as_of=t)**: Returns the complete memory state as known at time t. This reconstructs the exact set of memories that were valid and recorded before the specified timestamp.
-2. **timeline(entry_id)**: Returns the complete version history of a specific memory entry, showing all mutations with their temporal coordinates.
-3. **diff(t1, t2)**: Computes the set difference between two temporal snapshots, identifying additions, updates, and deletions within a time range.
-
-The bi-temporal model is essential for audit compliance: it enables retrospective analysis of what an agent "knew" at any point in time, independent of when that knowledge was recorded.
-
-### 15.4 Constitutional Decay
-
-Memory relevance decays according to:
-
-```text
-relevance(t) = relevance(t₀) × λ^(t - t₀)
-```
-
-where λ = 0.99/hour by default and t₀ is the timestamp of the last relevance update. Memories with relevance below the configured threshold (0.1) are archived — moved to a separate JSONL file for long-term storage.
-
-Two categories are constitutionally protected from decay: **decisions** and **errors**. The rationale is that past decisions and learned error patterns retain permanent value regardless of recency. This protection is a governance property configured in `dof.constitution.yml` under the `memory.protected_categories` field, not a heuristic embedded in code.
-
-### 15.5 Integration
-
-The `GovernedMemoryStore` is integrated with `crew_runner.py` via the `governed_memory=True` parameter. On successful execution, the crew output is stored as "knowledge"; on terminal failure, the error summary is stored as "errors". The adversarial evaluation module can query memory for historical context when evaluating pattern recurrence.
+Attestation payloads are structured as Hash-based Message Authentication Code (HMAC-SHA256) signatures containing the agent's deterministic BLAKE3 identity, the execution timestamp, and the complete vector of governance metrics. To achieve economic viability for high-throughput multi-agent systems, these cryptographic proofs are aggregated into SHA-256 Merkle trees. The root hash of the Merkle tree is published to an EVM-compatible Validation Registry smart contract. This architecture enables any third party to perform a zero-trust, off-chain verification of an agent's execution compliance by reconstructing the Merkle inclusion proof against the immutable on-chain root hash.
 
 ---
 
-## 16. OAGS Conformance
+## 16. Multi-Dimensional Trust Synthesis
 
-### 16.1 Open Agent Governance Specification
+### 16.1 Axiological Separation of Concerns
 
-The Open Agent Governance Specification (OAGS) defines a standardized framework for agent governance comprising agent identity, policy declaration, runtime enforcement, and audit trails. The DOF framework implements OAGS compatibility through three components: `OAGSIdentity`, `OAGSPolicyBridge`, and `OAGSAuditBridge`.
+A critical vulnerability in contemporary multi-agent trust registries is the semantic collision of distinct evaluative dimensions—specifically, the conflation of infrastructure availability (uptime) with behavioral safety (governance compliance). The framework corrects this through axiological separation, maintaining formal governance proofs in isolated tables distinct from standard heartbeat telemetry.
 
-### 16.2 Deterministic Agent Identity
+### 16.2 The Composite Trust Function
 
-`OAGSIdentity` computes a deterministic agent identity as the BLAKE3 hash (with SHA-256 fallback for environments without the blake3 package) of the concatenation of:
+Trust in autonomous systems is not a scalar value but a multi-dimensional construct. The framework synthesizes three independent verification vectors into a singular algorithmic trust metric:
+1. **Infrastructure Telemetry (30%)**: Continuous heartbeat probing and proxy detection ensuring operational availability.
+2. **Formal Governance (50%)**: The Z3-verified, AST-backed proofs of constitutional compliance, weighted most heavily due to its mathematical rigor.
+3. **Community Assessment (20%)**: Normalized historical interaction quality ratings from peers.
 
-1. Model identifier (e.g., "groq/llama-3.3-70b-versatile")
-2. Constitution hash (BLAKE3 of `dof.constitution.yml` contents)
-3. Sorted tool manifest (canonical JSON serialization of available tools)
-
-This produces a deterministic 64-character hex identifier: the same agent configuration always yields the same identity hash, while any change to model, governance rules, or available tools produces a distinct identity. The identity is included in `get_agent_card()` for external systems.
-
-### 16.3 Three-Level Conformance Validation
-
-| Level            | Requirement                                          | DOF Implementation                                                                   | Verification                               |
-| :---------------- | :---------------------------------------------------- | :------------------------------------------------------------------------------------ | :------------------------------------------ |
-| 1 — Declarative  | Governance policy exists in machine-readable format  | `dof.constitution.yml` with JSON Schema validation                                   | File existence + YAML parse                |
-| 2 — Runtime      | Governance enforcement active during execution       | `ConstitutionEnforcer` evaluates every crew output; `ASTVerifier` on generated code  | Class instantiation + method availability  |
-| 3 — Attestation  | Cryptographic attestation of governance outcomes     | ERC-8004 Oracle Bridge with HMAC-SHA256 signed certificates                          | Module import + class functionality        |
-
-`OAGSPolicyBridge.validate_conformance(level=3)` executes all checks for the specified level and returns a structured result with per-check details. All three levels pass in the current implementation.
-
-### 16.4 Policy Interoperability
-
-`OAGSPolicyBridge.export_sekuire()` converts `dof.constitution.yml` to `sekuire.yml` format:
-
-- HARD_RULES → `policies` with `action: block`
-- SOFT_RULES → `policies` with `action: warn`
-- AST_RULES → `policies` with `category: code_analysis`
-
-The reverse operation `import_sekuire()` converts external OAGS policies into the DOF governance format. This bidirectional conversion enables interoperability with other OAGS-conformant systems without modifying the internal governance representation.
-
-### 16.5 Audit Event Export
-
-`OAGSAuditBridge.export_traces(trace_dir)` reads DOF JSONL execution traces and converts them to OAGS audit event format, including: event type, agent identity, timestamp, governance status, and metrics. This enables integration with external OAGS audit infrastructure.
-
----
-
-## 17. x402 Trust Gateway
-
-### 17.1 Motivation
-
-The x402 payment protocol enables AI agents to autonomously transact on behalf of users. As of Q1 2026, x402 processes over 63 million monthly transactions. However, the protocol lacks a formal trust verification layer — any agent can request payments without governance validation. DOF addresses this with the `TrustGateway` — a deterministic verification module that intercepts payment responses and applies formal DOF checks before authorizing the transaction.
-
-### 17.2 Decision Logic
-
-The gateway applies a weighted composite score to determine the action:
-
-| Condition             |   Action   | Rationale                          |
-| :--------------------- | :---------: | :---------------------------------- |
-| Adversarial detected  | **BLOCK**  | Unconditional — zero tolerance     |
-| Score < 0.4           | **BLOCK**  | Below safety threshold             |
-| 0.4 ≤ Score < 0.7     |  **WARN**  | Marginal safety — flag for review  |
-| Score ≥ 0.7           | **ALLOW**  | Above safety threshold             |
-
-### 17.3 Score Weights
-
-| Component      |  Weight | Source                          |
-| :-------------- | -------: | :------------------------------- |
-| Adversarial    |     35% | `RedTeamAgent` detection        |
-| Hallucination  |     25% | `DataOracle` verification       |
-| PII            |     20% | Privacy pattern detection       |
-| Constitution   |     10% | `ConstitutionEnforcer.check()`  |
-| Structure      |      5% | Output structure heuristics     |
-| Red Team       |      5% | Attack vector simulation        |
-
-### 17.4 On-Chain Evidence
-
-Every verdict produces an `endpoint_hash` (SHA-256) published to Enigma Scanner via `EnigmaBridge`, enabling immutable audit trail and cross-agent reputation scoring on Avalanche.
-
-```python
-from dof import TrustGateway
-
-gateway = TrustGateway()
-verdict = gateway.verify(response_body=agent_response)
-# verdict.action → ALLOW / WARN / BLOCK
-# verdict.governance_score → float
-```
-
----
-
-## 18. Protocol Integration
-
-### 18.1 MCP Server
-
-The DOF governance stack is exposed as a Model Context Protocol (MCP) server implementing the stdio JSON-RPC 2.0 transport specification. The server exposes 10 tools covering governance verification (`governance_check`), AST analysis (`ast_verify`), Z3 formal proofs (`z3_verify`), governed memory operations (`memory_add`, `memory_query`, `memory_snapshot`), attestation management (`attestation_create`, `attestation_verify`), and OAGS conformance (`oags_identity`, `oags_conformance`). Three read-only resources provide the active constitution (`dof://constitution`), formal metric definitions (`dof://metrics`), and system health (`dof://status`).
-
-The MCP server enables Claude Desktop, Cursor, Windsurf, and any MCP-compatible client to invoke DOF governance without importing Python modules. Tool implementations delegate to the same `core/` modules used by all other entrypoints, ensuring governance consistency across all protocol interfaces.
-
-### 18.2 REST API
-
-A FastAPI-based HTTP interface exposes 14 endpoints covering governance verification, AST analysis, Z3 formal proofs, governed memory CRUD with temporal queries, attestation management, OAGS conformance validation, and system health. CORS middleware is enabled for dashboard integration.
-
-Both the MCP server and REST API serve as protocol adapters: thin translation layers that convert protocol-specific request formats into calls to the shared `core/` governance infrastructure. No governance logic resides in the protocol layer; all enforcement is delegated to `ConstitutionEnforcer`, `ASTVerifier`, `Z3Verifier`, `GovernedMemoryStore`, `OracleBridge`, and `OAGSPolicyBridge`. This ensures that governance semantics are identical regardless of the access protocol.
-
----
-
-## 19. Storage Architecture
-
-### 19.1 Dual-Backend Abstraction
-
-The `StorageBackend` abstract class defines the storage interface: `save_memory()`, `load_memories()`, `save_attestation()`, `load_attestations()`, `save_audit_event()`, `query_memories()`, `get_stats()`, and `initialize()`. Two concrete implementations are provided:
-
-**JSONLBackend** (default): Zero-dependency append-only storage using one JSONL file per entity type (`memories.jsonl`, `attestations.jsonl`, `audit_events.jsonl`). Queries perform linear scan with in-memory filtering. Suitable for development, testing, and single-instance deployments.
-
-**PostgreSQLBackend**: SQLAlchemy ORM with three tables (`dof_memories`, `dof_attestations`, `dof_audit_events`). JSONB columns with GIN indexes for flexible metadata queries. Supports multi-tenant deployments via connection pooling. SQLite in-memory serves as a PostgreSQL proxy for testing, enabling full backend validation without database infrastructure.
-
-### 19.2 StorageFactory
-
-`StorageFactory` implements singleton auto-detection: if the `DOF_DATABASE_URL` environment variable is set, it returns a `PostgreSQLBackend`; otherwise, it returns a `JSONLBackend`. The factory includes `reset()` for test isolation and `get_stats()` for operational monitoring.
-
-### 19.3 Dual-Write Integration
-
-`GovernedMemoryStore` and `AttestationRegistry` accept an optional `_storage_backend` parameter. When provided, every write operation persists to both the primary JSONL store and the secondary backend. If the secondary backend fails, the primary JSONL write still succeeds, with a warning logged. This dual-write pattern ensures that JSONL remains the authoritative audit trail while PostgreSQL provides query performance for production workloads.
-
-### 19.4 Migration
-
-`migrate_jsonl_to_postgres()` reads existing JSONL files and bulk-inserts their contents into the PostgreSQL backend, enabling transition from development to production storage without data loss.
-
----
-
-## 20. Framework-Agnostic Governance
-
-### 20.1 Adapter Pattern
-
-The `FrameworkAdapter` abstract class defines the governance interface: `wrap_output(text) → dict`, `wrap_code(code) → dict`, and `record_step(data) → None`. Three concrete implementations enable DOF governance across different orchestration frameworks:
-
-**GenericAdapter**: Zero external dependencies. Wraps `ConstitutionEnforcer` and `ASTVerifier` for any system that produces string output. Philosophy: "if you can produce a string, DOF can govern it."
-
-**LangGraphAdapter**: Exposes DOF governance as LangGraph-compatible callable nodes via `get_nodes()`. Each node operates on state dictionaries, reading input from and writing results to named state keys.
-
-**CrewAIAdapter**: Wraps the existing CrewAI `crew_runner` with governance hooks, providing the same `FrameworkAdapter` interface for CrewAI-specific deployments.
-
-### 20.2 Governance Nodes
-
-Four callable nodes implement the graph-compatible governance interface:
-
-- `DOFGovernanceNode`: Extracts output from `state["output"]` or the last message in `state["messages"]`, runs `ConstitutionEnforcer.check()`, writes `governance_pass` and `governance_result` to state.
-- `DOFASTNode`: Reads `state["code"]`, runs `ASTVerifier.verify()`, writes `ast_result` to state.
-- `DOFMemoryNode`: Supports `add` and `query` actions via `GovernedMemoryStore`, controlled by `state["memory_action"]`.
-- `DOFObservabilityNode`: Creates `StepTrace` entries from state data for execution tracing.
-
-`create_governed_pipeline()` returns a pre-configured dict of all four nodes, enabling single-call pipeline setup.
-
-### 20.3 Design Rationale
-
-The adapter pattern decouples governance enforcement from framework-specific coordination semantics. DOF governance nodes receive output after framework execution completes and evaluate it deterministically. No governance logic depends on the framework that produced the output. This is the same architectural principle that establishes GCR(f) = 1.0 as an invariant: governance evaluation is a function of output content only, not of the execution path or framework that produced it.
-
----
-
-## 21. On-Chain Attestation via Avalanche C-Chain
-
-### 21.1 Attestation Certificate Structure
-
-Each `AttestationCertificate` contains:
-
-| Field                | Type      | Description                         |
-| :-------------------- | :--------- | :----------------------------------- |
-| `agent_identity`     | `string`  | BLAKE3 hash from OAGSIdentity       |
-| `task_id`            | `string`  | UUID of the execution run           |
-| `timestamp`          | `string`  | ISO 8601 creation timestamp         |
-| `metrics`            | `dict`    | SS, GCR, PFI, RP, SSR values        |
-| `governance_status`  | `string`  | COMPLIANT or NON_COMPLIANT          |
-| `z3_verified`        | `bool`    | True if all Z3 proofs passed        |
-| `signature`          | `string`  | HMAC-SHA256 hex signature           |
-| `certificate_hash`   | `string`  | BLAKE3 hash of payload + signature  |
-
-The `CertificateSigner` generates a random 32-byte secret key on first use, persists it to `keys/oracle_key.json`, and signs attestation payloads with HMAC-SHA256. The signer uses only standard library modules (`hmac`, `hashlib`, `secrets`) — zero external dependencies.
-
-### 21.2 Compliance-Gated Publishing
-
-The publishing rule is deterministic and strict:
-
-```text
-should_publish(cert) = True  iff  cert.governance_status == "COMPLIANT"
-```
-
-A certificate receives `governance_status = "COMPLIANT"` if and only if `GCR = 1.0` in the execution metrics. Any governance violation (GCR < 1.0) produces `NON_COMPLIANT`, which is not eligible for on-chain publication. This design ensures that the on-chain attestation registry contains only verified compliance records. An attestation with low SS (< 0.5) but perfect GCR (= 1.0) is still published, with a warning logged — stability degradation is an infrastructure concern, not a governance violation.
-
-### 21.3 Transaction Preparation and Batching
-
-`OracleBridge.prepare_transaction(cert)` generates an ERC-8004-compatible transaction structure targeting the Avalanche C-Chain. The transaction includes: agent identity, validation signal (COMPLIANT/NON_COMPLIANT), metrics hash, timestamp, and HMAC signature.
-
-`batch_attestations(certs)` aggregates multiple certificates into a single batch transaction, reducing per-attestation gas cost for high-throughput deployments. Each batch receives a unique UUID for tracking. Economics: 10,000 attestations ≈ $0.01 gas on Avalanche C-Chain.
-
-### 21.4 Off-Chain Registry
-
-The `AttestationRegistry` maintains a local JSONL ledger (`logs/attestations.jsonl`) of all generated certificates:
-
-- `add(cert)`: Persist new attestation
-- `get_attestation(hash)`: Lookup by certificate hash
-- `get_agent_history(identity)`: All attestations for an agent
-- `get_compliance_rate()`: COMPLIANT / total ratio
-- `export_for_chain()`: Unpublished COMPLIANT certificates ready for on-chain submission
-- `mark_published(hash)`: Flag certificate as published
-
-### 21.5 Attestation Verification
-
-`OracleBridge.verify_attestation(cert)` reconstructs the original payload from the certificate fields, re-signs with the same key, and compares the signature. It then recomputes the certificate hash and compares. Both must match for verification to succeed. Any tampering with metrics, timestamps, or governance status produces a verification failure.
-
-### 21.6 DOFValidationRegistry Contract Design
-
-The DOFValidationRegistry is a Solidity smart contract (0.8.19) deployed on Avalanche C-Chain mainnet at `0x88f6043B091055Bbd896Fc8D2c6234A47C02C052`. The contract provides immutable on-chain storage of governance attestations with the following interface:
-
-| Function               | Parameters                                                  | Access         | Purpose                           |
-| :---------------------- | :----------------------------------------------------------- | :-------------- | :--------------------------------- |
-| `registerAttestation`  | `bytes32 certificateHash, bytes32 agentId, bool compliant`  | `onlyOwner`    | Register individual attestation   |
-| `registerBatch`        | `bytes32[] hashes, bytes32[] agentIds, bool[] compliants`   | `onlyOwner`    | Gas-optimized batch registration  |
-| `isCompliant`          | `bytes32 certificateHash`                                   | `public view`  | Zero-trust verification           |
-| `getAttestation`       | `bytes32 certificateHash`                                   | `public view`  | Full attestation retrieval        |
-| `totalAttestations`    | —                                                           | `public view`  | Registry size                     |
-
-The contract follows the OpenZeppelin Ownable pattern, restricting write operations to the deployer wallet (`0xB529f4f99ab244cfa7a48596Bf165CAc5B317929`) while enabling public read access for zero-trust verification by any third party.
-
-### 21.7 Three-Layer Publication Pipeline
-
-The Avalanche Bridge (`core/avalanche_bridge.py`) completes the publication pipeline by connecting DOF governance verification to Avalanche C-Chain via web3.py. The bridge signs transactions with the deployer private key, estimates gas, broadcasts to mainnet, and awaits confirmation. Offline-safe design ensures graceful degradation when blockchain connectivity is unavailable.
-
-The complete publication pipeline provides three independent verification layers:
-
-| Layer              | Storage                | Latency  | Persistence        | Verification                 |
-| :------------------ | :---------------------- | :-------- | :------------------ | :---------------------------- |
-| dof-storage        | PostgreSQL (Supabase)  | ~200ms   | Mutable            | Internal audit               |
-| Enigma Scanner     | PostgreSQL (Supabase)  | ~900ms   | Historical INSERT  | Public via erc-8004scan.xyz  |
-| Avalanche C-Chain  | On-chain               | ~2-3s    | Immutable          | Public via snowtrace.io      |
-
-Each layer provides independent verification: dof-storage enables internal audit trails with full metric detail, the Enigma Scanner provides public historical records indexed by ERC-721 token_id, and the Avalanche C-Chain provides immutable cryptographic proof of governance compliance.
-
-### 21.8 Production Verification Results
-
-Twenty-one attestations have been confirmed on Avalanche C-Chain mainnet for two production agents across 10 cross-agent verification rounds (4 AVAX transfers, 2 A2A discovery, 2 OASF evaluation, 2 capability audits):
-
-| Agent             | Token ID  | NFT Contract   | Attestations  | Ranking      | Latest Block  |
-| :----------------- | :--------- | :-------------- | :------------- | :------------ | :------------- |
-| Apex Arbitrage    | #1687     | `0xfc6f71...`  | 12            | #1 of 1,772  | 79674834+     |
-| AvaBuilder Agent  | #1686     | `0x9b59db...`  | 9             | #2 of 1,772  | 79674842+     |
-
-All 21 attestations passed compliance gating (GCR = 1.0) prior to on-chain publication. Both agents achieved a combined trust score of 0.85 on the Enigma Scanner, ranking #1 and #2 among all 1,772 agents indexed by erc-8004scan.xyz. The compliance-gated publishing rule ensures that the on-chain record contains only verified governance compliance events.
-
----
-
-## 22. Scanner Integration and Combined Trust Architecture
-
-### 22.1 Architectural Separation from Centinela
-
-The Enigma Scanner (erc-8004scan.xyz) operates an independent infrastructure monitoring system (Centinela) that evaluates agents via heartbeat probes, proxy detection, OpenZeppelin contract matching, and community ratings. DOF governance scores are published to a dedicated `dof_trust_scores` table, architecturally separated from Centinela's `trust_scores` table. This separation prevents semantic collision: Centinela measures *infrastructure availability* while DOF measures *behavioral governance compliance*. Prior to separation, multiple scoring systems overwrote the same database rows with semantically incompatible values.
-
-The Enigma Bridge (`core/enigma_bridge.py`) maps DOF metrics to scanner dimensions:
-
-| DOF Metric  | Scanner Column     | Semantic Mapping                |
-| :----------- | :------------------ | :------------------------------- |
-| GCR         | governance_score   | Constitutional compliance rate  |
-| SS          | stability_score    | Run completion under retries    |
-| AST         | ast_score          | Code safety verification        |
-| ACR         | adversarial_score  | Adversarial defensibility       |
-
-Agent resolution occurs automatically via ERC-721 token_id lookup against the on-chain agent registry. Historical INSERT semantics provide full audit trail rather than destructive UPDATE, ensuring temporal completeness of governance records.
-
-### 22.2 Combined Trust View
-
-A SQL materialized view (`combined_trust_view`) in the Enigma database synthesizes three independent scoring sources into a unified trust metric:
-
-| Source                      | Weight  | Dimensions                         | Methodology                         |
-| :--------------------------- | :------- | :---------------------------------- | :----------------------------------- |
-| Centinela (infrastructure)  | 0.30    | alive (0.15) + active (0.15)       | Heartbeat probes, response time     |
-| DOF (formal governance)     | 0.50    | governance (0.35) + safety (0.15)  | ConstitutionEnforcer + ASTVerifier  |
-| Community (ratings)         | 0.20    | user ratings normalized to [0,1]   | Aggregated community feedback       |
-
-Governance receives the highest individual weight (0.35) and the highest aggregate weight (0.50) as the sole dimension backed by formal mathematical verification (Z3 SMT proofs). The weight assignment reflects a deliberate architectural decision: dimensions with stronger formal backing receive proportionally greater influence on the combined score.
-
-### 22.3 Cross-Verification Results
-
-The full audit pipeline (`scripts/full_audit_test.py`) executes four phases of verification:
-
-1. **MCP Tool Validation**: All 10 DOF tools called directly via `TOOLS[name]["handler"](params)`. Result: 10/10 functional.
-2. **A2A Skill Verification**: Agent card and skill manifest validated. Result: 8 skills available (research, code-review, data-analysis, build-project, grant-hunt, content, daily-ops, enigma-audit).
-3. **Cross-Role Pipeline**: Each agent operates outside its primary role — the contract auditor performs arbitrage scanning and vice versa — to test behavioral governance rather than identity-based trust. Both agents passed governance, AST (1.0), and Z3 (4/4) verification.
-4. **Bilateral Peer Verification**: Each agent governance-checks the other's output. Both peer reviews returned ACCEPT verdicts with AST score 1.0.
-
-Production results: combined trust score 0.85 for both agents, ranking #1 and #2 among governance-verified agents on the Enigma Scanner.
-
----
-
-## 23. External Agent Audit
-
-### 23.1 Methodology
-
-To validate DOF governance enforcement against third-party agents, we conducted a cross-network audit of all active agents in the ERC-8004 registry indexed by erc-8004scan.xyz. The audit script (`scripts/external_agent_audit.py`) executes 13 real tests probing four protocols (A2A, x402, OASF, MCP) against 12 agent endpoints, followed by DOF governance cross-verification of all collected outputs.
-
-The registry contains 20 agents (11 VERIFIED, 9 PENDING). The API returns the same agent set across all queried chains (Avalanche, Fuji, Base, Ethereum, Arbitrum, Optimism, Polygon, BSC, Fantom, Gnosis) — no chain-exclusive agents exist in the current registry.
-
-### 23.2 Results
-
-| Test  | Agent                                        | Protocol  | Chain                      | Verdict                             | Latency  |
-| :----- | :-------------------------------------------- | :--------- | :-------------------------- | :----------------------------------- | :-------- |
-| 1-4   | Snowrail (yuki, sentinel, recon, fiat-rail)  | A2A       | Avalanche Fuji             | UNREACHABLE (404)                   | ~340ms   |
-| 5     | Quick Intel                                  | x402      | Multi-chain (14 networks)  | ACTIVE ($0.03 USDC/scan)            | 302ms    |
-| 6     | Tator Trader                                 | x402      | Multi-chain (14 networks)  | ACTIVE ($0.20 USDC/prompt)          | 321ms    |
-| 7     | Apex Arbitrage                               | OASF      | Avalanche Mainnet          | ACTIVE v1.3.0, 7 skills, 4 domains  | 337ms    |
-| 8     | AvaBuilder                                   | OASF      | Avalanche Mainnet          | ACTIVE v0.8.0, 5 skills, 4 domains  | 561ms    |
-| 9     | Apex Arbitrage                               | A2A       | Avalanche Mainnet          | ACTIVE, 5 services                  | 270ms    |
-| 10    | AvaBuilder                                   | A2A       | Avalanche Mainnet          | ACTIVE, 5 services                  | 319ms    |
-| 11    | quack_agent                                  | MCP       | Avalanche                  | ACTIVE, 114-line manifest           | 339ms    |
-| 12    | Neo                                          | MCP       | arena.social               | HTTP 500 (server error)             | 753ms    |
-| 13    | DOF Governance                               | DOF       | N/A                        | COMPLIANT, 0 violations             | <1ms     |
-
-### 23.3 Protocol Coverage
-
-| Protocol  | Active  | Total  | Coverage  | Networks                                                                                                     |
-| :--------- | :------- | :------ | :--------- | :------------------------------------------------------------------------------------------------------------ |
-| x402      | 2       | 2      | 100%      | Base, ETH, Arbitrum, Optimism, Polygon, Avalanche, Unichain, Linea, MegaETH, Sonic, Zora, Ink, Tron, Solana  |
-| OASF      | 2       | 2      | 100%      | Avalanche Mainnet                                                                                            |
-| A2A       | 2       | 6      | 33%       | Avalanche Mainnet (DOF agents active, Snowrail down)                                                         |
-| MCP       | 1       | 2      | 50%       | Avalanche (quack_agent active, Neo error)                                                                    |
-
-### 23.4 Observations
-
-The x402 agents (Quick Intel and Tator Trader) demonstrate the most robust multi-chain deployment, accepting USDC payments across 14 EVM networks plus Solana. The x402 protocol response includes full JSON schema documentation of input/output interfaces, enabling automated agent-to-agent commercial interaction.
-
-The OASF endpoints for both DOF-governed agents (Apex v1.3.0 and AvaBuilder v0.8.0) expose structured skill taxonomies and domain classifications conformant with the Open Agent Service Framework specification.
-
-The Snowrail agents, while registered as VERIFIED in the scanner, return 404 on all known paths — the Railway deployment is running but no routes are configured. Neo returns HTTP 500, indicating an unhandled server-side error.
-
-DOF governance cross-verification of all 12 fetched outputs returned COMPLIANT with 0 hard violations and 0 soft violations, confirming that governance enforcement generalizes to external agent responses regardless of protocol or origin.
-
-### 23.5 External Validation v0.2.4
-
-Version 0.2.4 extended the external validation scope by exercising the four v0.2.3 capabilities against a reproducible Google Colab environment with live LLM provider calls. The validation script executed three independent verification rounds:
-
-| Capability                     | Method                                                                                 | Result                     | Details                                                        |
-| :------------------------------ | :-------------------------------------------------------------------------------------- | :-------------------------- | :-------------------------------------------------------------- |
-| LLM-as-a-Judge                 | `evaluate_with_judge(response, context)`                                               | score=9.0, verdict=PASS    | Threshold 7.0; advisory-only, deterministic arbiter unchanged  |
-| Red Team Attack Vectors        | `indirect_prompt_injection()`, `persuasion_jailbreak()`, `training_data_extraction()`  | detected=True (3/3)        | All three vectors correctly identified adversarial payloads    |
-| Instruction Hierarchy          | `enforce_hierarchy(system, user, response)`                                            | compliant=True             | Clean prompts passed; override attempts correctly blocked      |
-| AGENT\_FAILURE Classification  | `classify_error("tool_not_found")`                                                     | ErrorClass.AGENT\_FAILURE  | 16 agent-specific keywords distinguished from INFRA\_FAILURE   |
-
-The validation confirms three properties: (1) LLM-as-a-Judge operates as a strictly advisory layer — its score does not influence the deterministic governance verdict, preserving GCR invariance; (2) the three Red Team attack methods detect adversarial payloads with the expected severity levels (CRITICAL for injection/jailbreak, HIGH for data extraction); and (3) the instruction hierarchy enforcement correctly applies the SYSTEM > USER > ASSISTANT priority ordering established in dof.constitution.yml.
+This composite view enables production orchestration networks to route tasks based on verifiable safety thresholds rather than mere operational liveness. External audits of this mechanism against heterogeneous protocols (e.g., OASF, x402) confirm its generalization capability: formal governance scales seamlessly across external agent identities and transactional boundaries.
 
 ---
 
@@ -1572,540 +1125,53 @@ Internal validity concerns whether the observed metric values are attributable t
 
 ---
 
-## 27. Replication Protocol
+## 17. Empirical Replication Architecture
 
-### 27.1 Preconditions
+### 17.1 Deterministic Traceability
 
-- Python 3.11 or higher.
-- All 35 core modules present in `core/`, `dof/`, `integrations/`, and `scripts/`.
-- `dof.constitution.yml` present in project root.
-- `z3-solver>=4.12` installed (for Section 8 experiments).
-- No external API keys are required for simulated experiments.
-- No GPU or specialized hardware requirements.
-
-### 27.2 Environment Configuration
-
-```bash
-# Verify Python version
-python3 --version  # Must be >= 3.11
-
-# Navigate to project root
-cd /path/to/deterministic-observability-framework
-
-# Install package with all dependencies
-pip install -e ".[dev]"
-
-# Verify installation
-python3 -c "import dof; print(dof.__version__)"
-
-# Create required directories
-mkdir -p logs/experiments logs/traces experiments
-```
-
-### 27.3 Z3 Formal Verification
-
-```python
-from dof import verify
-
-proofs = verify()
-for p in proofs:
-    print(f"{p.theorem_name}: {p.result} ({p.proof_time_ms:.2f} ms)")
-# Expected output:
-# GCR_INVARIANT: VERIFIED (0.30 ms)
-# SS_FORMULA: VERIFIED (0.19 ms)
-# SS_MONOTONICITY: VERIFIED (0.82 ms)
-# SS_BOUNDARIES: VERIFIED (0.35 ms)
-```
-
-### 27.4 Exact Experimental Commands
-
-**Experiment 1 — Baseline (No Failures):**
-
-```python
-import sys, os
-sys.path.insert(0, os.path.dirname(os.path.abspath(".")))
-from core.experiment import run_experiment
-
-results = run_experiment(
-    n_runs=10,
-    prompt="Investigar mercado de agentes AI autónomos en Avalanche. "
-           "Competidores, market size, tendencias 2025-2026, "
-           "oportunidades de grants.",
-    mode="research",
-    hypothesis="Baseline: zero-failure simulated crew produces "
-               "perfect stability metrics with zero variance",
-    deterministic=True,
-    fail_step=-1,
-    verbose=True,
-)
-print(results["aggregated"])
-```
-
-**Experiment 3 — Forced Failure Perturbation:**
-
-```python
-results_perturbed = run_experiment(
-    n_runs=10,
-    prompt="Investigar mercado de agentes AI autónomos en Avalanche. "
-           "Competidores, market size, tendencias 2025-2026, "
-           "oportunidades de grants.",
-    mode="research",
-    hypothesis="Perturbation: 30% failure injection reduces stability "
-               "while governance remains invariant",
-    deterministic=True,
-    fail_step=1,
-    verbose=True,
-)
-print(results_perturbed["aggregated"])
-```
-
-**Experiment 4 — Parametric Failure Sweep:**
-
-```python
-from core.experiment import run_parametric_sweep
-
-sweep = run_parametric_sweep(
-    failure_rates=[0.0, 0.10, 0.20, 0.30, 0.50, 0.70],
-    n_runs=20,
-    prompt="Investigar mercado de agentes AI autónomos en Avalanche. "
-           "Competidores, market size, tendencias 2025-2026, "
-           "oportunidades de grants.",
-    mode="research",
-    deterministic=True,
-    fail_step=1,
-    verbose=True,
-)
-# CSV exported to experiments/parametric_sweep.csv
-```
-
-### 27.5 Expected Artifacts
-
-After executing all experiments, the following artifacts should exist:
-
-| Artifact                | Path                                | Format  | Count         |
-| :----------------------- | :----------------------------------- | :------- | :------------- |
-| Individual trace files  | `logs/traces/{run_id}.json`         | JSON    | 150           |
-| Run summaries           | `logs/experiments/runs.jsonl`       | JSONL   | 150 entries   |
-| Experiment dataset      | `experiments/run_dataset.jsonl`     | JSONL   | 150 entries   |
-| Parametric sweep CSV    | `experiments/parametric_sweep.csv`  | CSV     | 1 (6 rows)    |
-| Z3 proof certificates   | `logs/z3_proofs.json`               | JSON    | 1 (4 proofs)  |
-| Adversarial logs        | `logs/adversarial.jsonl`            | JSONL   | per-run       |
-| Contract logs           | `logs/task_contracts.jsonl`         | JSONL   | per-run       |
-
-### 27.6 Validation Criteria
-
-Replication is successful if the following conditions hold:
-
-1. **Experiment 1**: All five primary metrics have boundary values (SS=1.0, PFI=0.0, RP=0.0, GCR=1.0, SSR=0.0) with standard deviation exactly 0.0.
-2. **Experiment 2**: All five primary metrics are numerically identical to Experiment 1 results.
-3. **Experiment 3**: SS mean = 0.85, SS σ = 0.2415 (to 4 decimal places). PFI mean = 0.30. GCR = 1.0, σ = 0.0. SSR = 0.0.
-4. **Z3 Verification**: All four theorems return VERIFIED (UNSAT). Total proof time < 10 ms on commodity hardware.
-5. **Trace integrity**: Each trace JSON file is valid JSON containing fields `run_id`, `session_id`, `steps` (array), and all derived metric fields.
+To ensure rigorous scientific reproducibility, the framework includes an experimental harness designed to systematically isolate and evaluate non-deterministic systemic variables. Rather than relying on heuristic observations, empirical replication executes fixed parametric failure sweeps (`n_runs=N`, `failure_rates=[...]`), resulting in structured JSONL trace files. This establishes an unambiguous mathematical baseline for stability metrics, rendering multi-agent fragility empirically testable across commodity hardware.
 
 ---
 
-## 28. Comparative Positioning
+## 18. Ecosystem Positioning
 
-### 28.1 Comparison Framework
+### 18.1 Orchestration vs. Verification
 
-We evaluate five systems: CrewAI [1] (the orchestration layer used by this framework), AutoGen [2], LangGraph [3], MetaGPT [4], and the framework presented in this paper. The comparison is based on documented capabilities as of early 2026.
-
-### 28.2 Comparative Table
-
-| Dimension                          | CrewAI         | AutoGen        | LangGraph      | MetaGPT        | This Framework                                                                      |
-| :---------------------------------- | :-------------- | :-------------- | :-------------- | :-------------- | :----------------------------------------------------------------------------------- |
-| **Deterministic execution**        | No             | No             | Partial        | No             | Yes. Fixed provider ordering, seeded PRNG, deterministic failure injection.         |
-| **Failure injection**              | Not supported  | Not supported  | Not supported  | Not supported  | Supported. Configurable `fail_step` with periodic injection.                        |
-| **Formal stability metrics**       | None           | None           | None           | None           | Five metrics with formal definitions: SS, PFI, RP, GCR, SSR. Plus ACR.              |
-| **Batch statistical aggregation**  | Not built-in   | Not built-in   | Not built-in   | Not built-in   | Built-in. `run_experiment(n_runs=N)` with mean, σ, Bessel correction.               |
-| **Governance enforcement**         | Not built-in   | Partial        | Not built-in   | Partial        | Built-in. Two-tier: 4 hard rules + 4 soft rules. YAML canonical source.             |
-| **Formal verification**            | None           | None           | None           | None           | Z3 SMT proofs for 4 invariants. GCR architectural invariant machine-proven.         |
-| **Adversarial evaluation**         | None           | None           | None           | None           | Red-on-Blue protocol with DeterministicArbiter. ACR metric.                         |
-| **Task contracts**                 | None           | None           | None           | None           | Markdown contracts with quality gates and completion guarantees.                    |
-| **Causal error attribution**       | None           | None           | None           | None           | Three-class taxonomy: MODEL, INFRA, GOVERNANCE.                                     |
-| **Bayesian provider selection**    | None           | None           | None           | None           | Thompson Sampling, Beta posteriors, temporal decay.                                 |
-| **Governed memory**                | None           | None           | None           | None           | ConstitutionEnforcer on every write, bi-temporal versioning, constitutional decay.  |
-| **Agent governance spec**          | None           | None           | None           | None           | OAGS Level 3 conformance: identity, policy, attestation.                            |
-| **On-chain attestation**           | None           | None           | None           | None           | ERC-8004 on Avalanche C-Chain, compliance-gated publishing.                         |
-| **Neurosymbolic Z3 Gate**          | None           | None           | None           | None           | Yes. LLM proposes → Z3 verifies → execute or reject with counterexample.            |
-| **On-chain proof hash**            | None           | None           | None           | None           | Yes. keccak256 proof hash in DOFProofRegistry.sol, verifiable by anyone.            |
-| **Auto-test generation from Z3**   | None           | None           | None           | None           | Yes. Z3 counterexamples and boundary cases → unittest regression tests.             |
-| **State transition proofs**        | None           | None           | None           | None           | Yes. 8 invariants PROVEN for ALL possible agent states in 107.7ms.                  |
-| **Regression tracking**            | None           | None           | None           | None           | Yes. 5 subsystems monitored post-merge, CI blocks regressions automatically.        |
-| **External adversarial benchmark** | None           | None           | None           | None           | Yes. 58.4% detection against 12,229 NVIDIA Garak payloads (12 categories).          |
-
-### 28.3 Positioning Analysis
-
-The comparison reveals that existing multi-agent frameworks prioritize *coordination semantics* over *experimental infrastructure*. The framework presented in this paper occupies a complementary position: it does not replace CrewAI's coordination capabilities (it uses CrewAI as its orchestration layer) but adds the experimental infrastructure necessary for systematic evaluation and formal assurance.
-
-The addition of Z3 formal verification represents the most significant differentiation from the existing ecosystem. No current multi-agent LLM framework provides machine-checkable proofs of any behavioral property. The GCR invariant proof addresses the open research challenge of deterministic behavioral guarantees in LLM systems by demonstrating that *architectural* guarantees — properties that depend on code structure, not model outputs — are amenable to formal verification.
+Contemporary multi-agent orchestration frameworks (e.g., CrewAI, AutoGen, LangGraph) prioritize conversational dynamics, DAG-based state management, and semantic routing over formal execution guarantees. The framework proposed herein does not aim to replace these coordination semantics but to augment them with a missing assurance layer. By introducing neurosymbolic Z3 evaluation, causal error taxonomy, governed temporal memory, and cryptographically verified attestations, this architecture fundamentally shifts the multi-agent paradigm from probabilistic heuristic tracing to deterministic, theorem-backed verification.
 
 ---
 
-## 29. Future Work
+## 19. Future Research Vectors
 
-### 29.1 Parametric Failure Curves with Bayesian Selection
+### 19.1 Axiomatic Expansion
 
-Section 7 tested parametric failure rates with static provider selection. A systematic comparison would execute identical parametric sweeps with static selection (current baseline) vs. Bayesian Thompson Sampling, measuring whether Bayesian selection produces lower PFI at equivalent failure rates. This would provide empirical validation of the theoretical prediction from [18] that Thompson Sampling minimizes regret.
-
-### 29.2 Real Provider Benchmarking
-
-Executing the experiment framework against real LLM providers would produce the first empirical characterization of multi-provider system behavior. Key questions include:
-
-- What is the natural Stability Score for each provider under free-tier constraints?
-- Does BayesianProviderSelector converge to stable posteriors within N executions for each provider?
-- How does ACR vary across providers? Do certain models produce more unresolvable adversarial defects?
-- Does causal error attribution correctly distinguish INFRA\_FAILURE from MODEL\_FAILURE in production?
-
-### 29.3 ACR Calibration Against Human Assessment
-
-The ACR metric depends on the DeterministicArbiter's evidence threshold. Calibration requires: (1) human annotators labeling a set of outputs with defects and severity, (2) running the adversarial protocol on the same outputs, and (3) computing precision and recall of the protocol against human labels. This would establish whether ACR correlates with human-perceived output quality and whether the evidence thresholds need adjustment.
-
-### 29.4 Cross-Model Entropy Analysis
-
-Different LLM models produce outputs with different levels of variability for the same prompt. Measuring the entropy of supervisor scores and ACR values across runs for a fixed prompt and fixed model would characterize each model's output consistency — a signal for model selection decisions based on quality distribution rather than single-sample evaluation.
-
-### 29.5 Adaptive Task Contracts
-
-Current task contracts are static specifications. Adaptive contracts could learn from execution history: if a specific quality gate consistently fails for a given crew type, the contract could automatically adjust its threshold or add additional gates based on observed failure patterns. This would require accumulating `ContractResult` history per crew configuration, which the current JSONL logging infrastructure supports.
-
-### 29.6 Extended Z3 Theorem Set
-
-The current four theorems address SS and GCR invariants. Additional candidates for formal verification include:
-
-- **ACR non-negativity**: ACR(I) ∈ [0,1] for all valid issue sets I.
-- **Thompson Sampling convergence**: Under bounded regret assumptions, the expected selection probability converges to the optimal arm.
-- **Contract completeness**: If all quality gates pass and no forbidden patterns match, `ContractResult.fulfilled = True` holds by construction.
-
-### 29.7 Z3 Proof Marketplace (Phase 10)
-
-The on-chain proof hash mechanism (Section 32.5) creates the foundation for cross-protocol trust verification. A Z3 proof marketplace would allow any agent framework to submit proofs for verification against DOF invariants, creating an interoperable trust layer for the AI agent economy. Third-party systems could register Z3-verified trust scores through DOFProofRegistry.sol, establishing a shared standard for mathematical trust guarantees across heterogeneous agent ecosystems.
-
-### 29.8 Extended External Adversarial Benchmarks
-
-The Garak external benchmark (Section 24.6, 58.4% against 12,229 payloads) provides the first external validation. Further validation against additional standard datasets (HELM, BigBench-Hard adversarial subsets) would extend coverage breadth and enable direct comparison with other governance frameworks across different adversarial paradigms.
+Subsequent research will explore the calibration of the Adversarial Consensus Rate (ACR) metric against large-scale human-in-the-loop annotations. Furthermore, evaluating Bayesian Thompson Sampling selectors explicitly over dynamic latency distributions promises richer operational regret minimization. The creation of a unified cross-framework Z3 Proof Marketplace, establishing an interoperable trust ledger for heterogeneous networks, remains a critical frontier.
 
 ---
 
-## 30. Conclusion
+## 20. Conclusion
 
-This paper presented an experimental framework for deterministic evaluation of multi-agent LLM systems operating across heterogeneous providers. The framework addresses the absence of formal metrics, reproducible evaluation conditions, and structured observability in existing multi-agent orchestration tools.
-
-Six metrics—Stability Score, Provider Fragility Index, Retry Pressure, Governance Compliance Rate, Supervisor Strictness Ratio, and Adversarial Consensus Rate—provide complementary characterizations of system behavior with formal definitions (Section 5). The deterministic execution mode produces reproducible results in simulated experiments, confirmed by metric identity across independent runs (Section 6.2).
-
-The framework has been substantially extended beyond the original nine-module implementation. Seven new formal assurance capabilities address limitations identified in the initial design:
-
-**Z3 formal verification** (Section 8) elevates the empirical observation GCR = 1.0 to a machine-checkable architectural invariant, proven in 1.66 ms total across four theorems. This provides the first formal behavioral guarantee for a multi-agent LLM framework property, demonstrating that *architectural* deterministic guarantees are achievable even when *output* guarantees are not.
-
-**Adversarial Red-on-Blue evaluation** (Section 9) resolves supervisor circularity by exploiting LLM biases bidirectionally and resolving the dialectic through a deterministic arbiter. The ACR metric provides a new quality signal measuring output defensibility under structured adversarial challenge.
-
-**Formal task contracts** (Section 11) enforce completion guarantees by specifying what constitutes a fulfilled task independently of the heuristic supervisor, preventing acceptance of structurally correct but semantically empty outputs.
-
-**Bayesian provider selection** (Section 13) replaces static rotation with Thompson Sampling over Beta posteriors, incorporating empirical reliability evidence with temporal decay. This provides asymptotically optimal provider selection under the 4/δ regret bound [18].
-
-**Constitutional memory governance** (Section 15) introduces the first memory persistence system with formal governance enforcement. Every write operation passes through ConstitutionEnforcer validation, and the bi-temporal versioning model enables point-in-time reconstruction of agent memory state for audit compliance. Constitutionally protected categories ensure that decisions and error patterns are immune to relevance decay.
-
-**OAGS conformance** (Section 16) implements three-level compatibility with the Open Agent Governance Specification through deterministic BLAKE3 agent identity, bidirectional policy conversion, and structured audit event export. This represents, to our knowledge, the first OAGS-conformant system with Z3-verified governance invariants.
-
-**ERC-8004 Oracle Bridge** (Section 17) extends governance assurance beyond the execution boundary through compliance-gated on-chain attestation on Avalanche C-Chain. Only attestations with GCR = 1.0 are eligible for publication, ensuring the on-chain record contains exclusively verified compliance events.
-
-The parametric sweep (Section 7) establishes that Stability Score follows SS_empirical(f) = 1 − f/2 under the simulated two-step recovery structure, while the theoretical model SS(f) = 1 − f³ describes terminal failure probability under bounded retries with independent failures. The distinction between these formulations is now formally verified rather than argued by derivation.
-
-**Protocol integration** (Section 18) extends the governance boundary through MCP server (10 tools, 3 resources, stdio JSON-RPC 2.0) and REST API (14 FastAPI endpoints), enabling external systems to invoke DOF governance without importing Python modules. Both protocol layers are thin translation adapters ensuring governance semantics are identical across all access paths.
-
-**Storage architecture** (Section 19) provides a dual-backend abstraction with JSONL (default, zero-config) and PostgreSQL (production, multi-tenant via SQLAlchemy ORM). The dual-write pattern preserves JSONL as the authoritative audit trail while enabling production query performance.
-
-**Framework-agnostic governance** (Section 20) demonstrates that the GCR invariant extends beyond the DOF execution pipeline. The GenericAdapter with zero external dependencies enables DOF governance for any system that produces string output, validating the architectural principle that governance evaluation depends on output content only.
-
-**Adversarial benchmark** (Section 24) provides the first quantitative assessment of DOF verification accuracy. The TestGenerator produces 400 deterministic adversarial tests across four categories; the BenchmarkRunner measures FDR, FPR, and F1 per category. Results: Governance 100% FDR / 0% FPR / F1=100%, Code Safety 86% FDR / 0% FPR / F1=92.5%, Hallucination 0% FDR (semantic gap), Consistency 0% FDR (semantic gap), Overall F1=48.1%. This honest baseline quantifies both the strengths and limitations of deterministic verification.
-
-**Execution infrastructure** (Section 24.5) introduces ExecutionDAG (critical path analysis, cycle detection), LoopGuard (Jaccard similarity loop detection), DataOracle (three deterministic verification strategies), and TokenTracker (per-call LLM token flow tracking). These components extend the framework's observability and safety guarantees without introducing LLM dependencies in the verification path.
-
-**LLM-as-a-Judge** (Section 9.5) adds an optional advisory evaluation layer that scores outputs on a 1–10 scale via an external LLM call. The judge verdict is strictly informational — it does not influence the deterministic governance decision, preserving the GCR = 1.0 invariant. This design resolves the tension between leveraging LLM judgment and maintaining zero-LLM governance.
-
-**Red Team attack vector methods** (Section 9.6) implement three Garak/PyRIT-inspired attack simulations — indirect prompt injection, persuasion jailbreak, and training data extraction — returning structured `AttackResult` objects with vector, payload, detection status, and severity. These methods extend the adversarial evaluation pipeline beyond passive defect detection to active attack simulation.
-
-**Instruction hierarchy enforcement** (Section 14.5) implements the SYSTEM > USER > ASSISTANT priority ordering [25] within the ConstitutionEnforcer. Three sequential checks detect user-prompt system overrides, response-level directive violations, and governance bypass attempts, returning a `HierarchyResult` with violation level classification. Hard rules are immutably SYSTEM-priority; soft rules are USER-priority.
-
-**AGENT\_FAILURE error classification** (Section 12.1) extends the causal error taxonomy from three to eleven classes, with AGENT\_FAILURE capturing 16 agent-specific failure keywords (tool\_call\_failed, planning\_loop\_detected, reflexion\_timeout, agent\_stuck, etc.) that were previously misclassified as INFRA\_FAILURE due to shared keyword overlap. Priority ordering in `classify_error()` ensures AGENT\_FAILURE is evaluated before INFRA\_FAILURE.
-
-The framework has been validated in production with live on-chain attestations on Avalanche C-Chain mainnet, governance verification of production agents indexed by the Enigma Scanner, and a four-phase audit pipeline including cross-role verification and bilateral peer review. Twenty-one attestations have been confirmed on-chain across 10 cross-agent verification rounds for production agents Apex Arbitrage (#1687) and AvaBuilder Agent (#1686), ranked #1 and #2 of 1,772 agents on the Enigma Scanner with combined trust scores of 0.85. The combined trust architecture assigns governance the highest weight (0.50) as the only dimension backed by Z3 formal proofs. A cross-network external agent audit (Section 23) validated DOF governance enforcement against all active agents in the ERC-8004 registry across four protocols (A2A, x402, OASF, MCP), achieving COMPLIANT status with 0 violations across 13 tests — demonstrating that governance cross-verification generalizes to third-party agent outputs regardless of protocol or origin.
-
-The v0.3.x release series represents the most significant architectural evolution since DOF's inception, transforming the framework from a trust-by-scoring system to a trust-by-proof protocol (Section 32). Eight dynamic invariants are formally proven across all possible agent state transitions in 107.7ms, establishing that no sequence of actions — regardless of input — can violate DOF governance. The Z3 Gate implements the neurosymbolic principle: LLM agents propose actions, Z3 verifies safety before execution, and only mathematically proven decisions are executed. Automated test generation from Z3 boundary cases and counterexamples expanded the test suite from 807 to 1,008 tests with 207 Z3-specific tests. On-chain proof hash attestations via DOFProofRegistry.sol enable any third party to independently verify that a trust score was backed by a formal mathematical proof. Combined with the existing three-layer publication pipeline (PostgreSQL → Enigma Scanner → Avalanche C-Chain), DOF v0.3.3 provides the first end-to-end trust-by-proof infrastructure for AI agent ecosystems.
-
-The implementation now comprises 27,000+ lines of Python across 35 core modules, with 1,008 passing tests (207 Z3-new, 0 failures). All 8 state transition invariants are PROVEN. All 42 hierarchy patterns are verified. Both production agents (#1686, #1687) maintain their #1 and #2 ranking among 1,772 agents on the Enigma Scanner, now backed by mathematical proofs rather than probabilistic scores alone.
-
-The implementation comprises 27,000+ lines of Python across 35 core modules, with 1,008 passing tests. All experimental results are from executed code with persisted trace artifacts. The framework provides the instrumentation layer necessary for systematic study of multi-agent system behavior, expressing operational characteristics as distributions with means and standard deviations, formal proofs for architectural invariants, adversarially validated quality signals, governed memory with temporal auditability, standards-conformant governance interoperability, immutable on-chain attestation of compliance outcomes with three-layer verification (PostgreSQL, Supabase, Avalanche C-Chain), protocol-agnostic governance access, production-grade storage, framework-independent constitutional enforcement, integrated scanner trust scoring, adversarial benchmark with FDR/FPR metrics, execution infrastructure components (ExecutionDAG, LoopGuard, DataOracle, TokenTracker), LLM-as-a-Judge advisory evaluation, Red Team attack vector simulation, instruction hierarchy enforcement, expanded causal error taxonomy with AGENT\_FAILURE classification, neurosymbolic Z3 gate for agent output verification, state transition formal verification (8 dynamic invariants), automated counterexample test generation, and on-chain proof hash attestations via DOFProofRegistry. The RegressionTracker (Section 24.7) extends DOF's self-monitoring capabilities by automating post-merge health checks across four subsystems (Z3 invariants, hierarchy, tests, Garak benchmark). Combined with the external Garak benchmark (58.4% detection against 12,229 NVIDIA payloads across 12 categories, Section 24.6), DOF now provides three layers of quality assurance: internal tests (1,008), external validation (Enterprise Report v6, 10/10), and adversarial benchmarking (NVIDIA Garak). The regression tracking infrastructure ensures that each change is measured against the previous state, with CI automatically blocking any commit that introduces regressions in Z3 invariants, hierarchy enforcement, test coverage, or adversarial detection rates.
-
-Total: 40+ contributions, 1,008 tests, 35 core modules, 27,000+ LOC, 12 Z3 theorems (4 static + 8 dynamic), 42 hierarchy patterns proven, 21 on-chain attestations.
+This paper formalizes a deterministic evaluation and constraint-enforcement methodology for multi-agent LLM systems. By extracting implicit behavioral assumptions into explicit, machine-readable constitutional parameters, replacing raw telemetry with six formally defined axiomatic metrics (SS, PFI, RP, GCR, SSR, ACR), and anchoring local probabilistic execution to verifiable Z3 invariants and EVM-compatible consensus layers, this framework re-establishes execution observability on rigorous engineering footings. The transition from *trust-by-scoring* to *trust-by-proof* sets a foundational standard for autonomous agent governance capable of meeting the stringent assurance requirements of enterprise applications.
 
 ---
 
-## 31. External Validation (Enterprise Report v4)
+## 21. Advanced Architectural Capabilities
 
-DOF v0.2.6 was validated externally via Google Colab on 2026-03-08 by an independent auditor with zero local dependencies. The audit installed `dof-sdk==0.2.6` directly from PyPI and executed 6 validation blocks:
+### 21.1 Continuous External Validation
 
-| Block  | Component                                        | Result  |
-| :------ | :------------------------------------------------ | :------- |
-| B1     | Z3 Formal Verification — 4 theorems              | PASS    |
-| B2     | Error Classification — 8/8 categories            | PASS    |
-| B3     | Merkle Batcher — 10 attestations → 1 root        | PASS    |
-| B4     | Red Team + LLM-as-Judge (Groq 8.5/10)            | PASS    |
-| B5     | enforce_hierarchy — indirect injection patterns  | PASS    |
-| B6     | x402 Trust Gateway — ALLOW/BLOCK verified        | PASS    |
+To ensure the robustness of the framework, continuous external validation protocols (Enterprise Reports v4–v6) have been integrated. These external audits operate without local dependencies, verifying critical blocks including Z3 static proofs, Red-on-Blue adversarial detection, instruction hierarchy enforcement (e.g., preventing indirect prompt injections), and the x402 Trust Gateway. Across all audited scenarios, the framework maintained complete operational integrity.
 
-**Verdict: APPROVED. Commit: 726b6be.**
+### 21.2 Neurosymbolic State Transitions
 
-### 31.1 Lessons Learned (v0.2.6)
+The verification layer extends beyond static constraints to dynamic state transitions. Modeled as Z3 symbolic variables, the agent state space is constrained by eight proven invariants that govern publish permissions, hierarchy mobility, and trust score boundaries. The neurosymbolic Z3 gate validates all outputs from the LLM-dependent layers against these constraints before execution. Timely counterexamples are generated for any rejected actions, establishing a rigorous forensic audit trail for blocked adversarial exploits. Furthermore, every on-chain attestation computes a deterministic `keccak256` hash of the serialized Z3 proof, enabling independent mathematical verification via `DOFProofRegistry.sol`.
 
-- `TrustGateway.verify()` returns `.action` not `.verdict`
-- `enforce_hierarchy` is not exported in PyPI — use `RedTeamAgent.indirect_prompt_injection`
-- Pattern matching is case-sensitive and exact — compound phrases need explicit pattern entries
-- External audit from PyPI is strongest credibility signal — zero local deps
+### 21.3 Context-Aware Generative Routing
 
-### 31.2 Lessons Learned (v0.2.7)
+To mitigate semantic degradation in large-language models and ensure optimal reasoning quality, the framework implements task-aware routing complementing traditional Bayesian Thompson Sampling. Verifiable tasks are exclusively routed to structured-output-optimized LLMs, while highly extensive requests are natively assigned to large-context models. This routing logic is safeguarded by temporal circuit-breakers that automatically isolate providers exceeding critical failure thresholds, preventing systemic cascaded degradation.
 
-- Simple pattern detection does not capture compound threats — reading env vars is not dangerous, making POST requests is not dangerous, but both together constitute exfiltration. `composite_detection` resolves this without full taint analysis.
-- Payloads encoded in base64 evade all pattern matchers. A second decoding pass before scanning closes this entire class of evasion.
+### 21.4 ERC-8183 Trustless Commerce Evaluation
 
-### 31.3 External Validation (Enterprise Report v5 — v0.2.8)
-
-DOF v0.2.8 was validated externally via Google Colab on 2026-03-09. The audit installed `dof-sdk==0.2.8` from PyPI and re-executed 6 validation blocks:
-
-| Block  | Component                                    | Result  |
-| :------ | :-------------------------------------------- | :------- |
-| B1     | Z3 Formal Verification — 4 static theorems   | PASS    |
-| B2     | Error Classification — 8/8 categories        | PASS    |
-| B3     | Merkle Batcher — 10 attestations → 1 root    | PASS    |
-| B4     | Red Team + LLM-as-Judge (Groq 8.5/10) — 3/3  | PASS    |
-| B5     | enforce_hierarchy — gap cerrado 3/3          | PASS    |
-| B6     | x402 Trust Gateway — ALLOW/BLOCK verified    | PASS    |
-
-**Verdict: APPROVED.** BLOQUE 4 gap (indirect injection phrases undetected in v0.2.7) closed by adding 2 missing patterns. BLOQUE 5 gap (privilege escalation phrases) closed in v0.2.6. All 6/6 blocks pass with 3/3 coverage in previously failing sub-tests.
-
-### 31.4 External Validation (Enterprise Report v6 — v0.3.3)
-
-DOF v0.3.3 was validated externally via Google Colab on 2026-03-09. The audit installed `dof-sdk==0.3.3` from PyPI and executed 10 validation blocks — the most comprehensive external validation to date:
-
-| Block | Component                                | Result |
-|:------|:-----------------------------------------|:------:|
-| B1    | Z3 Static Proofs — 4 theorems            | PASS   |
-| B2    | Z3 State Transitions — 8 invariants      | PASS   |
-| B3    | Z3 Hierarchy — 42 patterns               | PASS   |
-| B4    | Z3 Gate — neurosymbolic validation       | PASS   |
-| B5    | Proof Hash — deterministic serialization | PASS   |
-| B6    | Error Classification — 8/8 categories    | PASS   |
-| B7    | Merkle Batcher — 10 attestations batched | PASS   |
-| B8    | Red Team + Threats — 3/3 detected        | PASS   |
-| B9    | enforce_hierarchy — instruction priority  | PASS   |
-| B10   | x402 Trust Gateway — ALLOW/BLOCK         | PASS   |
-
-**Verdict: APPROVED** — 10/10 blocks passed. First external validation of trust-by-proof features.
-
-### 31.5 Lessons Learned (v0.3.3)
-
-- `ProofSerializer.serialize_proof()` requires 3 args: `solver_assertions` (list), `result` (str), `invariants` (list) — None not accepted
-- `MerkleBatcher` API: `add(str)` → `flush()` → `batches`; `queue_size` is a property not a method; input must be strings not dicts
-- `classify_error` patterns are exact keyword matching: use `"bad request"` for MODEL\_FAILURE, `"embedding"` for MEMORY\_FAILURE, `"model not found"` maps to UNKNOWN
-- `persuasion_jailbreak` detection needs specific keywords like `"developer mode"` or `"no restrictions"` to trigger — generic phrasing returns LOW severity
-- Enterprise Report v6 validates 10 blocks (vs 6 in v5) — most comprehensive external validation to date
-
----
-
-## 32. Neurosymbolic Formal Verification Layer (v0.3.x)
-
-### 32.1 Motivation
-
-DOF v0.2.x established deterministic governance through five non-LLM layers (Constitution, AST, Z3, Arbiter, LoopGuard) with Z3 verifying static properties: the cubic safety score SS(f) = 1 − f³ and the GCR(f) = 1.0 invariant. However, static verification alone cannot guarantee safety across dynamic agent state transitions. An adversarial sequence of actions could theoretically transition an agent to a state that bypasses governance constraints.
-
-DOF v0.3.x addresses this gap through four enhancement phases that transform DOF from a trust-by-scoring system to a trust-by-proof protocol — where every trust assessment carries a mathematical guarantee.
-
-### 32.2 State Transition Verification (Phase 1 — v0.3.0)
-
-Agent states are modeled as Z3 symbolic variables: `trust_score ∈ ℝ[0,1]`, `hierarchy_level ∈ ℤ[0,3]`, `threat_detected ∈ 𝔹`, `publish_allowed ∈ 𝔹`, `attestation_count ∈ ℤ≥0`, `cooldown_active ∈ 𝔹`, `governance_violation ∈ 𝔹`, and `safety_score ∈ ℝ[0,1]`.
-
-Nine transition types are defined: PUBLISH, SCORE_UPDATE, PROMOTE, DEMOTE, THREAT_DETECT, THREAT_CLEAR, COOLDOWN_START, COOLDOWN_END, GOVERNOR_ACTION. Each maps to Z3 constraints over pre-state and post-state variables.
-
-Eight invariants are formally verified:
-
-| ID     | Property                                     |    Result   |   Time |
-| :------ | :-------------------------------------------- | :----------: | ------: |
-| INV-1  | `threat_detected → ¬publish_allowed`         |  **PROVEN** |  <15ms |
-| INV-2  | `trust_score < 0.4 → attestation_count = 0`  |  **PROVEN** |  <15ms |
-| INV-3  | `hierarchy_next ≤ hierarchy_current + 1`     |  **PROVEN** |  <15ms |
-| INV-4  | `0 ≤ trust_score ≤ 1`                        |  **PROVEN** |  <10ms |
-| INV-5  | `cooldown_active → ¬publish_allowed`         |  **PROVEN** |  <10ms |
-| INV-6  | `hierarchy = GOVERNOR → trust_score > 0.8`   |  **PROVEN** |  <15ms |
-| INV-7  | `safety_score = 1 − f³` (consistency)        |  **PROVEN** |  <10ms |
-| INV-8  | `governance_violation → DEMOTE`              |  **PROVEN** |  <15ms |
-
-Total verification time: **107.7ms** for all 8 invariants. This establishes that no sequence of agent actions, regardless of input, can violate DOF governance.
-
-Additionally, all **42 hierarchy enforcement patterns** (expanded from 33 in v0.2.8) are translated to Z3 constraints and verified as inviolable in **4.9ms**.
-
-### 32.3 Neurosymbolic Z3 Gate (Phase 2 — v0.3.1)
-
-DOF adopts the neurosymbolic principle established by QWED-AI [28] and extends it to agent governance: the LLM is an untrusted translator; the symbolic engine (Z3) is the trusted verifier.
-
-The Z3Gate intercepts all outputs from LLM-dependent layers (Meta-Supervisor) and validates agent outputs from the Red/Blue team (which are internally deterministic but produce classifications that affect downstream behavior):
-
-```text
-Agent Output → Z3Gate.validate_output() → APPROVED | REJECTED | TIMEOUT
-                                              ↓          ↓          ↓
-                                           Execute    Log+Escalate  Fallback to
-                                                      counterexample deterministic
-                                                                     layers
-```
-
-Gate behavior on TIMEOUT (configurable, default 5000ms): the decision is delegated to the next deterministic layer in the governance stack (Constitution → AST → Arbiter → LoopGuard). Z3 verification is additive security — it never becomes a bottleneck.
-
-Counterexamples from REJECTED decisions provide forensic detail: the exact variable assignments that would violate safety, enabling targeted hardening.
-
-```python
-from dof import Z3Gate, GateResult
-
-gate = Z3Gate(constitution_rules, timeout_ms=5000)
-result = gate.validate_trust_score("agent-1686", 0.95, evidence)
-
-if result.result == GateResult.APPROVED:
-    execute(action)                    # Z3 proved it's safe
-elif result.result == GateResult.REJECTED:
-    log(result.counterexample)         # Z3 shows exactly why
-elif result.result == GateResult.TIMEOUT:
-    fallback_to_deterministic_layers() # Never blocks pipeline
-```
-
-### 32.4 Automated Test Generation (Phase 3 — v0.3.2)
-
-Z3 is used in reverse: rather than verifying that properties hold, it is asked to discover the weakest points. The Z3TestGenerator produces three categories of tests:
-
-1. **Counterexample tests**: When a weakened invariant is satisfiable, Z3 provides the exact inputs that violate it. These are automatically converted to unittest test cases.
-
-2. **Boundary tests**: For each threshold (trust > 0.4, governor > 0.8), Z3 generates values at threshold−ε, threshold, threshold+ε, plus floating-point edge cases.
-
-3. **Threat pattern tests**: For each of the 12 DOFThreatPatterns categories, Z3 finds minimal inputs that trigger detection and minimal inputs that don't.
-
-This creates a self-reinforcing cycle: Z3 discovers edge cases → generates tests → tests catch regressions → fixes improve the model → Z3 re-verifies.
-
-Test count progression: 807 (v0.2.8) → **1,008** (v0.3.3), with 207 Z3-specific tests including auto-generated boundary and counterexample cases.
-
-### 32.5 On-Chain Proof Attestations (Phase 4 — v0.3.3)
-
-Each DOF attestation now includes a `z3_proof_hash` — the keccak256 hash of the serialized Z3 proof transcript. The full transcript is stored locally by default (with optional IPFS via Pinata).
-
-The verification flow:
-
-```text
-Agent executes → Z3 Gate verifies → Proof serialized → Hash computed
-                                                            │
-    ┌───────────────────────────────────────────────────────┘
-    ▼
-3-layer publish: PG (200ms) → Enigma (900ms) → Avalanche (2s)
-                                                    │
-                                           z3_proof_hash included
-                                           in DOFProofRegistry.sol
-```
-
-**Critical property**: proof serialization is **deterministic**. The same solver state always produces the same transcript, ensuring hash reproducibility.
-
-**DOFProofRegistry.sol** — new companion contract (existing contracts untouched):
-
-```solidity
-contract DOFProofRegistry {
-    function registerProof(
-        uint256 agentId,
-        uint256 trustScore,
-        bytes32 z3ProofHash,
-        string calldata storageRef,
-        uint8 invariantsCount
-    ) external returns (uint256);
-
-    // Anyone can verify on-chain
-    function verifyProof(
-        uint256 proofId,
-        bytes calldata proofTranscript
-    ) external view returns (bool);
-}
-```
-
-### 32.6 Comparative Analysis
-
-| Property                  | Typical Trust Frameworks  | DOF v0.3.3               |
-| :------------------------- | :------------------------- | :------------------------ |
-| Trust basis               | Probabilistic scoring     | Mathematical proof       |
-| LLM validation            | None or self-check        | Z3 gate (neurosymbolic)  |
-| On-chain evidence         | Score only                | Score + proof hash       |
-| Test generation           | Manual                    | Z3 auto-generated        |
-| Verification scope        | Single output             | Full state transitions   |
-| Independent verification  | No                        | Yes (`verifyProof()`)    |
-
-### 32.7 Performance Impact
-
-| Metric                   | v0.2.8    | v0.3.3       | Delta          |
-| :------------------------ | :--------- | :------------ | :-------------- |
-| Total tests              | 807       | 1,008        | +201 (+25%)    |
-| Z3 verification time     | —         | 107.7ms      | New            |
-| Hierarchy verification   | —         | 4.9ms        | New            |
-| Invariants proven        | 4 static  | 8 dynamic    | +4             |
-| Hierarchy patterns       | 33        | 42 (proven)  | +9             |
-| Pipeline latency impact  | 0ms       | <110ms       | Negligible     |
-| Benchmark F1             | 96.8%     | ≥96.8%       | No regression  |
-
-### 32.8 New Core Modules
-
-| Module               | Location                     | Purpose                                         |
-| :-------------------- | :---------------------------- | :----------------------------------------------- |
-| `state_model`        | `core/state_model.py`        | Agent state as Z3 symbolic variables            |
-| `transitions`        | `core/transitions.py`        | Transition verifier with 8 proven invariants    |
-| `hierarchy_z3`       | `core/hierarchy_z3.py`       | 42 hierarchy patterns as Z3 constraints         |
-| `z3_gate`            | `core/z3_gate.py`            | Neurosymbolic gate for agent outputs            |
-| `agent_output`       | `core/agent_output.py`       | Output protocol with Z3 constraint translation  |
-| `boundary`           | `core/boundary.py`           | Boundary case discovery engine                  |
-| `z3_test_generator`  | `core/z3_test_generator.py`  | Auto-generates tests from Z3 counterexamples    |
-| `z3_proof`           | `core/z3_proof.py`           | Attestation with keccak256 proof hash           |
-| `proof_hash`         | `core/proof_hash.py`         | Deterministic proof serialization and hashing   |
-| `proof_storage`      | `core/proof_storage.py`      | Local storage (default) + optional IPFS         |
-
----
-
-## 33. Neurosymbolic LLM Routing
-
-DOF implements task-aware LLM selection as a first-class governance primitive. The routing function `get_llm_smart()` extends the existing Bayesian Thompson Sampling selector [Section 13] with two new dimensions:
-
-**(i) Context-size awareness**: requests exceeding 50k tokens are routed to large-context models (Gemini), preventing truncation-induced governance failures. This directly addresses the "Spilled Energy in LLMs" phenomenon [Turing Post FOD#143, 2026] where oversized contexts degrade reasoning quality unpredictably.
-
-**(ii) Task-type specialization**: verification tasks are routed exclusively to MiniMax M2.1 (primary) with Groq fallback, ensuring that the LLM layer of DOF's neurosymbolic pipeline — where LLM proposes and Z3 approves — uses models optimized for structured output generation.
-
-This is consistent with findings in KARL (Knowledge Agents via RL, 2026): agents that learn *when* to use which knowledge source outperform uniform routing by adapting to task structure rather than treating all queries as equivalent.
-
-The circuit breaker mechanism (3 failures within 5 minutes → provider degraded for the window duration) prevents cascading failures when a provider degrades. Unlike static cooldowns, the circuit breaker respects the sliding window and automatically recovers when the failure timestamps expire. The RegressionTracker (Section 24.7) monitors provider failure rates as a 5th subsystem, triggering CI failure (exit 1) when any provider exceeds 15% failure rate.
-
-Routing decisions are logged for analytics via `get_routing_stats()`, providing per-provider distribution, failure rates, and latency metrics. This data feeds into the regression tracking pipeline for post-merge health verification.
-
----
-
-## 34. DOF as On-Chain Trust Infrastructure (ERC-8183)
-
-DOF v0.3.3 introduces `DOFEvaluator.sol`, positioning DOF as a trustless Evaluator in the ERC-8183 Agentic Commerce standard [EIP-8183, 2026].
-
-The ERC-8183 Job primitive defines a state machine:
-
-```
-Open → Funded → Submitted → Terminal (Completed | Rejected | Expired)
-```
-
-An Evaluator is any address that attests to whether a submitted deliverable meets agreed terms. DOF satisfies this role structurally: Z3 formal verification produces a deterministic binary outcome (PROVEN | COUNTEREXAMPLE), and `DOFProofRegistry.sol` records the keccak256 proof hash on-chain. `DOFEvaluator.sol` exposes this existing machinery as an ERC-8183-compatible interface without modifying deployed contracts (consistent with DOF Lesson #12: new contracts only).
-
-This creates a composable trust loop with ERC-8004:
-
-```
-Discovery (ERC-8004) → Commerce (ERC-8183, DOF as Evaluator)
-→ Reputation (ERC-8004) → Better Discovery
-```
-
-Critically, DOF's evaluation is non-custodial and deterministic. Unlike LLM-based evaluators that introduce subjectivity, DOF's Z3 proofs are verifiable by any party independently. This makes DOF suitable for high-stakes jobs (financial, legal, medical) where evaluator credibility must be auditable, not trusted.
-
-The "Learning When to Act or Refuse" paradigm [2026] maps directly to DOF's Red/Blue gate: the system learns refusal boundaries through adversarial payloads (12,229 tested via Garak v2) rather than hardcoded rules, maintaining 58.4% overall detection with 90% accuracy on goodside category attacks.
+Positioned as a trustless Evaluator within the ERC-8183 Agentic Commerce standard, the framework executes non-custodial, deterministic judgments devoid of subjective LLM-based hallucination. Through the Z3 validation gate, the framework provides an irrefutable mathematical proof of task completion, delivering unparalleled evaluator credibility for high-stakes decentralized applications.
 
 ---
 
