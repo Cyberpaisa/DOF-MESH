@@ -17,6 +17,9 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
   z3-verify:
     runs-on: ubuntu-latest
