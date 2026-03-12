@@ -7,7 +7,7 @@
       "rpc_url": "https://api.avax.network/ext/bc/C/rpc",
       "rpc_fallback": "https://avalanche-c-chain-rpc.publicnode.com",
       "explorer": "https://snowtrace.io",
-      "contract_address": "0xB7498272f800d77Be0B37f661CE6F84690244fFE",
+      "contract_address": "0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6",
       "status": "mainnet",
       "gas_multiplier": 1,
       "native_token": "AVAX"
