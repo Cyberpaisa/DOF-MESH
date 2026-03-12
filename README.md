@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://github.com/Cyberpaisa/deterministic-observability-framework/actions/workflows/ci.yml/badge.svg" alt="CI">
-  <img src="https://img.shields.io/badge/tests-1052%20passed-brightgreen" alt="tests">
+  <img src="https://img.shields.io/badge/tests-1078%20passed-brightgreen" alt="tests">
   <img src="https://img.shields.io/badge/Z3-8%2F8%20PROVEN-blue" alt="Z3 proofs">
   <img src="https://img.shields.io/badge/attestations-21-red" alt="attestations">
   <img src="https://img.shields.io/pypi/v/dof-sdk" alt="PyPI">
@@ -122,7 +122,7 @@ python -m dof version                   # show version
 - **External benchmark** — 58.4% detection against 12,229 NVIDIA Garak payloads (12 categories)
 - **Regression tracking** — 5 subsystems monitored post-merge, CI blocks regressions automatically
 - **Framework agnostic** — CrewAI, LangGraph, AutoGen, or raw Python
-- **1,052 tests**, 27K+ LOC, 35 core modules, 13 CLI commands
+- **1,078 tests**, 27K+ LOC, 35 core modules, 13 CLI commands
 
 ---
 
@@ -282,7 +282,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
          with Formal Verification},
   author={Cyber Paisa and Enigma Group},
   year={2026},
-  note={27K+ LOC, 1008 tests, 35 modules, 8 Z3 invariants PROVEN,
+  note={27K+ LOC, 1078 tests, 35 modules, 8 Z3 invariants PROVEN,
         42 hierarchy patterns, 21+ Avalanche attestations,
         neurosymbolic Z3 Gate, on-chain proof hash,
         BSL 1.1, pip install dof-sdk}
