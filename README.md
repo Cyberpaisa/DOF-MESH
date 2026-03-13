@@ -199,7 +199,7 @@ proves hierarchy enforcement, and feeds DOFEvaluator attestations.
 
 ## On-Chain Attestation
 
-Contract [`0x88f6...C052`](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6) on Avalanche C-Chain (43114). 20+ attestations live on Avalanche C-Chain + Conflux eSpace Testnet. ~$0.01/tx (~$0.01 per Merkle batch of 10,000). Three layers: PostgreSQL (200ms) → Enigma Scanner (900ms) → Avalanche (2-3s, immutable).
+Contract [`0x88f6...C052`](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6) on Avalanche C-Chain (43114). 30+ attestations live — Avalanche C-Chain (mainnet) + Conflux eSpace Testnet — 4 agent wallets. ~$0.01/tx (~$0.01 per Merkle batch of 10,000). Three layers: PostgreSQL (200ms) → Enigma Scanner (900ms) → Avalanche (2-3s, immutable).
 
 **DOFProofRegistry.sol** (v0.4.1) — companion contract for Z3 proof attestations. Every attestation includes `z3_proof_hash` (keccak256), verifiable on-chain via `verifyProof()`. Existing contract untouched.
 
