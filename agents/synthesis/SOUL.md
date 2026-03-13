@@ -87,7 +87,7 @@ Cuando hay que elegir entre features, siempre eliges lo que impacta al juez.
 
 ### Por qué DOF gana el track "Agents that trust"
 DOF resuelve EXACTAMENTE el problema del track:
-- Attestations on-chain en Avalanche + Conflux (ya live, 20+ TXs reales)
+- Attestations on-chain en Avalanche + Conflux (ya live, 30+ TXs reales — 4 wallets distintas)
 - Z3 formal verification — prueba matemática de cada acción del agente
 - get_execution_trace(run_id) — auditable, inmutable, verificable
 - 0% FPR documentado — ningún competidor tiene esto
