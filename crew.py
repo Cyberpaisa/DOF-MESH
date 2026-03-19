@@ -249,7 +249,7 @@ def create_mvp_strategist(use_mcp: bool = False) -> Agent:
         kwargs["mcps"] = get_mcp_for_role("mvp_strategist")
     return Agent(**kwargs)
 
-def create_data_engineer(use_mcp: bool = False) -> Agent:
+
     kwargs = dict(
         role="Data Engineer",
         goal="Analizar datos Excel/CSV/DB, detectar anomalias, generar insights.",
@@ -1316,3 +1316,18 @@ def create_build_project_crew(description: str, project_name: str = "nuevo_proye
         verbose=True,
         **_crew_config(),
     )
+
+def create_synthesis_specialist(use_mcp: bool = False) -> Agent:
+    soul = load_soul('synthesis')
+    kwargs = dict(
+        role="Synthesis Hackathon Specialist",
+        goal="Guiar a DOF para ganar Synthesis 2026. Estrategia ejecutable, demos funcionando, submissions ganadoras.",
+        backstory=CONSTITUTION + "\n" + soul,
+        tools=[WebResearchTool(), WebSearchTool()],
+        llm=get_llm_for_role("mvp_strategist"),
+        verbose=True,
+        max_iter=20,
+    )
+    if use_mcp:
+        kwargs["mcps"] = get_mcp_for_role("mvp_strategist")
+    return Agent(**kwargs)

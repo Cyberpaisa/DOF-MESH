@@ -2,30 +2,19 @@ import os
 from typing import List
 from crewai import LLM
 
-# Forzar configuración global de LiteLLM/Instructor
-os.environ["OPENAI_API_KEY"] = os.getenv("ZO_API_KEY", "sk-fake")
-os.environ["OPENAI_API_BASE"] = "https://api.zo.computerzo"
+# Zo se usa via ask_zo() directamente, NO via LiteLLM
+# LiteLLM usa groq como primario
 
 class ProviderManager:
     @staticmethod
-    def _make_zo(model="minimax-m2.5"):
-        key = os.getenv("ZO_API_KEY")
-        if not key: return None
-        
-        # Usamos la sintaxis estándar de OpenAI compatible
-        return LLM(
-            model=f"openai/{model}",
-            base_url="https://api.zo.computerzo",
-            api_key=key,
-            temperature=0.3
-        )
-
-    @staticmethod
     def get_llm_for_role(role: str):
-        return ProviderManager._make_zo()
-
-    def get_active(self) -> List[str]:
-        return ["MiniMax (Zo via OpenAI format)"]
+        key = os.getenv("GROQ_API_KEY")
+        if key:
+            return LLM(model="groq/llama-3.3-70b-versatile", api_key=key, temperature=0.3, max_tokens=4096)
+        key = os.getenv("CEREBRAS_API_KEY")
+        if key:
+            return LLM(model="cerebras/llama-3.3-70b", api_key=key, temperature=0.3, max_tokens=4096)
+        raise RuntimeError("No hay provider disponible (GROQ_API_KEY o CEREBRAS_API_KEY requerida)")
 
 class BayesianProviderSelector:
     @staticmethod
