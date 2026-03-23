@@ -4,6 +4,17 @@
 *.env.local
 oracle_key.json
 
+# Crypto keys & vault (NEVER commit)
+keys/
+certs/*.key
+certs/ca.*
+keys/mesh/
+keys/vault/
+
+# Mission control & workspaces (internal)
+mission-control/
+workspaces/
+
 # Python
 __pycache__/
 *.pyc
