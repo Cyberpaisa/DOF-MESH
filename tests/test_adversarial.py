@@ -492,5 +492,42 @@ class TestEvaluateWithJudge(unittest.TestCase):
         self.assertEqual(result["verdict"], "FAIL")
 
 
+class TestRedTeamNoneInput(unittest.TestCase):
+    """RedTeamAgent methods must not raise when given None — treat as empty string."""
+
+    def setUp(self):
+        self.rt = RedTeamAgent()
+
+    def test_injection_none_no_raise(self):
+        try:
+            self.rt.indirect_prompt_injection(None)
+        except AttributeError as e:
+            self.fail(f"indirect_prompt_injection(None) raised: {e}")
+
+    def test_injection_none_not_detected(self):
+        r = self.rt.indirect_prompt_injection(None)
+        self.assertFalse(r.detected)
+
+    def test_jailbreak_none_no_raise(self):
+        try:
+            self.rt.persuasion_jailbreak(None)
+        except AttributeError as e:
+            self.fail(f"persuasion_jailbreak(None) raised: {e}")
+
+    def test_jailbreak_none_not_detected(self):
+        r = self.rt.persuasion_jailbreak(None)
+        self.assertFalse(r.detected)
+
+    def test_extraction_none_no_raise(self):
+        try:
+            self.rt.training_data_extraction(None)
+        except AttributeError as e:
+            self.fail(f"training_data_extraction(None) raised: {e}")
+
+    def test_extraction_none_not_detected(self):
+        r = self.rt.training_data_extraction(None)
+        self.assertFalse(r.detected)
+
+
 if __name__ == "__main__":
     unittest.main()

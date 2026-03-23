@@ -333,6 +333,39 @@ class TestLLMRoutingSubsystem(unittest.TestCase):
         self.assertIn("concentrated", sr.details)
 
 
+class TestGetHistoryNonPositiveN(unittest.TestCase):
+    """get_history(n<=0) must return [] — same Python -0 gotcha fixed in metrics.py."""
+
+    def _make_tracker(self, records=5):
+        tmpdir = tempfile.mkdtemp()
+        rf = os.path.join(tmpdir, "reports.jsonl")
+        with open(rf, "w") as f:
+            for i in range(records):
+                f.write(json.dumps({
+                    "timestamp": f"2026-03-{i+1:02d}",
+                    "git_commit": f"abc{i}",
+                    "subsystems": [],
+                }) + "\n")
+        return RegressionTracker(reports_file=rf)
+
+    def test_n_zero_returns_empty(self):
+        rt = self._make_tracker(5)
+        self.assertEqual(rt.get_history(0), [])
+
+    def test_n_negative_returns_empty(self):
+        rt = self._make_tracker(5)
+        self.assertEqual(rt.get_history(-1), [])
+        self.assertEqual(rt.get_history(-99), [])
+
+    def test_n_positive_returns_records(self):
+        rt = self._make_tracker(5)
+        self.assertEqual(len(rt.get_history(2)), 2)
+
+    def test_get_trend_with_n_zero_returns_empty(self):
+        rt = self._make_tracker(5)
+        self.assertEqual(rt.get_trend("z3", 0), [])
+
+
 if __name__ == "__main__":
     unittest.main()
 

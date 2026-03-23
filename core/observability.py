@@ -32,7 +32,7 @@ TRACES_DIR = os.path.join(BASE_DIR, "logs", "traces")
 # ── Deterministic Mode ──
 DETERMINISTIC_MODE = bool(os.getenv("DETERMINISTIC_MODE", ""))
 _DETERMINISTIC_SEED = 42
-_DETERMINISTIC_PROVIDER_ORDER = ["cerebras", "groq", "nvidia", "zhipu"]
+_DETERMINISTIC_PROVIDER_ORDER = ["nvidia", "cerebras", "groq", "zhipu"]  # nvidia first: cerebras+groq keys expired
 
 
 def set_deterministic(enabled: bool):
@@ -305,8 +305,11 @@ class RunTrace:
 # ── Token Estimation ──
 
 def estimate_tokens(text: str) -> int:
-    """Estimate token count (~4 chars per token for multilingual)."""
-    if not text:
+    """Estimate token count (~4 chars per token for multilingual).
+
+    Returns 0 for empty or whitespace-only strings (no real tokens).
+    """
+    if not text or not text.strip():
         return 0
     return max(1, len(text) // 4)
 

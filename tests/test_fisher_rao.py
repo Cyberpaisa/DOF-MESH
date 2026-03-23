@@ -268,5 +268,33 @@ class TestRankedSearch(unittest.TestCase):
         self.assertEqual(len(results), 1)
 
 
+class TestNoneInputs(unittest.TestCase):
+    """None inputs must not raise AttributeError — treat None as empty string."""
+
+    def test_distance_none_first_arg(self):
+        try:
+            fisher_rao_distance(None, "hello")
+        except AttributeError as e:
+            self.fail(f"fisher_rao_distance(None, str) raised AttributeError: {e}")
+
+    def test_distance_none_second_arg(self):
+        try:
+            fisher_rao_distance("hello", None)
+        except AttributeError as e:
+            self.fail(f"fisher_rao_distance(str, None) raised AttributeError: {e}")
+
+    def test_distance_both_none_returns_float(self):
+        r = fisher_rao_distance(None, None)
+        self.assertIsInstance(r, float)
+
+    def test_similarity_none_inputs_returns_float(self):
+        r = fisher_rao_similarity(None, None)
+        self.assertIsInstance(r, float)
+
+    def test_none_same_as_empty_string(self):
+        self.assertEqual(fisher_rao_distance(None, "word"),
+                         fisher_rao_distance("", "word"))
+
+
 if __name__ == "__main__":
     unittest.main()

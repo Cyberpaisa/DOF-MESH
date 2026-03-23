@@ -389,5 +389,31 @@ class TestOutputStructure(unittest.TestCase):
             self.assertIn(";", r.details)
 
 
+class TestDetectNoneInput(unittest.TestCase):
+    """detect(None) must not raise TypeError — treat None as empty string."""
+
+    def setUp(self):
+        self.d = EntropyDetector()
+
+    def test_none_does_not_raise(self):
+        try:
+            self.d.detect(None)
+        except TypeError:
+            self.fail("detect(None) raised TypeError")
+
+    def test_none_returns_entropy_result(self):
+        from core.entropy_detector import EntropyResult
+        r = self.d.detect(None)
+        self.assertIsInstance(r, EntropyResult)
+
+    def test_none_is_not_anomalous(self):
+        r = self.d.detect(None)
+        self.assertFalse(r.is_anomalous)
+
+    def test_none_details_too_short(self):
+        r = self.d.detect(None)
+        self.assertEqual(r.details, "text too short")
+
+
 if __name__ == '__main__':
     unittest.main()

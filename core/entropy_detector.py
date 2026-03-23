@@ -59,6 +59,8 @@ class EntropyDetector:
         )
 
     def detect(self, text: str) -> EntropyResult:
+        if text is None:
+            text = ""
         if len(text) < self.min_length:
             return EntropyResult(False, 0.0, 0.0, 0.0, 0.0, "text too short")
 

@@ -179,6 +179,15 @@ class TestEstimateTokens(unittest.TestCase):
     def test_longer_more_tokens(self):
         self.assertGreater(estimate_tokens("word " * 100), estimate_tokens("word"))
 
+    def test_whitespace_only_returns_zero(self):
+        self.assertEqual(estimate_tokens("   "), 0)
+
+    def test_tab_newline_returns_zero(self):
+        self.assertEqual(estimate_tokens("\t\n"), 0)
+
+    def test_mixed_whitespace_returns_zero(self):
+        self.assertEqual(estimate_tokens("  \t  \n  "), 0)
+
 
 class TestStepTrace(unittest.TestCase):
 

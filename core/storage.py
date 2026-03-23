@@ -99,6 +99,9 @@ class JSONLBackend(StorageBackend):
         os.makedirs(os.path.dirname(self._audit_file), exist_ok=True)
 
     def save_memory(self, entry: dict) -> bool:
+        if not isinstance(entry, dict):
+            logger.warning(f"save_memory: entry must be a dict, got {type(entry).__name__}")
+            return False
         try:
             os.makedirs(os.path.dirname(self._memory_file), exist_ok=True)
             with open(self._memory_file, "a") as f:
@@ -112,6 +115,9 @@ class JSONLBackend(StorageBackend):
         return self._load_jsonl(self._memory_file)
 
     def save_attestation(self, cert: dict) -> bool:
+        if not isinstance(cert, dict):
+            logger.warning(f"save_attestation: cert must be a dict, got {type(cert).__name__}")
+            return False
         try:
             os.makedirs(os.path.dirname(self._attestation_file), exist_ok=True)
             with open(self._attestation_file, "a") as f:
@@ -125,6 +131,9 @@ class JSONLBackend(StorageBackend):
         return self._load_jsonl(self._attestation_file)
 
     def save_audit_event(self, event: dict) -> bool:
+        if not isinstance(event, dict):
+            logger.warning(f"save_audit_event: event must be a dict, got {type(event).__name__}")
+            return False
         try:
             os.makedirs(os.path.dirname(self._audit_file), exist_ok=True)
             with open(self._audit_file, "a") as f:

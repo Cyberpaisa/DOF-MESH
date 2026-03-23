@@ -358,5 +358,28 @@ production deployment with proper error handling in place.
         self.assertTrue(any("ast_clean" in g for g in failed))
 
 
+class TestFromStringNoneInput(unittest.TestCase):
+    """from_string(None) must not raise — treat None as empty contract."""
+
+    def test_none_does_not_raise(self):
+        try:
+            TaskContract.from_string(None)
+        except (AttributeError, TypeError) as e:
+            self.fail(f"from_string(None) raised {type(e).__name__}: {e}")
+
+    def test_none_returns_task_contract(self):
+        tc = TaskContract.from_string(None)
+        self.assertIsInstance(tc, TaskContract)
+
+    def test_none_has_empty_sections(self):
+        tc = TaskContract.from_string(None)
+        self.assertEqual(tc.sections, {})
+
+    def test_empty_string_same_as_none(self):
+        tc_none = TaskContract.from_string(None)
+        tc_empty = TaskContract.from_string("")
+        self.assertEqual(tc_none.sections, tc_empty.sections)
+
+
 if __name__ == "__main__":
     unittest.main()

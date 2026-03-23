@@ -92,8 +92,9 @@ class TestScoreQuality(unittest.TestCase):
         s = self.sup._score_quality(_rich_output())
         self.assertLessEqual(s, 10.0)
 
-    def test_always_positive(self):
-        self.assertGreater(self.sup._score_quality(""), 0.0)
+    def test_empty_returns_zero(self):
+        # Empty output has no quality; 0.0 is correct, not the misleading 5.0 baseline
+        self.assertEqual(self.sup._score_quality(""), 0.0)
 
 
 # ─────────────────────────────────────────────────────────
@@ -106,8 +107,12 @@ class TestScoreActionability(unittest.TestCase):
         self.sup = MetaSupervisor()
 
     def test_base_empty(self):
+        # Empty text has no actionability — returns 0.0, not the old 4.0 baseline
         s = self.sup._score_actionability("")
-        self.assertAlmostEqual(s, 4.0)
+        self.assertEqual(s, 0.0)
+
+    def test_whitespace_only_empty(self):
+        self.assertEqual(self.sup._score_actionability("   "), 0.0)
 
     def test_action_words_increase_score(self):
         base = self.sup._score_actionability("nothing here")
@@ -292,6 +297,64 @@ class TestEvaluateDecisions(unittest.TestCase):
         for text in ["", "short", _rich_output()]:
             v = self.sup.evaluate(text, "")
             self.assertIn(v.decision, ("ACCEPT", "RETRY", "ESCALATE"))
+
+
+class TestScoreQualityBlank(unittest.TestCase):
+    """_score_quality must return 0.0 for blank output, not the misleading 5.0 baseline."""
+
+    def setUp(self):
+        self.sup = MetaSupervisor()
+
+    def test_empty_string_quality_zero(self):
+        self.assertEqual(self.sup._score_quality(""), 0.0)
+
+    def test_whitespace_only_quality_zero(self):
+        self.assertEqual(self.sup._score_quality("   "), 0.0)
+
+    def test_tab_newline_quality_zero(self):
+        self.assertEqual(self.sup._score_quality("\t\n"), 0.0)
+
+    def test_non_empty_quality_above_zero(self):
+        self.assertGreater(self.sup._score_quality("hello world"), 0.0)
+
+
+class TestScoreFactualityBlank(unittest.TestCase):
+    """_score_factuality must return 0.0 for blank output."""
+
+    def setUp(self):
+        self.sup = MetaSupervisor()
+
+    def test_empty_string_factuality_zero(self):
+        self.assertEqual(self.sup._score_factuality(""), 0.0)
+
+    def test_whitespace_only_factuality_zero(self):
+        self.assertEqual(self.sup._score_factuality("   "), 0.0)
+
+    def test_non_empty_factuality_above_zero(self):
+        self.assertGreater(self.sup._score_factuality("plain text"), 0.0)
+
+
+class TestEvaluateBlankOutput(unittest.TestCase):
+    """evaluate() with blank output must ESCALATE with lower score than before fix."""
+
+    def setUp(self):
+        self.sup = MetaSupervisor()
+
+    def test_empty_output_escalates(self):
+        v = self.sup.evaluate("", "What is DOF?")
+        self.assertEqual(v.decision, "ESCALATE")
+
+    def test_empty_output_quality_zero(self):
+        v = self.sup.evaluate("", "What is DOF?")
+        self.assertEqual(v.quality, 0.0)
+
+    def test_empty_output_factuality_zero(self):
+        v = self.sup.evaluate("", "What is DOF?")
+        self.assertEqual(v.factuality, 0.0)
+
+    def test_whitespace_output_escalates(self):
+        v = self.sup.evaluate("   ", "")
+        self.assertEqual(v.decision, "ESCALATE")
 
 
 if __name__ == "__main__":

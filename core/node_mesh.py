@@ -45,11 +45,150 @@ import os
 import time
 import logging
 import hashlib
+import fcntl
+import threading
+from collections import defaultdict, deque
+from enum import Enum, auto
+from uuid import uuid4
 from dataclasses import dataclass, field, asdict
-from typing import Optional
+from typing import Optional, Dict, Set
 from pathlib import Path
 
 logger = logging.getLogger("core.node_mesh")
+
+# ═══════════════════════════════════════════════════════
+# SECURITY: RBAC + RATE LIMITING (by Kimi K2.5)
+# ═══════════════════════════════════════════════════════
+
+class NodeRole(Enum):
+    """Node roles with specific permissions."""
+    ARCHITECT = auto()
+    RESEARCHER = auto()
+    GUARDIAN = auto()
+    WORKER = auto()
+    COORDINATOR = auto()
+    AUDITOR = auto()
+    ADMIN = auto()
+    SECURITY = auto()
+
+
+class Permission(Enum):
+    """Fine-grained permissions."""
+    NODE_CREATE = "node:create"
+    NODE_DELETE = "node:delete"
+    TASK_SPAWN = "task:spawn"
+    TASK_EXECUTE = "task:execute"
+    TASK_REPORT = "task:report"
+    MESH_CONFIGURE = "mesh:configure"
+    SECURITY_MODIFY = "security:modify"
+    AUDIT_READ = "audit:read"
+    AUDIT_WRITE = "audit:write"
+    STATE_READ = "state:read"
+    STATE_WRITE = "state:write"
+
+
+class RBACPolicy:
+    """Role-Based Access Control with separation of duties."""
+    PERMISSIONS: Dict[NodeRole, Set[Permission]] = {
+        NodeRole.ARCHITECT: {
+            Permission.NODE_CREATE, Permission.MESH_CONFIGURE, Permission.STATE_READ,
+            Permission.TASK_SPAWN, Permission.AUDIT_READ,
+        },
+        NodeRole.RESEARCHER: {
+            Permission.TASK_EXECUTE, Permission.TASK_REPORT, Permission.STATE_READ,
+            Permission.AUDIT_READ,
+        },
+        NodeRole.GUARDIAN: {
+            Permission.SECURITY_MODIFY, Permission.AUDIT_READ, Permission.AUDIT_WRITE,
+        },
+        NodeRole.WORKER: {
+            Permission.TASK_EXECUTE, Permission.TASK_REPORT, Permission.STATE_READ,
+        },
+        NodeRole.COORDINATOR: {
+            Permission.TASK_SPAWN, Permission.NODE_DELETE, Permission.TASK_REPORT,
+        },
+        NodeRole.AUDITOR: {
+            Permission.AUDIT_READ,
+        },
+        NodeRole.ADMIN: {
+            Permission.NODE_CREATE, Permission.NODE_DELETE, Permission.TASK_SPAWN,
+            Permission.MESH_CONFIGURE, Permission.STATE_WRITE, Permission.AUDIT_READ,
+        },
+        NodeRole.SECURITY: {
+            Permission.SECURITY_MODIFY, Permission.AUDIT_WRITE, Permission.AUDIT_READ,
+        },
+    }
+
+    @staticmethod
+    def has_permission(role: NodeRole, permission: Permission) -> bool:
+        """Check if role has permission."""
+        return permission in RBACPolicy.PERMISSIONS.get(role, set())
+
+    @staticmethod
+    def require_permissions(*permissions: Permission):
+        """Decorator to enforce RBAC."""
+        def decorator(func):
+            async def wrapper(self, node_id: str, *args, **kwargs):
+                role = self._authenticated_nodes.get(node_id)
+                if not role:
+                    raise PermissionError(f"Node {node_id} not authenticated")
+                for perm in permissions:
+                    if not RBACPolicy.has_permission(role, perm):
+                        logger.warning(f"RBAC DENIED: {node_id} ({role.name}) tried {perm.value}")
+                        raise PermissionError(f"Permission denied: {perm.value}")
+                return await func(self, node_id, *args, **kwargs)
+            return wrapper
+        return decorator
+
+
+class RateLimiter:
+    """Rate limiter with sliding window algorithm."""
+
+    def __init__(self, max_requests: int = 100, window_seconds: int = 60):
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+        self._requests: Dict[str, deque] = defaultdict(deque)
+        self._lock = threading.Lock()
+
+    def is_allowed(self, node_id: str) -> bool:
+        """Check if node_id is within rate limit."""
+        with self._lock:
+            now = time.time()
+            cutoff = now - self.window_seconds
+
+            # Remove expired requests
+            self._requests[node_id] = deque(
+                t for t in self._requests[node_id] if t > cutoff
+            )
+
+            if len(self._requests[node_id]) < self.max_requests:
+                self._requests[node_id].append(now)
+                return True
+            return False
+
+    def get_stats(self, node_id: str) -> Dict:
+        """Get rate limit stats for node."""
+        with self._lock:
+            now = time.time()
+            cutoff = now - self.window_seconds
+            active = sum(1 for t in self._requests[node_id] if t > cutoff)
+            return {
+                "node_id": node_id,
+                "requests_allowed": self.max_requests,
+                "requests_used": active,
+                "remaining": self.max_requests - active,
+            }
+
+
+class RateLimitExceededError(Exception):
+    """Raised when rate limit is exceeded."""
+    pass
+
+
+class PermissionError(Exception):
+    """Raised when permission is denied."""
+    pass
+
 
 # ═══════════════════════════════════════════════════════
 # DATA CLASSES
@@ -128,6 +267,11 @@ class NodeMesh:
         self._inbox_dir = self.mesh_dir / "inbox"
         self._inbox_dir.mkdir(parents=True, exist_ok=True)
 
+        # Security: RBAC + Rate Limiting (by Kimi K2.5)
+        self._authenticated_nodes: Dict[str, NodeRole] = {}
+        self._rate_limiter = RateLimiter(max_requests=100, window_seconds=60)
+        self._audit_log: list = []
+
         # Commander (lazy import to avoid circular)
         self._commander = None
 
@@ -153,10 +297,15 @@ class NodeMesh:
     # ═══════════════════════════════════════════════════
 
     def _load_nodes(self):
-        """Load node registry from disk."""
+        """Load node registry from disk with file locking (VULN-N004 fix)."""
         try:
             if self._nodes_file.exists():
-                data = json.loads(self._nodes_file.read_text())
+                with open(self._nodes_file, "r") as f:
+                    fcntl.flock(f, fcntl.LOCK_SH)
+                    try:
+                        data = json.loads(f.read())
+                    finally:
+                        fcntl.flock(f, fcntl.LOCK_UN)
                 for nid, ndata in data.items():
                     self._nodes[nid] = MeshNode(**ndata)
         except Exception as e:
@@ -164,10 +313,18 @@ class NodeMesh:
             self._nodes = {}
 
     def _save_nodes(self):
-        """Persist node registry to disk."""
+        """Persist node registry to disk with file locking (VULN-N004 fix)."""
         try:
             data = {nid: asdict(node) for nid, node in self._nodes.items()}
-            self._nodes_file.write_text(json.dumps(data, indent=2, default=str))
+            tmp_file = self._nodes_file.with_suffix(".tmp")
+            with open(tmp_file, "w") as f:
+                fcntl.flock(f, fcntl.LOCK_EX)
+                try:
+                    f.write(json.dumps(data, indent=2, default=str))
+                    f.flush()
+                finally:
+                    fcntl.flock(f, fcntl.LOCK_UN)
+            tmp_file.replace(self._nodes_file)  # atomic rename
         except Exception as e:
             logger.warning(f"Failed to save nodes: {e}")
 
@@ -220,13 +377,43 @@ class NodeMesh:
     # ═══════════════════════════════════════════════════
 
     def _gen_msg_id(self) -> str:
-        """Generate a unique message ID."""
-        raw = f"{time.time()}-{os.getpid()}-{id(self)}"
-        return hashlib.sha256(raw.encode()).hexdigest()[:12]
+        """Generate a unique message ID using UUID4 (collision-safe)."""
+        return uuid4().hex[:12]
+
+    def authenticate_node(self, node_id: str, role: NodeRole) -> str:
+        """Authenticate a node and assign a role (RBAC)."""
+        self._authenticated_nodes[node_id] = role
+        logger.info(f"Node {node_id} authenticated as {role.name}")
+        self._audit_log.append({
+            "event": "node_authenticated",
+            "node_id": node_id,
+            "role": role.name,
+            "timestamp": time.time(),
+        })
+        return node_id
+
+    def check_rate_limit(self, node_id: str) -> bool:
+        """Check if node is within rate limit."""
+        allowed = self._rate_limiter.is_allowed(node_id)
+        if not allowed:
+            logger.warning(f"RATE_LIMIT_EXCEEDED: {node_id}")
+            self._audit_log.append({
+                "event": "rate_limit_exceeded",
+                "node_id": node_id,
+                "timestamp": time.time(),
+            })
+            raise RateLimitExceededError(f"Node {node_id} exceeded 100 req/min limit")
+        return allowed
 
     def send_message(self, from_node: str, to_node: str, content: str,
                      msg_type: str = "task", reply_to: Optional[str] = None) -> MeshMessage:
         """Send a message from one node to another (or broadcast with to_node='*')."""
+        # Rate limit check (VULN-N003 fix by Kimi K2.5)
+        self.check_rate_limit(from_node)
+
+        if to_node != "*" and to_node not in self._nodes:
+            logger.warning(f"Sending message to unknown node '{to_node}' — not in registry")
+
         msg = MeshMessage(
             msg_id=self._gen_msg_id(),
             from_node=from_node,

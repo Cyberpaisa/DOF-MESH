@@ -240,6 +240,19 @@ class TestGetRecent(unittest.TestCase):
         self.assertIsInstance(result, list)
         self.assertIsInstance(result[0], dict)
 
+    def test_n_zero_returns_empty(self):
+        # Python gotcha: list[-0:] == list[0:] returns everything;
+        # get_recent(0) must explicitly guard and return [].
+        for i in range(5):
+            self.ml.log(f"e{i}")
+        self.assertEqual(self.ml.get_recent(0), [])
+
+    def test_n_negative_returns_empty(self):
+        for i in range(5):
+            self.ml.log(f"e{i}")
+        self.assertEqual(self.ml.get_recent(-1), [])
+        self.assertEqual(self.ml.get_recent(-99), [])
+
 
 # ─────────────────────────────────────────────────────────────────────
 # get_stats()

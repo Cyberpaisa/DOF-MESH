@@ -48,13 +48,17 @@ class ProviderManager:
     def get_llm_for_role(role: str):
         if LLM is None:
             raise RuntimeError("crewai not installed")
+        # Priority: NVIDIA first (Groq + Cerebras keys expired as of March 2026)
+        key = os.getenv("NVIDIA_API_KEY")
+        if key:
+            return LLM(model="nvidia/llama-3.1-nemotron-70b-instruct", api_key=key, temperature=0.3, max_tokens=4096)
         key = os.getenv("GROQ_API_KEY")
         if key:
             return LLM(model="groq/llama-3.3-70b-versatile", api_key=key, temperature=0.3, max_tokens=4096)
         key = os.getenv("CEREBRAS_API_KEY")
         if key:
             return LLM(model="cerebras/llama-3.3-70b", api_key=key, temperature=0.3, max_tokens=4096)
-        raise RuntimeError("No hay provider disponible (GROQ_API_KEY o CEREBRAS_API_KEY requerida)")
+        raise RuntimeError("No hay provider disponible (NVIDIA_API_KEY, GROQ_API_KEY o CEREBRAS_API_KEY requerida)")
 
 
 # ═══════════════════════════════════════════════════════

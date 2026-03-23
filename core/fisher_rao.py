@@ -15,7 +15,9 @@ logger = logging.getLogger("core.fisher_rao")
 
 
 def tokenize(text: str) -> list[str]:
-    """Simple whitespace + punctuation tokenizer."""
+    """Simple whitespace + punctuation tokenizer. None is treated as empty."""
+    if not text:
+        return []
     return re.findall(r'\b\w+\b', text.lower())
 
 
