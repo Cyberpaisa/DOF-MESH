@@ -77,7 +77,7 @@ class ConflictError(Exception):
 # ─────────────────────────────────────────────────────────────────────
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _parse_iso(s: str) -> datetime:
@@ -85,6 +85,13 @@ def _parse_iso(s: str) -> datetime:
     dt = datetime.fromisoformat(s)
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
+def _ensure_aware(dt: datetime) -> datetime:
+    """Return timezone-aware datetime; if naive, assume UTC."""
+    if dt is not None and dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
     return dt
 
 
@@ -415,6 +422,7 @@ class GovernedMemoryStore:
                 continue
 
             if as_of:
+                as_of = _ensure_aware(as_of)
                 valid_from_dt = _parse_iso(e.valid_from)
                 if valid_from_dt > as_of:
                     continue
@@ -518,6 +526,7 @@ class TemporalGraph:
         at *as_of*.  Rejected entries are excluded.
         """
         # Gather all entries valid at as_of
+        as_of = _ensure_aware(as_of)
         candidates = []
         for e in self._store._entries:
             if e.governance_status == "rejected":
@@ -642,7 +651,7 @@ class TemporalGraph:
 
         Buckets: <1h, 1h-24h, 1d-7d, 7d-30d, >30d.
         """
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = datetime.now(timezone.utc)
         buckets = {
             "<1h": 0,
             "1h-24h": 0,
@@ -779,7 +788,7 @@ class ConstitutionalDecay:
 
         Returns {processed, decayed, archived, protected}.
         """
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = datetime.now(timezone.utc)
         processed = 0
         decayed = 0
         archived = 0
