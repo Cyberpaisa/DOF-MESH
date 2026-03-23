@@ -54,6 +54,13 @@ from dataclasses import dataclass, field, asdict
 from typing import Optional, Dict, Set
 from pathlib import Path
 
+# Remote node integration (autonomous mesh)
+try:
+    from core.remote_node_adapter import RemoteNodeAdapter, REMOTE_NODE_MAPPING
+except ImportError:
+    RemoteNodeAdapter = None
+    REMOTE_NODE_MAPPING = {}
+
 logger = logging.getLogger("core.node_mesh")
 
 # ═══════════════════════════════════════════════════════
@@ -271,6 +278,9 @@ class NodeMesh:
         self._authenticated_nodes: Dict[str, NodeRole] = {}
         self._rate_limiter = RateLimiter(max_requests=100, window_seconds=60)
         self._audit_log: list = []
+
+        # Remote node adapter (autonomous mesh with free APIs)
+        self._remote_adapter = RemoteNodeAdapter() if RemoteNodeAdapter else None
 
         # Commander (lazy import to avoid circular)
         self._commander = None
@@ -926,6 +936,43 @@ class NodeMesh:
             )
 
         return "\n".join(lines)
+
+    # ═══════════════════════════════════════════════════
+    # AUTONOMOUS REMOTE NODE DISPATCH
+    # ═══════════════════════════════════════════════════
+
+    def dispatch_work_order(self, node_id: str, work_order: Dict) -> Optional[Dict]:
+        """
+        Dispatch work order to remote node via free APIs (Groq, Cerebras, etc).
+
+        Returns the node's response as a dict, or None if dispatch failed.
+        """
+        if not self._remote_adapter:
+            logger.error("RemoteNodeAdapter not initialized")
+            return None
+
+        if node_id not in REMOTE_NODE_MAPPING:
+            logger.error(f"No provider mapping for remote node {node_id}")
+            return None
+
+        logger.info(f"📤 Dispatching work order to {node_id} via free API...")
+        result = self._remote_adapter.dispatch(node_id, work_order)
+
+        if result and result.status == "COMPLETED":
+            logger.info(f"✓ {node_id} completed in {result.duration_seconds:.2f}s")
+            # Deliver result to commander inbox
+            msg = MeshMessage(
+                msg_id=work_order.get("msg_id"),
+                from_node=node_id,
+                to_node="commander",
+                content=result.response_text,
+                msg_type="result",
+            )
+            self._deliver_to_inbox("commander", msg)
+            return asdict(result)
+        else:
+            logger.error(f"✗ {node_id} dispatch failed")
+            return None
 
 
 # ═══════════════════════════════════════════════════════

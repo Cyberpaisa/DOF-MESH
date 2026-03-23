@@ -134,7 +134,7 @@ class MeshOrchestrator:
             "response_summary": result.response_text[:500],
             "code_preview": result.code[:300] if result.code else "",
             "duration_seconds": result.duration_seconds,
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(tz=__import__('datetime').timezone.utc).isoformat(),
             "full_response": result.response_text,
             "code": result.code,
         }
@@ -154,7 +154,7 @@ class MeshOrchestrator:
             "msg_id": order_path.stem,
             "status": "FAILED",
             "error": result.error if result else "Unknown error",
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(tz=__import__('datetime').timezone.utc).isoformat(),
         }
 
         try:
@@ -170,7 +170,7 @@ class MeshOrchestrator:
         rate = self.work_orders_processed / uptime if uptime > 0 else 0
 
         log_entry = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(tz=__import__('datetime').timezone.utc).isoformat(),
             "cycle": self.cycle_count,
             "uptime_seconds": uptime,
             "processed": self.work_orders_processed,

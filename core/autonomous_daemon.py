@@ -393,6 +393,25 @@ class AutonomousDaemon:
         summaries = []
         for name, res in team_result.results.items():
             summaries.append(f"[{name}]: {res.output[:500]}")
+
+        # Deterministic post-review commit — don't rely on LLM to run git commands
+        try:
+            import subprocess as _sp
+            commit_result = _sp.run(
+                ["git", "add", "core/", "scripts/", "dof/", "tests/"],
+                cwd=BASE_DIR, capture_output=True, text=True, timeout=30,
+            )
+            commit_result2 = _sp.run(
+                ["git", "commit",
+                 "--author=Juan Carlos Quiceno Vasquez <jquiceva@gmail.com>",
+                 "-m", "chore: auto-commit post-review changes [daemon]"],
+                cwd=BASE_DIR, capture_output=True, text=True, timeout=30,
+            )
+            commit_msg = commit_result2.stdout.strip() or commit_result2.stderr.strip() or "nothing to commit"
+            summaries.append(f"[commit]: {commit_msg[:200]}")
+        except Exception as ce:
+            summaries.append(f"[commit]: skipped ({ce})")
+
         return team_result.status, "\n".join(summaries), len(team_result.results)
 
     async def _execute_improve(self) -> tuple:

@@ -12,6 +12,8 @@ Costo: $0 en tokens (todas apis gratuitas).
 """
 
 import json
+import os
+import re
 import time
 import logging
 from dataclasses import dataclass, asdict
@@ -33,11 +35,11 @@ class RemoteProvider(Enum):
     NVIDIA = "nvidia"       # NIM — Qwen 3.3 70B
 
 REMOTE_NODE_MAPPING = {
-    "gpt-legion": RemoteProvider.GROQ,
-    "gemini-web": RemoteProvider.CEREBRAS,
-    "kimi-web": RemoteProvider.ZO,
-    "qwen-coder-480b": RemoteProvider.TOGETHER,
-    "minimax": RemoteProvider.MINIMAX,
+    "gpt-legion": RemoteProvider.NVIDIA,      # GPT → NVIDIA NIM (Groq key expired)
+    "gemini-web": RemoteProvider.CEREBRAS,    # Gemini → Cerebras (Qwen 3 235B)
+    "kimi-web": RemoteProvider.NVIDIA,        # Kimi → NVIDIA NIM
+    "qwen-coder-480b": RemoteProvider.CEREBRAS,  # Qwen → Cerebras (Qwen 3 235B)
+    "minimax": RemoteProvider.MINIMAX,        # MiniMax → direct API
 }
 
 # ═══════════════════════════════════════════════════
@@ -87,62 +89,66 @@ class RemoteNodeAdapter:
         self.request_history = []
 
     def _init_providers(self) -> Dict[RemoteProvider, Any]:
-        """Initialize free API clients."""
+        """Initialize free API clients from .env keys."""
+        # Load .env
+        from dotenv import load_dotenv
+        load_dotenv()
+
         clients = {}
 
         try:
-            # Groq
-            from groq import Groq
-            clients[RemoteProvider.GROQ] = Groq()
-            logger.info("✓ Groq initialized")
+            # Groq (GROQ_API_KEY)
+            groq_key = os.environ.get("GROQ_API_KEY")
+            if groq_key:
+                from groq import Groq
+                clients[RemoteProvider.GROQ] = Groq(api_key=groq_key)
+                logger.info("✓ Groq initialized")
+            else:
+                logger.warning("GROQ_API_KEY not set")
         except Exception as e:
             logger.warning(f"Groq init failed: {e}")
 
         try:
-            # Cerebras
-            import openai
-            cerebras_client = openai.OpenAI(
-                api_key="certs-xxx",  # Use env var
-                base_url="https://api.cerebras.ai/v1"
-            )
-            clients[RemoteProvider.CEREBRAS] = cerebras_client
-            logger.info("✓ Cerebras initialized")
+            # Cerebras (CEREBRAS_API_KEY)
+            cerebras_key = os.environ.get("CEREBRAS_API_KEY")
+            if cerebras_key:
+                import openai
+                cerebras_client = openai.OpenAI(
+                    api_key=cerebras_key,
+                    base_url="https://api.cerebras.ai/v1"
+                )
+                clients[RemoteProvider.CEREBRAS] = cerebras_client
+                logger.info("✓ Cerebras initialized")
+            else:
+                logger.warning("CEREBRAS_API_KEY not set")
         except Exception as e:
             logger.warning(f"Cerebras init failed: {e}")
 
         try:
-            # Zo (Claude equivalent via Hugging Face)
-            import anthropic
-            clients[RemoteProvider.ZO] = anthropic.Anthropic()
-            logger.info("✓ Zo initialized")
-        except Exception as e:
-            logger.warning(f"Zo init failed: {e}")
-
-        try:
-            # Together AI
-            import together
-            clients[RemoteProvider.TOGETHER] = together.Together()
-            logger.info("✓ Together AI initialized")
-        except Exception as e:
-            logger.warning(f"Together AI init failed: {e}")
-
-        try:
-            # MiniMax
-            import requests
-            clients[RemoteProvider.MINIMAX] = requests
-            logger.info("✓ MiniMax (requests) initialized")
+            # MiniMax (MINIMAX_API_KEY)
+            minimax_key = os.environ.get("MINIMAX_API_KEY")
+            if minimax_key:
+                import requests
+                clients[RemoteProvider.MINIMAX] = requests
+                logger.info("✓ MiniMax initialized")
+            else:
+                logger.warning("MINIMAX_API_KEY not set")
         except Exception as e:
             logger.warning(f"MiniMax init failed: {e}")
 
         try:
-            # NVIDIA NIM
-            import openai
-            nvidia_client = openai.OpenAI(
-                api_key="nvapi-xxx",  # Use env var
-                base_url="https://integrate.api.nvidia.com/v1"
-            )
-            clients[RemoteProvider.NVIDIA] = nvidia_client
-            logger.info("✓ NVIDIA NIM initialized")
+            # NVIDIA NIM (NVIDIA_API_KEY)
+            nvidia_key = os.environ.get("NVIDIA_API_KEY")
+            if nvidia_key:
+                import openai
+                nvidia_client = openai.OpenAI(
+                    api_key=nvidia_key,
+                    base_url="https://integrate.api.nvidia.com/v1"
+                )
+                clients[RemoteProvider.NVIDIA] = nvidia_client
+                logger.info("✓ NVIDIA NIM initialized")
+            else:
+                logger.warning("NVIDIA_API_KEY not set")
         except Exception as e:
             logger.warning(f"NVIDIA NIM init failed: {e}")
 
@@ -173,10 +179,6 @@ class RemoteNodeAdapter:
                 response = self._call_groq(client, prompt)
             elif provider == RemoteProvider.CEREBRAS:
                 response = self._call_cerebras(client, prompt)
-            elif provider == RemoteProvider.ZO:
-                response = self._call_zo(client, prompt)
-            elif provider == RemoteProvider.TOGETHER:
-                response = self._call_together(client, prompt)
             elif provider == RemoteProvider.MINIMAX:
                 response = self._call_minimax(client, prompt)
             elif provider == RemoteProvider.NVIDIA:
@@ -243,10 +245,10 @@ class RemoteNodeAdapter:
             return None
 
     def _call_cerebras(self, client, prompt: str) -> Optional[Dict]:
-        """Call Cerebras (Qwen 3.5)."""
+        """Call Cerebras (Llama 3.3 70B)."""
         try:
             response = client.chat.completions.create(
-                model="qwen-3.5",
+                model="qwen-3-235b-a22b-instruct-2507",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.3,
                 max_tokens=2000,
@@ -329,7 +331,7 @@ class RemoteNodeAdapter:
         """Call NVIDIA NIM (Qwen 3.3 70B)."""
         try:
             response = client.chat.completions.create(
-                model="nvidia_nim/qwen-3.3-70b-instruct",
+                model="meta/llama-3.3-70b-instruct",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.3,
                 max_tokens=2000,
@@ -372,7 +374,6 @@ Respond ONLY with the JSON object, no markdown, no explanation."""
 
     def _extract_code_block(self, text: str) -> str:
         """Extract Python code from response."""
-        import re
         match = re.search(r'```(?:python)?\n(.*?)```', text, re.DOTALL)
         return match.group(1) if match else ""
 
