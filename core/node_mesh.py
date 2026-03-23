@@ -61,6 +61,13 @@ except ImportError:
     RemoteNodeAdapter = None
     REMOTE_NODE_MAPPING = {}
 
+# E2E Encryption (NaCl Box — optional, graceful fallback to plaintext)
+try:
+    from core.e2e_encryption import MeshKeyManager, get_encryptor
+    _E2E_AVAILABLE = True
+except ImportError:
+    _E2E_AVAILABLE = False
+
 logger = logging.getLogger("core.node_mesh")
 
 # ═══════════════════════════════════════════════════════
@@ -282,6 +289,9 @@ class NodeMesh:
         # Remote node adapter (autonomous mesh with free APIs)
         self._remote_adapter = RemoteNodeAdapter() if RemoteNodeAdapter else None
 
+        # E2E Key Manager (shared across all nodes)
+        self._key_manager = MeshKeyManager() if _E2E_AVAILABLE else None
+
         # Commander (lazy import to avoid circular)
         self._commander = None
 
@@ -460,19 +470,54 @@ class NodeMesh:
         return self.send_message(from_node, "*", content, msg_type)
 
     def _deliver_to_inbox(self, node_id: str, msg: MeshMessage):
-        """Deliver a message to a node's inbox."""
+        """Deliver a message to a node's inbox (E2E encrypted when pubkey available)."""
         inbox_dir = self._inbox_dir / node_id
         inbox_dir.mkdir(parents=True, exist_ok=True)
+
+        # E2E encrypt when recipient has a registered pubkey
+        if _E2E_AVAILABLE and self._key_manager:
+            recipient_pub = self._key_manager.get_public_key(node_id)
+            if recipient_pub:
+                try:
+                    encryptor = get_encryptor(msg.from_node, key_manager=self._key_manager)
+                    payload = asdict(msg)
+                    encryptor.send_encrypted(
+                        msg.msg_id, node_id, payload,
+                        inbox_base=str(self._inbox_dir)
+                    )
+                    logger.debug(f"E2E encrypted: {msg.msg_id} → {node_id}")
+                    return  # skip plaintext write
+                except Exception as e:
+                    logger.warning(f"E2E encrypt failed ({e}), falling back to plaintext")
+
+        # Plaintext fallback
         msg_file = inbox_dir / f"{msg.msg_id}.json"
         msg_file.write_text(json.dumps(asdict(msg), default=str))
 
     def read_inbox(self, node_id: str, mark_read: bool = True) -> list[MeshMessage]:
-        """Read all unread messages from a node's inbox."""
+        """Read all unread messages from a node's inbox (decrypts .enc files automatically)."""
         inbox_dir = self._inbox_dir / node_id
         if not inbox_dir.exists():
             return []
 
         messages = []
+
+        # Decrypt E2E-encrypted messages (.enc files)
+        if _E2E_AVAILABLE and self._key_manager:
+            for enc_file in sorted(inbox_dir.glob("*.enc")):
+                try:
+                    encryptor = get_encryptor(node_id, key_manager=self._key_manager)
+                    _from_node, payload = encryptor.read_encrypted(str(enc_file))
+                    msg = MeshMessage(**payload)
+                    if not msg.read:
+                        messages.append(msg)
+                        if mark_read:
+                            msg.read = True
+                            enc_file.write_text(json.dumps(asdict(msg), default=str))
+                except Exception as e:
+                    logger.warning(f"E2E decrypt failed {enc_file.name}: {e}")
+
+        # Read plaintext messages (.json files)
         for f in sorted(inbox_dir.glob("*.json")):
             try:
                 data = json.loads(f.read_text())

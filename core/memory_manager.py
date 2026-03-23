@@ -141,7 +141,9 @@ class MemoryManager:
         self._append_jsonl(self._episodic_file, entry)
 
     def get_recent_episodes(self, crew_name: str = "", n: int = 5) -> list[dict]:
-        """Get recent execution episodes."""
+        """Get recent execution episodes. Returns [] for n <= 0."""
+        if n <= 0:
+            return []
         entries = self._load_jsonl(self._episodic_file)
         if crew_name:
             entries = [e for e in entries if crew_name in e.key]

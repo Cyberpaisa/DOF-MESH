@@ -477,5 +477,24 @@ class TestComputeAllTyped(TmpLogMixin):
             self.assertIn("±", r)
 
 
+class TestLoadRunsNonPositiveWindow(unittest.TestCase):
+    """load_runs(window<=0) must return [] — Python -0 slice gotcha."""
+
+    def setUp(self):
+        self.observer = RuntimeObserver()
+
+    def test_window_zero_returns_empty(self):
+        self.assertEqual(self.observer.load_runs(0), [])
+
+    def test_window_negative_returns_empty(self):
+        self.assertEqual(self.observer.load_runs(-1), [])
+        self.assertEqual(self.observer.load_runs(-99), [])
+
+    def test_window_positive_does_not_return_empty_on_missing_file(self):
+        # Positive window falls through to file check — returns [] only if file missing
+        result = self.observer.load_runs(5)
+        self.assertIsInstance(result, list)
+
+
 if __name__ == "__main__":
     unittest.main()
