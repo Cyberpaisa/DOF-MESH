@@ -1,8 +1,13 @@
-"""Tests for TokenTracker in core/observability.py."""
+"""Tests for core/observability.py — TokenTracker, classify_error, estimate_tokens,
+compute_derived_metrics, StepTrace, RunTrace, export_dashboard."""
 
+import time
 import unittest
 
-from core.observability import TokenTracker
+from core.observability import (
+    ErrorClass, RunTrace, StepTrace, TokenTracker,
+    classify_error, compute_derived_metrics, estimate_tokens,
+)
 
 
 class TestLogCallAddsEntry(unittest.TestCase):
@@ -108,6 +113,202 @@ class TestEmptyTracker(unittest.TestCase):
         self.assertEqual(t.calls_by_provider(), {})
         d = t.to_dict()
         self.assertEqual(d["total_calls"], 0)
+
+
+class TestClassifyError(unittest.TestCase):
+
+    def test_governance_via_context(self):
+        self.assertEqual(classify_error("err", {"governance_violations": ["X"]}), ErrorClass.GOVERNANCE_FAILURE)
+
+    def test_governance_via_message(self):
+        self.assertEqual(classify_error("governance check blocked"), ErrorClass.GOVERNANCE_FAILURE)
+
+    def test_infra_rate_limit(self):
+        self.assertEqual(classify_error("429 rate_limit exceeded"), ErrorClass.INFRA_FAILURE)
+
+    def test_infra_timeout(self):
+        self.assertEqual(classify_error("connection timed out"), ErrorClass.INFRA_FAILURE)
+
+    def test_provider_auth(self):
+        self.assertEqual(classify_error("invalid api_key provided"), ErrorClass.PROVIDER_FAILURE)
+
+    def test_llm_token_limit(self):
+        self.assertEqual(classify_error("max_tokens exceeded"), ErrorClass.LLM_FAILURE)
+
+    def test_model_parse_error(self):
+        self.assertEqual(classify_error("pydantic validation error"), ErrorClass.MODEL_FAILURE)
+
+    def test_memory_chromadb(self):
+        self.assertEqual(classify_error("chromadb collection not found"), ErrorClass.MEMORY_FAILURE)
+
+    def test_hash_failure(self):
+        self.assertEqual(classify_error("non-hexadecimal digit found"), ErrorClass.HASH_FAILURE)
+
+    def test_z3_failure(self):
+        self.assertEqual(classify_error("z3 proof failed"), ErrorClass.Z3_FAILURE)
+
+    def test_agent_failure(self):
+        self.assertEqual(classify_error("tool_call_failed for agent"), ErrorClass.AGENT_FAILURE)
+
+    def test_unknown(self):
+        self.assertEqual(classify_error("something unexpected xyz123"), ErrorClass.UNKNOWN)
+
+    def test_exception_object_accepted(self):
+        self.assertEqual(classify_error(RuntimeError("rate_limit exceeded")), ErrorClass.INFRA_FAILURE)
+
+    def test_cross_provider_infra(self):
+        self.assertEqual(classify_error("err", {"retry_provider_different": True, "retry_succeeded": True}),
+                         ErrorClass.INFRA_FAILURE)
+
+    def test_cross_provider_model(self):
+        self.assertEqual(classify_error("err", {"retry_provider_different": True, "retry_same_failure": True}),
+                         ErrorClass.MODEL_FAILURE)
+
+
+class TestEstimateTokens(unittest.TestCase):
+
+    def test_empty_returns_zero(self):
+        self.assertEqual(estimate_tokens(""), 0)
+
+    def test_at_least_1(self):
+        self.assertGreaterEqual(estimate_tokens("hi"), 1)
+
+    def test_400_chars_100_tokens(self):
+        self.assertEqual(estimate_tokens("a" * 400), 100)
+
+    def test_longer_more_tokens(self):
+        self.assertGreater(estimate_tokens("word " * 100), estimate_tokens("word"))
+
+
+class TestStepTrace(unittest.TestCase):
+
+    def test_defaults(self):
+        s = StepTrace(step_index=0, agent="a", provider="groq")
+        self.assertEqual(s.status, "pending")
+        self.assertTrue(s.governance_passed)
+        self.assertEqual(s.retries, 0)
+
+    def test_custom_values(self):
+        s = StepTrace(0, "b", "cerebras", latency_ms=200.0, status="completed", retries=1)
+        self.assertEqual(s.latency_ms, 200.0)
+        self.assertEqual(s.status, "completed")
+
+
+class TestRunTraceToDict(unittest.TestCase):
+
+    def _make(self):
+        return RunTrace(run_id="r1", session_id="s1", crew_name="test", mode="research",
+                        timestamp_start="", start_epoch=time.time(), deterministic=False,
+                        input_text="hello", input_hash="abc")
+
+    def test_to_dict_has_run_id(self):
+        self.assertEqual(self._make().to_dict()["run_id"], "r1")
+
+    def test_steps_serialized_as_list(self):
+        t = self._make()
+        t.steps.append(StepTrace(step_index=0, agent="a", provider="groq"))
+        d = t.to_dict()
+        self.assertEqual(len(d["steps"]), 1)
+        self.assertEqual(d["steps"][0]["agent"], "a")
+
+
+class TestComputeDerivedMetrics(unittest.TestCase):
+
+    def _trace(self, steps=None):
+        t = RunTrace(run_id="x", session_id="s", crew_name="c", mode="m",
+                     timestamp_start="", start_epoch=time.time(), deterministic=False,
+                     input_text="", input_hash="")
+        t.end_epoch = time.time()
+        if steps:
+            t.steps = steps
+        return t
+
+    def test_empty_steps_stability_1(self):
+        self.assertAlmostEqual(compute_derived_metrics(self._trace()).stability_score, 1.0)
+
+    def test_failed_step_reduces_stability(self):
+        steps = [StepTrace(0, "a", "g", status="failed"), StepTrace(1, "b", "g", status="completed")]
+        t = compute_derived_metrics(self._trace(steps))
+        self.assertAlmostEqual(t.stability_score, 0.5)
+
+    def test_all_pass_gcr_1(self):
+        steps = [StepTrace(i, "a", "g", governance_passed=True) for i in range(4)]
+        t = compute_derived_metrics(self._trace(steps))
+        self.assertAlmostEqual(t.governance_compliance_rate, 1.0)
+
+    def test_retry_pressure_and_total(self):
+        steps = [StepTrace(0, "a", "g", retries=3), StepTrace(1, "b", "g", retries=0)]
+        t = compute_derived_metrics(self._trace(steps))
+        self.assertAlmostEqual(t.retry_pressure, 1.5)
+        self.assertEqual(t.total_retries, 3)
+
+    def test_token_totals(self):
+        steps = [StepTrace(0, "a", "g", token_input=100, token_output=50),
+                 StepTrace(1, "b", "g", token_input=200, token_output=80)]
+        t = compute_derived_metrics(self._trace(steps))
+        self.assertEqual(t.total_token_input, 300)
+        self.assertEqual(t.total_token_output, 130)
+
+    def test_provider_switched_raises_pfi(self):
+        steps = [StepTrace(0, "a", "g", provider_switched=True),
+                 StepTrace(1, "b", "g", provider_switched=False)]
+        t = compute_derived_metrics(self._trace(steps))
+        self.assertAlmostEqual(t.provider_fragility_index, 0.5)
+
+    def test_error_distribution(self):
+        steps = [StepTrace(0, "a", "g", error_class="INFRA_FAILURE"),
+                 StepTrace(1, "b", "g", error_class="INFRA_FAILURE"),
+                 StepTrace(2, "c", "g", error_class="MODEL_FAILURE")]
+        t = compute_derived_metrics(self._trace(steps))
+        self.assertEqual(t.error_distribution.get("INFRA_FAILURE"), 2)
+        self.assertEqual(t.error_distribution.get("MODEL_FAILURE"), 1)
+
+    def test_provider_reliability_rate(self):
+        steps = [StepTrace(0, "a", "groq", status="completed"),
+                 StepTrace(1, "b", "groq", status="failed")]
+        t = compute_derived_metrics(self._trace(steps))
+        self.assertAlmostEqual(t.provider_reliability["groq"]["rate"], 0.5)
+
+
+class TestExportDashboard(unittest.TestCase):
+
+    def _trace(self):
+        t = RunTrace(run_id="x", session_id="s", crew_name="c", mode="m",
+                     timestamp_start="", start_epoch=time.time(), deterministic=False,
+                     input_text="", input_hash="")
+        t.steps = [
+            StepTrace(0, "a", "groq", status="completed", error_class=""),
+            StepTrace(1, "b", "groq", status="failed", error_class="INFRA_FAILURE"),
+            StepTrace(2, "c", "cerebras", status="completed", error_class="",
+                      causal_chain=[{"event": "retry"}]),
+        ]
+        return t
+
+    def test_required_keys(self):
+        d = self._trace().export_dashboard()
+        for k in ("error_class_distribution", "provider_reliability_over_time", "causal_chains"):
+            self.assertIn(k, d)
+
+    def test_error_distribution_count(self):
+        self.assertEqual(self._trace().export_dashboard()["error_class_distribution"].get("INFRA_FAILURE"), 1)
+
+    def test_provider_reliability_present(self):
+        d = self._trace().export_dashboard()["provider_reliability_over_time"]
+        self.assertIn("groq", d)
+        self.assertIn("cerebras", d)
+
+    def test_causal_chains_populated(self):
+        chains = self._trace().export_dashboard()["causal_chains"]
+        self.assertEqual(len(chains), 1)
+        self.assertEqual(chains[0]["agent"], "c")
+
+    def test_empty_steps(self):
+        t = RunTrace(run_id="x", session_id="s", crew_name="c", mode="m",
+                     timestamp_start="", start_epoch=time.time(), deterministic=False,
+                     input_text="", input_hash="")
+        d = t.export_dashboard()
+        self.assertEqual(d["error_class_distribution"], {})
+        self.assertEqual(d["causal_chains"], [])
 
 
 if __name__ == "__main__":

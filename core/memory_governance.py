@@ -32,7 +32,7 @@ import uuid
 import json
 import logging
 from dataclasses import dataclass, field, asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 logger = logging.getLogger("core.memory_governance")
@@ -77,11 +77,15 @@ class ConflictError(Exception):
 # ─────────────────────────────────────────────────────────────────────
 
 def _now_iso() -> str:
-    return datetime.utcnow().isoformat()
+    return datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
 
 
 def _parse_iso(s: str) -> datetime:
-    return datetime.fromisoformat(s)
+    """Parse ISO string; always return timezone-aware datetime (UTC if naive)."""
+    dt = datetime.fromisoformat(s)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
 
 
 def _to_dict(entry: MemoryEntry) -> dict:
@@ -638,7 +642,7 @@ class TemporalGraph:
 
         Buckets: <1h, 1h-24h, 1d-7d, 7d-30d, >30d.
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         buckets = {
             "<1h": 0,
             "1h-24h": 0,
@@ -775,7 +779,7 @@ class ConstitutionalDecay:
 
         Returns {processed, decayed, archived, protected}.
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         processed = 0
         decayed = 0
         archived = 0

@@ -202,7 +202,10 @@ def run_experiment(
 
     try:
         # Reset shared state for experiment isolation
-        ProviderManager().reset_all()
+        try:
+            ProviderManager().reset_all()
+        except AttributeError:
+            pass  # ProviderManager may not support reset
         session_id = reset_session()
 
         store = RunTraceStore()

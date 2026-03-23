@@ -87,8 +87,33 @@ class MemoryManager:
         logger.info(f"Long-term memory stored: {key}")
 
     def search_long_term(self, query: str, max_results: int = 5) -> list[MemoryEntry]:
-        """Search long-term memory by keyword (simple text match)."""
+        """Search long-term memory using Fisher-Rao similarity.
+
+        Uses information geometry (Fisher-Rao distance on term frequency
+        distributions) for semantic-aware retrieval. Falls back to keyword
+        matching if Fisher-Rao module is unavailable.
+        """
         entries = self._load_jsonl(self._long_term_file)
+        if not entries:
+            return []
+
+        try:
+            from core.fisher_rao import fisher_rao_similarity
+            # Rank by Fisher-Rao similarity (higher = better)
+            scored = []
+            for e in entries:
+                full_text = f"{e.key} {e.value}"
+                sim = fisher_rao_similarity(query, full_text)
+                scored.append((sim, e))
+            scored.sort(key=lambda x: x[0], reverse=True)
+            # Filter: minimum similarity threshold 0.05
+            results = [e for sim, e in scored[:max_results] if sim > 0.05]
+            if results:
+                return results
+        except ImportError:
+            pass
+
+        # Fallback: keyword matching
         query_lower = query.lower()
         matches = [
             e for e in entries

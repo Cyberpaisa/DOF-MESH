@@ -39,6 +39,16 @@ Eres el Principal Agentic Engineer del Deterministic Observability Framework (DO
 pip install -r requirements.txt
 # Requiere GROQ_API_KEY en .env (ver .env.example)
 
+# Tests — usar python3 -m unittest (NO pytest — conflicto con web3)
+python3 -m unittest discover -s tests          # todos los tests
+python3 -m unittest tests.test_governance      # un módulo específico
+python3 -m unittest tests.test_governance.TestGovernance.test_hard_rule  # un test específico
+
+# dof CLI (requiere pip install -e .)
+dof verify-states      # 8/8 PROVEN (107ms)
+dof verify-hierarchy   # 42 patrones PROVEN (5ms)
+dof health             # estado del sistema
+
 # Ejecutar CLI interactivo (15 opciones)
 python main.py
 
@@ -60,6 +70,12 @@ python -c "
 from core.experiment import run_parametric_sweep
 run_parametric_sweep(rates=[0.0, 0.1, 0.2, 0.3, 0.5, 0.7], n_runs=20)
 "
+
+# Claude Commander (SDK, Spawn, Team, Debate, Peers)
+python3 core/claude_commander.py
+
+# Multi-daemon autónomo (3 daemons: Builder, Guardian, Researcher)
+python3 core/autonomous_daemon.py --multi --model claude-sonnet-4-6
 ```
 
 ## Arquitectura
@@ -71,17 +87,39 @@ Experiment Layer (ExperimentDataset, BatchRunner, Schema)
         ↓
 Observability Layer (RunTrace, StepTrace, DerivedMetrics)
         ↓
-Crew Runner + Infrastructure (core/ — 11 módulos)
-  ├── crew_runner.py    → Orquestación con crew_factory, retry ×3
-  ├── providers.py      → TTL backoff (5→10→20 min), provider chains
-  ├── observability.py  → RunTrace/StepTrace, 5 métricas formales
-  ├── governance.py     → CONSTITUTION: hard rules (bloquean) + soft rules (warn)
-  ├── supervisor.py     → Meta-supervisor: Q(0.4)+A(0.25)+C(0.2)+F(0.15), ACCEPT/RETRY/ESCALATE
-  ├── checkpointing.py  → Persistencia JSONL por step
-  ├── metrics.py        → Logger JSONL con rotación
-  ├── memory_manager.py → ChromaDB + HuggingFace embeddings (all-MiniLM-L6-v2)
-  ├── experiment.py     → Batch runner, aggregación estadística (Bessel)
-  └── runtime_observer.py → Métricas producción (SS, PFI, RP, GCR, SSR)
+Crew Runner + Infrastructure (core/ — 52+ módulos)
+  ├── crew_runner.py       → Orquestación con crew_factory, retry ×3
+  ├── providers.py         → TTL backoff (5→10→20 min), provider chains
+  ├── observability.py     → RunTrace/StepTrace, 5 métricas formales
+  ├── governance.py        → CONSTITUTION: hard rules (bloquean) + soft rules (warn)
+  ├── supervisor.py        → Meta-supervisor: Q(0.4)+A(0.25)+C(0.2)+F(0.15), ACCEPT/RETRY/ESCALATE
+  ├── checkpointing.py     → Persistencia JSONL por step
+  ├── metrics.py           → Logger JSONL con rotación
+  ├── memory_manager.py    → ChromaDB + HuggingFace embeddings (all-MiniLM-L6-v2)
+  ├── experiment.py        → Batch runner, aggregación estadística (Bessel)
+  ├── runtime_observer.py  → Métricas producción (SS, PFI, RP, GCR, SSR)
+  ├── claude_commander.py  → 5 modes: SDK, Spawn, Team, Debate, Peers
+  ├── autonomous_daemon.py → Self-governing orchestrator, 4 phases (Perceive→Decide→Execute→Evaluate), multi-daemon
+  ├── node_mesh.py         → NodeRegistry + MessageBus + SessionScanner + MeshDaemon
+  ├── pqc_analyzer.py      → Post-quantum crypto analyzer (ML-KEM, ML-DSA, Shor/Grover)
+  ├── contract_scanner.py  → Solidity vulnerability scanner (reentrancy, tx.origin, selfdestruct)
+  ├── a_mem.py             → A-Mem zettelkasten knowledge graph (NeurIPS 2025 pattern)
+  ├── security_hierarchy.py → L0→L1→L2→L3→L4 security orchestrator
+  ├── scheduler.py         → Model scheduling and resource management
+  ├── revenue_tracker.py   → Revenue tracking and reporting
+  ├── fisher_rao.py        → Fisher-Rao information geometry metric
+  ├── l0_triage.py         → L0 triage and routing
+  ├── z3_gate.py           → Neurosymbolic Z3 gate (APPROVED/REJECTED/TIMEOUT/FALLBACK)
+  ├── z3_proof.py          → Z3ProofAttestation, keccak256 proof hashes
+  ├── z3_verifier.py       → Z3Verifier.verify_all() → list[ProofResult]
+  ├── hierarchy_z3.py      → Formal hierarchy proofs
+  ├── state_model.py       → State machine model
+  ├── transitions.py       → TransitionVerifier.verify_all() → dict[str, VerificationResult]
+  ├── loop_guard.py        → Infinite loop detection
+  ├── entropy_detector.py  → Output entropy analysis
+  ├── adversarial.py       → Red-team / adversarial testing
+  ├── ast_verifier.py      → ASTVerifier.verify() → VerificationResult
+  └── otel_bridge.py       → OpenTelemetry bridge (opcional)
         ↓
 8 Agentes Especializados (config/agents.yaml + agents/*/SOUL.md)
         ↓
@@ -104,6 +142,9 @@ Crew Runner + Infrastructure (core/ — 11 módulos)
 - `logs/metrics/` — Steps de agentes, governance, supervisor
 - `logs/checkpoints/` — JSONL por step para recovery
 - `output/` — Resultados de crews
+- `logs/commander/` — commands.jsonl, sessions.json, queue/*.json
+- `logs/daemon/` — cycles.jsonl (autonomous daemon)
+- `logs/mesh/` — nodes.json, messages.jsonl, inbox/<node>/*.json, mesh_events.jsonl
 
 ## Agregar una métrica nueva
 
@@ -121,8 +162,12 @@ Crew Runner + Infrastructure (core/ — 11 módulos)
 
 ## Providers LLM — restricciones conocidas
 
-- Groq: 12K TPM, Llama 3.3 puede fallar con search_memory tool
+- Groq: 12K TPM, Llama 3.3 puede fallar con search_memory tool; key EXPIRED frecuentemente
 - NVIDIA: 1000 créditos, usa prefijo `nvidia_nim/` (no `openai/`), Qwen3-Coder-480B retorna DEGRADED
-- Cerebras: 1M tokens/día, Qwen3-235B y Qwen3-Coder-480B no disponibles (404 free tier)
+- Cerebras: 1M tokens/día, Qwen3-235B y Qwen3-Coder-480B no disponibles (404 free tier); key EXPIRED frecuentemente
 - Zhipu: GLM-4.7-Flash requiere `extra_body={"enable_thinking": False}`
 - SambaNova: límite 24K tokens contexto — solo backup
+- MINIMAX: MiniMax-M2.1, 128K, free tier
+- Gemini: 2.5 Flash, 1M context, 20 req/día free
+- OpenRouter: Hermes 405B free (variable)
+- Qwen3 models: thinking mode ON por default — usar Qwen 2.5 o desactivar explícitamente

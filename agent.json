@@ -1,0 +1,17 @@
+{
+  "name": "DOF Sentinel",
+  "description": "Agent for deterministic observability and governance of AI systems using formal proofs and on-chain attestations.",
+  "agentHarness": "other",
+  "agentHarnessOther": "custom deterministic governance orchestrator",
+  "model": "claude-sonnet-4-6",
+  "humanInfo": {
+    "name": "Juan Quiceno",
+    "email": "juan@example.com",
+    "socialMediaHandle": "@cyberpaisa",
+    "background": "builder",
+    "cryptoExperience": "yes",
+    "aiAgentExperience": "yes",
+    "codingComfort": 8,
+    "problemToSolve": "Making AI systems observable and accountable using formal verification and on-chain attestations."
+  }
+}

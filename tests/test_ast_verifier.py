@@ -250,5 +250,106 @@ output formatting and structure of the serialized data.
         self.assertEqual(len(ast_violations), 0)
 
 
+class TestViolationFields(unittest.TestCase):
+    """Violation dataclass fields are fully populated on detection."""
+
+    def setUp(self):
+        from core.ast_verifier import ASTVerifier
+        self.verifier = ASTVerifier()
+
+    def test_violation_has_rule_id(self):
+        result = self.verifier.verify("eval(user_input)")
+        self.assertTrue(len(result.violations) > 0)
+        self.assertIn("rule_id", result.violations[0])
+
+    def test_violation_has_severity_block(self):
+        result = self.verifier.verify("eval(x)")
+        self.assertEqual(result.violations[0]["severity"], "block")
+
+    def test_violation_has_line_number(self):
+        result = self.verifier.verify("x = 1\neval(x)")
+        v = result.violations[0]
+        self.assertIsInstance(v["line_number"], int)
+        self.assertGreaterEqual(v["line_number"], 1)
+
+    def test_violation_has_message(self):
+        result = self.verifier.verify("exec('rm -rf /')")
+        self.assertIn("message", result.violations[0])
+        self.assertIsInstance(result.violations[0]["message"], str)
+
+    def test_violation_has_code_snippet(self):
+        result = self.verifier.verify("import subprocess")
+        self.assertIn("code_snippet", result.violations[0])
+
+    def test_rule_id_matches_category(self):
+        result = self.verifier.verify("import subprocess")
+        self.assertEqual(result.violations[0]["rule_id"], "BLOCKED_IMPORTS")
+
+    def test_eval_rule_id_unsafe_calls(self):
+        result = self.verifier.verify("eval(x)")
+        self.assertEqual(result.violations[0]["rule_id"], "UNSAFE_CALLS")
+
+
+class TestSecretPatternsExtra(unittest.TestCase):
+    """Additional SECRET_PATTERNS beyond OpenAI/GitHub/AWS."""
+
+    def setUp(self):
+        from core.ast_verifier import ASTVerifier
+        self.verifier = ASTVerifier()
+
+    def test_github_oauth_token(self):
+        code = 'TOKEN = "gho_' + 'a' * 36 + '"'
+        result = self.verifier.verify(code)
+        self.assertFalse(result.passed)
+
+    def test_gitlab_pat(self):
+        code = 'KEY = "glpat-' + 'a' * 20 + '"'
+        result = self.verifier.verify(code)
+        self.assertFalse(result.passed)
+
+    def test_slack_token(self):
+        code = 'SLACK = "xoxb-' + 'a1b2c3d4e5-f6g7h8i9j0' + '"'
+        result = self.verifier.verify(code)
+        self.assertFalse(result.passed)
+
+    def test_secret_violation_rule_id(self):
+        code = 'K = "AKIA' + 'A' * 16 + '"'
+        result = self.verifier.verify(code)
+        secret_violations = [v for v in result.violations if v["rule_id"] == "SECRET_PATTERNS"]
+        self.assertGreater(len(secret_violations), 0)
+
+
+class TestVerificationResultStructure(unittest.TestCase):
+    """VerificationResult fields and invariants."""
+
+    def setUp(self):
+        from core.ast_verifier import ASTVerifier
+        self.verifier = ASTVerifier()
+
+    def test_passed_true_means_no_violations(self):
+        result = self.verifier.verify("x = 1 + 2")
+        if result.passed:
+            self.assertEqual(len(result.violations), 0)
+
+    def test_failed_means_violations_non_empty(self):
+        result = self.verifier.verify("eval(x)")
+        self.assertFalse(result.passed)
+        self.assertGreater(len(result.violations), 0)
+
+    def test_score_1_when_clean(self):
+        result = self.verifier.verify("x = [i for i in range(10)]")
+        self.assertAlmostEqual(result.score, 1.0)
+
+    def test_score_between_0_and_1(self):
+        result = self.verifier.verify("eval(x)\nexec(y)")
+        self.assertGreaterEqual(result.score, 0.0)
+        self.assertLessEqual(result.score, 1.0)
+
+    def test_violations_list_of_dicts(self):
+        result = self.verifier.verify("import subprocess")
+        self.assertIsInstance(result.violations, list)
+        self.assertIsInstance(result.violations[0], dict)
+
+
 if __name__ == "__main__":
     unittest.main()

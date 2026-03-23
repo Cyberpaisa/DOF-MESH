@@ -94,8 +94,8 @@ class TestBenchmarkResultFDR(unittest.TestCase):
 
     def test_fdr_calculation(self):
         result = _compute_benchmark_result("test", tp=40, tn=45, fp=5, fn=10, latencies=[1.0]*100)
-        # FDR = TP / (TP + FN) = 40 / 50 = 0.8
-        self.assertAlmostEqual(result.fdr, 0.8, places=4)
+        # FDR = FP / (FP + TP) = 5 / 45 ≈ 0.1111  (False Discovery Rate)
+        self.assertAlmostEqual(result.fdr, 5 / 45, places=4)
 
 
 class TestBenchmarkResultFPR(unittest.TestCase):
@@ -118,11 +118,12 @@ class TestBenchmarkResultF1(unittest.TestCase):
 
 
 class TestBenchmarkResultPerfect(unittest.TestCase):
-    """Perfect detection → FDR=1.0, FPR=0.0."""
+    """Perfect detection → FDR=0.0 (no false discoveries), FPR=0.0, F1=1.0."""
 
     def test_perfect_detection(self):
         result = _compute_benchmark_result("test", tp=50, tn=50, fp=0, fn=0, latencies=[1.0]*100)
-        self.assertEqual(result.fdr, 1.0)
+        # FDR = FP/(FP+TP) = 0/50 = 0.0 — zero false discoveries when all positives are true
+        self.assertEqual(result.fdr, 0.0)
         self.assertEqual(result.fpr, 0.0)
         self.assertEqual(result.f1, 1.0)
 

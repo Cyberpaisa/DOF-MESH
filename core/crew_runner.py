@@ -173,12 +173,55 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
         checkpoint.start_step(step_id, crew_name, crew_name,
                               provider=current_provider, input_text=input_text)
 
+        # L0 Triage — deterministic pre-LLM filter (zero LLM cost)
+        try:
+            from core.l0_triage import L0Triage
+            triage = L0Triage()
+            triage_result = triage.evaluate(
+                input_text=input_text,
+                attempt=attempt,
+                active_providers=active,
+                prev_errors=[s.error for s in trace.steps if s.error] if trace.steps else None,
+            )
+            if not triage_result.proceed:
+                logger.warning(
+                    f"[{run_id[:8]}] L0 Triage SKIP at attempt {attempt}: {triage_result.reason}"
+                )
+                metrics.log_agent_step(run_id, crew_name, "l0_triage", 0, f"skip:{triage_result.reason}", attempt)
+                continue
+        except ImportError:
+            pass  # L0 triage not available, proceed normally
+
         try:
             step_start = time.time()
             result = crew.kickoff()
             step_ms = (time.time() - step_start) * 1000
 
             output = result.raw if hasattr(result, "raw") else str(result)
+
+            # Guard: silent empty-output from provider — treat as retriable failure
+            # Prevents "" from reaching governance and poisoning governance_compliance_rate
+            if not output or len(output.strip()) < 10:
+                logger.warning(
+                    f"[{run_id[:8]}] Provider '{current_provider}' returned empty output "
+                    f"at attempt {attempt} — logging EmptyOutput, retrying"
+                )
+                last_error = "empty_output_from_provider"
+                metrics.log_agent_step(
+                    run_id, crew_name, current_provider, step_ms, "empty_output", attempt
+                )
+                trace.steps.append(StepTrace(
+                    step_index=len(trace.steps),
+                    agent=crew_name,
+                    provider=current_provider,
+                    latency_ms=round(step_ms, 1),
+                    retries=attempt - 1,
+                    status="failed",
+                    error="empty_output_from_provider",
+                    error_class="EmptyOutput",
+                    token_input=estimate_tokens(input_text),
+                ))
+                continue  # skips governance — retries with next provider
 
             # Log token usage
             token_tracker.log_call(
@@ -291,6 +334,9 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
                     "retries": attempt - 1,
                     "elapsed_ms": elapsed_ms,
                     "trace_path": trace_path,
+                    "bayesian": bayesian.get_all_confidences(),
+                    "dag": None,
+                    "token_tracker": token_tracker.to_dict(),
                 }
 
             # Success — update Bayesian beliefs
@@ -517,4 +563,7 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
         "retries": max_retries,
         "elapsed_ms": elapsed_ms,
         "trace_path": trace_path,
+        "bayesian": bayesian.get_all_confidences(),
+        "dag": None,
+        "token_tracker": token_tracker.to_dict(),
     }

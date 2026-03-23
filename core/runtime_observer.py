@@ -221,6 +221,34 @@ class RuntimeObserver:
             "SSR": {"mean": round(ssr_m, 4), "std": round(ssr_s, 4), "domain": "[0,1]"},
         }
 
+    def compute_all_typed(self, window: int = 100) -> dict[str, "MetricResult"]:
+        """Compute all 5 metrics and return typed MetricResult objects.
+
+        Returns dict mapping metric name → MetricResult(name, mean, std, n).
+        Raises ValueError if no runs found.
+        """
+        runs = self.load_runs(window)
+        n = len(runs)
+        if n == 0:
+            raise ValueError("No runs found in log")
+
+        pairs = {
+            "SS":  self.compute_ss(runs),
+            "PFI": self.compute_pfi(runs),
+            "RP":  self.compute_rp(runs),
+            "GCR": self.compute_gcr(runs),
+            "SSR": self.compute_ssr(runs),
+        }
+        return {
+            name: MetricResult(
+                name=name,
+                mean=round(mean, 4),
+                std=round(std, 4),
+                n=n,
+            )
+            for name, (mean, std) in pairs.items()
+        }
+
     def detect_anomalies(self, window: int = 100) -> list[str]:
         """Flag metrics that deviate >2 std from expected baseline.
 

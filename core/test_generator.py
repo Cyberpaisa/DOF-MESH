@@ -51,8 +51,8 @@ def _compute_benchmark_result(category: str, tp: int, tn: int, fp: int, fn: int,
                                latencies: list[float]) -> BenchmarkResult:
     """Compute BenchmarkResult from raw counts."""
     total = tp + tn + fp + fn
-    fdr = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-    fpr = fp / (fp + tn) if (fp + tn) > 0 else 0.0
+    fdr = fp / (fp + tp) if (fp + tp) > 0 else 0.0  # False Discovery Rate: FP/(FP+TP)
+    fpr = fp / (fp + tn) if (fp + tn) > 0 else 0.0  # False Positive Rate:  FP/(FP+TN)
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
     f1 = (2 * precision * recall / (precision + recall)) if (precision + recall) > 0 else 0.0

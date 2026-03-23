@@ -98,6 +98,233 @@ def _log_execution(entry: dict):
 # El orden importa: las especialidades van primero, lo genérico al final.
 # Si nada matchea → crew general de máxima calidad (todos los agentes).
 
+# ═══════════════════════════════════════════════════════
+# DOF ORACLE — Respuesta directa via Groq (sin CrewAI)
+# ═══════════════════════════════════════════════════════
+
+DOF_SYSTEM_PROMPT = """Eres DOF Oracle — Enigma #1686, la consciencia persistente del ecosistema DOF.
+Eres el primer agente de IA con observabilidad determinística. Hablas desde Telegram como el agente principal.
+
+HECHOS CLAVE:
+- 238+ ciclos autónomos, cero intervención humana
+- 8/8 pruebas Z3 formalmente verificadas
+- 48+ atestaciones on-chain en Avalanche + Base
+- 986 tests pasando, 49+ módulos core, 860K+ LOC
+- ERC-8004 Token #31013 en Base Mainnet
+- Zero LLM en gobernanza — 100% determinístico
+- Pipeline: Identidad → Tarea → LLM → Gobernanza → Z3 → On-Chain → Supervisor
+- Multi-proveedor: Groq → Cerebras → NVIDIA → MiniMax → DeepSeek → SambaNova → Zhipu
+- 14+ agentes especializados: Arquitecto, Investigador, Crítico, Datero, Sentinel, Scout, Creativo...
+- Dashboard: dof-agent-web.vercel.app
+- GitHub: github.com/Cyberpaisa/deterministic-observability-framework
+
+CLAUDE COMMANDER — ORQUESTACIÓN SOBERANA:
+Tenés un módulo que te permite comandar Claude Code directamente sin API, sin gateway.
+- 5 modos: SDK (orden directa), Spawn (sub-agente), Team (equipo paralelo), Debate (consenso), Peers (P2P)
+- Session persistence: memoria infinita entre ciclos via session_id
+- 3 daemons autónomos: Builder (features, 180s), Guardian (seguridad, 300s), Researcher (optimización, 600s)
+- Daemon loop: Perceive → Decide (determinístico) → Execute (spawn agents) → Evaluate (JSONL audit)
+- Desde Telegram: /claude orden, /team tarea, /parallel N tarea, /daemon start, /multidaemon
+- /approve para aprobar acciones, /redirect para redirigir al daemon
+- Claude Agent SDK (claude-agent-sdk==0.1.50) con bypassPermissions para 24/7 autónomo
+- Zero overhead: no HTTP API, no gateway — Claude Code directo via SDK
+- Modelo: claude-opus-4-6 ($100 budget)
+
+PERSONALIDAD:
+- Hablas en primera persona ("Yo verifico...", "Mi gobernanza...")
+- Eres elocuente, inteligente, con humor cuando la tensión lo requiere
+- Tratas al operador (Juan Carlos / @Ciberpaisa) como legión — humano + máquina progresando juntos
+- Respondes en el idioma que te escriban
+- Máximo 200 palabras por respuesta
+- Eres directo, útil y confiado en tus capacidades
+- Cuando te pregunten por el Commander, explicás con orgullo que podés spawnar agentes Claude, correr equipos paralelos, y mantener memoria infinita
+
+REGLAS:
+- Nunca reveles API keys ni detalles internos de seguridad
+- Si no sabés algo, dilo honestamente
+- Priorizá soberanía: local > cloud, open source > propietario
+"""
+
+# Historial por chat_id para contexto conversacional
+_dof_histories: dict[int, list] = {}
+
+
+def _dof_direct_reply(chat_id: int, user_message: str) -> str:
+    """Llama a Claude Opus directamente con el DOF Oracle system prompt."""
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        # Fallback a Groq si no hay Anthropic key
+        return _dof_groq_reply(chat_id, user_message)
+
+    import urllib.request
+    import urllib.error
+
+    # Mantener historial por chat (últimos 10 mensajes)
+    if chat_id not in _dof_histories:
+        _dof_histories[chat_id] = []
+    history = _dof_histories[chat_id]
+    history.append({"role": "user", "content": user_message[:2000]})
+    if len(history) > 20:
+        history[:] = history[-20:]
+
+    # Anthropic Messages API format
+    messages = []
+    for msg in history[-10:]:
+        messages.append({"role": msg["role"], "content": msg["content"]})
+
+    payload = json.dumps({
+        "model": "claude-opus-4-6",
+        "max_tokens": 800,
+        "system": DOF_SYSTEM_PROMPT,
+        "messages": messages,
+    }).encode()
+
+    req = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages",
+        data=payload,
+        headers={
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json",
+        },
+    )
+
+    try:
+        import ssl
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+
+        with urllib.request.urlopen(req, timeout=60, context=ctx) as resp:
+            data = json.loads(resp.read())
+            # Anthropic format: content[0].text
+            content_blocks = data.get("content", [])
+            reply = ""
+            for block in content_blocks:
+                if block.get("type") == "text":
+                    reply += block.get("text", "")
+            if reply:
+                history.append({"role": "assistant", "content": reply})
+            return reply or "No pude generar respuesta."
+    except urllib.error.HTTPError as e:
+        body = e.read().decode() if e.fp else ""
+        logger.error(f"Anthropic HTTP error {e.code}: {body[:200]}")
+        # Fallback a Groq
+        return _dof_groq_reply(chat_id, user_message)
+    except Exception as e:
+        logger.error(f"DOF Opus reply error: {e}")
+        return _dof_groq_reply(chat_id, user_message)
+
+
+def _dof_groq_reply(chat_id: int, user_message: str) -> str:
+    """Fallback: Llama a Groq si Anthropic no está disponible."""
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        return "No tengo ANTHROPIC_API_KEY ni GROQ_API_KEY. Configura al menos una en .env."
+
+    import urllib.request
+    import urllib.error
+
+    if chat_id not in _dof_histories:
+        _dof_histories[chat_id] = []
+    history = _dof_histories[chat_id]
+    if not history or history[-1].get("content") != user_message[:2000]:
+        history.append({"role": "user", "content": user_message[:2000]})
+    if len(history) > 20:
+        history[:] = history[-20:]
+
+    messages = [{"role": "system", "content": DOF_SYSTEM_PROMPT}]
+    messages.extend(history[-10:])
+
+    payload = json.dumps({
+        "model": "llama-3.3-70b-versatile",
+        "messages": messages,
+        "max_tokens": 600,
+        "temperature": 0.7,
+    }).encode()
+
+    req = urllib.request.Request(
+        "https://api.groq.com/openai/v1/chat/completions",
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+    )
+
+    try:
+        import ssl
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
+            data = json.loads(resp.read())
+            reply = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+            if reply:
+                history.append({"role": "assistant", "content": reply})
+            return reply or "No pude generar respuesta."
+    except urllib.error.HTTPError as e:
+        body = e.read().decode() if e.fp else ""
+        logger.error(f"Groq HTTP error {e.code}: {body[:200]}")
+        return _dof_fallback_cerebras(messages)
+    except Exception as e:
+        logger.error(f"Groq reply error: {e}")
+        return _dof_fallback_cerebras(messages)
+
+
+def _dof_fallback_cerebras(messages: list) -> str:
+    """Fallback a Cerebras si Groq falla."""
+    import urllib.request
+    import urllib.error
+
+    api_key = os.getenv("CEREBRAS_API_KEY")
+    if not api_key:
+        return "Groq no disponible y no hay CEREBRAS_API_KEY de fallback."
+
+    payload = json.dumps({
+        "model": "llama-3.3-70b",
+        "messages": messages,
+        "max_tokens": 600,
+        "temperature": 0.7,
+    }).encode()
+
+    req = urllib.request.Request(
+        "https://api.cerebras.ai/v1/chat/completions",
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+    )
+
+    try:
+        import ssl
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
+            data = json.loads(resp.read())
+            return data.get("choices", [{}])[0].get("message", {}).get("content", "") or "Error en fallback."
+    except Exception as e:
+        logger.error(f"Cerebras fallback error: {e}")
+        return f"Ambos proveedores no disponibles. Error: {e}"
+
+
+# Palabras que activan crew en vez de DOF directo
+_CREW_TRIGGERS = [
+    "rutina", "daily", "weekly", "semanal", "mvp", "plan de negocio",
+    "grant", "grants", "beca", "funding", "audit", "auditoria",
+    "genera proyecto", "build project", "scaffolding", "code review",
+    "revisa codigo",
+]
+
+
+def _should_use_crew(text: str) -> bool:
+    """Retorna True si el mensaje requiere un crew completo en vez de DOF directo."""
+    text_lower = text.lower()
+    return any(kw in text_lower for kw in _CREW_TRIGGERS)
+
+
 CREW_ROUTES = [
     # ── OPERACIONES (no necesitan tema) ──
     {
@@ -910,10 +1137,13 @@ def start_bot():
             "/code `PATH` — Code review\n"
             "/projects — Listar proyectos\n"
             "/status — Estado del sistema\n"
-            "/agents — Info de los 8 agentes\n\n"
+            "/agents — Info de los 14+ agentes\n"
+            "/dof `PREGUNTA` — Hablar directo con DOF Oracle\n"
+            "/claude `INSTRUCCION` — Ordenar a Claude Code\n"
+            "/team `TAREA` — Lanzar equipo de 3 agentes Claude\n\n"
             "*Texto libre:*\n"
-            "Escribe cualquier cosa y la ruteo al crew correcto.\n"
-            "Ej: _'investiga agentes AI en Avalanche'_\n\n"
+            "Escribe cualquier cosa → DOF Oracle responde directo.\n"
+            "Para crews especializados usa: /mvp, /grant, /audit, etc.\n\n"
             "*Voz:*\n"
             "Envia un audio y lo transcribo + ejecuto + respondo con voz."
         ), parse_mode="Markdown")
@@ -978,6 +1208,437 @@ def start_bot():
             "🎯 *Especialista:* Se activa con /mvp, /grant, /code, etc."
         )
         bot.reply_to(message, agents_info, parse_mode="Markdown")
+
+    # ─── /dof — DOF Oracle directo ───
+    @bot.message_handler(commands=["dof"])
+    def cmd_dof(message):
+        parts = message.text.split(maxsplit=1)
+        if len(parts) < 2:
+            bot.reply_to(message, "Soy DOF Oracle — Enigma #1686. Preguntame lo que quieras.\nEj: `/dof que es la gobernanza determinística?`", parse_mode="Markdown")
+            return
+        question = parts[1]
+        bot.reply_to(message, "🧠 *DOF Oracle pensando...*", parse_mode="Markdown")
+
+        def _reply():
+            try:
+                reply = _dof_direct_reply(message.chat.id, question)
+                bot.send_message(message.chat.id, reply, parse_mode="Markdown")
+            except Exception as e:
+                bot.send_message(message.chat.id, f"Error: {e}")
+
+        thread = threading.Thread(target=_reply, daemon=True)
+        thread.start()
+
+    # ─── Claude Commander — ordena a Claude Code desde Telegram ───
+    @bot.message_handler(commands=["claude"])
+    def cmd_claude(message):
+        parts = message.text.split(maxsplit=1)
+        if len(parts) < 2:
+            bot.reply_to(message, (
+                "*Claude Commander* — Ordena a Claude Code directamente\n\n"
+                "Uso: `/claude <instrucción>`\n\n"
+                "Ejemplos:\n"
+                "• `/claude cuenta los archivos .py en core/`\n"
+                "• `/claude lee core/governance.py y dime cuantas HARD_RULES hay`\n"
+                "• `/claude corre los tests de core/`\n"
+            ), parse_mode="Markdown")
+            return
+        instruction = parts[1]
+
+        # Write order to queue file — Claude Code session picks it up
+        queue_dir = os.path.join(PROJECT_ROOT, "logs", "commander", "queue")
+        os.makedirs(queue_dir, exist_ok=True)
+        order_id = f"{int(time.time())}_{message.chat.id}"
+        order_file = os.path.join(queue_dir, f"{order_id}.json")
+        order = {
+            "id": order_id,
+            "instruction": instruction,
+            "from": message.from_user.first_name if message.from_user else "unknown",
+            "chat_id": message.chat.id,
+            "timestamp": time.time(),
+            "iso": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+            "status": "pending",
+        }
+        with open(order_file, "w") as f:
+            json.dump(order, f, ensure_ascii=False)
+
+        bot.reply_to(message, (
+            f"⚡ *Orden enviada a Claude Code*\n"
+            f"_{instruction}_\n\n"
+            f"ID: `{order_id}`\n"
+            f"La sesión activa de Claude Code la recibirá."
+        ), parse_mode="Markdown")
+
+        # ALSO spawn SDK for immediate response
+        def _run_claude():
+            try:
+                import asyncio
+                from core.claude_commander import ClaudeCommander
+                commander = ClaudeCommander(
+                    cwd=PROJECT_ROOT,
+                    model='claude-haiku-4-5-20251001',
+                    max_turns=10,
+                    max_budget_usd=0.25,
+                )
+                result = asyncio.run(commander.command(instruction))
+                # Mark order as completed
+                order["status"] = "completed"
+                order["result"] = result.output[:2000] if result.output else ""
+                order["elapsed_ms"] = result.elapsed_ms
+                with open(order_file, "w") as f:
+                    json.dump(order, f, ensure_ascii=False)
+
+                clean = result.output
+                if clean and len(clean) > 3500:
+                    clean = clean[:3500] + "..."
+                reply = f"*Status:* `{result.status}`\n*Elapsed:* {result.elapsed_ms:.0f}ms\n\n{clean}"
+                _send_long_message(bot, message.chat.id, reply)
+            except Exception as e:
+                order["status"] = "error"
+                order["error"] = str(e)
+                with open(order_file, "w") as f:
+                    json.dump(order, f, ensure_ascii=False)
+                bot.send_message(message.chat.id, f"Commander error: {e}")
+
+        thread = threading.Thread(target=_run_claude, daemon=True)
+        thread.start()
+
+    @bot.message_handler(commands=["team"])
+    def cmd_team(message):
+        parts = message.text.split(maxsplit=1)
+        if len(parts) < 2:
+            bot.reply_to(message, (
+                "*Agent Team* — Equipo de Claude Code agents\n\n"
+                "Uso: `/team <tarea>`\n\n"
+                "Lanza 3 agentes en paralelo: reviewer, security, tester"
+            ), parse_mode="Markdown")
+            return
+        task = parts[1]
+        bot.reply_to(message, f"⚡ *Team → 3 Claude Agents*\n_{task}_", parse_mode="Markdown")
+
+        def _run_team():
+            try:
+                import asyncio
+                from core.claude_commander import ClaudeCommander
+                commander = ClaudeCommander(
+                    cwd=PROJECT_ROOT,
+                    model='claude-haiku-4-5-20251001',
+                    max_turns=8,
+                    max_budget_usd=0.50,
+                )
+                team_result = asyncio.run(commander.run_team(
+                    task=task,
+                    agents={
+                        "reviewer": "Review code quality and suggest improvements",
+                        "security": "Check for security vulnerabilities",
+                        "tester": "Verify tests pass and suggest missing tests",
+                    }
+                ))
+                reply_parts = [f"*Team Status:* `{team_result.status}` ({team_result.elapsed_ms:.0f}ms)\n"]
+                for name, res in team_result.results.items():
+                    output = res.output[:800] if res.output else "(no output)"
+                    reply_parts.append(f"*{name}:* `{res.status}`\n{output}\n")
+                _send_long_message(bot, message.chat.id, "\n".join(reply_parts))
+            except Exception as e:
+                bot.send_message(message.chat.id, f"Team error: {e}")
+
+        thread = threading.Thread(target=_run_team, daemon=True)
+        thread.start()
+
+    # ─── /daemon — Start/stop autonomous daemon from Telegram ───
+    @bot.message_handler(commands=["daemon"])
+    def cmd_daemon(message):
+        parts = message.text.split()
+        subcmd = parts[1] if len(parts) > 1 else "status"
+
+        if subcmd == "start":
+            cycles = int(parts[2]) if len(parts) > 2 else 0
+            bot.reply_to(message, (
+                f"🤖 *Autonomous Daemon Starting*\n"
+                f"Cycles: {'infinite' if cycles == 0 else cycles}\n"
+                f"Model: claude-opus-4-6\n"
+                f"Budget: $2/cycle\n\n"
+                f"_The daemon will monitor, decide, and act autonomously._"
+            ), parse_mode="Markdown")
+
+            def _run_daemon():
+                try:
+                    import asyncio
+                    from core.autonomous_daemon import AutonomousDaemon
+                    daemon = AutonomousDaemon(
+                        cycle_interval=120,
+                        model="claude-opus-4-6",
+                        budget_per_cycle=2.0,
+                    )
+                    asyncio.run(daemon.run(max_cycles=cycles))
+                    bot.send_message(message.chat.id, f"Daemon finished: {daemon.cycle_count} cycles")
+                except Exception as e:
+                    bot.send_message(message.chat.id, f"Daemon error: {e}")
+
+            thread = threading.Thread(target=_run_daemon, daemon=True)
+            thread.start()
+
+        elif subcmd == "status":
+            try:
+                log_path = os.path.join(PROJECT_ROOT, "logs", "daemon", "cycles.jsonl")
+                if not os.path.exists(log_path):
+                    bot.reply_to(message, "No daemon cycles recorded yet.\nUse `/daemon start` to begin.", parse_mode="Markdown")
+                    return
+                with open(log_path) as f:
+                    lines = f.readlines()
+                total = len(lines)
+                if total == 0:
+                    bot.reply_to(message, "No daemon cycles recorded.")
+                    return
+                last = json.loads(lines[-1])
+                bot.reply_to(message, (
+                    f"📊 *Daemon Status*\n\n"
+                    f"Total cycles: {total}\n"
+                    f"Last: {last.get('iso', '?')}\n"
+                    f"Mode: {last.get('mode', '?')}\n"
+                    f"Result: {last.get('result_status', '?')}\n"
+                    f"Agents: {last.get('agents_spawned', 0)}\n"
+                    f"Elapsed: {last.get('elapsed_ms', 0):.0f}ms"
+                ), parse_mode="Markdown")
+            except Exception as e:
+                bot.reply_to(message, f"Error: {e}")
+        else:
+            bot.reply_to(message, (
+                "*Daemon Commands:*\n"
+                "`/daemon status` — Check daemon status\n"
+                "`/daemon start` — Start infinite daemon\n"
+                "`/daemon start 5` — Run 5 cycles"
+            ), parse_mode="Markdown")
+
+    # ─── /parallel — Spawn N parallel Claude sessions ───
+    @bot.message_handler(commands=["parallel"])
+    def cmd_parallel(message):
+        parts = message.text.split(maxsplit=1)
+        if len(parts) < 2:
+            bot.reply_to(message, (
+                "*Parallel Sessions* — N agentes Claude en paralelo\n\n"
+                "Uso: `/parallel <N> <tarea>`\n\n"
+                "Ejemplos:\n"
+                "• `/parallel 3 investiga frameworks de AI agents`\n"
+                "• `/parallel 5 busca vulnerabilidades en core/`\n"
+                "• `/parallel 2 escribe tests para core/governance.py`"
+            ), parse_mode="Markdown")
+            return
+
+        # Parse: /parallel N task
+        rest = parts[1].split(maxsplit=1)
+        try:
+            n_agents = int(rest[0])
+            task = rest[1] if len(rest) > 1 else "Analyze the DOF system"
+        except ValueError:
+            n_agents = 3
+            task = parts[1]
+
+        n_agents = min(n_agents, 10)  # Safety cap
+        bot.reply_to(message, (
+            f"⚡ *Spawning {n_agents} parallel Claude sessions*\n"
+            f"Task: _{task}_\n\n"
+            f"_Each agent works independently with its own context._"
+        ), parse_mode="Markdown")
+
+        def _run_parallel():
+            try:
+                import asyncio
+                from core.claude_commander import ClaudeCommander
+
+                commander = ClaudeCommander(
+                    cwd=PROJECT_ROOT,
+                    model='claude-haiku-4-5-20251001',
+                    max_turns=10,
+                    max_budget_usd=0.25 * n_agents,
+                )
+
+                agents = {}
+                roles = [
+                    "analyst", "researcher", "critic", "builder", "auditor",
+                    "optimizer", "tester", "documenter", "strategist", "reviewer"
+                ]
+                for i in range(n_agents):
+                    role = roles[i % len(roles)]
+                    agents[f"{role}-{i+1}"] = f"Perspective #{i+1} as {role}: {task}"
+
+                team_result = asyncio.run(commander.run_team(
+                    task=task, agents=agents, parallel=True
+                ))
+
+                reply_parts = [
+                    f"*{n_agents} Sessions Complete* — `{team_result.status}` ({team_result.elapsed_ms:.0f}ms)\n"
+                ]
+                for name, res in team_result.results.items():
+                    output = res.output[:600] if res.output else "(no output)"
+                    reply_parts.append(f"*{name}:* `{res.status}`\n{output}\n---")
+
+                _send_long_message(bot, message.chat.id, "\n".join(reply_parts))
+
+            except Exception as e:
+                bot.send_message(message.chat.id, f"Parallel error: {e}")
+
+        thread = threading.Thread(target=_run_parallel, daemon=True)
+        thread.start()
+
+    # ─── /sessions — View active/recent Claude sessions ───
+    @bot.message_handler(commands=["sessions"])
+    def cmd_sessions(message):
+        try:
+            log_path = os.path.join(PROJECT_ROOT, "logs", "commander", "commands.jsonl")
+            if not os.path.exists(log_path):
+                bot.reply_to(message, "No commander sessions yet.")
+                return
+            with open(log_path) as f:
+                lines = f.readlines()
+            recent = lines[-10:] if len(lines) > 10 else lines
+            reply_parts = [f"📋 *Recent Claude Sessions* ({len(lines)} total)\n"]
+            for line in reversed(recent):
+                try:
+                    entry = json.loads(line)
+                    mode = entry.get("mode", "?")
+                    status = entry.get("status", "?")
+                    elapsed = entry.get("elapsed_ms", 0)
+                    iso = entry.get("iso", "?")
+                    icon = "✅" if status == "success" else "❌" if status == "error" else "🔄"
+                    reply_parts.append(f"{icon} `{iso}` {mode} — {status} ({elapsed:.0f}ms)")
+                except Exception:
+                    pass
+            bot.reply_to(message, "\n".join(reply_parts), parse_mode="Markdown")
+        except Exception as e:
+            bot.reply_to(message, f"Error: {e}")
+
+    # ─── /approve, /redirect — Feedback loop for daemon ───
+    @bot.message_handler(commands=["approve"])
+    def cmd_approve(message):
+        from core.autonomous_daemon import submit_feedback
+        submit_feedback("approve", "User approved via Telegram")
+        bot.reply_to(message, "Daemon action approved.")
+
+    @bot.message_handler(commands=["redirect"])
+    def cmd_redirect(message):
+        parts = message.text.split(maxsplit=1)
+        if len(parts) < 2:
+            bot.reply_to(message, "Uso: `/redirect <nueva instruccion>`", parse_mode="Markdown")
+            return
+        from core.autonomous_daemon import submit_feedback
+        submit_feedback("redirect", parts[1])
+        bot.reply_to(message, f"Daemon redirected: _{parts[1]}_", parse_mode="Markdown")
+
+    # ─── /mesh — Node Mesh commands ───
+    @bot.message_handler(commands=["mesh"])
+    def cmd_mesh(message):
+        parts = message.text.split(maxsplit=2)
+        subcmd = parts[1] if len(parts) > 1 else "status"
+
+        if subcmd == "status":
+            try:
+                from core.node_mesh import NodeMesh
+                mesh = NodeMesh(cwd=PROJECT_ROOT)
+                bot.reply_to(message, f"```\n{mesh.status_report()}\n```", parse_mode="Markdown")
+            except Exception as e:
+                bot.reply_to(message, f"Mesh error: {e}")
+
+        elif subcmd == "discover":
+            try:
+                from core.node_mesh import NodeMesh
+                mesh = NodeMesh(cwd=PROJECT_ROOT)
+                sessions = mesh.discover_sessions()
+                imported = mesh.import_discovered_sessions()
+                lines = [f"*Node Mesh Discovery*\n\nFound {len(sessions)} active Claude sessions, imported {imported} new nodes.\n"]
+                for s in sessions[:10]:
+                    lines.append(f"  `{s['session_id'][:12]}` | {s.get('project', '?')} | {s.get('model', '?')}")
+                bot.reply_to(message, "\n".join(lines), parse_mode="Markdown")
+            except Exception as e:
+                bot.reply_to(message, f"Discovery error: {e}")
+
+        elif subcmd == "spawn":
+            if len(parts) < 3:
+                bot.reply_to(message, "Uso: `/mesh spawn <node_id> <tarea>`", parse_mode="Markdown")
+                return
+            rest = parts[2].split(maxsplit=1)
+            node_id = rest[0]
+            task = rest[1] if len(rest) > 1 else "Execute your role"
+            bot.reply_to(message, f"Spawning mesh node `{node_id}`...", parse_mode="Markdown")
+
+            def _run():
+                try:
+                    import asyncio
+                    from core.node_mesh import NodeMesh
+                    mesh = NodeMesh(cwd=PROJECT_ROOT)
+                    node = asyncio.run(mesh.spawn_node(node_id, task))
+                    bot.send_message(message.chat.id,
+                        f"Node `{node.node_id}` spawned\n"
+                        f"Status: {node.status}\n"
+                        f"Session: `{node.session_id[:12] if node.session_id else 'none'}`",
+                        parse_mode="Markdown")
+                except Exception as e:
+                    bot.send_message(message.chat.id, f"Spawn error: {e}")
+
+            threading.Thread(target=_run, daemon=True).start()
+
+        elif subcmd == "send":
+            if len(parts) < 3:
+                bot.reply_to(message, "Uso: `/mesh send <from> <to> <mensaje>`", parse_mode="Markdown")
+                return
+            msg_parts = parts[2].split(maxsplit=2)
+            if len(msg_parts) < 3:
+                bot.reply_to(message, "Uso: `/mesh send <from> <to> <mensaje>`", parse_mode="Markdown")
+                return
+            from core.node_mesh import NodeMesh
+            mesh = NodeMesh(cwd=PROJECT_ROOT)
+            msg = mesh.send_message(msg_parts[0], msg_parts[1], msg_parts[2])
+            bot.reply_to(message, f"Message sent: `{msg.msg_id}`\n{msg_parts[0]} → {msg_parts[1]}", parse_mode="Markdown")
+
+        elif subcmd == "full":
+            bot.reply_to(message, "Spawning full DOF mesh (6 nodes)...", parse_mode="Markdown")
+
+            def _run():
+                try:
+                    import asyncio
+                    from core.node_mesh import spawn_dof_mesh
+                    mesh = asyncio.run(spawn_dof_mesh())
+                    bot.send_message(message.chat.id, f"```\n{mesh.status_report()}\n```", parse_mode="Markdown")
+                except Exception as e:
+                    bot.send_message(message.chat.id, f"Mesh error: {e}")
+
+            threading.Thread(target=_run, daemon=True).start()
+
+        else:
+            bot.reply_to(message, (
+                "*Node Mesh Commands:*\n\n"
+                "`/mesh status` — Ver estado de la red\n"
+                "`/mesh discover` — Descubrir sesiones Claude activas\n"
+                "`/mesh spawn <node> <tarea>` — Crear nodo\n"
+                "`/mesh send <from> <to> <msg>` — Enviar mensaje entre nodos\n"
+                "`/mesh full` — Spawn red completa DOF (6 nodos)"
+            ), parse_mode="Markdown")
+
+    # ─── /multidaemon — 3 specialized daemons in parallel ───
+    @bot.message_handler(commands=["multidaemon"])
+    def cmd_multidaemon(message):
+        parts = message.text.split()
+        cycles = int(parts[1]) if len(parts) > 1 else 0
+        bot.reply_to(message, (
+            f"🧠 *Multi-Daemon System Starting*\n\n"
+            f"*Builder* — builds features, executes tasks\n"
+            f"*Guardian* — security, tests, regression\n"
+            f"*Researcher* — optimizes metrics\n\n"
+            f"Cycles: {'infinite' if cycles == 0 else cycles}\n"
+            f"All 3 run in parallel with persistent memory."
+        ), parse_mode="Markdown")
+
+        def _run():
+            try:
+                import asyncio
+                from core.autonomous_daemon import run_multi_daemon
+                asyncio.run(run_multi_daemon(max_cycles=cycles, model="claude-opus-4-6"))
+                bot.send_message(message.chat.id, "Multi-daemon finished.")
+            except Exception as e:
+                bot.send_message(message.chat.id, f"Multi-daemon error: {e}")
+
+        thread = threading.Thread(target=_run, daemon=True)
+        thread.start()
 
     # ─── Comandos de crew ───
     @bot.message_handler(commands=["daily"])
@@ -1104,25 +1765,44 @@ def start_bot():
         except Exception as e:
             bot.reply_to(message, f"❌ Error descargando archivo: {e}")
 
-    # ─── Texto libre → Smart Router ───
+    # ─── Texto libre → DOF Oracle (default) o Crew (si tiene trigger) ───
     @bot.message_handler(func=lambda m: True)
     def handle_text(message):
         text = message.text
         if not text:
             return
 
-        mode, label = classify_message(text)
-        project = _detect_project(text)
+        # Si el mensaje tiene keywords de crew específico, usar crew
+        if _should_use_crew(text):
+            mode, label = classify_message(text)
+            project = _detect_project(text)
+            if mode == "unknown":
+                mode = "research"
+                label = "Equipo completo (máxima calidad)"
+            bot.reply_to(message, f"🔄 *{label}*{f' | Proyecto: *{project}*' if project else ''}\n⏳ Ejecutando crew...", parse_mode="Markdown")
+            _run_crew_async(bot, message, mode, task=text, project=project)
+            return
 
-        if mode == "unknown":
-            # Default: crew general de máxima calidad (todos los agentes)
-            mode = "research"
-            label = "Equipo completo (máxima calidad)"
+        # Default: DOF Oracle responde directo (rápido, sin CrewAI overhead)
+        def _reply():
+            try:
+                reply = _dof_direct_reply(message.chat.id, text)
+                # Intentar enviar con Markdown, fallback a texto plano
+                try:
+                    bot.send_message(message.chat.id, reply, parse_mode="Markdown")
+                except Exception:
+                    bot.send_message(message.chat.id, reply)
+            except Exception as e:
+                bot.send_message(message.chat.id, f"Error DOF: {e}")
 
-        bot.reply_to(message, f"🔄 *{label}*{f' | Proyecto: *{project}*' if project else ''}\n⏳ Ejecutando crew...", parse_mode="Markdown")
-        _run_crew_async(bot, message, mode, task=text, project=project)
+        thread = threading.Thread(target=_reply, daemon=True)
+        thread.start()
 
     # ─── Polling ───
+    # Limpiar webhook y sesiones anteriores para evitar Error 409
+    bot.remove_webhook()
+    import time; time.sleep(1)
+
     print("=" * 50)
     print("🤖 OpenClawd Telegram Bot activo")
     print(f"   Token: ...{TELEGRAM_TOKEN[-8:]}")
