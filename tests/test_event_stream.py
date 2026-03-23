@@ -267,5 +267,26 @@ class TestDOFImport(unittest.TestCase):
         self.assertIsNotNone(Event)
 
 
+class TestInMemoryBackendPublishNone(unittest.TestCase):
+    """publish(None) must not raise AttributeError — return False gracefully."""
+
+    def setUp(self):
+        self.backend = InMemoryBackend()
+
+    def test_publish_none_does_not_raise(self):
+        try:
+            self.backend.publish(None)
+        except (AttributeError, TypeError) as e:
+            self.fail(f"publish(None) raised {type(e).__name__}: {e}")
+
+    def test_publish_none_returns_false(self):
+        result = self.backend.publish(None)
+        self.assertFalse(result)
+
+    def test_publish_none_does_not_add_to_buffer(self):
+        self.backend.publish(None)
+        self.assertEqual(self.backend.count(), 0)
+
+
 if __name__ == "__main__":
     unittest.main()

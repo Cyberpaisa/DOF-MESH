@@ -158,6 +158,9 @@ class InMemoryBackend(EventBackend):
         self._lock = threading.Lock()
 
     def publish(self, event: Event) -> bool:
+        if event is None:
+            logger.warning("InMemoryBackend.publish() called with None — ignoring")
+            return False
         with self._lock:
             self._buffer.append(event)
             callbacks = []
