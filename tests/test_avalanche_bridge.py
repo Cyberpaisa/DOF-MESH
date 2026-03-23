@@ -132,7 +132,7 @@ class TestAvalancheBridgeOnline(unittest.TestCase):
     def test_get_balance(self):
         balance = self.bridge.get_balance()
         self.assertIsNotNone(balance)
-        self.assertGreater(balance, 0)
+        self.assertGreaterEqual(balance, 0)  # wallet may be empty but must return a valid float
 
     def test_total_attestations(self):
         total = self.bridge.total_attestations()

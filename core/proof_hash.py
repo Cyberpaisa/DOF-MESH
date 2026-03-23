@@ -100,6 +100,103 @@ class ProofSerializer:
         )
 
 
+class ProofBatcher:
+    """Batch multiple Z3 proof hashes into a Merkle tree for on-chain publishing.
+
+    Bridges ProofSerializer (keccak256 hashes) with MerkleTree (SHA256 tree)
+    so that N proof results can be attested with a single on-chain root.
+
+    Usage:
+        batcher = ProofBatcher()
+        batcher.add_proof(["a>0"], "PROVEN", ["INV-1"])
+        batcher.add_proof(["b<1"], "PROVEN", ["INV-2"])
+        result = batcher.finalize()
+        # result.root → Merkle root, result.proofs → per-leaf verification paths
+    """
+
+    def __init__(self):
+        self._entries: list[dict] = []
+
+    @property
+    def size(self) -> int:
+        """Number of proofs queued."""
+        return len(self._entries)
+
+    def add_proof(self, solver_assertions: list[str], result: str,
+                  invariants: list[str],
+                  model_data: Optional[dict] = None) -> str:
+        """Serialize and hash a proof, queue for batching.
+
+        Returns:
+            Hex-encoded keccak256 hash of the proof transcript.
+        """
+        transcript = ProofSerializer.serialize_proof(
+            solver_assertions, result, invariants, model_data
+        )
+        proof_hash = ProofSerializer.hash_proof(transcript)
+        hex_hash = proof_hash.hex()
+
+        self._entries.append({
+            "transcript": transcript,
+            "hash": hex_hash,
+            "result": result,
+            "invariants": sorted(invariants),
+        })
+        return hex_hash
+
+    def finalize(self) -> dict:
+        """Build a Merkle tree from all queued proof hashes.
+
+        Returns:
+            Dict with root, leaf_count, leaves, depth, and entries metadata.
+            Returns empty dict if no proofs queued.
+        """
+        if not self._entries:
+            return {}
+
+        from core.merkle_tree import MerkleTree
+
+        leaves = [e["hash"] for e in self._entries]
+        tree = MerkleTree(leaves)
+
+        proofs = {}
+        for i, leaf in enumerate(leaves):
+            proofs[leaf] = tree.get_proof(i)
+
+        result = {
+            "root": tree.root,
+            "leaf_count": len(leaves),
+            "leaves": leaves,
+            "depth": tree.depth,
+            "proofs": proofs,
+            "entries": [
+                {"hash": e["hash"], "result": e["result"],
+                 "invariants": e["invariants"]}
+                for e in self._entries
+            ],
+        }
+
+        self._entries.clear()
+        return result
+
+    def verify_entry(self, finalized: dict, leaf_hash: str) -> bool:
+        """Verify a single proof's inclusion in a finalized batch.
+
+        Args:
+            finalized: Result from finalize().
+            leaf_hash: Hex hash of the proof to verify.
+
+        Returns:
+            True if the proof is included and its Merkle proof is valid.
+        """
+        from core.merkle_tree import MerkleTree
+
+        if not finalized or leaf_hash not in finalized.get("proofs", {}):
+            return False
+        proof = finalized["proofs"][leaf_hash]
+        return MerkleTree.verify_proof(leaf_hash, proof, finalized["root"])
+
+
 def _serialize_model_data(data: Optional[dict]) -> Optional[dict]:
     """Recursively convert model data to serializable types."""
     if data is None:

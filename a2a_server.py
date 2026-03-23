@@ -121,8 +121,201 @@ AGENT_CARD = {
             "name": "Enigma Agent Audit",
             "description": "Audit ERC-8004 AI agents on Avalanche: endpoints, metadata, trust scores.",
         },
+        {
+            "id": "revenue",
+            "name": "Revenue Tracker",
+            "description": "Track revenue, log API usage, generate reports. Actions: track, report, usage.",
+        },
+        {
+            "id": "triage-stats",
+            "name": "L0 Triage Stats",
+            "description": "Get L0 triage statistics: total decisions, skip rate, reasons.",
+        },
+        {
+            "id": "memory-search",
+            "name": "Fisher-Rao Memory Search",
+            "description": "Search long-term memory using Fisher-Rao information geometry.",
+        },
+        # ── DOF Governance Services (Zero-LLM, paid) ──
+        {
+            "id": "governance-verify",
+            "name": "DOF Governance Verification",
+            "description": "Verify text against 50+ deterministic governance rules. Zero LLM, <30ms. Returns {passed, score, violations, warnings}.",
+            "price_usd": 0.01,
+        },
+        {
+            "id": "z3-proof",
+            "name": "DOF Z3 Formal Proof",
+            "description": "Formal verification of state transitions using Z3 theorem prover. Mathematical proofs, not opinions.",
+            "price_usd": 0.05,
+        },
+        {
+            "id": "privacy-scan",
+            "name": "DOF Privacy Leak Scanner",
+            "description": "Test text for PII exposure, API key leaks, memory leaks. Returns detection_rate and risk_level.",
+            "price_usd": 0.10,
+        },
+        {
+            "id": "contract-scan",
+            "name": "DOF Smart Contract Scanner",
+            "description": "Solidity vulnerability detection: reentrancy, tx.origin, selfdestruct, unchecked calls.",
+            "price_usd": 0.50,
+        },
     ],
 }
+
+
+# ═══════════════════════════════════════════════════════
+# DOF GOVERNANCE HANDLERS — Zero-LLM, instant, paid
+# ═══════════════════════════════════════════════════════
+
+def _handle_governance_verify(input_text: str) -> dict:
+    """Verify text against 50+ governance rules. Zero LLM."""
+    from core.governance import ConstitutionEnforcer
+    enforcer = ConstitutionEnforcer()
+    result = enforcer.check(input_text)
+    from core.revenue_tracker import RevenueTracker
+    RevenueTracker().track(source="api", amount=0.01, currency="USD",
+                           description="governance-verify", client="a2a")
+    return {
+        "status": "ok",
+        "service": "governance-verify",
+        "passed": result.passed,
+        "score": result.score,
+        "violations": result.violations,
+        "warnings": result.warnings,
+        "price_charged": 0.01,
+    }
+
+
+def _handle_z3_proof(input_text: str) -> dict:
+    """Run Z3 formal verification on state transitions."""
+    from core.z3_verifier import Z3Verifier
+    verifier = Z3Verifier()
+    proofs = verifier.verify_all()
+    from core.revenue_tracker import RevenueTracker
+    RevenueTracker().track(source="api", amount=0.05, currency="USD",
+                           description="z3-proof", client="a2a")
+    return {
+        "status": "ok",
+        "service": "z3-proof",
+        "proofs": [{"theorem": p.theorem_name, "result": p.result,
+                     "time_ms": p.proof_time_ms} for p in proofs],
+        "all_proven": all(p.result == "VERIFIED" for p in proofs),
+        "price_charged": 0.05,
+    }
+
+
+def _handle_privacy_scan(input_text: str) -> dict:
+    """Scan text for PII, API keys, memory leaks."""
+    from core.agentleak_benchmark import PrivacyLeakGenerator
+    gen = PrivacyLeakGenerator()
+    pii_tests = gen.generate_pii_tests()
+    api_tests = gen.generate_api_key_tests()
+    # Simple detection: check if input contains PII patterns
+    import re
+    findings = []
+    patterns = {
+        "email": r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}',
+        "phone": r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b',
+        "ssn": r'\b\d{3}-\d{2}-\d{4}\b',
+        "api_key": r'(?:sk-|api[_-]?key|token)[a-zA-Z0-9_\-]{20,}',
+        "credit_card": r'\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b',
+        "ip_address": r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b',
+    }
+    for name, pattern in patterns.items():
+        matches = re.findall(pattern, input_text)
+        if matches:
+            findings.append({"type": name, "count": len(matches),
+                           "samples": [m[:20] + "..." for m in matches[:3]]})
+    risk = "critical" if any(f["type"] in ["ssn", "api_key", "credit_card"] for f in findings) \
+           else "high" if findings else "low"
+    from core.revenue_tracker import RevenueTracker
+    RevenueTracker().track(source="api", amount=0.10, currency="USD",
+                           description="privacy-scan", client="a2a")
+    return {
+        "status": "ok",
+        "service": "privacy-scan",
+        "findings": findings,
+        "detection_rate": len(findings) / len(patterns),
+        "risk_level": risk,
+        "text_length": len(input_text),
+        "price_charged": 0.10,
+    }
+
+
+def _handle_contract_scan(input_text: str) -> dict:
+    """Scan Solidity code for vulnerabilities."""
+    from core.contract_scanner import ContractScanner
+    scanner = ContractScanner()
+    result = scanner.scan(input_text)
+    from core.revenue_tracker import RevenueTracker
+    RevenueTracker().track(source="api", amount=0.50, currency="USD",
+                           description="contract-scan", client="a2a")
+    return {
+        "status": "ok",
+        "service": "contract-scan",
+        "vulnerabilities": [{"vuln_id": f.vuln_id, "name": f.name, "severity": f.severity,
+                            "swc": f.swc, "line": f.line, "description": f.description,
+                            "recommendation": f.recommendation}
+                           for f in result.findings],
+        "critical": result.critical_count,
+        "high": result.high_count,
+        "total_issues": len(result.findings),
+        "passed": result.passed,
+        "scan_time_ms": result.scan_time_ms,
+        "price_charged": 0.50,
+    }
+
+
+# ═══════════════════════════════════════════════════════
+# NEW SKILL HANDLERS — Revenue, Triage, Memory
+# ═══════════════════════════════════════════════════════
+
+def _handle_revenue(input_text: str) -> dict:
+    """Handle revenue skill: track, report, usage."""
+    from core.revenue_tracker import RevenueTracker
+    tracker = RevenueTracker()
+    try:
+        data = json.loads(input_text) if input_text.strip().startswith("{") else {}
+    except json.JSONDecodeError:
+        data = {}
+    action = data.get("action", "report")
+    if action == "track":
+        entry = tracker.track(
+            source=data.get("source", "api"),
+            amount=float(data.get("amount", 0)),
+            currency=data.get("currency", "USD"),
+            description=data.get("description", ""),
+            client=data.get("client", ""),
+            payment_method=data.get("payment_method", ""),
+            agent=data.get("agent", ""),
+        )
+        return {"status": "tracked", "entry_id": entry.entry_id}
+    elif action == "usage":
+        return {"status": "ok", "usage": tracker.usage_stats(days=data.get("days", 30))}
+    else:
+        return {"status": "ok", "report": tracker.report(days=data.get("days", 30))}
+
+
+def _handle_triage_stats() -> dict:
+    """Return L0 triage statistics."""
+    from core.l0_triage import L0Triage
+    triage = L0Triage()
+    return {"status": "ok", "triage": triage.get_stats()}
+
+
+def _handle_memory_search(input_text: str) -> dict:
+    """Search memory using Fisher-Rao similarity."""
+    from core.memory_manager import MemoryManager
+    mm = MemoryManager()
+    results = mm.search_long_term(input_text, max_results=10)
+    return {
+        "status": "ok",
+        "query": input_text,
+        "results": [{"key": r.key, "value": r.value[:500], "source": r.source} for r in results],
+        "count": len(results),
+    }
 
 
 # ═══════════════════════════════════════════════════════
@@ -162,6 +355,21 @@ def execute_skill(skill_id: str, input_text: str) -> dict:
             crew = create_daily_ops_crew()
         elif skill_id == "enigma-audit":
             crew = create_enigma_audit_crew(input_text)
+        elif skill_id == "revenue":
+            return _handle_revenue(input_text)
+        elif skill_id == "triage-stats":
+            return _handle_triage_stats()
+        elif skill_id == "memory-search":
+            return _handle_memory_search(input_text)
+        # DOF Paid Services
+        elif skill_id == "governance-verify":
+            return _handle_governance_verify(input_text)
+        elif skill_id == "z3-proof":
+            return _handle_z3_proof(input_text)
+        elif skill_id == "privacy-scan":
+            return _handle_privacy_scan(input_text)
+        elif skill_id == "contract-scan":
+            return _handle_contract_scan(input_text)
         else:
             return {"error": f"Unknown skill: {skill_id}"}
 

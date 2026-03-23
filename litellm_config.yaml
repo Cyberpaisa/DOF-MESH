@@ -1,0 +1,74 @@
+model_list:
+  # Primary: Cerebras Qwen3-235B (868 tok/s, 1M tok/day, NO thinking)
+  - model_name: hackathon
+    litellm_params:
+      model: cerebras/qwen-3-235b-a22b-instruct-2507
+      api_key: "os.environ/CEREBRAS_API_KEY"
+      max_tokens: 8192
+      rpm: 30
+      tpm: 60000
+    model_info:
+      id: cerebras-qwen3
+
+  # Fallback 1: Groq GPT-OSS-120B (BEST quality, 8K tokens/8s)
+  - model_name: hackathon
+    litellm_params:
+      model: groq/openai/gpt-oss-120b
+      api_key: "os.environ/GROQ_API_KEY"
+      max_tokens: 8192
+      rpm: 30
+      tpm: 8000
+    model_info:
+      id: groq-gpt-oss
+
+  # Fallback 2: Groq Kimi K2 (236B MoE, 10K tokens/168ms)
+  - model_name: hackathon
+    litellm_params:
+      model: groq/moonshotai/kimi-k2-instruct
+      api_key: "os.environ/GROQ_API_KEY"
+      max_tokens: 8192
+      rpm: 30
+      tpm: 10000
+    model_info:
+      id: groq-kimi-k2
+
+  # Fallback 3: Mistral Large (262K ctx, 50K TPM)
+  - model_name: hackathon
+    litellm_params:
+      model: mistral/mistral-large-latest
+      api_key: "os.environ/MISTRAL_API_KEY"
+      max_tokens: 8192
+      rpm: 60
+      tpm: 50000
+    model_info:
+      id: mistral-large
+
+  # Fallback 4: Ollama local (zero limits, no thinking)
+  - model_name: hackathon
+    litellm_params:
+      model: ollama/qwen2.5-coder:32b
+      api_base: "http://127.0.0.1:11434"
+      max_tokens: 8192
+    model_info:
+      id: ollama-local
+
+router_settings:
+  routing_strategy: "latency-based-routing"
+  enable_pre_call_checks: true
+  num_retries: 3
+  retry_after: 2
+  allowed_fails: 3
+  cooldown_time: 30
+  retry_policy:
+    RateLimitErrorRetries: 4
+    TimeoutErrorRetries: 3
+    AuthenticationErrorRetries: 0
+
+litellm_settings:
+  default_fallbacks: ["ollama-local"]
+  request_timeout: 120
+  set_verbose: false
+  drop_params: true
+
+general_settings:
+  master_key: "sk-hackathon-2026"

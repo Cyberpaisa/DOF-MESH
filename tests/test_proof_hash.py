@@ -11,7 +11,7 @@ Verifies:
 
 import unittest
 
-from core.proof_hash import ProofSerializer
+from core.proof_hash import ProofSerializer, ProofBatcher
 
 
 class TestSerializeProof(unittest.TestCase):
@@ -120,6 +120,75 @@ class TestSerializeModel(unittest.TestCase):
         })
         self.assertIn("pre", result)
         self.assertIn("post", result)
+
+
+class TestProofBatcher(unittest.TestCase):
+    """Test ProofBatcher — bridges proof_hash + merkle_tree."""
+
+    def test_add_proof_returns_hex(self):
+        b = ProofBatcher()
+        h = b.add_proof(["x > 0"], "PROVEN", ["INV-1"])
+        self.assertIsInstance(h, str)
+        self.assertEqual(len(h), 64)  # 32 bytes → 64 hex chars
+
+    def test_size_tracks_entries(self):
+        b = ProofBatcher()
+        self.assertEqual(b.size, 0)
+        b.add_proof(["a > 0"], "PROVEN", ["INV-1"])
+        self.assertEqual(b.size, 1)
+        b.add_proof(["b < 1"], "PROVEN", ["INV-2"])
+        self.assertEqual(b.size, 2)
+
+    def test_finalize_empty(self):
+        b = ProofBatcher()
+        self.assertEqual(b.finalize(), {})
+
+    def test_finalize_single_proof(self):
+        b = ProofBatcher()
+        h = b.add_proof(["x > 0"], "PROVEN", ["INV-1"])
+        result = b.finalize()
+        self.assertEqual(result["leaf_count"], 1)
+        self.assertIn(h, result["leaves"])
+        self.assertTrue(len(result["root"]) > 0)
+        self.assertEqual(b.size, 0)  # cleared after finalize
+
+    def test_finalize_multiple_proofs(self):
+        b = ProofBatcher()
+        h1 = b.add_proof(["a > 0"], "PROVEN", ["INV-1"])
+        h2 = b.add_proof(["b < 1"], "VIOLATED", ["INV-2"])
+        h3 = b.add_proof(["c == 0"], "PROVEN", ["INV-3"])
+        result = b.finalize()
+        self.assertEqual(result["leaf_count"], 3)
+        self.assertEqual(result["depth"], 2)  # ceil(log2(3)) = 2
+        self.assertEqual(len(result["entries"]), 3)
+        self.assertEqual(result["entries"][1]["result"], "VIOLATED")
+
+    def test_verify_entry_valid(self):
+        b = ProofBatcher()
+        h1 = b.add_proof(["a > 0"], "PROVEN", ["INV-1"])
+        h2 = b.add_proof(["b < 1"], "PROVEN", ["INV-2"])
+        result = b.finalize()
+        self.assertTrue(b.verify_entry(result, h1))
+        self.assertTrue(b.verify_entry(result, h2))
+
+    def test_verify_entry_invalid_hash(self):
+        b = ProofBatcher()
+        b.add_proof(["a > 0"], "PROVEN", ["INV-1"])
+        result = b.finalize()
+        self.assertFalse(b.verify_entry(result, "00" * 32))
+
+    def test_verify_entry_empty_finalized(self):
+        b = ProofBatcher()
+        self.assertFalse(b.verify_entry({}, "aabb"))
+
+    def test_deterministic_root(self):
+        """Same proofs in same order → same Merkle root."""
+        def build():
+            b = ProofBatcher()
+            b.add_proof(["x > 0"], "PROVEN", ["INV-1"])
+            b.add_proof(["y < 5"], "PROVEN", ["INV-2"])
+            return b.finalize()["root"]
+        self.assertEqual(build(), build())
 
 
 if __name__ == "__main__":

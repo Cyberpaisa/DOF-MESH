@@ -21,7 +21,7 @@ import json
 import uuid
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 
 logger = logging.getLogger("core.storage")
 
@@ -31,7 +31,7 @@ LOGS_DIR = os.path.join(BASE_DIR, "logs")
 
 
 def _now_iso() -> str:
-    return datetime.utcnow().isoformat()
+    return datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
 
 
 # ─────────────────────────────────────────────────────────────────────
