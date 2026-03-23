@@ -64,7 +64,9 @@ class RuntimeObserver:
         self.log_path = log_path
 
     def load_runs(self, window: int = 100) -> list[dict]:
-        """Load last N runs from execution_log.jsonl."""
+        """Load last N runs from execution_log.jsonl. Returns [] for window <= 0."""
+        if window <= 0:
+            return []
         if not os.path.exists(self.log_path):
             logger.warning(f"Log file not found: {self.log_path}")
             return []

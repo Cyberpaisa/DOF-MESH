@@ -313,5 +313,25 @@ class TestJSONL(TmpMemoryMixin):
         self.assertEqual([e.key for e in loaded], [f"k{i}" for i in range(5)])
 
 
+class TestGetRecentEpisodesNonPositiveN(unittest.TestCase):
+    """get_recent_episodes(n<=0) must return [] — Python -0 gotcha guard."""
+
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp()
+        mm_mod.MEMORY_DIR = self.tmpdir
+        self.mm = MemoryManager()
+        for i in range(5):
+            self.mm.store_episode(f"r{i}", "crew", f"in{i}", f"out{i}", "ok")
+
+    def test_n_zero_returns_empty(self):
+        self.assertEqual(self.mm.get_recent_episodes(n=0), [])
+
+    def test_n_negative_returns_empty(self):
+        self.assertEqual(self.mm.get_recent_episodes(n=-1), [])
+
+    def test_n_positive_returns_data(self):
+        self.assertEqual(len(self.mm.get_recent_episodes(n=3)), 3)
+
+
 if __name__ == "__main__":
     unittest.main()
