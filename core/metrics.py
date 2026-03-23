@@ -99,7 +99,9 @@ class MetricsLogger:
         self.log("supervisor_eval", run_id=run_id, status=decision, meta=scores)
 
     def get_recent(self, n: int = 50) -> list[dict]:
-        """Return last N events."""
+        """Return last N events. Returns [] for n <= 0."""
+        if n <= 0:
+            return []
         if not os.path.exists(self._file):
             return []
         try:

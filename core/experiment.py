@@ -158,9 +158,9 @@ class SimulatedCrew:
         for s in self._steps:
             output_parts.append(
                 f"## {s['agent']} Output\n"
-                f"Análisis completado por {s['agent']} usando {s['provider']}.\n"
-                f"Recomendación: implementar el siguiente paso.\n"
-                f"Fuente: https://example.com/{s['agent']}\n"
+                f"Analysis completed by {s['agent']} using {s['provider']}.\n"
+                f"Recommendation: implement the next step as defined in the task.\n"
+                f"Source: https://example.com/{s['agent']}\n"
             )
         output = "\n".join(output_parts)
         return type("Result", (), {"raw": output})()
@@ -264,6 +264,34 @@ def run_experiment(
                 result = crew.kickoff()
                 output = result.raw if hasattr(result, "raw") else str(result)
                 step_ms = (time.time() - run_start) * 1000
+
+                # Guard: empty-output from provider (e.g. expired API key → 403 → "")
+                # Mirrors the same guard in crew_runner.py:202
+                if not output or len(output.strip()) < 10:
+                    logger.warning(
+                        f"[{run_id[:8]}] Run {i}: provider returned empty output "
+                        f"— marking as EmptyOutput failure"
+                    )
+                    empty_step = StepTrace(
+                        step_index=0,
+                        agent="crew",
+                        provider="simulated",
+                        latency_ms=round(step_ms, 1),
+                        status="failed",
+                        error="empty_output_from_provider",
+                        error_class="EmptyOutput",
+                        governance_passed=False,
+                        token_input=estimate_tokens(prompt),
+                    )
+                    trace.steps.append(empty_step)
+                    trace.status = "error"
+                    store.save(trace)
+                    run_results.append({
+                        "status": "error",
+                        "error": "empty_output_from_provider",
+                        "run_id": run_id,
+                    })
+                    continue
 
                 # Build step trace
                 step = StepTrace(

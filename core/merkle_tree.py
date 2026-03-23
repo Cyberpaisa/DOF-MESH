@@ -86,7 +86,11 @@ class MerkleTree:
     """
 
     def __init__(self, leaves: list[str] | None = None):
-        self._leaves: list[str] = list(leaves) if leaves else []
+        raw = list(leaves) if leaves else []
+        # Normalize every leaf: skip None values, auto-convert plain text to hex
+        self._leaves: list[str] = [
+            _ensure_hex(leaf) for leaf in raw if leaf is not None
+        ]
         self._layers: list[list[str]] = []
         self._root: str = ""
         if self._leaves:

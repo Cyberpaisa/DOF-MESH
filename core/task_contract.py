@@ -130,8 +130,8 @@ class TaskContract:
 
     @classmethod
     def from_string(cls, text: str) -> "TaskContract":
-        """Load a contract from a markdown string."""
-        sections = _parse_contract_md(text)
+        """Load a contract from a markdown string. None is treated as empty."""
+        sections = _parse_contract_md(text or "")
         return cls(sections, source="<string>")
 
     # ─── Precondition verification ───────────────────────────────

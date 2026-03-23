@@ -105,9 +105,10 @@ class AutonomousDaemon:
     def __init__(self,
                  cycle_interval: int = 60,
                  model: str = "claude-opus-4-6",
-                 budget_per_cycle: float = 2.0,
+                 budget_per_cycle: float = 0.50,  # was 2.0 — capped to prevent 4hr runaway cycles
                  max_agents_per_cycle: int = 3,
-                 dry_run: bool = False):
+                 dry_run: bool = False,
+                 log_file: str = ""):
         self.cycle_interval = cycle_interval
         self.model = model
         self.budget_per_cycle = budget_per_cycle
@@ -117,9 +118,10 @@ class AutonomousDaemon:
         self.total_improvements = 0
         self.history: list[CycleResult] = []
         self._commander = None
+        self.log_file = log_file if log_file else DAEMON_LOG
 
         # Ensure log dirs exist
-        os.makedirs(os.path.dirname(DAEMON_LOG), exist_ok=True)
+        os.makedirs(os.path.dirname(self.log_file), exist_ok=True)
         os.makedirs(QUEUE_DIR, exist_ok=True)
 
     def _get_commander(self):
@@ -152,9 +154,9 @@ class AutonomousDaemon:
 
         # Check recent error count from daemon log
         try:
-            if os.path.exists(DAEMON_LOG):
+            if os.path.exists(self.log_file):
                 recent_errors = 0
-                with open(DAEMON_LOG) as f:
+                with open(self.log_file) as f:
                     for line in f:
                         try:
                             entry = json.loads(line)
@@ -225,12 +227,24 @@ class AutonomousDaemon:
                 metadata={"trigger": "telegram_queue"},
             )
 
-        # Priority 2: Too many recent errors
+        # Priority 2: Critical dirty file count — takes precedence over error patrol
+        # >30 uncommitted files is a bigger emergency than diagnosing old errors
+        if state.git_dirty_files > 30:
+            return DaemonAction(
+                mode="review",
+                action=f"CRITICAL: {state.git_dirty_files} uncommitted files — review and commit now",
+                priority=2,
+                agent_count=2,
+                estimated_seconds=120,
+                metadata={"trigger": "critical_dirty_files", "files": state.git_dirty_files},
+            )
+
+        # Priority 3: Too many recent errors
         if state.recent_errors >= 3:
             return DaemonAction(
                 mode="patrol",
                 action=f"Diagnose {state.recent_errors} recent errors in last hour",
-                priority=2,
+                priority=3,
                 agent_count=1,
                 estimated_seconds=60,
                 metadata={"trigger": "error_threshold", "errors": state.recent_errors},
@@ -371,8 +385,8 @@ class AutonomousDaemon:
         team_result = await commander.run_team(
             task="Review the recent code changes in this repository",
             agents={
-                "quality": "Check code quality, patterns, and potential bugs in modified files. Run: git diff --stat",
-                "security": "Check for security issues in modified files. Look for hardcoded secrets, injection risks, unsafe operations",
+                "quality": "Check code quality in modified files. Run: git diff --stat. Then run: git add core/ scripts/ dof/ && git commit --author='Juan Carlos Quiceno Vasquez <jquiceva@gmail.com>' -m 'chore: auto-commit reviewed changes' 2>/dev/null || echo 'nothing to commit'",
+                "security": "Check for security issues in modified files. Look for hardcoded secrets, injection risks, unsafe operations. Never commit .env or oracle_key.json files.",
             },
             parallel=True,
         )
@@ -432,8 +446,13 @@ class AutonomousDaemon:
             },
         }
 
-        with open(DAEMON_LOG, "a") as f:
+        with open(self.log_file, "a") as f:
             f.write(json.dumps(entry) + "\n")
+
+        # Track successful improvements (build or improve modes)
+        if cycle_result.result_status == "success" and \
+           cycle_result.action.mode in ("improve", "build"):
+            self.total_improvements += 1
 
         self.history.append(cycle_result)
 
@@ -543,7 +562,8 @@ class BuilderDaemon(AutonomousDaemon):
 
     def __init__(self, **kwargs):
         kwargs.setdefault("cycle_interval", 180)
-        kwargs.setdefault("budget_per_cycle", 3.0)
+        kwargs.setdefault("budget_per_cycle", 0.50)  # was 3.0 — capped to prevent hour-long build cycles
+        kwargs.setdefault("log_file", os.path.join(BASE_DIR, "logs", "daemon", "cycles_builder.jsonl"))
         super().__init__(**kwargs)
         self.role = "builder"
 
@@ -593,7 +613,8 @@ class GuardianDaemon(AutonomousDaemon):
 
     def __init__(self, **kwargs):
         kwargs.setdefault("cycle_interval", 300)
-        kwargs.setdefault("budget_per_cycle", 2.0)
+        kwargs.setdefault("budget_per_cycle", 0.50)  # was 2.0 — capped to match builder/default
+        kwargs.setdefault("log_file", os.path.join(BASE_DIR, "logs", "daemon", "cycles_guardian.jsonl"))
         super().__init__(**kwargs)
         self.role = "guardian"
 
@@ -648,7 +669,8 @@ class ResearcherDaemon(AutonomousDaemon):
 
     def __init__(self, **kwargs):
         kwargs.setdefault("cycle_interval", 600)
-        kwargs.setdefault("budget_per_cycle", 2.0)
+        kwargs.setdefault("budget_per_cycle", 0.50)  # was 2.0 — capped to match system-wide limit
+        kwargs.setdefault("log_file", os.path.join(BASE_DIR, "logs", "daemon", "cycles_researcher.jsonl"))
         super().__init__(**kwargs)
         self.role = "researcher"
 

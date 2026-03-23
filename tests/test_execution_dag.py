@@ -511,5 +511,69 @@ class TestFromRealData(unittest.TestCase):
         self.assertEqual(dag.detect_cycles(), [])
 
 
+class TestFromTraceRecordsDuplicateRound(unittest.TestCase):
+    """from_trace_records must survive duplicate or missing round_number."""
+
+    def _rec(self, rnum=None):
+        r = {"round_type": "ADVERSARIAL", "initiator_name": "A", "target_name": "B"}
+        if rnum is not None:
+            r["round_number"] = rnum
+        return r
+
+    def test_missing_round_number_two_records(self):
+        dag = ExecutionDAG.from_trace_records([self._rec(), self._rec()])
+        # 4 nodes per round × 2 rounds = 8
+        self.assertEqual(len(dag.nodes), 8)
+
+    def test_duplicate_round_number_no_collision(self):
+        dag = ExecutionDAG.from_trace_records([self._rec(1), self._rec(1)])
+        self.assertEqual(len(dag.nodes), 8)
+
+    def test_mixed_present_and_missing_round_number(self):
+        dag = ExecutionDAG.from_trace_records([self._rec(5), self._rec()])
+        self.assertEqual(len(dag.nodes), 8)
+
+    def test_all_nodes_unique_ids(self):
+        dag = ExecutionDAG.from_trace_records([self._rec(), self._rec(), self._rec()])
+        node_ids = list(dag.nodes.keys())
+        self.assertEqual(len(node_ids), len(set(node_ids)))
+
+
+class TestAddNodeDuplicate(unittest.TestCase):
+    """Duplicate node_id must raise ValueError (silent overwrite is a data-loss bug)."""
+
+    def setUp(self):
+        self.dag = ExecutionDAG()
+        self.dag.add_node("x", "AGENT", metadata={"label": "original"})
+
+    def test_duplicate_node_raises(self):
+        with self.assertRaises(ValueError):
+            self.dag.add_node("x", "TOOL")
+
+    def test_duplicate_message_contains_node_id(self):
+        with self.assertRaises(ValueError) as ctx:
+            self.dag.add_node("x", "TOOL")
+        self.assertIn("x", str(ctx.exception))
+
+    def test_duplicate_does_not_overwrite_existing(self):
+        try:
+            self.dag.add_node("x", "TOOL", metadata={"label": "overwrite"})
+        except ValueError:
+            pass
+        self.assertEqual(self.dag.nodes["x"].node_type, "AGENT")
+        self.assertEqual(self.dag.nodes["x"].metadata["label"], "original")
+
+    def test_unique_nodes_still_added(self):
+        self.dag.add_node("y", "TOOL")
+        self.assertIn("y", self.dag.nodes)
+
+    def test_node_count_unchanged_after_failed_duplicate(self):
+        try:
+            self.dag.add_node("x", "TOOL")
+        except ValueError:
+            pass
+        self.assertEqual(len(self.dag.nodes), 1)
+
+
 if __name__ == "__main__":
     unittest.main()

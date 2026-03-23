@@ -340,5 +340,31 @@ class TestAppendLoad(TmpRevenueMixin):
         self.assertEqual([r["i"] for r in rows], list(range(5)))
 
 
+class TestTrackAmountCoercion(TmpRevenueMixin):
+    """track() must coerce numeric types and reject non-numeric amounts."""
+
+    def test_string_amount_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            self._tracker().track("svc", "not_a_number")
+
+    def test_none_amount_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            self._tracker().track("svc", None)
+
+    def test_int_amount_coerced_to_float(self):
+        e = self._tracker().track("svc", 5)
+        self.assertIsInstance(e.amount, float)
+        self.assertAlmostEqual(e.amount, 5.0)
+
+    def test_numeric_string_coerced(self):
+        e = self._tracker().track("svc", "3.14")
+        self.assertAlmostEqual(e.amount, 3.14)
+
+    def test_error_message_contains_type_name(self):
+        with self.assertRaises(TypeError) as ctx:
+            self._tracker().track("svc", [1, 2])
+        self.assertIn("list", str(ctx.exception))
+
+
 if __name__ == "__main__":
     unittest.main()

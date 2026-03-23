@@ -90,6 +90,8 @@ class ExecutionDAG:
         """
         if node_type not in NODE_TYPES:
             raise ValueError(f"Invalid node_type '{node_type}'. Must be one of {NODE_TYPES}")
+        if node_id in self.nodes:
+            raise ValueError(f"Node '{node_id}' already exists in DAG")
 
         node = DAGNode(
             node_id=node_id,
@@ -407,9 +409,14 @@ class ExecutionDAG:
             Populated ExecutionDAG.
         """
         dag = cls()
+        seen_rounds: set = set()
 
-        for rec in records:
-            rnum = rec.get("round_number", 0)
+        for idx, rec in enumerate(records):
+            rnum = rec.get("round_number", idx)
+            # Ensure uniqueness when round_number is missing or repeated
+            if rnum in seen_rounds:
+                rnum = max(seen_rounds) + 1
+            seen_rounds.add(rnum)
             rtype = rec.get("round_type", "UNKNOWN")
             initiator = rec.get("initiator_name", f"agent_{rnum}")
             target = rec.get("target_name", f"target_{rnum}")

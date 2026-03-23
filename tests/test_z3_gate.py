@@ -199,5 +199,30 @@ class TestGateVerificationDataclass(unittest.TestCase):
         self.assertEqual(v.fallback_layer, "Constitution")
 
 
+class TestValidateOutputNoneInput(unittest.TestCase):
+    """validate_output(None) must return REJECTED, not raise AttributeError."""
+
+    def setUp(self):
+        self.gate = Z3Gate()
+
+    def test_none_does_not_raise(self):
+        try:
+            self.gate.validate_output(None)
+        except (AttributeError, TypeError) as e:
+            self.fail(f"validate_output(None) raised {type(e).__name__}: {e}")
+
+    def test_none_returns_rejected(self):
+        v = self.gate.validate_output(None)
+        self.assertEqual(v.result, GateResult.REJECTED)
+
+    def test_none_counterexample_has_error_key(self):
+        v = self.gate.validate_output(None)
+        self.assertIn("error", v.counterexample)
+
+    def test_none_verification_time_is_zero(self):
+        v = self.gate.validate_output(None)
+        self.assertEqual(v.verification_time_ms, 0.0)
+
+
 if __name__ == "__main__":
     unittest.main()

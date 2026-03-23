@@ -76,7 +76,16 @@ class Z3Gate:
         """Validate an agent output against governance constraints.
 
         Dispatches to type-specific validation based on output_type.
+        Returns REJECTED immediately if output is None.
         """
+        if output is None:
+            return GateVerification(
+                result=GateResult.REJECTED,
+                decision_type="unknown",
+                invariants_checked=[],
+                counterexample={"error": "output is None"},
+                verification_time_ms=0.0,
+            )
         if not output.validate_schema():
             return GateVerification(
                 result=GateResult.REJECTED,

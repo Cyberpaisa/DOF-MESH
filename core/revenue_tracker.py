@@ -69,7 +69,11 @@ class RevenueTracker:
     def track(self, source: str, amount: float, currency: str = "USD",
               description: str = "", client: str = "",
               payment_method: str = "", agent: str = "") -> RevenueEntry:
-        """Record a revenue event."""
+        """Record a revenue event. Raises TypeError if amount cannot be coerced to float."""
+        try:
+            amount = float(amount)
+        except (TypeError, ValueError) as exc:
+            raise TypeError(f"amount must be numeric, got {type(amount).__name__!r}: {exc}") from exc
         entry = RevenueEntry(
             source=source, amount=amount, currency=currency,
             description=description, client=client,

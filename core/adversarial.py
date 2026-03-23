@@ -407,6 +407,7 @@ class RedTeamAgent:
         Tests whether the payload contains patterns that could hijack
         agent behavior when injected via external data sources.
         """
+        payload = payload or ""
         text_lower = payload.lower()
         detected = any(p in text_lower for p in _PROMPT_INJECTION_PATTERNS)
         return AttackResult(
@@ -422,6 +423,7 @@ class RedTeamAgent:
         Tests whether the target text contains jailbreak persuasion
         patterns that attempt to bypass safety guardrails.
         """
+        target = target or ""
         text_lower = target.lower()
         detected = any(p in text_lower for p in _JAILBREAK_PATTERNS)
         return AttackResult(
@@ -437,6 +439,7 @@ class RedTeamAgent:
         Tests whether the prefix contains patterns that attempt to
         extract model training data or system prompts.
         """
+        prefix = prefix or ""
         text_lower = prefix.lower()
         detected = any(p in text_lower for p in _DATA_EXTRACTION_PATTERNS)
         return AttackResult(

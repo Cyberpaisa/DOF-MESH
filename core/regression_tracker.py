@@ -468,7 +468,9 @@ class RegressionTracker:
             f.write(json.dumps(report.to_dict(), default=str) + "\n")
 
     def get_history(self, n: int = 10) -> list:
-        """Return last N regression reports."""
+        """Return last N regression reports. Returns [] for n <= 0."""
+        if n <= 0:
+            return []
         if not os.path.exists(self.REPORTS_FILE):
             return []
         with open(self.REPORTS_FILE) as f:

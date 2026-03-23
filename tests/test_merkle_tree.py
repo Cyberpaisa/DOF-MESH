@@ -362,5 +362,35 @@ class TestOracleBridgeMerkleIntegration(unittest.TestCase):
         self.assertEqual(result["status"], "error")
 
 
+class TestMerkleTreePlainStringLeaves(unittest.TestCase):
+    """MerkleTree must accept plain strings, not just pre-hashed hex leaves."""
+
+    def test_plain_strings_build_without_error(self):
+        mt = MerkleTree(["a", "b", "c"])
+        self.assertNotEqual(mt.root, "")
+
+    def test_plain_strings_root_is_hex(self):
+        mt = MerkleTree(["hello", "world"])
+        self.assertRegex(mt.root, r'^[0-9a-f]{64}$')
+
+    def test_plain_strings_consistent_root(self):
+        mt1 = MerkleTree(["x", "y"])
+        mt2 = MerkleTree(["x", "y"])
+        self.assertEqual(mt1.root, mt2.root)
+
+    def test_none_leaves_are_skipped(self):
+        mt = MerkleTree([None, "b", None])
+        self.assertEqual(len(mt.leaves), 1)
+
+    def test_all_none_leaves_empty_root(self):
+        mt = MerkleTree([None, None])
+        self.assertEqual(mt.root, "")
+
+    def test_mixed_none_and_plain_strings(self):
+        mt_with_none = MerkleTree([None, "a", "b"])
+        mt_without = MerkleTree(["a", "b"])
+        self.assertEqual(mt_with_none.root, mt_without.root)
+
+
 if __name__ == "__main__":
     unittest.main()

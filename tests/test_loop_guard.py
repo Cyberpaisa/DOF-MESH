@@ -209,5 +209,32 @@ class TestEdgeCases(unittest.TestCase):
         self.assertEqual(len(guard.history), 10)
 
 
+class TestSimilarityEmptyWhitespace(unittest.TestCase):
+    """Verify documented behaviour: empty/whitespace strings yield 1.0, not 0.0."""
+
+    def test_both_empty_is_one(self):
+        # Two empty outputs are considered identical (loop signal)
+        self.assertEqual(LoopGuard.similarity("", ""), 1.0)
+
+    def test_whitespace_only_both_is_one(self):
+        # Whitespace-only strings have no tokens → same as both empty
+        self.assertEqual(LoopGuard.similarity("   ", "\t\n"), 1.0)
+
+    def test_empty_and_whitespace_is_one(self):
+        self.assertEqual(LoopGuard.similarity("", "   "), 1.0)
+
+    def test_one_empty_one_nonempty_is_zero(self):
+        self.assertEqual(LoopGuard.similarity("", "hello"), 0.0)
+
+    def test_whitespace_vs_nonempty_is_zero(self):
+        self.assertEqual(LoopGuard.similarity("   ", "hello"), 0.0)
+
+    def test_consecutive_blank_outputs_detected_as_loop(self):
+        lg = LoopGuard(max_iterations=10)
+        lg.check("", 0)
+        result = lg.check("   ", 1)
+        self.assertEqual(result.status, "LOOP_DETECTED")
+
+
 if __name__ == "__main__":
     unittest.main()

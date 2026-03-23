@@ -67,7 +67,9 @@ class LoopGuard:
         """Compute Jaccard similarity between two strings.
 
         Splits on whitespace, compares word sets.
-        Returns 0.0 if both strings are empty.
+        Returns 1.0 if both strings are empty (or whitespace-only) — two
+        blank outputs are considered identical.  Returns 0.0 if exactly
+        one side is empty.
 
         Args:
             a: First string.

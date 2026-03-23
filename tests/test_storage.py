@@ -454,5 +454,74 @@ class TestStorageImports(unittest.TestCase):
         self.assertIn("PostgreSQLBackend", dof.__all__)
 
 
+class TestSaveMemoryNonDictRejected(unittest.TestCase):
+    """save_memory must reject non-dict entries to prevent JSONL corruption."""
+
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp()
+        self.backend = JSONLBackend(
+            memory_file=os.path.join(self.tmpdir, "mem.jsonl"),
+            attestation_file=os.path.join(self.tmpdir, "att.jsonl"),
+            audit_file=os.path.join(self.tmpdir, "aud.jsonl"),
+        )
+        self.backend.initialize()
+
+    def tearDown(self):
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_save_none_returns_false(self):
+        self.assertFalse(self.backend.save_memory(None))
+
+    def test_save_list_returns_false(self):
+        self.assertFalse(self.backend.save_memory(["a", "b"]))
+
+    def test_save_string_returns_false(self):
+        self.assertFalse(self.backend.save_memory("hello"))
+
+    def test_save_none_does_not_corrupt_store(self):
+        self.backend.save_memory(None)
+        # query_memories must not crash after rejected None
+        result = self.backend.query_memories("")
+        self.assertIsInstance(result, list)
+
+    def test_save_valid_dict_still_works(self):
+        ok = self.backend.save_memory({"id": "test-1", "content": "hello"})
+        self.assertTrue(ok)
+
+
+class TestJSONLBackendNoneGuards(unittest.TestCase):
+    """save_attestation and save_audit_event must reject non-dict inputs."""
+
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp()
+        self.backend = JSONLBackend(
+            memory_file=os.path.join(self.tmpdir, "mem.jsonl"),
+            attestation_file=os.path.join(self.tmpdir, "att.jsonl"),
+            audit_file=os.path.join(self.tmpdir, "aud.jsonl"),
+        )
+        self.backend.initialize()
+
+    def tearDown(self):
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_save_attestation_none_returns_false(self):
+        self.assertFalse(self.backend.save_attestation(None))
+
+    def test_save_attestation_string_returns_false(self):
+        self.assertFalse(self.backend.save_attestation("not a dict"))
+
+    def test_save_attestation_valid_dict_works(self):
+        self.assertTrue(self.backend.save_attestation({"id": "a1", "cert": "x"}))
+
+    def test_save_audit_event_none_returns_false(self):
+        self.assertFalse(self.backend.save_audit_event(None))
+
+    def test_save_audit_event_string_returns_false(self):
+        self.assertFalse(self.backend.save_audit_event("bad"))
+
+    def test_save_audit_event_valid_dict_works(self):
+        self.assertTrue(self.backend.save_audit_event({"event": "test"}))
+
+
 if __name__ == "__main__":
     unittest.main()
