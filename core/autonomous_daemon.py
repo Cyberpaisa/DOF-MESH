@@ -176,7 +176,8 @@ class AutonomousDaemon:
                 ["git", "status", "--porcelain"],
                 capture_output=True, text=True, cwd=BASE_DIR, timeout=10
             )
-            state.git_dirty_files = len([l for l in result.stdout.strip().split("\n") if l.strip()])
+            # Exclude untracked files (??) — daemon can't commit them, they create false signal
+            state.git_dirty_files = len([l for l in result.stdout.strip().split("\n") if l.strip() and not l.startswith("??")])
         except Exception:
             pass
 
