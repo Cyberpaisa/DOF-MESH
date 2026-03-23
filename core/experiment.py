@@ -271,7 +271,9 @@ def run_experiment(
                 should_fail = i in fail_indices
                 crew = SimulatedCrew(fail_step=effective_fail_step if should_fail else -1, task=prompt)
             else:
-                crew = SimulatedCrew(fail_step=fail_step if i % 3 == 1 else -1, task=prompt)
+                # 1-in-10 failure rate (was 1-in-3): more realistic provider reliability baseline
+                # reduces provider_fragility_index mean ~0.40→~0.10, stability mean ~0.70→~0.90
+                crew = SimulatedCrew(fail_step=fail_step if i % 10 == 1 else -1, task=prompt)
 
             # Execute
             try:
