@@ -96,11 +96,13 @@ class TestMeshOrchestrator(unittest.TestCase):
     """Test MeshOrchestrator autonomous dispatch."""
 
     def setUp(self):
+        MeshOrchestrator.reset()
         self.temp_dir = tempfile.TemporaryDirectory()
         self.mesh_dir = Path(self.temp_dir.name)
         self.orchestrator = MeshOrchestrator(mesh_dir=str(self.mesh_dir))
 
     def tearDown(self):
+        MeshOrchestrator.reset()
         self.temp_dir.cleanup()
 
     def test_orchestrator_initialization(self):

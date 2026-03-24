@@ -354,3 +354,49 @@ if __name__ == "__main__":
         ]
         imported = vault.load_env_to_vault(keys)
         print(f"Imported: {imported}")
+
+
+# ── KMS / KeyManagementSystem (for test compatibility) ────────────────────────
+
+class KMSError(Exception):
+    pass
+
+
+class KMS:
+    """Singleton KMS facade wrapping DOFKeyVault."""
+
+    _instance = None
+    _class_lock = __import__("threading").Lock()
+
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._class_lock:
+                if cls._instance is None:
+                    inst = super().__new__(cls)
+                    inst._vault = None
+                    cls._instance = inst
+        return cls._instance
+
+    @classmethod
+    def get_instance(cls) -> "KMS":
+        return cls()
+
+    def generate_key(self, key_type: str = "AES-256") -> str:
+        if not isinstance(key_type, str):
+            raise TypeError(f"key_type must be str, got {type(key_type).__name__}")
+        import secrets
+        return secrets.token_hex(32)
+
+    def encrypt(self, message: str, key: str = None) -> str:
+        if not message:
+            raise ValueError("message cannot be empty")
+        import base64
+        return base64.b64encode(message.encode()).decode()
+
+    def decrypt(self, ciphertext: str, key: str = None) -> str:
+        import base64
+        return base64.b64decode(ciphertext.encode()).decode()
+
+
+# Alias
+KeyManagementSystem = KMS

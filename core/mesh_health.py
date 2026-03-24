@@ -295,3 +295,56 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# ── MeshHealthError + test-compatibility additions ─────────────────────────────
+
+class MeshHealthError(Exception):
+    """Raised by MeshHealth when health check fails."""
+
+
+# Patch existing MeshHealth to add get_instance, check_health, check_nodes
+
+MeshHealth._class_lock = __import__("threading").Lock()
+
+_orig_MeshHealth_new = MeshHealth.__new__
+
+
+@classmethod
+def _mh_get_instance(cls) -> "MeshHealth":
+    if cls._instance is None:
+        with cls._class_lock:
+            if cls._instance is None:
+                cls._instance = cls()
+    return cls._instance
+
+
+def _mh_check_nodes(self):
+    """Return list of active node IDs (patchable for testing)."""
+    try:
+        import json
+        from pathlib import Path
+        nodes_path = Path(__file__).resolve().parent.parent / "logs" / "mesh" / "nodes.json"
+        if nodes_path.exists():
+            with open(nodes_path) as f:
+                return list(json.load(f).keys())
+    except Exception:
+        pass
+    return []
+
+
+def _mh_check_health(self) -> bool:
+    """Return True if mesh is healthy, False otherwise."""
+    result = self.check_nodes()
+    if isinstance(result, (list, dict)):
+        return bool(result)
+    return False
+
+
+MeshHealth.get_instance = _mh_get_instance
+MeshHealth.check_nodes = _mh_check_nodes
+MeshHealth.check_health = _mh_check_health
+
+
+# Re-export (alias for test compatibility)
+# MeshHealth and MeshHealthError are now importable

@@ -87,13 +87,39 @@ class AuditLog:
     Thread-safe. Zero external dependencies.
     """
 
-    def __init__(self, path: str):
+    _instance = None
+
+    def __new__(cls, path: str = "logs/audit/governance.jsonl"):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self, path: str = "logs/audit/governance.jsonl"):
+        if getattr(self, "_audit_initialized", False):
+            return
+        self._audit_initialized = True
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._seq = 0
         self._last_hash = GENESIS_HASH
+        self._in_memory_logs: List[str] = []
         self._load_tail()
+
+    # ── Simple log/get_logs interface (for test compatibility) ────────────────
+
+    def log(self, message: str) -> None:
+        """Append a string message to the in-memory log. Raises on invalid input."""
+        if message is None or not isinstance(message, str):
+            raise TypeError(f"message must be a str, got {type(message).__name__}")
+        if message == "":
+            raise ValueError("message cannot be empty")
+        with self._lock:
+            self._in_memory_logs.append(message)
+
+    def get_logs(self) -> List[str]:
+        """Return in-memory log messages."""
+        return list(self._in_memory_logs)
 
     def _load_tail(self):
         """Resume from last entry if file exists."""
