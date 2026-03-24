@@ -12,13 +12,43 @@ class NodeStats:
 
 class LoadBalancer:
     _instance = None
-    _nodes = {}
+
+    def __init__(self):
+        self._nodes: Dict[str, NodeStats] = {}
+        self._node_list: List[str] = []
+        self._rr_index: int = 0
 
     @staticmethod
     def get_load_balancer():
         if LoadBalancer._instance is None:
             LoadBalancer._instance = LoadBalancer()
         return LoadBalancer._instance
+
+    def add_node(self, node_id: str):
+        if node_id not in self._nodes:
+            self._nodes[node_id] = NodeStats(node_id, 0, 0.0, 1.0, 0.0)
+            self._node_list.append(node_id)
+
+    def remove_node(self, node_id: str):
+        if node_id not in self._nodes:
+            raise ValueError(f"Node '{node_id}' not found")
+        del self._nodes[node_id]
+        self._node_list.remove(node_id)
+        if self._rr_index >= len(self._node_list):
+            self._rr_index = 0
+
+    def get_next_node(self) -> str:
+        if not self._node_list:
+            raise IndexError("No nodes available")
+        node = self._node_list[self._rr_index % len(self._node_list)]
+        self._rr_index = (self._rr_index + 1) % len(self._node_list)
+        return node
+
+    def get_nodes(self) -> List[str]:
+        return list(self._node_list)
+
+    def get_nodes(self) -> List[str]:
+        return list(self._node_list)
 
     def update_stats(self, node_id: str, stats: NodeStats):
         self._nodes[node_id] = stats
@@ -52,8 +82,13 @@ class LoadBalancer:
         else:
             raise ValueError('Invalid strategy')
 
-# Example usage:
-load_balancer = LoadBalancer.get_load_balancer()
-node_stats = NodeStats('node1', 10, 50.0, 0.9, 1643723400)
-load_balancer.update_stats('node1', node_stats)
-print(load_balancer.get_best_node(['node1', 'node2'], strategy='least_loaded'))
+def get_load_balancer() -> 'LoadBalancer':
+    return LoadBalancer.get_load_balancer()
+
+
+if __name__ == '__main__':
+    # Example usage:
+    load_balancer = LoadBalancer.get_load_balancer()
+    node_stats = NodeStats('node1', 10, 50.0, 0.9, 1643723400)
+    load_balancer.update_stats('node1', node_stats)
+    print(load_balancer.get_best_node(['node1', 'node2'], strategy='least_loaded'))
