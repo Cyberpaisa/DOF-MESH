@@ -10,6 +10,7 @@ Mapa completo de proveedores:
 - OpenRouter    → kimi-code (Moonshot/Kimi via OR), hermes-405b
 - Zhipu/GLM     → glm-5 (GLM-4.7-Flash)
 - Groq          → groq-llama (Llama 3.3 70B, si key activa)
+- DeepSeek      → deepseek-coder (deepseek-chat, $0.27/1M tokens — MEJOR PRECIO)
 
 Costo: $0 (free tiers / créditos disponibles).
 """
@@ -40,6 +41,7 @@ class RemoteProvider(Enum):
     SAMBANOVA   = "sambanova"   # Llama 405B — 24K ctx
     OPENROUTER  = "openrouter"  # Hermes 405B free + Kimi (Moonshot)
     ZHIPU       = "zhipu"       # GLM-4.7-Flash
+    DEEPSEEK    = "deepseek"    # deepseek-chat — $0.27/1M tokens, BEST VALUE
 
 REMOTE_NODE_MAPPING = {
     # Existing nodes
@@ -55,6 +57,8 @@ REMOTE_NODE_MAPPING = {
     "kimi-code":        RemoteProvider.OPENROUTER,  # Kimi (Moonshot) via OpenRouter — great for code
     "hermes-405b":      RemoteProvider.OPENROUTER,  # Hermes 405B free tier
     "glm-5":            RemoteProvider.ZHIPU,       # GLM-4.7-Flash — fast Chinese model
+    "deepseek-coder":   RemoteProvider.DEEPSEEK,    # deepseek-chat — best value, code+reasoning
+    "deepseek-r1":      RemoteProvider.DEEPSEEK,    # deepseek-reasoner — full reasoning chain
 }
 
 # ═══════════════════════════════════════════════════
@@ -217,6 +221,22 @@ class RemoteNodeAdapter:
             logger.warning(f"OpenRouter init failed: {e}")
 
         try:
+            # DeepSeek (DEEPSEEK_API_KEY) — $0.27/1M tokens
+            deepseek_key = os.environ.get("DEEPSEEK_API_KEY")
+            if deepseek_key:
+                import openai
+                deepseek_client = openai.OpenAI(
+                    api_key=deepseek_key,
+                    base_url="https://api.deepseek.com"
+                )
+                clients[RemoteProvider.DEEPSEEK] = deepseek_client
+                logger.info("✓ DeepSeek initialized ($0.27/1M tokens)")
+            else:
+                logger.warning("DEEPSEEK_API_KEY not set")
+        except Exception as e:
+            logger.warning(f"DeepSeek init failed: {e}")
+
+        try:
             # Zhipu/GLM (ZHIPU_API_KEY)
             zhipu_key = os.environ.get("ZHIPU_API_KEY")
             if zhipu_key:
@@ -271,6 +291,8 @@ class RemoteNodeAdapter:
                 response = self._call_openrouter(client, prompt, node_id)
             elif provider == RemoteProvider.ZHIPU:
                 response = self._call_zhipu(client, prompt)
+            elif provider == RemoteProvider.DEEPSEEK:
+                response = self._call_deepseek(client, prompt, node_id)
             else:
                 response = None
 
@@ -516,6 +538,27 @@ class RemoteNodeAdapter:
             }
         except Exception as e:
             logger.error(f"Zhipu GLM call failed: {e}")
+            return None
+
+    def _call_deepseek(self, client, prompt: str, node_id: str = "") -> Optional[Dict]:
+        """Call DeepSeek API — deepseek-chat or deepseek-reasoner ($0.27/1M tokens)."""
+        # deepseek-r1 uses the reasoner model (full thinking chain)
+        model = "deepseek-reasoner" if node_id == "deepseek-r1" else "deepseek-chat"
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+                max_tokens=4096,
+            )
+            text = response.choices[0].message.content
+            return {
+                "text": text,
+                "preview": text[:200],
+                "code": self._extract_code_block(text)
+            }
+        except Exception as e:
+            logger.error(f"DeepSeek ({model}) call failed: {e}")
             return None
 
     # ─────────────────────────────────────────────────
