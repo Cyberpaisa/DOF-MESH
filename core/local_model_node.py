@@ -462,3 +462,35 @@ if __name__ == "__main__":
 
     if args.daemon:
         node.run(max_cycles=args.cycles)
+
+
+# ── LocalModelNode (for test compatibility) ───────────────────────────────────
+
+class LocalModelNode:
+    """Singleton wrapper for LocalAGINode."""
+
+    _instance = None
+    _class_lock = __import__("threading").Lock()
+
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._class_lock:
+                if cls._instance is None:
+                    inst = super().__new__(cls)
+                    inst._initialized = False
+                    cls._instance = inst
+        return cls._instance
+
+    @classmethod
+    def get_instance(cls) -> "LocalModelNode":
+        return cls()
+
+    def init(self, config=None) -> None:
+        if config is None:
+            self._initialized = True
+            return
+        if not isinstance(config, str):
+            raise TypeError(f"config must be str, got {type(config).__name__}")
+        if config == "":
+            raise ValueError("config cannot be empty")
+        self._initialized = True

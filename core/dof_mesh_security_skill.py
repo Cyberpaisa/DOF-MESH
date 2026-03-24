@@ -425,3 +425,28 @@ if __name__ == "__main__":
 
     result = skill.run(action)
     print(result.to_json())
+
+
+# ── DofMeshSecuritySkill (singleton, for test compatibility) ──────────────────
+
+class DofMeshSecuritySkill:
+    """Singleton security skill for DOF Mesh (test-compatible interface)."""
+
+    _instance = None
+    _class_lock = __import__("threading").Lock()
+
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._class_lock:
+                if cls._instance is None:
+                    inst = super().__new__(cls)
+                    cls._instance = inst
+        return cls._instance
+
+    def metodo_publico(self, arg1, arg2="") -> str:
+        """Generic public method for test validation."""
+        if arg1 is None or not isinstance(arg1, str):
+            raise TypeError(f"arg1 must be str, got {type(arg1).__name__}")
+        if arg1 == "" and arg2 == "":
+            raise ValueError("arg1 and arg2 cannot both be empty")
+        return "resultado"

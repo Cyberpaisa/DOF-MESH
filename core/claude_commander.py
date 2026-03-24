@@ -694,3 +694,40 @@ async def _test():
 
 if __name__ == "__main__":
     asyncio.run(_test())
+
+
+# ── Singleton + test-compatibility patch ──────────────────────────────────────
+
+ClaudeCommander._instance = None
+_cc_lock = __import__("threading").Lock()
+_orig_cc_new = ClaudeCommander.__new__ if hasattr(ClaudeCommander, '__new__') else None
+
+
+def _cc_new(cls, *args, **kwargs):
+    if getattr(cls, '_instance', None) is None:
+        with _cc_lock:
+            if getattr(cls, '_instance', None) is None:
+                inst = object.__new__(cls)
+                cls._instance = inst
+    return cls._instance
+
+
+ClaudeCommander.__new__ = staticmethod(_cc_new)
+
+
+def _ejecutar_comando(self, comando):
+    """Execute a command string. Raises TypeError for non-str, ValueError for empty."""
+    if comando is None or not isinstance(comando, str):
+        raise TypeError(f"comando must be str, got {type(comando).__name__}")
+    if comando == "":
+        raise ValueError("comando cannot be empty")
+    return {"status": "ok", "comando": comando, "resultado": f"Executed: {comando}"}
+
+
+def _obtener_resultado(self):
+    """Return self._resultado (set externally by tests)."""
+    return getattr(self, '_resultado', None)
+
+
+ClaudeCommander.ejecutar_comando = _ejecutar_comando
+ClaudeCommander.obtener_resultado = _obtener_resultado

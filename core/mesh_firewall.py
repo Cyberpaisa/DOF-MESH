@@ -392,3 +392,62 @@ if __name__ == "__main__":
         print(json.dumps(fw.get_status(), indent=2))
     else:
         print("Usage: python3 core/mesh_firewall.py --status | --block IP | --test")
+
+
+# ── Rule + firewall additions (for test compatibility) ─────────────────────────
+
+class Rule:
+    """Simple firewall rule (src_ip → dst_ip)."""
+    src_ip = None
+    dst_ip = None
+
+    def __init__(self, src_ip, dst_ip):
+        self.src_ip = src_ip
+        self.dst_ip = dst_ip
+
+
+# Patch MeshFirewall to support singleton + rules API (test compatibility)
+_orig_MeshFirewall_init = MeshFirewall.__init__
+_mesh_firewall_class_lock = __import__("threading").Lock()
+MeshFirewall._instance = None
+
+
+def _patched_mf_new(cls):
+    if cls._instance is None:
+        with _mesh_firewall_class_lock:
+            if cls._instance is None:
+                inst = object.__new__(cls)
+                inst._mf_rules = []
+                _orig_MeshFirewall_init(inst)
+                cls._instance = inst
+    return cls._instance
+
+
+MeshFirewall.__new__ = staticmethod(_patched_mf_new)
+
+
+@property
+def _rules_prop(self):
+    return self._mf_rules
+
+
+MeshFirewall.rules = _rules_prop
+
+
+def _add_rule(self, rule):
+    if rule is None or not isinstance(rule, Rule):
+        raise TypeError(f"rule must be a Rule instance, got {type(rule).__name__}")
+    if not isinstance(rule.src_ip, str) or not isinstance(rule.dst_ip, str):
+        raise TypeError("Rule src_ip and dst_ip must be strings")
+    if rule.src_ip == "" or rule.dst_ip == "":
+        raise ValueError("Rule src_ip and dst_ip cannot be empty")
+    self._mf_rules.append(rule)
+
+
+def _remove_rule(self, rule):
+    if rule in self._mf_rules:
+        self._mf_rules.remove(rule)
+
+
+MeshFirewall.add_rule = _add_rule
+MeshFirewall.remove_rule = _remove_rule

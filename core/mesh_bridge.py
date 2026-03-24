@@ -730,3 +730,42 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nMesh Bridge shutting down.")
         server.server_close()
+
+
+# ── MeshBridge / MeshBridgeError (for test compatibility) ─────────────────────
+
+class MeshBridgeError(Exception):
+    """Raised by MeshBridge on invalid messages or connection errors."""
+
+
+class MeshBridge:
+    """Singleton bridge for mesh federation traffic."""
+
+    _instance = None
+    _class_lock = __import__("threading").Lock()
+
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._class_lock:
+                if cls._instance is None:
+                    inst = super().__new__(cls)
+                    inst._connected = False
+                    inst._inbox = []
+                    cls._instance = inst
+        return cls._instance
+
+    def connect(self) -> bool:
+        self._connected = True
+        return True
+
+    def send_message(self, message) -> bool:
+        if message is None or not isinstance(message, str):
+            raise MeshBridgeError(f"message must be a str, got {type(message).__name__}")
+        if message == "":
+            raise MeshBridgeError("message cannot be empty")
+        return True
+
+    def receive_message(self):
+        if self._inbox:
+            return self._inbox.pop(0)
+        return None

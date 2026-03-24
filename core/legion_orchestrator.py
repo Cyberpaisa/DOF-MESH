@@ -270,6 +270,17 @@ class OrchestratorMemory:
 
 class LegionOrchestrator:
 
+    _instance = None
+    _class_lock = __import__("threading").Lock()
+
+    def __new__(cls):
+        if getattr(cls, '_instance', None) is None:
+            with cls._class_lock:
+                if getattr(cls, '_instance', None) is None:
+                    inst = super().__new__(cls)
+                    cls._instance = inst
+        return cls._instance
+
     API_NODES = [
         "gpt-legion", "gemini-web", "qwen-coder-480b",
         "sambanova-llama", "kimi-web", "minimax",

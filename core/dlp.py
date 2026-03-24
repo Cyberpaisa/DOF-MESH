@@ -304,3 +304,42 @@ if __name__ == "__main__":
         print(f"[{name:12s}] {result.summary()} | {result.scan_time_ms}ms")
         for v in result.violations:
             print(f"             └─ {v.severity}: {v.pattern_name} — {v.description}")
+
+
+# ── DLP / DLPError (for test compatibility) ────────────────────────────────────
+
+class DLPError(Exception):
+    """Raised by DLP.process() on invalid input."""
+
+
+class DLP:
+    """Singleton DLP facade wrapping DLPScanner."""
+
+    _instance = None
+    _class_lock = __import__("threading").Lock()
+
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._class_lock:
+                if cls._instance is None:
+                    inst = super().__new__(cls)
+                    inst._scanner = None
+                    cls._instance = inst
+        return cls._instance
+
+    @classmethod
+    def get_instance(cls) -> "DLP":
+        return cls()
+
+    def init(self) -> None:
+        if self._scanner is None:
+            self._scanner = DLPScanner()
+
+    def process(self, data) -> "DLPScanResult":
+        if data is None or not isinstance(data, str):
+            raise DLPError(f"data must be a str, got {type(data).__name__}")
+        if data == "":
+            raise DLPError("data cannot be empty")
+        if self._scanner is None:
+            self.init()
+        return self._scanner.scan(data)
