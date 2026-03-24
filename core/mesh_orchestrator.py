@@ -1,238 +1,709 @@
 """
-Mesh Orchestrator — Daemon autónomo que coordina work orders sin intervención humana.
+Mesh Orchestrator — Sistema nervioso central del DOF Mesh Phase 9.
 
-Lee work orders de logs/mesh/inbox/, despacha a remote nodes via APIs gratuitas,
-registra respuestas, coordina integración.
+Coordina routing, circuit breaking, optimización de costos y auto-escalado
+en un loop autónomo determinista. Todas las decisiones son observables via
+JSONL — cero dependencia de LLM.
 
-Costo: $0 en tokens (todo vía APIs gratuitas).
+Arquitectura:
+    MeshOrchestrator (singleton)
+        ├── orchestrate(task)       — router + circuit breaker + cost optimizer
+        ├── evaluate_scaling()      — metrics + auto_scaler → scale up/down
+        ├── get_status()            — estado completo del sistema
+        └── run(interval)           — loop autónomo que orquesta y escala
+
+Dependencias internas:
+    core.mesh_router_v2         → MeshRouterV2        (routing inteligente)
+    core.mesh_circuit_breaker   → MeshCircuitBreaker   (fault tolerance)
+    core.mesh_cost_optimizer    → CostOptimizer        (auditor financiero)
+    core.mesh_metrics_collector → MeshMetricsCollector  (telemetría)
+    core.mesh_auto_scaler       → MeshAutoScaler        (scaling decisions)
+
+Logs: logs/mesh/orchestrator.jsonl
 """
 
 import json
-import time
-import os
 import logging
+import threading
+import time
+from dataclasses import dataclass, field, asdict
 from pathlib import Path
-from typing import Dict, List, Optional
-from dataclasses import asdict
-from datetime import datetime
+from typing import Optional
 
-from core.remote_node_adapter import RemoteNodeAdapter, RemoteNodeResponse
+from core.mesh_router_v2 import MeshRouterV2
+from core.mesh_circuit_breaker import MeshCircuitBreaker, CircuitOpenError
+from core.mesh_cost_optimizer import CostOptimizer
+from core.mesh_metrics_collector import MeshMetricsCollector, MeshMetrics
+from core.mesh_auto_scaler import MeshAutoScaler, ScaleEvent
 
 logger = logging.getLogger("core.mesh_orchestrator")
 
-# ═══════════════════════════════════════════════════
-# MESH ORCHESTRATOR
-# ═══════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
+# CONSTANTS
+# ═══════════════════════════════════════════════════════
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+MESH_DIR = BASE_DIR / "logs" / "mesh"
+ORCHESTRATOR_LOG = MESH_DIR / "orchestrator.jsonl"
+INBOX_DIR = MESH_DIR / "inbox"
+
+# Health thresholds for scaling decisions
+HEALTH_CRITICAL = 0.4
+HEALTH_DEGRADED = 0.8
+
+# Queue depth thresholds (from Phase 9 spec)
+QUEUE_DEPTH_HIGH = 50   # scale up beyond this
+QUEUE_DEPTH_LOW = 5     # scale down below this
+
+# Default SLA latency target (ms)
+DEFAULT_SLA_MS = 5000.0
+
+# Hysteresis weights (Phase 9 multivectorial)
+W_QUEUE = 0.6
+W_LATENCY = 0.4
+
+
+# ═══════════════════════════════════════════════════════
+# DATA CLASSES
+# ═══════════════════════════════════════════════════════
+
+@dataclass
+class OrchestrationResult:
+    """Result of a single task orchestration."""
+    task_id: str
+    task_type: str
+    routed_node: str
+    cost_node: str              # cheapest node per CostOptimizer
+    selected_node: str          # final decision (router wins unless circuit open)
+    circuit_state: str          # CLOSED | OPEN | HALF_OPEN
+    success: bool
+    error: str = ""
+    latency_ms: float = 0.0
+    timestamp: float = field(default_factory=time.time)
+
+
+@dataclass
+class ScalingDecision:
+    """Result of a scaling evaluation cycle."""
+    queue_depth: int
+    health_score: float
+    avg_latency_ms: float
+    demand_score: float         # D_net from Phase 9 spec
+    action: str                 # scale_up | scale_down | hold
+    scale_events: int           # number of ScaleEvents generated
+    active_nodes: int
+    total_nodes: int
+    timestamp: float = field(default_factory=time.time)
+
+
+# ═══════════════════════════════════════════════════════
+# SINGLETON ORCHESTRATOR
+# ═══════════════════════════════════════════════════════
 
 class MeshOrchestrator:
-    """Autonomous work order dispatcher and coordinator."""
+    """
+    Sistema nervioso central del DOF Mesh.
 
-    def __init__(self, mesh_dir: str = "logs/mesh", log_interval: int = 10):
-        self.mesh_dir = Path(mesh_dir)
-        self.inbox_dir = self.mesh_dir / "inbox"
-        self.commander_inbox = self.inbox_dir / "commander"
-        self.remote_adapter = RemoteNodeAdapter()
-        self.log_interval = log_interval
-        self.work_orders_processed = 0
-        self.work_orders_completed = 0
-        self.work_orders_failed = 0
-        self.cycle_count = 0
-        self.start_time = time.time()
+    Singleton — one instance per process, thread-safe.
+    Integra router, circuit breaker, cost optimizer, metrics y auto-scaler
+    en un pipeline unificado de orquestación.
+    """
 
-        # Ensure directories exist
-        self.mesh_dir.mkdir(parents=True, exist_ok=True)
-        self.inbox_dir.mkdir(parents=True, exist_ok=True)
-        self.commander_inbox.mkdir(parents=True, exist_ok=True)
+    _instance: Optional["MeshOrchestrator"] = None
+    _lock: threading.Lock = threading.Lock()
 
-    def run(self, max_cycles: int = 0) -> None:
-        """
-        Run orchestrator daemon.
+    def __new__(
+        cls,
+        mesh_dir: Optional[Path] = None,
+        sla_ms: float = DEFAULT_SLA_MS,
+    ) -> "MeshOrchestrator":
+        with cls._lock:
+            if cls._instance is None:
+                inst = super().__new__(cls)
+                inst._initialized = False
+                cls._instance = inst
+        return cls._instance
 
-        max_cycles=0 → runs forever
-        max_cycles>0 → runs N cycles then exits
-        """
-        logger.info("🚀 Mesh Orchestrator started")
-        self.cycle_count = 0
+    def __init__(
+        self,
+        mesh_dir: Optional[Path] = None,
+        sla_ms: float = DEFAULT_SLA_MS,
+    ) -> None:
+        if self._initialized:  # type: ignore[has-type]
+            return
 
-        while True:
-            self.cycle_count += 1
+        self._mesh_dir = Path(mesh_dir) if mesh_dir else MESH_DIR
+        self._mesh_dir.mkdir(parents=True, exist_ok=True)
+        self._log_file = self._mesh_dir / "orchestrator.jsonl"
+        self._inbox_dir = self._mesh_dir / "inbox"
+        (self._inbox_dir / "commander").mkdir(parents=True, exist_ok=True)
+        self._sla_ms = sla_ms
+        self._running = False
+        self._io_lock = threading.Lock()
 
-            # Read new work orders
-            work_orders = self._discover_work_orders()
+        # Counters
+        self._total_orchestrated: int = 0
+        self._total_successes: int = 0
+        self._total_failures: int = 0
+        self._total_scaling_cycles: int = 0
 
-            if work_orders:
-                logger.info(f"📦 Found {len(work_orders)} work order(s)")
-                for order_path, order_data in work_orders:
-                    self._process_work_order(order_path, order_data)
+        # Initialize subsystems (singletons — safe to call repeatedly)
+        self._router = MeshRouterV2(mesh_dir=self._mesh_dir)
+        self._circuit_breaker = MeshCircuitBreaker()
+        self._cost_optimizer = CostOptimizer()
+        self._metrics_collector = MeshMetricsCollector(mesh_dir=self._mesh_dir)
+        self._auto_scaler = MeshAutoScaler(mesh_dir=self._mesh_dir)
 
-            # Log status every N cycles
-            if self.cycle_count % self.log_interval == 0:
-                self._log_cycle_status()
-
-            # Exit condition
-            if max_cycles > 0 and self.cycle_count >= max_cycles:
-                logger.info(f"✓ Reached max cycles ({max_cycles}). Exiting.")
-                break
-
-            # Sleep before next cycle
-            time.sleep(5)
-
-    def _discover_work_orders(self) -> List[tuple]:
-        """Discover unprocessed work orders in commander inbox."""
-        work_orders = []
-
-        try:
-            # Look for PHASE2-*.json (unprocessed)
-            for order_file in sorted(self.commander_inbox.glob("PHASE2-*.json")):
-                # Skip if already processed (has -RESPONSE or -FAILED)
-                response_file = order_file.parent / order_file.name.replace(".json", "-RESPONSE.json")
-                failed_file = order_file.parent / order_file.name.replace(".json", "-FAILED.json")
-
-                if response_file.exists() or failed_file.exists():
-                    continue
-
-                try:
-                    with open(order_file, "r") as f:
-                        data = json.load(f)
-                    work_orders.append((order_file, data))
-                except Exception as e:
-                    logger.error(f"Failed to read {order_file}: {e}")
-
-        except Exception as e:
-            logger.error(f"Discovery failed: {e}")
-
-        return work_orders
-
-    def _process_work_order(self, order_path: Path, order_data: Dict) -> None:
-        """Process a single work order."""
-        msg_id = order_data.get("msg_id", "unknown")
-        to_node = order_data.get("to_node", "unknown")
-
-        logger.info(f"⚙️  Processing {msg_id} → {to_node}")
-        self.work_orders_processed += 1
-
-        # Dispatch to remote node
-        result = self.remote_adapter.dispatch(to_node, order_data)
-
-        if result and result.status == "COMPLETED":
-            self._save_response(order_path, result)
-            self.work_orders_completed += 1
-            logger.info(f"✓ {msg_id} COMPLETED")
-        else:
-            self._save_failure(order_path, result)
-            self.work_orders_failed += 1
-            logger.error(f"✗ {msg_id} FAILED")
-
-    def _save_response(self, order_path: Path, result: RemoteNodeResponse) -> None:
-        """Save response to RESPONSE.json."""
-        response_path = order_path.parent / order_path.name.replace(".json", "-RESPONSE.json")
-
-        response_data = {
-            "msg_id": result.msg_id,
-            "from_node": result.node_id,
-            "status": result.status,
-            "response_summary": result.response_text[:500],
-            "code_preview": result.code[:300] if result.code else "",
-            "duration_seconds": result.duration_seconds,
-            "timestamp": datetime.now(tz=__import__('datetime').timezone.utc).isoformat(),
-            "full_response": result.response_text,
-            "code": result.code,
-        }
-
-        try:
-            with open(response_path, "w") as f:
-                json.dump(response_data, f, indent=2)
-            logger.info(f"💾 Saved response to {response_path.name}")
-        except Exception as e:
-            logger.error(f"Failed to save response: {e}")
-
-    def _save_failure(self, order_path: Path, result: Optional[RemoteNodeResponse]) -> None:
-        """Save failure record."""
-        failed_path = order_path.parent / order_path.name.replace(".json", "-FAILED.json")
-
-        failure_data = {
-            "msg_id": order_path.stem,
-            "status": "FAILED",
-            "error": result.error if result else "Unknown error",
-            "timestamp": datetime.now(tz=__import__('datetime').timezone.utc).isoformat(),
-        }
-
-        try:
-            with open(failed_path, "w") as f:
-                json.dump(failure_data, f, indent=2)
-            logger.info(f"⚠️  Saved failure to {failed_path.name}")
-        except Exception as e:
-            logger.error(f"Failed to save failure: {e}")
-
-    def _log_cycle_status(self) -> None:
-        """Log status every N cycles."""
-        uptime = time.time() - self.start_time
-        rate = self.work_orders_processed / uptime if uptime > 0 else 0
-
-        log_entry = {
-            "timestamp": datetime.now(tz=__import__('datetime').timezone.utc).isoformat(),
-            "cycle": self.cycle_count,
-            "uptime_seconds": uptime,
-            "processed": self.work_orders_processed,
-            "completed": self.work_orders_completed,
-            "failed": self.work_orders_failed,
-            "rate_per_second": rate,
-        }
-
-        # Write to orchestrator log
-        log_file = self.mesh_dir / "orchestrator.jsonl"
-        try:
-            with open(log_file, "a") as f:
-                f.write(json.dumps(log_entry) + "\n")
-        except Exception as e:
-            logger.error(f"Failed to log cycle: {e}")
-
+        self._initialized = True
         logger.info(
-            f"📊 Cycle {self.cycle_count}: "
-            f"{self.work_orders_completed}/{self.work_orders_processed} completed "
-            f"({rate:.2f} orders/s)"
+            "MeshOrchestrator initialized — mesh_dir=%s sla=%.0fms",
+            self._mesh_dir, self._sla_ms,
         )
 
-    def get_status(self) -> Dict:
-        """Get orchestrator status."""
-        uptime = time.time() - self.start_time
-        return {
-            "uptime_seconds": uptime,
-            "cycles": self.cycle_count,
-            "work_orders_processed": self.work_orders_processed,
-            "work_orders_completed": self.work_orders_completed,
-            "work_orders_failed": self.work_orders_failed,
-            "completion_rate": (
-                self.work_orders_completed / self.work_orders_processed
-                if self.work_orders_processed > 0 else 0
-            ),
+    # ── Singleton management ─────────────────────────────
+
+    @classmethod
+    def reset(cls) -> None:
+        """Reset singleton for testing."""
+        with cls._lock:
+            if cls._instance is not None:
+                cls._instance._running = False
+            cls._instance = None
+
+    # ── Public counter properties (test-friendly aliases) ──
+
+    @property
+    def work_orders_processed(self) -> int:
+        return self._total_orchestrated
+
+    @work_orders_processed.setter
+    def work_orders_processed(self, value: int) -> None:
+        self._total_orchestrated = value
+
+    @property
+    def work_orders_completed(self) -> int:
+        return self._total_successes
+
+    @work_orders_completed.setter
+    def work_orders_completed(self, value: int) -> None:
+        self._total_successes = value
+
+    @property
+    def cycle_count(self) -> int:
+        return self._total_scaling_cycles
+
+    @cycle_count.setter
+    def cycle_count(self, value: int) -> None:
+        self._total_scaling_cycles = value
+
+    # ── Inbox helpers ─────────────────────────────────────
+
+    def _discover_work_orders(self) -> list:
+        """Return list of (Path, dict) tuples for pending work orders in inbox."""
+        results = []
+        if not self._inbox_dir.exists():
+            return results
+        for json_file in sorted(self._inbox_dir.glob("**/*.json")):
+            if json_file.stem.endswith("-RESPONSE") or json_file.stem.endswith("-FAILED"):
+                continue
+            try:
+                data = json.loads(json_file.read_text(encoding="utf-8"))
+                results.append((json_file, data))
+            except (OSError, json.JSONDecodeError):
+                pass
+        return results
+
+    def _save_response(self, order_file: Path, result) -> None:
+        """Persist a completed response next to its work order file."""
+        response_file = order_file.parent / f"{order_file.stem}-RESPONSE.json"
+        payload = {
+            "from_node": result.node_id,
+            "msg_id": result.msg_id,
+            "status": result.status,
+            "response_text": result.response_text,
+            "timestamp": time.time(),
+        }
+        if hasattr(result, "code") and result.code:
+            payload["code"] = result.code
+        try:
+            response_file.write_text(
+                json.dumps(payload, ensure_ascii=False), encoding="utf-8"
+            )
+        except OSError as exc:
+            logger.error("Failed to write response file: %s", exc)
+
+    def _save_failure(self, order_file: Path, result) -> None:
+        """Persist a failure record next to its work order file."""
+        failed_file = order_file.parent / f"{order_file.stem}-FAILED.json"
+        payload = {
+            "from_node": result.node_id,
+            "msg_id": result.msg_id,
+            "status": result.status,
+            "error": getattr(result, "error", ""),
+            "timestamp": time.time(),
+        }
+        try:
+            failed_file.write_text(
+                json.dumps(payload, ensure_ascii=False), encoding="utf-8"
+            )
+        except OSError as exc:
+            logger.error("Failed to write failure file: %s", exc)
+
+    # ── JSONL logging ────────────────────────────────────
+
+    def _log(self, event_type: str, data: dict) -> None:
+        """Append a structured event to orchestrator.jsonl."""
+        record = {
+            "event": event_type,
+            "timestamp": time.time(),
+            **data,
+        }
+        line = json.dumps(record, ensure_ascii=False)
+        with self._io_lock:
+            try:
+                with self._log_file.open("a", encoding="utf-8") as fh:
+                    fh.write(line + "\n")
+            except OSError as exc:
+                logger.error("Failed to write orchestrator log: %s", exc)
+
+    # ── Core orchestration ───────────────────────────────
+
+    def orchestrate(self, task: dict) -> OrchestrationResult:
+        """
+        Orchestrate a single task through the mesh pipeline.
+
+        Pipeline:
+            1. Extract task_type and context_length from task dict
+            2. Router selects best node by specialty + load + latency
+            3. CostOptimizer suggests cheapest viable node
+            4. Circuit breaker guards the selected node
+            5. If circuit open → fallback to cost optimizer's choice
+            6. Log everything to orchestrator.jsonl
+
+        Args:
+            task: dict with at least 'task_type'. Optional: 'task_id',
+                  'context_length', 'payload'.
+
+        Returns:
+            OrchestrationResult with routing decision and outcome.
+        """
+        task_id = task.get("task_id", f"task-{int(time.time() * 1000)}")
+        task_type = task.get("task_type", "general")
+        context_length = int(task.get("context_length", 4096))
+
+        # Step 1: Router decision (specialty + load + latency)
+        routed_node = "unknown"
+        try:
+            routed_node = self._router.route(task_type)
+        except (ValueError, RuntimeError) as exc:
+            logger.warning("Router failed for task_type=%s: %s", task_type, exc)
+
+        # Step 2: Cost optimizer decision
+        cost_node = self._cost_optimizer.get_cheapest_node(context_length, task_type)
+
+        # Step 3: Select node — prefer router, fallback to cost optimizer
+        selected_node = routed_node if routed_node != "unknown" else cost_node
+
+        # Step 4: Check circuit breaker state
+        circuit_state = self._circuit_breaker.get_state(selected_node)
+
+        # Step 5: If primary circuit is open, fallback to cost optimizer's choice
+        if circuit_state == "OPEN" and cost_node != selected_node:
+            fallback_state = self._circuit_breaker.get_state(cost_node)
+            if fallback_state != "OPEN":
+                logger.info(
+                    "Circuit OPEN for '%s', falling back to cost-optimal '%s'",
+                    selected_node, cost_node,
+                )
+                selected_node = cost_node
+                circuit_state = fallback_state
+
+        # Step 6: Execute through circuit breaker (simulate dispatch)
+        t0 = time.monotonic()
+        success = True
+        error_msg = ""
+
+        try:
+            self._circuit_breaker.call(
+                selected_node,
+                self._dispatch_task,
+                task, selected_node,
+            )
+        except CircuitOpenError as exc:
+            success = False
+            error_msg = f"CircuitOpen: {exc}"
+            logger.warning("Orchestration blocked by circuit breaker: %s", exc)
+        except Exception as exc:
+            success = False
+            error_msg = str(exc)
+            logger.error("Task dispatch failed: %s", exc)
+
+        latency_ms = (time.monotonic() - t0) * 1000
+
+        # Update router latency estimate
+        if success:
+            self._router.update_latency(selected_node, latency_ms)
+
+        # Build result
+        result = OrchestrationResult(
+            task_id=task_id,
+            task_type=task_type,
+            routed_node=routed_node,
+            cost_node=cost_node,
+            selected_node=selected_node,
+            circuit_state=circuit_state,
+            success=success,
+            error=error_msg,
+            latency_ms=round(latency_ms, 2),
+        )
+
+        # Update counters
+        self._total_orchestrated += 1
+        if success:
+            self._total_successes += 1
+        else:
+            self._total_failures += 1
+
+        # Log
+        self._log("orchestration", asdict(result))
+
+        logger.debug(
+            "orchestrate(%s) → node=%s success=%s latency=%.1fms",
+            task_type, selected_node, success, latency_ms,
+        )
+        return result
+
+    def _dispatch_task(self, task: dict, node_id: str) -> None:
+        """
+        Dispatch task to a mesh node via the filesystem inbox protocol.
+
+        Writes a JSON message to logs/mesh/inbox/{node_id}/ for the
+        target node to pick up asynchronously.
+        """
+        inbox = self._inbox_dir / node_id
+        inbox.mkdir(parents=True, exist_ok=True)
+
+        message = {
+            "task_id": task.get("task_id", f"task-{int(time.time() * 1000)}"),
+            "task_type": task.get("task_type", "general"),
+            "payload": task.get("payload", ""),
+            "from": "orchestrator",
+            "to": node_id,
+            "timestamp": time.time(),
+            "status": "queued",
         }
 
+        msg_file = inbox / f"{message['task_id']}.json"
+        with msg_file.open("w", encoding="utf-8") as fh:
+            json.dump(message, fh, indent=2, ensure_ascii=False)
 
-# ═══════════════════════════════════════════════════
-# CLI
-# ═══════════════════════════════════════════════════
+        logger.debug("Dispatched task %s to node %s", message["task_id"], node_id)
+
+    # ── Scaling evaluation ───────────────────────────────
+
+    def evaluate_scaling(self) -> ScalingDecision:
+        """
+        Evaluate whether the mesh needs to scale up or down.
+
+        Uses the Phase 9 Hysteresis Multivectorial algorithm:
+            D_net = W_QUEUE * (queue_depth / QUEUE_DEPTH_HIGH)
+                  + W_LATENCY * (avg_latency / SLA)
+
+            D_net > 1.0 → scale_up
+            D_net < 0.2 → scale_down
+            else        → hold
+
+        Also delegates to MeshAutoScaler for per-node granular events.
+
+        Returns:
+            ScalingDecision with the action taken.
+        """
+        # Collect current metrics
+        metrics: MeshMetrics = self._metrics_collector.collect()
+
+        # Compute queue depth from inbox
+        queue_depth = self._count_queue_depth()
+
+        # Compute demand score (D_net)
+        q_ratio = queue_depth / max(QUEUE_DEPTH_HIGH, 1)
+        l_ratio = metrics.avg_latency_ms / max(self._sla_ms, 1)
+        demand_score = round(W_QUEUE * q_ratio + W_LATENCY * l_ratio, 4)
+
+        # Determine action
+        if demand_score > 1.0 or metrics.health_score < HEALTH_CRITICAL:
+            action = "scale_up"
+        elif demand_score < 0.2 and metrics.health_score >= HEALTH_DEGRADED:
+            action = "scale_down"
+        else:
+            action = "hold"
+
+        # Delegate to auto-scaler for per-node events
+        scale_events: list[ScaleEvent] = self._auto_scaler.check_load()
+
+        decision = ScalingDecision(
+            queue_depth=queue_depth,
+            health_score=metrics.health_score,
+            avg_latency_ms=round(metrics.avg_latency_ms, 2),
+            demand_score=demand_score,
+            action=action,
+            scale_events=len(scale_events),
+            active_nodes=metrics.active_nodes,
+            total_nodes=metrics.node_count,
+        )
+
+        self._total_scaling_cycles += 1
+
+        # Log
+        self._log("scaling_evaluation", asdict(decision))
+
+        if action != "hold":
+            logger.info(
+                "Scaling decision: %s (D_net=%.4f health=%.4f queue=%d)",
+                action, demand_score, metrics.health_score, queue_depth,
+            )
+        else:
+            logger.debug(
+                "Scaling hold (D_net=%.4f health=%.4f queue=%d)",
+                demand_score, metrics.health_score, queue_depth,
+            )
+
+        return decision
+
+    def _count_queue_depth(self) -> int:
+        """Count pending task files across all node inboxes."""
+        if not self._inbox_dir.exists():
+            return 0
+        try:
+            return sum(1 for _ in self._inbox_dir.glob("**/*.json"))
+        except OSError:
+            return 0
+
+    # ── Status ───────────────────────────────────────────
+
+    def get_status(self) -> dict:
+        """
+        Return complete system status.
+
+        Aggregates data from all subsystems into a single dict.
+        """
+        metrics_summary = self._metrics_collector.get_summary()
+        router_stats = self._router.get_stats()
+        scale_recs = self._auto_scaler.get_recommendations()
+        queue_depth = self._count_queue_depth()
+
+        processed = self._total_orchestrated
+        completed = self._total_successes
+        completion_rate = round(completed / max(processed, 1), 4)
+
+        return {
+            # Flat keys for test compatibility
+            "work_orders_processed": processed,
+            "work_orders_completed": completed,
+            "completion_rate": completion_rate,
+            # Full nested structure
+            "orchestrator": {
+                "total_orchestrated": processed,
+                "total_successes": completed,
+                "total_failures": self._total_failures,
+                "success_rate": completion_rate,
+                "scaling_cycles": self._total_scaling_cycles,
+                "running": self._running,
+                "sla_ms": self._sla_ms,
+            },
+            "mesh": metrics_summary,
+            "routing": router_stats,
+            "scaling": {
+                "queue_depth": queue_depth,
+                "active_recommendations": scale_recs,
+                "recommendation_count": len(scale_recs),
+            },
+            "timestamp": time.time(),
+        }
+
+    # ── Autonomous loop ──────────────────────────────────
+
+    def run(self, interval: int = 30, max_cycles: int = 0) -> None:
+        """
+        Autonomous orchestration loop.
+
+        Every `interval` seconds:
+            1. Evaluate scaling needs
+            2. Process any pending tasks in the inbox
+            3. Log cycle summary
+
+        Args:
+            interval: seconds between cycles (default 30).
+            max_cycles: stop after N cycles (0 = infinite).
+        """
+        self._running = True
+        cycle = 0
+
+        logger.info(
+            "MeshOrchestrator loop started — interval=%ds max_cycles=%s",
+            interval, max_cycles or "∞",
+        )
+
+        self._log("loop_start", {
+            "interval": interval,
+            "max_cycles": max_cycles,
+        })
+
+        try:
+            while self._running:
+                cycle += 1
+                t0 = time.monotonic()
+
+                # Step 1: Evaluate scaling
+                decision = self.evaluate_scaling()
+
+                # Step 2: Process pending inbox tasks
+                tasks_processed = self._process_pending_tasks()
+
+                elapsed_ms = (time.monotonic() - t0) * 1000
+
+                self._log("cycle_complete", {
+                    "cycle": cycle,
+                    "scaling_action": decision.action,
+                    "tasks_processed": tasks_processed,
+                    "elapsed_ms": round(elapsed_ms, 2),
+                })
+
+                logger.debug(
+                    "Cycle %d complete — action=%s processed=%d elapsed=%.1fms",
+                    cycle, decision.action, tasks_processed, elapsed_ms,
+                )
+
+                # Check max_cycles
+                if max_cycles > 0 and cycle >= max_cycles:
+                    logger.info("Reached max_cycles=%d, stopping.", max_cycles)
+                    break
+
+                # Sleep until next cycle
+                time.sleep(interval)
+
+        except KeyboardInterrupt:
+            logger.info("MeshOrchestrator loop interrupted by user.")
+        finally:
+            self._running = False
+            self._log("loop_stop", {"cycles_completed": cycle})
+            logger.info("MeshOrchestrator loop stopped after %d cycles.", cycle)
+
+    def stop(self) -> None:
+        """Signal the run loop to stop after the current cycle."""
+        self._running = False
+        logger.info("MeshOrchestrator stop requested.")
+
+    def _process_pending_tasks(self) -> int:
+        """
+        Scan inbox directories for queued tasks and orchestrate them.
+
+        Returns the number of tasks processed this cycle.
+        """
+        if not self._inbox_dir.exists():
+            return 0
+
+        processed = 0
+        for task_file in self._inbox_dir.glob("**/task-*.json"):
+            try:
+                with task_file.open("r", encoding="utf-8") as fh:
+                    task_data = json.load(fh)
+
+                # Only process tasks with status=queued
+                if task_data.get("status") != "queued":
+                    continue
+
+                # Mark as processing to avoid re-processing
+                task_data["status"] = "processing"
+                with task_file.open("w", encoding="utf-8") as fh:
+                    json.dump(task_data, fh, indent=2, ensure_ascii=False)
+
+                self.orchestrate(task_data)
+                processed += 1
+
+            except (json.JSONDecodeError, OSError) as exc:
+                logger.warning("Skipping malformed task file %s: %s", task_file, exc)
+
+        return processed
+
+
+# ═══════════════════════════════════════════════════════
+# DEMO
+# ═══════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    import sys
+    import tempfile
 
     logging.basicConfig(
         level=logging.INFO,
-        format="[%(asctime)s] %(name)s - %(levelname)s - %(message)s"
+        format="%(levelname)s %(name)s — %(message)s",
     )
 
-    orchestrator = MeshOrchestrator()
+    with tempfile.TemporaryDirectory() as tmp:
+        mesh_dir = Path(tmp)
 
-    if len(sys.argv) > 1 and sys.argv[1] == "status":
-        status = orchestrator.get_status()
-        print("\n🎛️  Mesh Orchestrator Status")
-        for k, v in status.items():
-            print(f"  {k}: {v}")
-    elif len(sys.argv) > 1 and sys.argv[1] == "test":
-        # Test with 2 cycles (fast)
-        logger.info("Running test mode (2 cycles)...")
-        orchestrator.run(max_cycles=2)
-    else:
-        # Run forever
-        logger.info("Running in daemon mode (infinite)...")
-        orchestrator.run(max_cycles=0)
+        # Create synthetic nodes.json
+        nodes = {
+            "architect":  {"role": "architect",  "status": "active", "active_tasks": 3, "context_window": 128000},
+            "researcher": {"role": "researcher", "status": "active", "active_tasks": 1, "context_window": 32000},
+            "guardian":   {"role": "security",   "status": "active", "active_tasks": 0, "context_window": 32000},
+            "narrator":   {"role": "narrator",   "status": "idle",   "active_tasks": 0, "context_window": 16000},
+            "local-qwen": {"role": "coder",      "status": "active", "active_tasks": 2, "context_window": 32000, "provider": "ollama"},
+        }
+        nodes_file = mesh_dir / "nodes.json"
+        nodes_file.write_text(json.dumps(nodes), encoding="utf-8")
+
+        # Reset singletons for clean demo
+        MeshOrchestrator.reset()
+        MeshRouterV2._instance = None
+        MeshCircuitBreaker._instance = None
+        CostOptimizer._instance = None
+        MeshMetricsCollector._instance = None
+        MeshAutoScaler._instance = None
+
+        orch = MeshOrchestrator(mesh_dir=mesh_dir, sla_ms=3000.0)
+
+        # ── Orchestrate several tasks ──
+        print("\n── orchestrate() ────────────────────────────")
+        for task_type in ["code", "security", "research", "docs"]:
+            result = orch.orchestrate({
+                "task_type": task_type,
+                "context_length": 8000,
+                "payload": f"Demo {task_type} task",
+            })
+            print(
+                f"  {task_type:12s} → node={result.selected_node:12s} "
+                f"circuit={result.circuit_state:9s} "
+                f"ok={result.success}  {result.latency_ms:.1f}ms"
+            )
+
+        # ── Evaluate scaling ──
+        print("\n── evaluate_scaling() ───────────────────────")
+        decision = orch.evaluate_scaling()
+        print(f"  action       : {decision.action}")
+        print(f"  demand_score : {decision.demand_score}")
+        print(f"  health_score : {decision.health_score}")
+        print(f"  queue_depth  : {decision.queue_depth}")
+        print(f"  active_nodes : {decision.active_nodes}/{decision.total_nodes}")
+
+        # ── Full status ──
+        print("\n── get_status() ─────────────────────────────")
+        status = orch.get_status()
+        print(f"  orchestrated : {status['orchestrator']['total_orchestrated']}")
+        print(f"  success_rate : {status['orchestrator']['success_rate']}")
+        print(f"  mesh health  : {status['mesh'].get('health_score', 'N/A')}")
+        print(f"  total_routes : {status['routing']['total_routes']}")
+
+        # ── Run loop (2 cycles) ──
+        print("\n── run(interval=1, max_cycles=2) ────────────")
+        orch.run(interval=1, max_cycles=2)
+
+        # Show log
+        log_file = mesh_dir / "orchestrator.jsonl"
+        if log_file.exists():
+            lines = log_file.read_text(encoding="utf-8").strip().splitlines()
+            print(f"\n── orchestrator.jsonl ({len(lines)} entries) ──")
+            for line in lines[:5]:
+                entry = json.loads(line)
+                print(f"  [{entry['event']:22s}] ts={entry['timestamp']:.2f}")
+            if len(lines) > 5:
+                print(f"  ... and {len(lines) - 5} more entries")
