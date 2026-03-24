@@ -1,14 +1,17 @@
 """
-Remote Node Adapter — Integración con APIs gratuitas para mesh remoto autónomo.
+Remote Node Adapter — Legion de nodos remotos autónomos.
 
-Mapea web models (Gemini, GPT, Kimi, Qwen, MiniMax) a providers gratuitos:
-- Gemini → Cerebras (Qwen 3.5) o NVIDIA (Qwen 3.3 70B)
-- GPT → Groq (Llama 3.3 70B)
-- Kimi → Zo (Claude equivalent)
-- Qwen → Together AI (Qwen models)
-- MiniMax → MiniMax API directo
+Mapa completo de proveedores:
+- NVIDIA NIM    → gpt-legion, kimi-web (Llama 3.3 70B)
+- Cerebras      → gemini-web, qwen-coder-480b (Qwen 3 235B)
+- MiniMax       → minimax (MiniMax-M2.1)
+- Gemini        → gemini-flash (2.5 Flash, 1M context)
+- SambaNova     → sambanova-llama (Llama 405B, 24K ctx)
+- OpenRouter    → kimi-code (Moonshot/Kimi via OR), hermes-405b
+- Zhipu/GLM     → glm-5 (GLM-4.7-Flash)
+- Groq          → groq-llama (Llama 3.3 70B, si key activa)
 
-Costo: $0 en tokens (todas apis gratuitas).
+Costo: $0 (free tiers / créditos disponibles).
 """
 
 import json
@@ -27,19 +30,31 @@ logger = logging.getLogger("core.remote_node_adapter")
 # ═══════════════════════════════════════════════════
 
 class RemoteProvider(Enum):
-    GROQ = "groq"           # Llama 3.3 70B
-    CEREBRAS = "cerebras"   # Qwen 3.5
-    ZO = "zo"               # Claude equivalent
-    TOGETHER = "together"   # Qwen models
-    MINIMAX = "minimax"     # Direct API
-    NVIDIA = "nvidia"       # NIM — Qwen 3.3 70B
+    GROQ        = "groq"        # Llama 3.3 70B
+    CEREBRAS    = "cerebras"    # Qwen 3 235B
+    ZO          = "zo"          # Claude equivalent
+    TOGETHER    = "together"    # Qwen models
+    MINIMAX     = "minimax"     # MiniMax direct API
+    NVIDIA      = "nvidia"      # NIM — Llama 3.3 70B
+    GEMINI      = "gemini"      # Gemini 2.5 Flash — 1M context, 20 req/day free
+    SAMBANOVA   = "sambanova"   # Llama 405B — 24K ctx
+    OPENROUTER  = "openrouter"  # Hermes 405B free + Kimi (Moonshot)
+    ZHIPU       = "zhipu"       # GLM-4.7-Flash
 
 REMOTE_NODE_MAPPING = {
-    "gpt-legion": RemoteProvider.NVIDIA,      # GPT → NVIDIA NIM (Groq key expired)
-    "gemini-web": RemoteProvider.CEREBRAS,    # Gemini → Cerebras (Qwen 3 235B)
-    "kimi-web": RemoteProvider.NVIDIA,        # Kimi → NVIDIA NIM
-    "qwen-coder-480b": RemoteProvider.CEREBRAS,  # Qwen → Cerebras (Qwen 3 235B)
-    "minimax": RemoteProvider.MINIMAX,        # MiniMax → direct API
+    # Existing nodes
+    "gpt-legion":       RemoteProvider.NVIDIA,      # Llama 3.3 70B via NIM
+    "gemini-web":       RemoteProvider.CEREBRAS,    # Qwen 3 235B via Cerebras
+    "kimi-web":         RemoteProvider.NVIDIA,      # Llama 3.3 70B via NIM
+    "qwen-coder-480b":  RemoteProvider.CEREBRAS,    # Qwen 3 235B via Cerebras
+    "minimax":          RemoteProvider.MINIMAX,     # MiniMax-M2.1 direct
+
+    # New Legion nodes
+    "gemini-flash":     RemoteProvider.GEMINI,      # Gemini 2.5 Flash — 1M context
+    "sambanova-llama":  RemoteProvider.SAMBANOVA,   # Llama 405B — heavy reasoning
+    "kimi-code":        RemoteProvider.OPENROUTER,  # Kimi (Moonshot) via OpenRouter — great for code
+    "hermes-405b":      RemoteProvider.OPENROUTER,  # Hermes 405B free tier
+    "glm-5":            RemoteProvider.ZHIPU,       # GLM-4.7-Flash — fast Chinese model
 }
 
 # ═══════════════════════════════════════════════════
@@ -152,6 +167,71 @@ class RemoteNodeAdapter:
         except Exception as e:
             logger.warning(f"NVIDIA NIM init failed: {e}")
 
+        try:
+            # Gemini 2.5 Flash (GEMINI_API_KEY)
+            gemini_key = os.environ.get("GEMINI_API_KEY")
+            if gemini_key:
+                import openai
+                gemini_client = openai.OpenAI(
+                    api_key=gemini_key,
+                    base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+                )
+                clients[RemoteProvider.GEMINI] = gemini_client
+                logger.info("✓ Gemini 2.5 Flash initialized (1M context)")
+            else:
+                logger.warning("GEMINI_API_KEY not set")
+        except Exception as e:
+            logger.warning(f"Gemini init failed: {e}")
+
+        try:
+            # SambaNova (SAMBANOVA_API_KEY)
+            samba_key = os.environ.get("SAMBANOVA_API_KEY")
+            if samba_key:
+                import openai
+                samba_client = openai.OpenAI(
+                    api_key=samba_key,
+                    base_url="https://api.sambanova.ai/v1"
+                )
+                clients[RemoteProvider.SAMBANOVA] = samba_client
+                logger.info("✓ SambaNova (Llama 405B) initialized")
+            else:
+                logger.warning("SAMBANOVA_API_KEY not set")
+        except Exception as e:
+            logger.warning(f"SambaNova init failed: {e}")
+
+        try:
+            # OpenRouter (OPENROUTER_API_KEY) — Kimi + Hermes 405B
+            or_key = os.environ.get("OPENROUTER_API_KEY")
+            if or_key:
+                import openai
+                or_client = openai.OpenAI(
+                    api_key=or_key,
+                    base_url="https://openrouter.ai/api/v1",
+                    default_headers={"HTTP-Referer": "https://dof-mesh.local", "X-Title": "DOF Mesh"}
+                )
+                clients[RemoteProvider.OPENROUTER] = or_client
+                logger.info("✓ OpenRouter (Kimi + Hermes) initialized")
+            else:
+                logger.warning("OPENROUTER_API_KEY not set")
+        except Exception as e:
+            logger.warning(f"OpenRouter init failed: {e}")
+
+        try:
+            # Zhipu/GLM (ZHIPU_API_KEY)
+            zhipu_key = os.environ.get("ZHIPU_API_KEY")
+            if zhipu_key:
+                import openai
+                zhipu_client = openai.OpenAI(
+                    api_key=zhipu_key,
+                    base_url="https://open.bigmodel.cn/api/paas/v4/"
+                )
+                clients[RemoteProvider.ZHIPU] = zhipu_client
+                logger.info("✓ Zhipu GLM-4.7-Flash initialized")
+            else:
+                logger.warning("ZHIPU_API_KEY not set")
+        except Exception as e:
+            logger.warning(f"Zhipu init failed: {e}")
+
         return clients
 
     def dispatch(self, node_id: str, work_order: Dict) -> Optional[RemoteNodeResponse]:
@@ -183,6 +263,14 @@ class RemoteNodeAdapter:
                 response = self._call_minimax(client, prompt)
             elif provider == RemoteProvider.NVIDIA:
                 response = self._call_nvidia(client, prompt)
+            elif provider == RemoteProvider.GEMINI:
+                response = self._call_gemini(client, prompt)
+            elif provider == RemoteProvider.SAMBANOVA:
+                response = self._call_sambanova(client, prompt)
+            elif provider == RemoteProvider.OPENROUTER:
+                response = self._call_openrouter(client, prompt, node_id)
+            elif provider == RemoteProvider.ZHIPU:
+                response = self._call_zhipu(client, prompt)
             else:
                 response = None
 
@@ -328,7 +416,7 @@ class RemoteNodeAdapter:
             return None
 
     def _call_nvidia(self, client, prompt: str) -> Optional[Dict]:
-        """Call NVIDIA NIM (Qwen 3.3 70B)."""
+        """Call NVIDIA NIM (Llama 3.3 70B)."""
         try:
             response = client.chat.completions.create(
                 model="meta/llama-3.3-70b-instruct",
@@ -344,6 +432,90 @@ class RemoteNodeAdapter:
             }
         except Exception as e:
             logger.error(f"NVIDIA NIM call failed: {e}")
+            return None
+
+    def _call_gemini(self, client, prompt: str) -> Optional[Dict]:
+        """Call Gemini 2.5 Flash via OpenAI-compatible endpoint (1M context, free tier)."""
+        try:
+            response = client.chat.completions.create(
+                model="gemini-2.5-flash-preview-05-20",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+                max_tokens=4000,
+            )
+            text = response.choices[0].message.content
+            return {
+                "text": text,
+                "preview": text[:200],
+                "code": self._extract_code_block(text)
+            }
+        except Exception as e:
+            logger.error(f"Gemini call failed: {e}")
+            return None
+
+    def _call_sambanova(self, client, prompt: str) -> Optional[Dict]:
+        """Call SambaNova (Llama 405B, 24K context)."""
+        try:
+            response = client.chat.completions.create(
+                model="Meta-Llama-3.3-70B-Instruct",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+                max_tokens=2000,
+            )
+            text = response.choices[0].message.content
+            return {
+                "text": text,
+                "preview": text[:200],
+                "code": self._extract_code_block(text)
+            }
+        except Exception as e:
+            logger.error(f"SambaNova call failed: {e}")
+            return None
+
+    def _call_openrouter(self, client, prompt: str, node_id: str = "") -> Optional[Dict]:
+        """Call OpenRouter — routes to Kimi (Moonshot) or Hermes 405B."""
+        # node_id determines which model to use via OpenRouter
+        if node_id == "kimi-code":
+            model = "moonshotai/moonshot-v1-8k"   # Kimi via OpenRouter
+        else:
+            model = "nousresearch/hermes-3-llama-3.1-405b"  # Hermes 405B free
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+                max_tokens=2000,
+            )
+            text = response.choices[0].message.content
+            return {
+                "text": text,
+                "preview": text[:200],
+                "code": self._extract_code_block(text)
+            }
+        except Exception as e:
+            logger.error(f"OpenRouter ({model}) call failed: {e}")
+            return None
+
+    def _call_zhipu(self, client, prompt: str) -> Optional[Dict]:
+        """Call Zhipu GLM-5 (latest, free tier)."""
+        try:
+            response = client.chat.completions.create(
+                model="glm-5",
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=2000,
+                extra_body={"enable_thinking": False},
+            )
+            text = response.choices[0].message.content
+            return {
+                "text": text,
+                "preview": text[:200],
+                "code": self._extract_code_block(text)
+            }
+        except Exception as e:
+            logger.error(f"Zhipu GLM call failed: {e}")
             return None
 
     # ─────────────────────────────────────────────────

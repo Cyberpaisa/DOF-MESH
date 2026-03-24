@@ -553,8 +553,9 @@ class TestIntegrationRealNodes(unittest.TestCase):
         """Real mesh should have >70% broadcast savings."""
         router = MeshRouter(mesh_dir="logs/mesh")
         state = router.get_state()
-        if state.total_nodes < 9:
-            self.skipTest(f"Only {state.total_nodes} nodes — need ≥9 for meaningful savings")
+        # >70% savings requires (n-sqrt(n))/n > 0.70 => n >= 12
+        if state.total_nodes < 12:
+            self.skipTest(f"Only {state.total_nodes} nodes — need ≥12 for >70% savings")
         self.assertGreater(state.broadcast_savings, 70)
 
     def test_real_commander_is_orchestration_head(self):
