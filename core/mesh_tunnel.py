@@ -167,3 +167,21 @@ if __name__ == "__main__":
         
         manager.close_tunnel(session.session_id)
         print(f"Active sessions: {len(manager.get_sessions())}")
+
+class MeshTunnel:
+    """Simple encrypt/decrypt facade for integration tests (no session needed)."""
+
+    def encrypt(self, data: bytes, key: str) -> bytes:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        import hashlib, os
+        k = hashlib.sha256(key.encode()).digest()
+        nonce = os.urandom(12)
+        ct = AESGCM(k).encrypt(nonce, data, None)
+        return nonce + ct
+
+    def decrypt(self, data: bytes, key: str) -> bytes:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        import hashlib
+        k = hashlib.sha256(key.encode()).digest()
+        nonce, ct = data[:12], data[12:]
+        return AESGCM(k).decrypt(nonce, ct, None)

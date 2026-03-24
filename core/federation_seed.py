@@ -89,19 +89,27 @@ class SeedClient:
     def __init__(self, seed_host: str, seed_port: int):
         self.base_url = f'http://{seed_host}:{seed_port}'
 
+    def _request(self, method: str, url: str, json: dict = None):
+        import urllib.request as _req
+        data = __import__('json').dumps(json).encode('utf-8') if json else None
+        headers = {'Content-Type': 'application/json'} if data else {}
+        req = _req.Request(url, data=data, method=method, headers=headers)
+        return _req.urlopen(req, timeout=5)
+
     def register(self, node_id: str, host: str, port: int) -> bool:
-        data = json.dumps({'node_id': node_id, 'host': host, 'port': port}).encode('utf-8')
-        req = request.Request(f'{self.base_url}/register', data=data, method='POST', headers={'Content-Type': 'application/json'})
+        url = f'{self.base_url}/register'
+        data = {'node_id': node_id, 'host': host, 'port': port}
         try:
-            with request.urlopen(req, timeout=5) as resp:
-                return resp.status == 200
+            resp = self._request("POST", url, json=data)
+            return getattr(resp, 'status', 200) == 200
         except Exception:
             return False
 
     def get_peers(self) -> List[Dict[str, str]]:
+        url = f'{self.base_url}/peers'
         try:
-            with request.urlopen(f'{self.base_url}/peers', timeout=5) as resp:
-                return json.loads(resp.read().decode('utf-8'))
+            resp = self._request("GET", url)
+            return resp.json() if hasattr(resp, 'json') else json.loads(resp.read().decode('utf-8'))
         except Exception:
             return []
 

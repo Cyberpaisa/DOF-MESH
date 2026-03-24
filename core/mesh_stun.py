@@ -163,3 +163,26 @@ class STUNClient:
 # Convenience function
 def get_stun_client() -> STUNClient:
     return STUNClient.get_stun_client()
+
+class MeshSTUN:
+    """Async STUN facade using aiohttp for integration tests."""
+
+    STUN_API = "https://api64.ipify.org?format=json"
+
+    def __init__(self):
+        self.public_ip: str = None
+        self.public_port: int = 0
+
+    async def get_public_endpoint(self) -> dict:
+        import aiohttp
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(self.STUN_API) as resp:
+                    data = await resp.json()
+                    ip = data.get("ip", "0.0.0.0")
+                    port = data.get("port", 0)
+                    self.public_ip = ip
+                    self.public_port = port
+                    return {"ip": ip, "port": port}
+        except Exception:
+            return {"ip": self.public_ip or "0.0.0.0", "port": self.public_port}

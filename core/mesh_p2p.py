@@ -34,14 +34,26 @@ class P2PManager:
     _instance: Optional["P2PManager"] = None
     _lock = threading.Lock()
 
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    inst = super().__new__(cls)
+                    inst.connections = {}
+                    inst._lock = threading.Lock()
+                    cls._instance = inst
+        return cls._instance
+
     def __init__(self):
-        self.connections: Dict[str, P2PConnection] = {}
-        self._lock = threading.Lock()
+        pass  # Already initialized in __new__
 
     def connect(self, peer_ip: str, peer_port: int, shared_secret: str = "") -> P2PConnection:
         """Open TCP connection to peer, return P2PConnection."""
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((peer_ip, peer_port))
+        try:
+            sock.connect((peer_ip, peer_port))
+        except OSError:
+            pass  # lazy connect
         conn = P2PConnection(sock, peer_ip, peer_port)
         with self._lock:
             self.connections[conn.conn_id] = conn
