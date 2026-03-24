@@ -426,8 +426,22 @@ class NodeMesh:
         return allowed
 
     def send_message(self, from_node: str, to_node: str, content: str,
-                     msg_type: str = "task", reply_to: Optional[str] = None) -> MeshMessage:
-        """Send a message from one node to another (or broadcast with to_node='*')."""
+                     msg_type: str = "task", reply_to: Optional[str] = None,
+                     route_task_type: Optional[str] = None) -> MeshMessage:
+        """Send a message from one node to another (or broadcast with to_node='*').
+
+        If route_task_type is provided and to_node is 'auto', MeshRouterV2 picks
+        the optimal destination node based on task type, latency and cost.
+        """
+        # Smart routing: resolve 'auto' destination via MeshRouterV2
+        if to_node == "auto" and route_task_type:
+            try:
+                from core.mesh_router_v2 import MeshRouterV2
+                to_node = MeshRouterV2().route(route_task_type)
+                logger.debug(f"MeshRouterV2 routed '{route_task_type}' → {to_node}")
+            except Exception as exc:
+                logger.warning(f"MeshRouterV2 routing failed, keeping 'auto': {exc}")
+
         # Rate limit check (VULN-N003 fix by Kimi K2.5)
         self.check_rate_limit(from_node)
 
