@@ -74,7 +74,7 @@ def compute_dof_score(metrics: dict) -> float:
     return round(score, 6)
 
 
-def run_baseline(n_runs: int = 5) -> float:
+def run_baseline(n_runs: int = 10) -> float:
     """Run baseline experiment and return dof_score."""
     logger.info(f"Running baseline ({n_runs} runs)...")
     set_deterministic(True)

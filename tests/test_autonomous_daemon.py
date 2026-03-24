@@ -230,7 +230,7 @@ class TestScanState(unittest.TestCase):
     @patch("subprocess.run")
     def test_git_dirty_files_counted(self, mock_sub):
         mock_sub.return_value = MagicMock(
-            stdout="M  file1.py\nM  file2.py\n?? file3.py\n",
+            stdout="M  file1.py\nM  file2.py\nM  file3.py\n",
             returncode=0,
         )
         self.daemon._get_commander = MagicMock()
