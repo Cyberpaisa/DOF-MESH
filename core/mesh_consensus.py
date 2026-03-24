@@ -26,6 +26,14 @@ class ConsensusNode:
         self.voted_for: Optional[str] = None
         self.log: List[LogEntry] = []
         self.leader_id: Optional[str] = None
+
+    @property
+    def current_term(self) -> int:
+        return self.term
+
+    @current_term.setter
+    def current_term(self, value: int):
+        self.term = value
     
     @classmethod
     def get_consensus_node(cls, node_id: str) -> 'ConsensusNode':
@@ -33,49 +41,73 @@ class ConsensusNode:
             cls._instances[node_id] = cls(node_id)
         return cls._instances[node_id]
     
-    def propose(self, value: Any) -> bool:
+    def propose(self, value: Any = None, term: int = None) -> bool:
+        """Propose a value. If term given, update term and transition state."""
+        if term is not None:
+            if term < self.term:
+                return False
+            self.term = term
+            self.state = ConsensusState.FOLLOWER
+            self.voted_for = None
+            return True
+        # Legacy: leader-only value proposal
         if self.state != ConsensusState.LEADER:
             return False
-        
         new_index = len(self.log) + 1
         entry = LogEntry(term=self.term, index=new_index, value=value)
         self.log.append(entry)
-        
         return True
     
     def vote(self, candidate_id: str, term: int) -> bool:
         if term < self.term:
             return False
-        
+        if term == self.term and self.voted_for is not None and self.voted_for != candidate_id:
+            return False
+
         if term > self.term:
             self.term = term
             self.state = ConsensusState.FOLLOWER
             self.voted_for = None
-        
-        if self.voted_for is None or self.voted_for == candidate_id:
-            self.voted_for = candidate_id
-            self.leader_id = candidate_id
-            if term > self.term:
-                self.term = term
-            return True
-        
-        return False
-    
-    def append_entry(self, entry: LogEntry) -> bool:
-        if entry.term < self.term:
-            return False
-        
-        self.log.append(entry)
-        self.leader_id = None  # Reset leader since we received entry from unknown source
-        if entry.term > self.term:
-            self.term = entry.term
-            self.state = ConsensusState.FOLLOWER
-        
+
+        self.voted_for = candidate_id
+        self.leader_id = candidate_id
         return True
     
+    def append_entry(self, entry: "LogEntry" = None, term: int = None, entry_data: Any = None) -> bool:
+        """Append log entry. Accepts LogEntry object or (term, entry_data) kwargs."""
+        if entry is None:
+            if term is None:
+                return False
+            if term < self.term:
+                return False
+            log_dict = {"term": term, "data": entry_data, "index": len(self.log) + 1}
+            self.log.append(log_dict)
+            if term > self.term:
+                self.term = term
+                self.state = ConsensusState.FOLLOWER
+        else:
+            if entry.term < self.term:
+                return False
+            self.log.append({"term": entry.term, "data": entry.value, "index": entry.index})
+            if entry.term > self.term:
+                self.term = entry.term
+                self.state = ConsensusState.FOLLOWER
+        return True
+
+    def become_candidate(self) -> None:
+        """Transition to CANDIDATE state, increment term, vote for self."""
+        self.term += 1
+        self.state = ConsensusState.CANDIDATE
+        self.voted_for = self.node_id
+
+    def become_leader(self) -> None:
+        """Transition to LEADER state."""
+        self.state = ConsensusState.LEADER
+        self.leader_id = self.node_id
+
     def get_state(self) -> ConsensusState:
         return self.state
-    
+
     def get_leader(self) -> Optional[str]:
         if self.state == ConsensusState.LEADER:
             return self.node_id
