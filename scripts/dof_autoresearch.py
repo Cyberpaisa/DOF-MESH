@@ -170,7 +170,7 @@ def log_config(cycle: int, config: dict, score: float, status: str):
         f.write(json.dumps(entry) + "\n")
 
 
-def run_loop(max_cycles: int = 0, n_runs: int = 5, dry_run: bool = False):
+def run_loop(max_cycles: int = 0, n_runs: int = 10, dry_run: bool = False):
     """Main autoresearch loop.
 
     Args:
