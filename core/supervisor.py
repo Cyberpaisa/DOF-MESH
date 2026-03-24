@@ -7,10 +7,29 @@ Decision: ACCEPT >= 7, RETRY 5-7 (max 2), ESCALATE < 5
 """
 
 import re
+import json
+import os
 import logging
 from dataclasses import dataclass
 
 logger = logging.getLogger("core.supervisor")
+
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_OVERRIDES_PATH = os.path.join(_BASE_DIR, "config", "autoresearch_overrides.json")
+
+
+def _load_overrides() -> dict:
+    """Read all tunable params from autoresearch_overrides.json if present."""
+    try:
+        with open(_OVERRIDES_PATH) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _load_accept_threshold() -> float:
+    """Read supervisor_accept_threshold from autoresearch_overrides.json if present."""
+    return float(_load_overrides().get("supervisor_accept_threshold", 6.0))
 
 
 @dataclass
@@ -46,13 +65,20 @@ class MetaSupervisor:
         c = self._score_completeness(output, original_input)
         f = self._score_factuality(output)
 
-        score = q * 0.40 + a * 0.25 + c * 0.20 + f * 0.15
+        # Weights read from autoresearch_overrides.json — closes the tuner feedback loop
+        _ov = _load_overrides()
+        wq = float(_ov.get("supervisor_weight_quality", 0.40))
+        wa = float(_ov.get("supervisor_weight_actionability", 0.25))
+        wc = float(_ov.get("supervisor_weight_completeness", 0.20))
+        wf = float(_ov.get("supervisor_weight_factuality", 0.15))
+        score = q * wq + a * wa + c * wc + f * wf
         reasons = []
 
         # Calibration phase - tighten after prompt optimization
-        # Threshold lowered 7.0→6.0: experiment_research outputs score ~6.17
-        # (no external URLs → F capped at 5.0, structurally unreachable at 7.0)
-        if score >= 6.0:
+        # Threshold read from config/autoresearch_overrides.json (default 6.0)
+        # This closes the autoresearch feedback loop: tuner writes threshold, supervisor reads it
+        _accept_threshold = _load_accept_threshold()
+        if score >= _accept_threshold:
             decision = "ACCEPT"
         elif score >= 5.0 and retry_count < self.MAX_RETRIES:
             decision = "RETRY"
