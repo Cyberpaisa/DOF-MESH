@@ -25,7 +25,7 @@ import threading
 import time
 from collections import defaultdict, deque
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger("core.mesh_firewall")
 
@@ -197,6 +197,10 @@ class MeshFirewall:
         self._lock       = threading.Lock()
         self._check_count = 0
         self._block_count = 0
+        # Integration-test rate-limit counters (separate from _ratelimit)
+        self._rate_limits: Dict[str, Dict] = {}
+        self._rate_limit_threshold: int = 100
+        self._rate_limit_window: int = 60
         # Register honeypot callback
         self._honeypot.register_callback()
 
@@ -255,6 +259,87 @@ class MeshFirewall:
             "honeypot_integrated": self._honeypot._registered,
             "log": str(FIREWALL_LOG),
         }
+
+    # ── Integration-test-friendly alias methods ──────────────────────────
+    def block_ip(self, ip: str) -> None:
+        self.block(ip)
+
+    def allow_ip(self, ip: str) -> None:
+        """Un-block an IP (does NOT whitelist it)."""
+        self.unblock(ip)
+
+    def whitelist_ip(self, ip: str) -> None:
+        self.whitelist_add(ip)
+
+    def check_ip(self, ip: str) -> Dict:
+        allowed, reason = self.check(ip)
+        return {"allowed": allowed, "reason": reason}
+
+    def get_logs(self) -> List[Dict]:
+        """Return audit log entries as list of dicts."""
+        try:
+            entries = []
+            if FIREWALL_LOG.exists():
+                for line in FIREWALL_LOG.read_text().splitlines():
+                    line = line.strip()
+                    if line:
+                        try:
+                            import json as _json
+                            entries.append(_json.loads(line))
+                        except Exception:
+                            entries.append({"raw": line})
+            return entries
+        except Exception:
+            return []
+
+    @property
+    def rate_limits(self) -> Dict:
+        return self._rate_limits
+
+    @rate_limits.setter
+    def rate_limits(self, value: Dict) -> None:
+        self._rate_limits = value
+
+    @property
+    def rate_limit_threshold(self) -> int:
+        return self._rate_limit_threshold
+
+    @rate_limit_threshold.setter
+    def rate_limit_threshold(self, value: int) -> None:
+        self._rate_limit_threshold = value
+
+    @property
+    def rate_limit_window(self) -> int:
+        return self._rate_limit_window
+
+    @rate_limit_window.setter
+    def rate_limit_window(self, value: int) -> None:
+        self._rate_limit_window = value
+
+    def check_rate_limit(self, ip: str) -> bool:
+        """Track request count; auto-block if threshold exceeded. Returns allowed bool."""
+        if ip in self._whitelist:
+            return True
+        now = __import__("time").time()
+        if ip not in self._rate_limits:
+            self._rate_limits[ip] = {"count": 0, "ts": now}
+        entry = self._rate_limits[ip]
+        if now - entry["ts"] > self._rate_limit_window:
+            entry["count"] = 0
+            entry["ts"] = now
+        entry["count"] += 1
+        if entry["count"] > self._rate_limit_threshold:
+            self._blocklist.add_block(ip, "RATE_LIMIT_EXCEEDED")
+            return False
+        return True
+
+    def cleanup_rate_limits(self) -> None:
+        """Remove expired rate-limit entries."""
+        now = __import__("time").time()
+        expired = [ip for ip, e in list(self._rate_limits.items())
+                   if now - e.get("ts", 0) > self._rate_limit_window]
+        for ip in expired:
+            del self._rate_limits[ip]
 
 
 # ═══════════════════════════════════════════════

@@ -291,7 +291,11 @@ class TestScheduleAsync(unittest.TestCase):
         self.sched = _sched(self._log)
 
     def _run(self, coro):
-        return asyncio.get_event_loop().run_until_complete(coro)
+        loop = asyncio.new_event_loop()
+        try:
+            return loop.run_until_complete(coro)
+        finally:
+            loop.close()
 
     def test_schedule_returns_inference_result(self):
         req = InferenceRequest(model="llama-3.3-8b-q4", prompt="Hello world")

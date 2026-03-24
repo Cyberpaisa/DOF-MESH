@@ -22,6 +22,7 @@ class TestIntegrationPhase7(unittest.TestCase):
         
     def tearDown(self):
         self.loop.close()
+        asyncio.set_event_loop(None)
     
     # Firewall blocking tests
     def test_01_firewall_blocks_ip_before_federation(self):
