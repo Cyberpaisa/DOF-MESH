@@ -1,8 +1,136 @@
-{
-  "msg_id": "P7-04",
-  "from_node": "deepseek-coder",
-  "status": "COMPLETED",
-  "response_summary": "Created bench_mesh.py with all requested benchmarks, ASCII table output, and --iterations flag.",
-  "code": "#!/usr/bin/env python3\n\"\"\"Benchmark DOF mesh performance.\"\"\"\n\nimport argparse\nimport json\nimport os\nimport shutil\nimport time\nimport tempfile\nfrom pathlib import Path\nfrom cryptography.hazmat.primitives.ciphers.aead import AESGCM\nimport secrets\nimport sys\n\n\ndef benchmark_message_throughput(iterations: int, work_dir: Path) -> float:\n    \"\"\"Write 1000 JSON files to inbox, measure msgs/sec.\"\"\"\n    inbox = work_dir / \"logs\" / \"mesh\" / \"inbox\" / \"bench\"\n    inbox.mkdir(parents=True, exist_ok=True)\n    \n    payload = {\"test\": \"data\", \"timestamp\": time.time()}\n    start = time.perf_counter()\n    for i in range(iterations * 1000):\n        (inbox / f\"msg_{i}.json\").write_text(json.dumps(payload))\n    end = time.perf_counter()\n    \n    total_msgs = iterations * 1000\n    elapsed = end - start\n    return total_msgs / elapsed if elapsed > 0 else 0.0\n\n\ndef benchmark_encryption_overhead(iterations: int) -> float:\n    \"\"\"AES-GCM encrypt/decrypt 1000x 1KB payload, measure ms/op.\"\"\"\n    key = AESGCM.generate_key(bit_length=256)\n    aesgcm = AESGCM(key)\n    nonce = secrets.token_bytes(12)\n    data = secrets.token_bytes(1024)\n    \n    start = time.perf_counter()\n    for _ in range(iterations * 1000):\n        ciphertext = aesgcm.encrypt(nonce, data, None)\n        aesgcm.decrypt(nonce, ciphertext, None)\n    end = time.perf_counter()\n    \n    total_ops = iterations * 1000 * 2  # encrypt + decrypt\n    elapsed_ms = (end - start) * 1000\n    return elapsed_ms / total_ops if total_ops > 0 else 0.0\n\n\ndef benchmark_node_registry(iterations: int, work_dir: Path) -> float:\n    \"\"\"Read nodes.json 1000x, measure ops/sec.\"\"\"\n    nodes_file = work_dir / \"logs\" / \"mesh\" / \"nodes.json\"\n    nodes_file.parent.mkdir(parents=True, exist_ok=True)\n    nodes_file.write_text(json.dumps({\"nodes\": [{\"id\": \"test\", \"status\": \"active\"}]}))\n    \n    start = time.perf_counter()\n    for _ in range(iterations * 1000):\n        with open(nodes_file, 'r') as f:\n            json.load(f)\n    end = time.perf_counter()\n    \n    total_reads = iterations * 1000\n    elapsed = end - start\n    return total_reads / elapsed if elapsed > 0 else 0.0\n\n\ndef benchmark_broadcast_simulation(iterations: int) -> float:\n    \"\"\"Simulate 10 nodes, 100 messages each, measure total time per iteration.\"\"\"\n    total_messages = 10 * 100  # per iteration\n    \n    start = time.perf_counter()\n    for _ in range(iterations):\n        # Simulate message passing with minimal overhead\n        for node in range(10):\n            for msg in range(100):\n                _ = node + msg  # dummy work\n    end = time.perf_counter()\n    \n    elapsed = end - start\n    return elapsed / iterations if iterations > 0 else 0.0\n\n\ndef print_results(results: dict):\n    \"\"\"Print ASCII table.\"\"\"\n    headers = [\"Benchmark\", \"Result\", \"Unit\"]\n    rows = [\n        [\"Message throughput\", f\"{results['throughput']:.2f}\", \"msgs/sec\"],\n        [\"Encryption overhead\", f\"{results['encryption']:.4f}\", \"ms/op\"],\n        [\"Node registry read\", f\"{results['registry']:.2f}\", \"ops/sec\"],\n        [\"Broadcast simulation\", f\"{results['broadcast']:.6f}\", \"sec/iter\"],\n    ]\n    \n    col_widths = [max(len(str(item)) for item in col) for col in zip(headers, *rows)]\n    \n    def print_row(items):\n        print(\" | \".join(str(item).ljust(w) for item, w in zip(items, col_widths)))\n    \n    print_row(headers)\n    print(\"-\" * (sum(col_widths) + 3 * (len(headers) - 1)))\n    for row in rows:\n        print_row(row)\n\n\ndef main():\n    parser = argparse.ArgumentParser(description=\"Benchmark DOF mesh performance.\")\n    parser.add_argument(\n        \"--iterations\",\n        type=int,\n        default=1,\n        help=\"Number of iterations per benchmark (multiplies base counts)\"\n    )\n    args = parser.parse_args()\n    \n    with tempfile.TemporaryDirectory() as tmpdir:\n        work_dir = Path(tmpdir)\n        \n        print(f\"Running benchmarks with {args.iterations} iteration(s)...\")\n        \n        throughput = benchmark_message_throughput(args.iterations, work_dir)\n        encryption = benchmark_encryption_overhead(args.iterations)\n        registry = benchmark_node_registry(args.iterations, work_dir)\n        broadcast = benchmark_broadcast_simulation(args.iterations)\n        \n        results = {\n            \"throughput\": throughput,\n            \"encryption\": encryption,\n            \"registry\": registry,\n            \"broadcast\": broadcast,\n        }\n        \n        print()\n        print_results(results)\n\n\nif __name__ == \"__main__\":\n    main()\n",
-  "notes": "Uses temp directory for isolation. Broadcast simulation is minimal simulation; real broadcast would involve network. All benchmarks scale with --iterations N."
-}
+#!/usr/bin/env python3
+"""Benchmark DOF mesh performance."""
+
+import argparse
+import json
+import os
+import shutil
+import time
+import tempfile
+from pathlib import Path
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+import secrets
+import sys
+
+
+def benchmark_message_throughput(iterations: int, work_dir: Path) -> float:
+    """Write 1000 JSON files to inbox, measure msgs/sec."""
+    inbox = work_dir / "logs" / "mesh" / "inbox" / "bench"
+    inbox.mkdir(parents=True, exist_ok=True)
+    
+    payload = {"test": "data", "timestamp": time.time()}
+    start = time.perf_counter()
+    for i in range(iterations * 1000):
+        (inbox / f"msg_{i}.json").write_text(json.dumps(payload))
+    end = time.perf_counter()
+    
+    total_msgs = iterations * 1000
+    elapsed = end - start
+    return total_msgs / elapsed if elapsed > 0 else 0.0
+
+
+def benchmark_encryption_overhead(iterations: int) -> float:
+    """AES-GCM encrypt/decrypt 1000x 1KB payload, measure ms/op."""
+    key = AESGCM.generate_key(bit_length=256)
+    aesgcm = AESGCM(key)
+    nonce = secrets.token_bytes(12)
+    data = secrets.token_bytes(1024)
+    
+    start = time.perf_counter()
+    for _ in range(iterations * 1000):
+        ciphertext = aesgcm.encrypt(nonce, data, None)
+        aesgcm.decrypt(nonce, ciphertext, None)
+    end = time.perf_counter()
+    
+    total_ops = iterations * 1000 * 2  # encrypt + decrypt
+    elapsed_ms = (end - start) * 1000
+    return elapsed_ms / total_ops if total_ops > 0 else 0.0
+
+
+def benchmark_node_registry(iterations: int, work_dir: Path) -> float:
+    """Read nodes.json 1000x, measure ops/sec."""
+    nodes_file = work_dir / "logs" / "mesh" / "nodes.json"
+    nodes_file.parent.mkdir(parents=True, exist_ok=True)
+    nodes_file.write_text(json.dumps({"nodes": [{"id": "test", "status": "active"}]}))
+    
+    start = time.perf_counter()
+    for _ in range(iterations * 1000):
+        with open(nodes_file, 'r') as f:
+            json.load(f)
+    end = time.perf_counter()
+    
+    total_reads = iterations * 1000
+    elapsed = end - start
+    return total_reads / elapsed if elapsed > 0 else 0.0
+
+
+def benchmark_broadcast_simulation(iterations: int) -> float:
+    """Simulate 10 nodes, 100 messages each, measure total time per iteration."""
+    total_messages = 10 * 100  # per iteration
+    
+    start = time.perf_counter()
+    for _ in range(iterations):
+        # Simulate message passing with minimal overhead
+        for node in range(10):
+            for msg in range(100):
+                _ = node + msg  # dummy work
+    end = time.perf_counter()
+    
+    elapsed = end - start
+    return elapsed / iterations if iterations > 0 else 0.0
+
+
+def print_results(results: dict):
+    """Print ASCII table."""
+    headers = ["Benchmark", "Result", "Unit"]
+    rows = [
+        ["Message throughput", f"{results['throughput']:.2f}", "msgs/sec"],
+        ["Encryption overhead", f"{results['encryption']:.4f}", "ms/op"],
+        ["Node registry read", f"{results['registry']:.2f}", "ops/sec"],
+        ["Broadcast simulation", f"{results['broadcast']:.6f}", "sec/iter"],
+    ]
+    
+    col_widths = [max(len(str(item)) for item in col) for col in zip(headers, *rows)]
+    
+    def print_row(items):
+        print(" | ".join(str(item).ljust(w) for item, w in zip(items, col_widths)))
+    
+    print_row(headers)
+    print("-" * (sum(col_widths) + 3 * (len(headers) - 1)))
+    for row in rows:
+        print_row(row)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Benchmark DOF mesh performance.")
+    parser.add_argument(
+        "--iterations",
+        type=int,
+        default=1,
+        help="Number of iterations per benchmark (multiplies base counts)"
+    )
+    args = parser.parse_args()
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        work_dir = Path(tmpdir)
+        
+        print(f"Running benchmarks with {args.iterations} iteration(s)...")
+        
+        throughput = benchmark_message_throughput(args.iterations, work_dir)
+        encryption = benchmark_encryption_overhead(args.iterations)
+        registry = benchmark_node_registry(args.iterations, work_dir)
+        broadcast = benchmark_broadcast_simulation(args.iterations)
+        
+        results = {
+            "throughput": throughput,
+            "encryption": encryption,
+            "registry": registry,
+            "broadcast": broadcast,
+        }
+        
+        print()
+        print_results(results)
+
+
+if __name__ == "__main__":
+    main()

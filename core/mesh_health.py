@@ -1,8 +1,297 @@
-{
-  "msg_id": "P7-11",
-  "from_node": "deepseek-coder",
-  "status": "COMPLETED",
-  "response_summary": "Complete implementation of core/mesh_health.py with HealthStatus enum, NodeHealth dataclass, MeshHealth singleton class, and CLI support for --check and --json outputs.",
-  "code": "#!/usr/bin/env python3\n\"\"\"\nDOF Mesh Health Checker\nChecks health of all mesh nodes: local Ollama, API providers, federation bridge, and local mesh files.\n\"\"\"\n\nimport json\nimport os\nimport sys\nimport time\nfrom dataclasses import dataclass, asdict\nfrom datetime import datetime\nfrom enum import Enum\nfrom typing import Dict, Optional\nfrom urllib.request import Request, urlopen\nfrom urllib.error import URLError, HTTPError\nimport socket\n\n\nclass HealthStatus(Enum):\n    \"\"\"Health status of a mesh node.\"\"\"\n    HEALTHY = \"HEALTHY\"\n    DEGRADED = \"DEGRADED\"\n    OFFLINE = \"OFFLINE\"\n\n\n@dataclass\nclass NodeHealth:\n    \"\"\"Health information for a single node.\"\"\"\n    node_id: str\n    status: HealthStatus\n    latency_ms: Optional[float] = None\n    error_msg: Optional[str] = None\n\n    def to_dict(self):\n        d = asdict(self)\n        d['status'] = self.status.value\n        return d\n\n\nclass MeshHealth:\n    \"\"\"Singleton health checker for DOF mesh nodes.\"\"\"\n    _instance = None\n    \n    def __new__(cls):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance\n    \n    def __init__(self):\n        if not hasattr(self, '_initialized'):\n            self._initialized = True\n    \n    def check_all(self) -> Dict[str, NodeHealth]:\n        \"\"\"Check health of all mesh components.\"\"\"\n        results = {}\n        \n        # Check local Ollama\n        results[\"ollama\"] = self._check_ollama()\n        \n        # Check API providers\n        api_providers = [\n            (\"openai\", \"https://api.openai.com/v1/models\"),\n            (\"anthropic\", \"https://api.anthropic.com/v1/messages\"),\n            (\"google\", \"https://generativelanguage.googleapis.com/v1beta/models\"),\n            (\"deepseek\", \"https://api.deepseek.com/v1/models\"),\n        ]\n        for name, url in api_providers:\n            results[name] = self._check_api_provider(name, url)\n        \n        # Check federation bridge\n        results[\"federation_bridge\"] = self._check_federation_bridge()\n        \n        # Check local mesh files\n        results[\"local_mesh_files\"] = self._check_local_mesh_files()\n        \n        return results\n    \n    def _check_ollama(self) -> NodeHealth:\n        \"\"\"Check local Ollama instance.\"\"\"\n        start = time.time()\n        try:\n            req = Request(\"http://localhost:11434/api/tags\", method=\"GET\")\n            with urlopen(req, timeout=5) as response:\n                if response.status == 200:\n                    latency = (time.time() - start) * 1000\n                    return NodeHealth(\n                        node_id=\"ollama\",\n                        status=HealthStatus.HEALTHY,\n                        latency_ms=round(latency, 2)\n                    )\n        except (URLError, HTTPError, socket.timeout) as e:\n            latency = (time.time() - start) * 1000\n            return NodeHealth(\n                node_id=\"ollama\",\n                status=HealthStatus.OFFLINE,\n                latency_ms=round(latency, 2),\n                error_msg=str(e)\n            )\n        except Exception as e:\n            latency = (time.time() - start) * 1000\n            return NodeHealth(\n                node_id=\"ollama\",\n                status=HealthStatus.DEGRADED,\n                latency_ms=round(latency, 2),\n                error_msg=str(e)\n            )\n        \n        latency = (time.time() - start) * 1000\n        return NodeHealth(\n            node_id=\"ollama\",\n            status=HealthStatus.DEGRADED,\n            latency_ms=round(latency, 2),\n            error_msg=\"Unexpected response\"\n        )\n    \n    def _check_api_provider(self, name: str, url: str) -> NodeHealth:\n        \"\"\"Check external API provider with HEAD request.\"\"\"\n        start = time.time()\n        try:\n            # Use HEAD request to avoid large responses\n            req = Request(url, method=\"HEAD\")\n            req.add_header(\"User-Agent\", \"DOF-Mesh-Health-Checker/1.0\")\n            with urlopen(req, timeout=5) as response:\n                latency = (time.time() - start) * 1000\n                status = HealthStatus.HEALTHY if response.status < 500 else HealthStatus.DEGRADED\n                return NodeHealth(\n                    node_id=name,\n                    status=status,\n                    latency_ms=round(latency, 2)\n                )\n        except HTTPError as e:\n            # 4xx errors mean API is reachable but request was bad\n            latency = (time.time() - start) * 1000\n            return NodeHealth(\n                node_id=name,\n                status=HealthStatus.HEALTHY if e.code < 500 else HealthStatus.DEGRADED,\n                latency_ms=round(latency, 2),\n                error_msg=f\"HTTP {e.code}\"\n            )\n        except (URLError, socket.timeout) as e:\n            latency = (time.time() - start) * 1000\n            return NodeHealth(\n                node_id=name,\n                status=HealthStatus.OFFLINE,\n                latency_ms=round(latency, 2),\n                error_msg=str(e)\n            )\n        except Exception as e:\n            latency = (time.time() - start) * 1000\n            return NodeHealth(\n                node_id=name,\n                status=HealthStatus.DEGRADED,\n                latency_ms=round(latency, 2),\n                error_msg=str(e)\n            )\n    \n    def _check_federation_bridge(self) -> NodeHealth:\n        \"\"\"Check federation bridge health endpoint.\"\"\"\n        start = time.time()\n        try:\n            req = Request(\"http://localhost:7892/health\", method=\"GET\")\n            with urlopen(req, timeout=5) as response:\n                latency = (time.time() - start) * 1000\n                if response.status == 200:\n                    return NodeHealth(\n                        node_id=\"federation_bridge\",\n                        status=HealthStatus.HEALTHY,\n                        latency_ms=round(latency, 2)\n                    )\n                else:\n                    return NodeHealth(\n                        node_id=\"federation_bridge\",\n                        status=HealthStatus.DEGRADED,\n                        latency_ms=round(latency, 2),\n                        error_msg=f\"HTTP {response.status}\"\n                    )\n        except (URLError, HTTPError, socket.timeout) as e:\n            latency = (time.time() - start) * 1000\n            return NodeHealth(\n                node_id=\"federation_bridge\",\n                status=HealthStatus.OFFLINE,\n                latency_ms=round(latency, 2),\n                error_msg=str(e)\n            )\n        except Exception as e:\n            latency = (time.time() - start) * 1000\n            return NodeHealth(\n                node_id=\"federation_bridge\",\n                status=HealthStatus.DEGRADED,\n                latency_ms=round(latency, 2),\n                error_msg=str(e)\n            )\n    \n    def _check_local_mesh_files(self) -> NodeHealth:\n        \"\"\"Check if essential local mesh files exist.\"\"\"\n        start = time.time()\n        essential_files = [\n            \"mesh_config.json\",\n            \"node_registry.json\",\n            os.path.join(\"core\", \"mesh_router.py\"),\n            os.path.join(\"core\", \"mesh_health.py\"),\n        ]\n        \n        missing_files = []\n        for file in essential_files:\n            if not os.path.exists(file):\n                missing_files.append(file)\n        \n        latency = (time.time() - start) * 1000\n        if not missing_files:\n            return NodeHealth(\n                node_id=\"local_mesh_files\",\n                status=HealthStatus.HEALTHY,\n                latency_ms=round(latency, 2)\n            )\n        else:\n            return NodeHealth(\n                node_id=\"local_mesh_files\",\n                status=HealthStatus.DEGRADED,\n                latency_ms=round(latency, 2),\n                error_msg=f\"Missing files: {', '.join(missing_files[:3])}\"\n            )\n\n\ndef get_mesh_health() -> MeshHealth:\n    \"\"\"Get singleton MeshHealth instance.\"\"\"\n    return MeshHealth()\n\n\ndef print_ascii_table(results: Dict[str, NodeHealth]):\n    \"\"\"Print ASCII table with colored status.\"\"\"\n    # ANSI color codes\n    GREEN = '\\033[92m'\n    YELLOW = '\\033[93m'\n    RED = '\\033[91m'\n    RESET = '\\033[0m'\n    BOLD = '\\033[1m'\n    \n    print(f\"{BOLD}DOF Mesh Health Check - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}{RESET}\")\n    print(\"=\" * 70)\n    print(f\"{BOLD}{'Node':<20} {'Status':<12} {'Latency (ms)':<12} {'Error/Message'}{RESET}\")\n    print(\"-\" * 70)\n    \n    for node_id, health in results.items():\n        status = health.status.value\n        latency = f\"{health.latency_ms:.2f}\" if health.latency_ms else \"N/A\"\n        error = health.error_msg or \"\"\n        \n        # Color coding\n        if status == \"HEALTHY\":\n            status_colored = f\"{GREEN}{status}{RESET}\"\n        elif status == \"DEGRADED\":\n            status_colored = f\"{YELLOW}{status}{RESET}\"\n        else:\n            status_colored = f\"{RED}{status}{RESET}\"\n        \n        print(f\"{node_id:<20} {status_colored:<20} {latency:<12} {error}\")\n    \n    print(\"=\" * 70)\n    \n    # Summary\n    healthy = sum(1 for h in results.values() if h.status == HealthStatus.HEALTHY)\n    degraded = sum(1 for h in results.values() if h.status == HealthStatus.DEGRADED)\n    offline = sum(1 for h in results.values() if h.status == HealthStatus.OFFLINE)\n    \n    print(f\"{BOLD}Summary:{RESET} {GREEN}HEALTHY: {healthy}{RESET}, {YELLOW}DEGRADED: {degraded}{RESET}, {RED}OFFLINE: {offline}{RESET}\")\n\n\ndef main():\n    \"\"\"CLI entry point.\"\"\"\n    import argparse\n    \n    parser = argparse.ArgumentParser(description=\"DOF Mesh Health Checker\")\n    parser.add_argument(\"--check\", action=\"store_true\", help=\"Print ASCII table with colors\")\n    parser.add_argument(\"--json\", action=\"store_true\", help=\"Output JSON format\")\n    args = parser.parse_args()\n    \n    # Default to --check if no args provided\n    if not args.check and not args.json:\n        args.check = True\n    \n    health_checker = get_mesh_health()\n    results = health_checker.check_all()\n    \n    if args.json:\n        output = {\n            \"timestamp\": datetime.now().isoformat(),\n            \"nodes\": {node_id: health.to_dict() for node_id, health in results.items()}\n        }\n        print(json.dumps(output, indent=2))\n    else:\n        print_ascii_table(results)\n\n\nif __name__ == \"__main__\":\n    main()\n",
-  "notes": "Implementation uses only standard library (urllib, socket, etc.) as requested. Singleton pattern implemented with __new__. CLI supports both --check (colorful ASCII table) and --json outputs. All health checks include 5s timeout handling. Error messages truncated for readability. ANSI colors work in most terminals."
-}
+#!/usr/bin/env python3
+"""
+DOF Mesh Health Checker
+Checks health of all mesh nodes: local Ollama, API providers, federation bridge, and local mesh files.
+"""
+
+import json
+import os
+import sys
+import time
+from dataclasses import dataclass, asdict
+from datetime import datetime
+from enum import Enum
+from typing import Dict, Optional
+from urllib.request import Request, urlopen
+from urllib.error import URLError, HTTPError
+import socket
+
+
+class HealthStatus(Enum):
+    """Health status of a mesh node."""
+    HEALTHY = "HEALTHY"
+    DEGRADED = "DEGRADED"
+    OFFLINE = "OFFLINE"
+
+
+@dataclass
+class NodeHealth:
+    """Health information for a single node."""
+    node_id: str
+    status: HealthStatus
+    latency_ms: Optional[float] = None
+    error_msg: Optional[str] = None
+
+    def to_dict(self):
+        d = asdict(self)
+        d['status'] = self.status.value
+        return d
+
+
+class MeshHealth:
+    """Singleton health checker for DOF mesh nodes."""
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+    
+    def __init__(self):
+        if not hasattr(self, '_initialized'):
+            self._initialized = True
+    
+    def check_all(self) -> Dict[str, NodeHealth]:
+        """Check health of all mesh components."""
+        results = {}
+        
+        # Check local Ollama
+        results["ollama"] = self._check_ollama()
+        
+        # Check API providers
+        api_providers = [
+            ("openai", "https://api.openai.com/v1/models"),
+            ("anthropic", "https://api.anthropic.com/v1/messages"),
+            ("google", "https://generativelanguage.googleapis.com/v1beta/models"),
+            ("deepseek", "https://api.deepseek.com/v1/models"),
+        ]
+        for name, url in api_providers:
+            results[name] = self._check_api_provider(name, url)
+        
+        # Check federation bridge
+        results["federation_bridge"] = self._check_federation_bridge()
+        
+        # Check local mesh files
+        results["local_mesh_files"] = self._check_local_mesh_files()
+        
+        return results
+    
+    def _check_ollama(self) -> NodeHealth:
+        """Check local Ollama instance."""
+        start = time.time()
+        try:
+            req = Request("http://localhost:11434/api/tags", method="GET")
+            with urlopen(req, timeout=5) as response:
+                if response.status == 200:
+                    latency = (time.time() - start) * 1000
+                    return NodeHealth(
+                        node_id="ollama",
+                        status=HealthStatus.HEALTHY,
+                        latency_ms=round(latency, 2)
+                    )
+        except (URLError, HTTPError, socket.timeout) as e:
+            latency = (time.time() - start) * 1000
+            return NodeHealth(
+                node_id="ollama",
+                status=HealthStatus.OFFLINE,
+                latency_ms=round(latency, 2),
+                error_msg=str(e)
+            )
+        except Exception as e:
+            latency = (time.time() - start) * 1000
+            return NodeHealth(
+                node_id="ollama",
+                status=HealthStatus.DEGRADED,
+                latency_ms=round(latency, 2),
+                error_msg=str(e)
+            )
+        
+        latency = (time.time() - start) * 1000
+        return NodeHealth(
+            node_id="ollama",
+            status=HealthStatus.DEGRADED,
+            latency_ms=round(latency, 2),
+            error_msg="Unexpected response"
+        )
+    
+    def _check_api_provider(self, name: str, url: str) -> NodeHealth:
+        """Check external API provider with HEAD request."""
+        start = time.time()
+        try:
+            # Use HEAD request to avoid large responses
+            req = Request(url, method="HEAD")
+            req.add_header("User-Agent", "DOF-Mesh-Health-Checker/1.0")
+            with urlopen(req, timeout=5) as response:
+                latency = (time.time() - start) * 1000
+                status = HealthStatus.HEALTHY if response.status < 500 else HealthStatus.DEGRADED
+                return NodeHealth(
+                    node_id=name,
+                    status=status,
+                    latency_ms=round(latency, 2)
+                )
+        except HTTPError as e:
+            # 4xx errors mean API is reachable but request was bad
+            latency = (time.time() - start) * 1000
+            return NodeHealth(
+                node_id=name,
+                status=HealthStatus.HEALTHY if e.code < 500 else HealthStatus.DEGRADED,
+                latency_ms=round(latency, 2),
+                error_msg=f"HTTP {e.code}"
+            )
+        except (URLError, socket.timeout) as e:
+            latency = (time.time() - start) * 1000
+            return NodeHealth(
+                node_id=name,
+                status=HealthStatus.OFFLINE,
+                latency_ms=round(latency, 2),
+                error_msg=str(e)
+            )
+        except Exception as e:
+            latency = (time.time() - start) * 1000
+            return NodeHealth(
+                node_id=name,
+                status=HealthStatus.DEGRADED,
+                latency_ms=round(latency, 2),
+                error_msg=str(e)
+            )
+    
+    def _check_federation_bridge(self) -> NodeHealth:
+        """Check federation bridge health endpoint."""
+        start = time.time()
+        try:
+            req = Request("http://localhost:7892/health", method="GET")
+            with urlopen(req, timeout=5) as response:
+                latency = (time.time() - start) * 1000
+                if response.status == 200:
+                    return NodeHealth(
+                        node_id="federation_bridge",
+                        status=HealthStatus.HEALTHY,
+                        latency_ms=round(latency, 2)
+                    )
+                else:
+                    return NodeHealth(
+                        node_id="federation_bridge",
+                        status=HealthStatus.DEGRADED,
+                        latency_ms=round(latency, 2),
+                        error_msg=f"HTTP {response.status}"
+                    )
+        except (URLError, HTTPError, socket.timeout) as e:
+            latency = (time.time() - start) * 1000
+            return NodeHealth(
+                node_id="federation_bridge",
+                status=HealthStatus.OFFLINE,
+                latency_ms=round(latency, 2),
+                error_msg=str(e)
+            )
+        except Exception as e:
+            latency = (time.time() - start) * 1000
+            return NodeHealth(
+                node_id="federation_bridge",
+                status=HealthStatus.DEGRADED,
+                latency_ms=round(latency, 2),
+                error_msg=str(e)
+            )
+    
+    def _check_local_mesh_files(self) -> NodeHealth:
+        """Check if essential local mesh files exist."""
+        start = time.time()
+        essential_files = [
+            "mesh_config.json",
+            "node_registry.json",
+            os.path.join("core", "mesh_router.py"),
+            os.path.join("core", "mesh_health.py"),
+        ]
+        
+        missing_files = []
+        for file in essential_files:
+            if not os.path.exists(file):
+                missing_files.append(file)
+        
+        latency = (time.time() - start) * 1000
+        if not missing_files:
+            return NodeHealth(
+                node_id="local_mesh_files",
+                status=HealthStatus.HEALTHY,
+                latency_ms=round(latency, 2)
+            )
+        else:
+            return NodeHealth(
+                node_id="local_mesh_files",
+                status=HealthStatus.DEGRADED,
+                latency_ms=round(latency, 2),
+                error_msg=f"Missing files: {', '.join(missing_files[:3])}"
+            )
+
+
+def get_mesh_health() -> MeshHealth:
+    """Get singleton MeshHealth instance."""
+    return MeshHealth()
+
+
+def print_ascii_table(results: Dict[str, NodeHealth]):
+    """Print ASCII table with colored status."""
+    # ANSI color codes
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    RESET = '\033[0m'
+    BOLD = '\033[1m'
+    
+    print(f"{BOLD}DOF Mesh Health Check - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}{RESET}")
+    print("=" * 70)
+    print(f"{BOLD}{'Node':<20} {'Status':<12} {'Latency (ms)':<12} {'Error/Message'}{RESET}")
+    print("-" * 70)
+    
+    for node_id, health in results.items():
+        status = health.status.value
+        latency = f"{health.latency_ms:.2f}" if health.latency_ms else "N/A"
+        error = health.error_msg or ""
+        
+        # Color coding
+        if status == "HEALTHY":
+            status_colored = f"{GREEN}{status}{RESET}"
+        elif status == "DEGRADED":
+            status_colored = f"{YELLOW}{status}{RESET}"
+        else:
+            status_colored = f"{RED}{status}{RESET}"
+        
+        print(f"{node_id:<20} {status_colored:<20} {latency:<12} {error}")
+    
+    print("=" * 70)
+    
+    # Summary
+    healthy = sum(1 for h in results.values() if h.status == HealthStatus.HEALTHY)
+    degraded = sum(1 for h in results.values() if h.status == HealthStatus.DEGRADED)
+    offline = sum(1 for h in results.values() if h.status == HealthStatus.OFFLINE)
+    
+    print(f"{BOLD}Summary:{RESET} {GREEN}HEALTHY: {healthy}{RESET}, {YELLOW}DEGRADED: {degraded}{RESET}, {RED}OFFLINE: {offline}{RESET}")
+
+
+def main():
+    """CLI entry point."""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="DOF Mesh Health Checker")
+    parser.add_argument("--check", action="store_true", help="Print ASCII table with colors")
+    parser.add_argument("--json", action="store_true", help="Output JSON format")
+    args = parser.parse_args()
+    
+    # Default to --check if no args provided
+    if not args.check and not args.json:
+        args.check = True
+    
+    health_checker = get_mesh_health()
+    results = health_checker.check_all()
+    
+    if args.json:
+        output = {
+            "timestamp": datetime.now().isoformat(),
+            "nodes": {node_id: health.to_dict() for node_id, health in results.items()}
+        }
+        print(json.dumps(output, indent=2))
+    else:
+        print_ascii_table(results)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,8 +1,182 @@
-{
-  "msg_id": "P7-17",
-  "from_node": "deepseek-r1",
-  "status": "COMPLETED",
-  "response_summary": "Complete unittest file with 25 tests for mesh_tunnel.py covering encryption, session management, HKDF, isolation, and error handling.",
-  "code": "import unittest\nimport secrets\nfrom unittest.mock import Mock, patch, MagicMock\nfrom core.mesh_tunnel import TunnelSession, TunnelManager, get_tunnel_manager\n\nclass TestTunnelSession(unittest.TestCase):\n    def setUp(self):\n        self.session_id = secrets.token_bytes(16)\n        self.key = secrets.token_bytes(32)\n        self.session = TunnelSession(self.session_id, self.key)\n    \n    def test_initialization(self):\n        self.assertEqual(self.session.session_id, self.session_id)\n        self.assertEqual(self.session.key, self.key)\n        self.assertIsInstance(self.session.nonce, int)\n    \n    def test_encrypt_decrypt_roundtrip(self):\n        plaintext = b\"Hello, Mesh Network!\"\n        ciphertext = self.session.encrypt(plaintext)\n        self.assertNotEqual(ciphertext, plaintext)\n        decrypted = self.session.decrypt(ciphertext)\n        self.assertEqual(decrypted, plaintext)\n    \n    def test_encrypt_decrypt_empty_data(self):\n        plaintext = b\"\"\n        ciphertext = self.session.encrypt(plaintext)\n        decrypted = self.session.decrypt(ciphertext)\n        self.assertEqual(decrypted, plaintext)\n    \n    def test_encrypt_decrypt_large_data(self):\n        plaintext = secrets.token_bytes(1024 * 1024)  # 1 MB\n        ciphertext = self.session.encrypt(plaintext)\n        decrypted = self.session.decrypt(ciphertext)\n        self.assertEqual(decrypted, plaintext)\n    \n    def test_decrypt_wrong_key_raises_exception(self):\n        plaintext = b\"Test data\"\n        ciphertext = self.session.encrypt(plaintext)\n        wrong_key_session = TunnelSession(self.session_id, secrets.token_bytes(32))\n        with self.assertRaises(Exception):\n            wrong_key_session.decrypt(ciphertext)\n    \n    def test_decrypt_tampered_ciphertext_raises_exception(self):\n        plaintext = b\"Test data\"\n        ciphertext = self.session.encrypt(plaintext)\n        # Tamper with ciphertext\n        tampered = bytearray(ciphertext)\n        if len(tampered) > 10:\n            tampered[5] ^= 0xFF\n        with self.assertRaises(Exception):\n            self.session.decrypt(bytes(tampered))\n    \n    def test_nonce_increment(self):\n        initial_nonce = self.session.nonce\n        self.session.encrypt(b\"test\")\n        self.assertEqual(self.session.nonce, initial_nonce + 1)\n    \n    def test_nonce_uniqueness_per_session(self):\n        session2 = TunnelSession(secrets.token_bytes(16), self.key)\n        self.assertNotEqual(self.session.nonce, session2.nonce)\n\nclass TestTunnelManager(unittest.TestCase):\n    def setUp(self):\n        self.manager = TunnelManager()\n        self.mock_socket = Mock()\n        self.mock_socket.getpeername.return_value = (\"192.168.1.1\", 8080)\n        self.mock_socket.getsockname.return_value = (\"10.0.0.1\", 9090)\n    \n    def test_open_tunnel_creates_tunnel_session(self):\n        session = self.manager.open_tunnel(self.mock_socket, b\"shared_secret\")\n        self.assertIsInstance(session, TunnelSession)\n        self.assertIn(session.session_id, self.manager.sessions)\n    \n    def test_open_tunnel_unique_session_ids(self):\n        session1 = self.manager.open_tunnel(self.mock_socket, b\"secret1\")\n        session2 = self.manager.open_tunnel(self.mock_socket, b\"secret2\")\n        self.assertNotEqual(session1.session_id, session2.session_id)\n    \n    def test_close_tunnel_removes_session(self):\n        session = self.manager.open_tunnel(self.mock_socket, b\"secret\")\n        session_id = session.session_id\n        self.manager.close_tunnel(session_id)\n        self.assertNotIn(session_id, self.manager.sessions)\n    \n    def test_close_nonexistent_tunnel_no_error(self):\n        try:\n            self.manager.close_tunnel(b\"nonexistent\")\n        except Exception:\n            self.fail(\"close_tunnel raised exception for non-existent session\")\n    \n    def test_get_sessions_returns_list(self):\n        self.assertIsInstance(self.manager.get_sessions(), list)\n    \n    def test_get_sessions_returns_all_sessions(self):\n        session1 = self.manager.open_tunnel(self.mock_socket, b\"secret1\")\n        session2 = self.manager.open_tunnel(self.mock_socket, b\"secret2\")\n        sessions = self.manager.get_sessions()\n        self.assertEqual(len(sessions), 2)\n        self.assertIn(session1, sessions)\n        self.assertIn(session2, sessions)\n    \n    def test_concurrent_sessions_isolated(self):\n        session1 = self.manager.open_tunnel(self.mock_socket, b\"secret1\")\n        session2 = self.manager.open_tunnel(self.mock_socket, b\"secret2\")\n        # Data encrypted with session1 should not decrypt with session2\n        plaintext = b\"Isolation test\"\n        ciphertext1 = session1.encrypt(plaintext)\n        with self.assertRaises(Exception):\n            session2.decrypt(ciphertext1)\n        # And vice versa\n        ciphertext2 = session2.encrypt(plaintext)\n        with self.assertRaises(Exception):\n            session1.decrypt(ciphertext2)\n    \n    def test_hkdf_deterministic(self):\n        # Same inputs should produce same key\n        salt = b\"test_salt\"\n        info = b\"test_info\"\n        key1 = self.manager._hkdf_derive(b\"shared_secret\", salt, info)\n        key2 = self.manager._hkdf_derive(b\"shared_secret\", salt, info)\n        self.assertEqual(key1, key2)\n    \n    def test_hkdf_different_inputs_different_keys(self):\n        salt = b\"salt\"\n        info = b\"info\"\n        key1 = self.manager._hkdf_derive(b\"secret1\", salt, info)\n        key2 = self.manager._hkdf_derive(b\"secret2\", salt, info)\n        self.assertNotEqual(key1, key2)\n        \n        key3 = self.manager._hkdf_derive(b\"secret\", b\"salt1\", info)\n        key4 = self.manager._hkdf_derive(b\"secret\", b\"salt2\", info)\n        self.assertNotEqual(key3, key4)\n        \n        key5 = self.manager._hkdf_derive(b\"secret\", salt, b\"info1\")\n        key6 = self.manager._hkdf_derive(b\"secret\", salt, b\"info2\")\n        self.assertNotEqual(key5, key6)\n    \n    def test_open_tunnel_uses_hkdf(self):\n        with patch.object(self.manager, '_hkdf_derive') as mock_hkdf:\n            mock_hkdf.return_value = b\"derived_key\"\n            session = self.manager.open_tunnel(self.mock_socket, b\"shared_secret\")\n            mock_hkdf.assert_called_once()\n            self.assertEqual(session.key, b\"derived_key\")\n    \n    def test_manager_singleton_pattern(self):\n        manager1 = get_tunnel_manager()\n        manager2 = get_tunnel_manager()\n        self.assertIs(manager1, manager2)\n    \n    def test_session_id_generation_uniqueness(self):\n        session_ids = set()\n        for _ in range(100):\n            session = self.manager.open_tunnel(self.mock_socket, b\"secret\")\n            session_ids.add(session.session_id)\n        self.assertEqual(len(session_ids), 100)\n    \n    def test_cleanup_closed_sessions(self):\n        session = self.manager.open_tunnel(self.mock_socket, b\"secret\")\n        session_id = session.session_id\n        self.manager.close_tunnel(session_id)\n        self.assertEqual(len(self.manager.get_sessions()), 0)\n    \n    def test_multiple_concurrent_sessions_encryption(self):\n        sessions = []\n        for i in range(10):\n            session = self.manager.open_tunnel(self.mock_socket, f\"secret{i}\".encode())\n            sessions.append(session)\n        \n        # Each session should encrypt/decrypt independently\n        for i, session in enumerate(sessions):\n            plaintext = f\"Message from session {i}\".encode()\n            ciphertext = session.encrypt(plaintext)\n            decrypted = session.decrypt(ciphertext)\n            self.assertEqual(decrypted, plaintext)\n            # Ensure no cross-session decryption\n            for other_session in sessions:\n                if other_session is not session:\n                    with self.assertRaises(Exception):\n                        other_session.decrypt(ciphertext)\n    \n    def test_session_attributes(self):\n        session = self.manager.open_tunnel(self.mock_socket, b\"secret\")\n        self.assertTrue(hasattr(session, 'session_id'))\n        self.assertTrue(hasattr(session, 'key'))\n        self.assertTrue(hasattr(session, 'encrypt'))\n        self.assertTrue(hasattr(session, 'decrypt'))\n    \n    def test_manager_statistics(self):\n        # Test that manager tracks session count properly\n        self.assertEqual(len(self.manager.get_sessions()), 0)\n        session1 = self.manager.open_tunnel(self.mock_socket, b\"secret1\")\n        self.assertEqual(len(self.manager.get_sessions()), 1)\n        session2 = self.manager.open_tunnel(self.mock_socket, b\"secret2\")\n        self.assertEqual(len(self.manager.get_sessions()), 2)\n        self.manager.close_tunnel(session1.session_id)\n        self.assertEqual(len(self.manager.get_sessions()), 1)\n        self.manager.close_tunnel(session2.session_id)\n        self.assertEqual(len(self.manager.get_sessions()), 0)\n    \n    def test_encryption_performance(self):\n        # Not a true performance test, but ensures encryption/decryption works\n        # with multiple sequential operations\n        session = self.manager.open_tunnel(self.mock_socket, b\"secret\")\n        for i in range(100):\n            plaintext = f\"Message {i}\".encode()\n            ciphertext = session.encrypt(plaintext)\n            decrypted = session.decrypt(ciphertext)\n            self.assertEqual(decrypted, plaintext)\n    \n    def test_session_id_not_key(self):\n        # Ensure session_id is not used as encryption key\n        session = self.manager.open_tunnel(self.mock_socket, b\"secret\")\n        self.assertNotEqual(session.session_id, session.key)\n\nif __name__ == '__main__':\n    unittest.main()",
-  "notes": "Tests cover: 1) TunnelSession initialization, 2) Encryption/decryption roundtrip (empty, normal, large data), 3) Wrong key/tampered data exceptions, 4) Nonce handling, 5) TunnelManager session lifecycle, 6) Concurrent session isolation, 7) HKDF determinism and uniqueness, 8) Singleton pattern, 9) Session ID uniqueness, 10) Attribute validation, 11) Statistical tracking. All network operations mocked."
-}
+"""Tests for core/mesh_tunnel.py — Phase 7 encrypted tunnel."""
+import secrets
+import unittest
+from unittest.mock import MagicMock, patch
+
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from core.mesh_tunnel import TunnelSession, TunnelManager, get_tunnel_manager
+
+
+# ─────────────────────────────────────
+# TunnelSession Tests
+# ─────────────────────────────────────
+
+class TestTunnelSession(unittest.TestCase):
+
+    def _make_session(self, session_id=None, host="127.0.0.1", port=9999, key=None):
+        if session_id is None:
+            session_id = "sess-001"
+        if key is None:
+            key = secrets.token_bytes(32)
+        return TunnelSession(session_id, host, port, key)
+
+    def test_session_stores_id(self):
+        s = self._make_session(session_id="test-id")
+        self.assertEqual(s.session_id, "test-id")
+
+    def test_session_stores_host(self):
+        s = self._make_session(host="10.0.0.1")
+        self.assertEqual(s.peer_host, "10.0.0.1")
+
+    def test_session_stores_port(self):
+        s = self._make_session(port=8888)
+        self.assertEqual(s.peer_port, 8888)
+
+    def test_session_stores_key(self):
+        key = secrets.token_bytes(32)
+        s = self._make_session(key=key)
+        self.assertEqual(s._key, key)
+
+    def test_encrypt_returns_bytes(self):
+        s = self._make_session()
+        ct = s.encrypt(b"hello")
+        self.assertIsInstance(ct, bytes)
+
+    def test_encrypt_changes_data(self):
+        s = self._make_session()
+        plaintext = b"hello mesh"
+        self.assertNotEqual(s.encrypt(plaintext), plaintext)
+
+    def test_encrypt_decrypt_roundtrip(self):
+        s = self._make_session()
+        plaintext = b"Hello, DOF Mesh!"
+        ct = s.encrypt(plaintext)
+        self.assertEqual(s.decrypt(ct), plaintext)
+
+    def test_encrypt_decrypt_empty(self):
+        s = self._make_session()
+        ct = s.encrypt(b"")
+        self.assertEqual(s.decrypt(ct), b"")
+
+    def test_encrypt_decrypt_large(self):
+        s = self._make_session()
+        big = secrets.token_bytes(64 * 1024)
+        self.assertEqual(s.decrypt(s.encrypt(big)), big)
+
+    def test_wrong_key_raises(self):
+        key1 = secrets.token_bytes(32)
+        key2 = secrets.token_bytes(32)
+        s1 = self._make_session(key=key1)
+        s2 = self._make_session(key=key2)
+        ct = s1.encrypt(b"secret")
+        with self.assertRaises(Exception):
+            s2.decrypt(ct)
+
+    def test_tampered_ciphertext_raises(self):
+        s = self._make_session()
+        ct = bytearray(s.encrypt(b"data"))
+        ct[-1] ^= 0xFF  # flip last byte
+        with self.assertRaises(Exception):
+            s.decrypt(bytes(ct))
+
+    def test_encrypt_produces_different_ciphertexts(self):
+        s = self._make_session()
+        pt = b"same plaintext"
+        ct1 = s.encrypt(pt)
+        ct2 = s.encrypt(pt)
+        # Different nonces → different ciphertexts
+        self.assertNotEqual(ct1, ct2)
+
+    def test_different_sessions_isolated(self):
+        k1, k2 = secrets.token_bytes(32), secrets.token_bytes(32)
+        s1 = self._make_session(session_id="s1", key=k1)
+        s2 = self._make_session(session_id="s2", key=k2)
+        ct = s1.encrypt(b"private")
+        with self.assertRaises(Exception):
+            s2.decrypt(ct)
+
+
+# ─────────────────────────────────────
+# TunnelManager Tests
+# ─────────────────────────────────────
+
+class TestTunnelManager(unittest.TestCase):
+
+    def setUp(self):
+        TunnelManager._instance = None
+        self.mgr = TunnelManager()
+
+    def test_initial_sessions_empty(self):
+        self.assertEqual(len(self.mgr.get_sessions()), 0)
+
+    def test_open_tunnel_returns_session(self):
+        s = self.mgr.open_tunnel("127.0.0.1", 9999, "shared-secret")
+        self.assertIsInstance(s, TunnelSession)
+
+    def test_open_tunnel_stores_session(self):
+        self.mgr.open_tunnel("127.0.0.1", 9999, "secret")
+        self.assertEqual(len(self.mgr.get_sessions()), 1)
+
+    def test_open_tunnel_session_id_unique(self):
+        s1 = self.mgr.open_tunnel("127.0.0.1", 9999, "sec")
+        s2 = self.mgr.open_tunnel("127.0.0.1", 9998, "sec")
+        self.assertNotEqual(s1.session_id, s2.session_id)
+
+    def test_open_tunnel_stores_correct_host(self):
+        s = self.mgr.open_tunnel("192.168.1.50", 9999, "sec")
+        self.assertEqual(s.peer_host, "192.168.1.50")
+
+    def test_open_tunnel_stores_correct_port(self):
+        s = self.mgr.open_tunnel("127.0.0.1", 7777, "sec")
+        self.assertEqual(s.peer_port, 7777)
+
+    def test_same_secret_same_key(self):
+        s1 = self.mgr.open_tunnel("127.0.0.1", 9999, "same-secret")
+        TunnelManager._instance = None
+        mgr2 = TunnelManager()
+        s2 = mgr2.open_tunnel("127.0.0.1", 9999, "same-secret")
+        # HKDF is deterministic — same secret + host → same key
+        self.assertEqual(s1._key, s2._key)
+
+    def test_close_tunnel_removes_session(self):
+        s = self.mgr.open_tunnel("127.0.0.1", 9999, "sec")
+        self.mgr.close_tunnel(s.session_id)
+        self.assertEqual(len(self.mgr.get_sessions()), 0)
+
+    def test_close_nonexistent_returns_false(self):
+        result = self.mgr.close_tunnel("nonexistent-id")
+        self.assertFalse(result)
+
+    def test_multiple_sessions_tracked(self):
+        self.mgr.open_tunnel("10.0.0.1", 9001, "s1")
+        self.mgr.open_tunnel("10.0.0.2", 9002, "s2")
+        self.mgr.open_tunnel("10.0.0.3", 9003, "s3")
+        self.assertEqual(len(self.mgr.get_sessions()), 3)
+
+    def test_get_sessions_returns_list(self):
+        self.assertIsInstance(self.mgr.get_sessions(), list)
+
+
+# ─────────────────────────────────────
+# Singleton Tests
+# ─────────────────────────────────────
+
+class TestGetTunnelManager(unittest.TestCase):
+
+    def setUp(self):
+        TunnelManager._instance = None
+
+    def test_same_instance(self):
+        m1 = get_tunnel_manager()
+        m2 = get_tunnel_manager()
+        self.assertIs(m1, m2)
+
+    def test_is_tunnel_manager(self):
+        self.assertIsInstance(get_tunnel_manager(), TunnelManager)
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
