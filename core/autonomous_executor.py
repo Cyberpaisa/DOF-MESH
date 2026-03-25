@@ -43,6 +43,9 @@ CEREBRAS_FALLBACK_MODEL = "llama-3.3-70b"
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GROQ_FALLBACK_MODEL = "llama-3.3-70b-versatile"
+DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
+DEEPSEEK_FALLBACK_MODEL = "deepseek-chat"
 MAX_ITERATIONS = 10
 BASH_TIMEOUT = 30   # seconds per command
 FILE_READ_LIMIT = 200  # max lines to return from read_file
@@ -526,26 +529,45 @@ class AutonomousExecutor:
     # Unified LLM caller — Ollama first, Cerebras second, Groq third
     # ------------------------------------------------------------------ #
 
-    def _call_llm(self, messages: list[dict], model: str) -> Optional[str]:
-        """Try Ollama first; if unavailable fall back to Cerebras; then Groq.
+    def _call_deepseek(self, messages: list[dict], model: str = DEEPSEEK_FALLBACK_MODEL) -> Optional[str]:
+        """Call DeepSeek API — very low cost, good quality, OpenAI-compatible.
 
-        This allows parallel task processing when Ollama is occupied with a long task.
+        Priority 2 in the fallback chain (after Ollama).
+        """
+        if not DEEPSEEK_API_KEY:
+            return None
+        try:
+            resp = requests.post(
+                DEEPSEEK_URL,
+                headers={"Authorization": f"Bearer {DEEPSEEK_API_KEY}", "Content-Type": "application/json"},
+                json={"model": model, "messages": messages, "temperature": 0.2, "max_tokens": 4096},
+                timeout=60,
+            )
+            resp.raise_for_status()
+            content = resp.json()["choices"][0]["message"]["content"] or ""
+            return re.sub(r"<think>[\s\S]*?</think>", "", content).strip() or None
+        except Exception as exc:
+            logger.warning("DeepSeek call failed: %s", exc)
+            return None
+
+    def _call_llm(self, messages: list[dict], model: str) -> Optional[str]:
+        """Provider chain: Ollama (free local) → DeepSeek (cheap) → Cerebras → Groq.
+
+        Prioritizes zero/low-cost providers first.
         """
         response = self._call_ollama(messages, model)
         if response is not None:
             return response
 
-        logger.warning(
-            "Ollama unavailable for model=%s — attempting Cerebras fallback (model=%s)",
-            model,
-            CEREBRAS_FALLBACK_MODEL,
-        )
+        logger.warning("Ollama unavailable for model=%s — trying DeepSeek", model)
+        response = self._call_deepseek(messages, DEEPSEEK_FALLBACK_MODEL)
+        if response is not None:
+            return response
+
+        logger.warning("DeepSeek unavailable — trying Cerebras (model=%s)", CEREBRAS_FALLBACK_MODEL)
         response = self._call_external(messages, CEREBRAS_FALLBACK_MODEL)
         if response is not None:
             return response
 
-        logger.warning(
-            "Cerebras unavailable — attempting Groq fallback (model=%s)",
-            GROQ_FALLBACK_MODEL,
-        )
+        logger.warning("Cerebras unavailable — trying Groq (model=%s)", GROQ_FALLBACK_MODEL)
         return self._call_groq(messages, GROQ_FALLBACK_MODEL)
