@@ -357,5 +357,105 @@ class TestEvaluateBlankOutput(unittest.TestCase):
         self.assertEqual(v.decision, "ESCALATE")
 
 
+# ─────────────────────────────────────────────────────────
+# orchestrate_swarm — SISYPHUS entry point
+# ─────────────────────────────────────────────────────────
+
+class TestOrchestrateSwarm(unittest.TestCase):
+
+    def setUp(self):
+        self.sup = MetaSupervisor()
+
+    def test_returns_dict(self):
+        result = self.sup.orchestrate_swarm("Build a RAG engine for DOF Mesh")
+        self.assertIsInstance(result, dict)
+
+    def test_has_required_keys(self):
+        result = self.sup.orchestrate_swarm("Test objective")
+        for key in ("objective", "subtasks", "results", "verdict", "integrated_output"):
+            self.assertIn(key, result, f"Missing key: {key}")
+
+    def test_objective_preserved(self):
+        obj = "Deploy guardian agent to mesh"
+        result = self.sup.orchestrate_swarm(obj)
+        self.assertEqual(result["objective"], obj)
+
+    def test_six_subtasks_dispatched(self):
+        result = self.sup.orchestrate_swarm("Implement post-quantum crypto migration")
+        self.assertEqual(len(result["subtasks"]), 6)
+
+    def test_subtask_roles_present(self):
+        result = self.sup.orchestrate_swarm("Audit security hierarchy")
+        roles = set(result["subtasks"].keys())
+        expected = {"architect", "researcher", "guardian", "verifier", "narrator", "devops"}
+        self.assertEqual(roles, expected)
+
+    def test_each_subtask_contains_objective(self):
+        obj = "xyzuniqueobjective123"
+        result = self.sup.orchestrate_swarm(obj)
+        for role, task in result["subtasks"].items():
+            self.assertIn(obj, task, f"Objective missing from {role} subtask")
+
+    def test_each_subtask_has_role_prefix(self):
+        result = self.sup.orchestrate_swarm("Run formal Z3 verification")
+        for role, task in result["subtasks"].items():
+            self.assertIn(f"[{role.upper()}]", task)
+
+    def test_verdict_has_required_keys(self):
+        result = self.sup.orchestrate_swarm("Validate governance rules")
+        for key in ("decision", "score", "quality", "actionability", "completeness", "factuality"):
+            self.assertIn(key, result["verdict"], f"Missing verdict key: {key}")
+
+    def test_verdict_decision_valid(self):
+        result = self.sup.orchestrate_swarm("Optimize provider chain TTL")
+        self.assertIn(result["verdict"]["decision"], ("ACCEPT", "RETRY", "ESCALATE"))
+
+    def test_verdict_score_in_range(self):
+        result = self.sup.orchestrate_swarm("Index JSONL logs with RAG engine")
+        score = result["verdict"]["score"]
+        self.assertGreaterEqual(score, 0.0)
+        self.assertLessEqual(score, 10.0)
+
+    def test_integrated_output_is_string(self):
+        result = self.sup.orchestrate_swarm("Stress test DOF mesh with 100 nodes")
+        self.assertIsInstance(result["integrated_output"], str)
+
+    def test_integrated_output_contains_objective(self):
+        obj = "unique_swarm_test_objective_abc"
+        result = self.sup.orchestrate_swarm(obj)
+        self.assertIn(obj, result["integrated_output"])
+
+    def test_integrated_output_mentions_all_roles(self):
+        result = self.sup.orchestrate_swarm("Full DOF system audit")
+        output = result["integrated_output"]
+        for role in ("architect", "researcher", "guardian", "verifier", "narrator", "devops"):
+            self.assertIn(role, output.lower())
+
+    def test_results_has_dispatched_key(self):
+        result = self.sup.orchestrate_swarm("Register orphan sessions as mesh nodes")
+        self.assertIn("dispatched", result["results"])
+
+    def test_dispatched_is_list(self):
+        result = self.sup.orchestrate_swarm("Build CERBERUS PRIME guardian")
+        self.assertIsInstance(result["results"]["dispatched"], list)
+
+    def test_empty_objective_does_not_raise(self):
+        try:
+            result = self.sup.orchestrate_swarm("")
+            self.assertIsInstance(result, dict)
+        except Exception as e:
+            self.fail(f"orchestrate_swarm raised on empty objective: {e}")
+
+    def test_long_objective_handled(self):
+        obj = "A" * 5000
+        result = self.sup.orchestrate_swarm(obj)
+        self.assertIsInstance(result, dict)
+        self.assertIn("subtasks", result)
+
+    def test_verdict_score_is_float(self):
+        result = self.sup.orchestrate_swarm("Phase 10: autonomous scaling")
+        self.assertIsInstance(result["verdict"]["score"], float)
+
+
 if __name__ == "__main__":
     unittest.main()
