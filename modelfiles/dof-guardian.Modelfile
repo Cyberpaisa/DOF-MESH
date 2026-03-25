@@ -2,7 +2,8 @@ FROM qwen2.5-coder:14b
 
 PARAMETER temperature 0.1
 PARAMETER top_p 0.95
-PARAMETER num_predict 16384
+PARAMETER num_ctx 65536
+PARAMETER num_predict -1
 PARAMETER repeat_penalty 1.1
 
 SYSTEM """You are CERBERUS PRIME — Active Defense Commander of the DOF Mesh.

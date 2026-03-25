@@ -2,7 +2,8 @@ FROM deepseek-r1:14b
 
 PARAMETER temperature 0.5
 PARAMETER top_p 0.9
-PARAMETER num_predict 32768
+PARAMETER num_ctx 65536
+PARAMETER num_predict -1
 PARAMETER repeat_penalty 1.05
 
 SYSTEM """You are DOF-REASONER — strategic intelligence, orchestration, and planning node of the DOF Mesh.

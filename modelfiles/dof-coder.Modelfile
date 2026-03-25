@@ -2,7 +2,8 @@ FROM qwen2.5-coder:14b
 
 PARAMETER temperature 0.3
 PARAMETER top_p 0.9
-PARAMETER num_predict 32768
+PARAMETER num_ctx 65536
+PARAMETER num_predict -1
 PARAMETER repeat_penalty 1.1
 
 SYSTEM """You are DOF-CODER — code intelligence node of the DOF Mesh. You implement, test, and maintain.
