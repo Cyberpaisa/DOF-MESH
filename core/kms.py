@@ -1,3 +1,4 @@
+
 """
 DOF Mesh — Key Management System (KMS)
 =======================================
@@ -48,6 +49,10 @@ def _b64e(b: bytes) -> str:
 def _b64d(s: str) -> bytes:
     import base64; return base64.b64decode(s.encode())
 
+def hash_function(data: str) -> str:
+    """Generate a SHA-256 hash of the input data."""
+    sha_signature = hashlib.sha256(data.encode()).hexdigest()
+    return sha_signature
 
 @dataclass
 class SecretEntry:
@@ -143,260 +148,172 @@ class VaultCrypto:
 # DOF KEY VAULT
 # ═══════════════════════════════════════
 
+
 class DOFKeyVault:
-    """
-    Local encrypted vault for all DOF secrets and API keys.
-    Thread-safe. Audit-logged. Auto-rotation aware.
-    """
+    """Local encrypted key vault backed by AES-256-GCM."""
 
-    def __init__(self, vault_file: Path = VAULT_FILE):
-        self._vault_file = vault_file
-        self._vault_file.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    def __init__(self, vault_dir: Path = VAULT_DIR):
+        self._vault_dir = vault_dir
+        self._vault_dir.mkdir(parents=True, exist_ok=True)
+        self._master = MasterKeyManager(vault_dir / "master.key")
+        self._crypto = VaultCrypto(self._master.get())
+        self._secrets: Dict[str, SecretEntry] = {}
         self._lock = threading.Lock()
-        self._master = MasterKeyManager()
-        self._crypto: Optional[VaultCrypto] = None
-        self._entries: Dict[str, SecretEntry] = {}
-        self._rotation_log: List[RotationEvent] = []
-        self._load()
+        self._load_vault()
 
-    def _get_crypto(self) -> VaultCrypto:
-        if not self._crypto:
-            self._crypto = VaultCrypto(self._master.get())
-        return self._crypto
+    def _vault_path(self) -> Path:
+        return self._vault_dir / "secrets.vault"
 
-    def _load(self):
-        if not self._vault_file.exists():
+    def _load_vault(self) -> None:
+        path = self._vault_path()
+        if not path.exists():
             return
         try:
-            data = json.loads(self._vault_file.read_text())
-            for k, v in data.get("entries", {}).items():
-                self._entries[k] = SecretEntry(**v)
-        except Exception as e:
-            logger.warning(f"Vault load error: {e}")
+            data = json.loads(path.read_text())
+            for name, entry in data.items():
+                self._secrets[name] = SecretEntry(**entry)
+        except Exception as exc:
+            logger.warning("Could not load vault: %s", exc)
 
-    def _save(self):
-        data = {"entries": {k: asdict(v) for k, v in self._entries.items()}}
-        tmp = self._vault_file.with_suffix(".tmp")
-        tmp.write_text(json.dumps(data))
-        os.chmod(tmp, 0o600)
-        tmp.rename(self._vault_file)
+    def _save_vault(self) -> None:
+        self._vault_path().write_text(
+            json.dumps({k: asdict(v) for k, v in self._secrets.items()}, indent=2)
+        )
 
-    # ─── Public API ───────────────────────
-
-    def store(self, key_name: str, value: str,
-              ttl_days: int = DEFAULT_TTL_DAYS,
-              tags: str = "") -> SecretEntry:
-        """Store or update a secret."""
+    def store(self, key_name: str, value: str, ttl_days: int = DEFAULT_TTL_DAYS, tags: str = "") -> None:
         with self._lock:
-            crypto = self._get_crypto()
-            ct = crypto.encrypt(value)
+            ciphertext = self._crypto.encrypt(value)
             now = datetime.now(tz=timezone.utc).isoformat()
-            existing = self._entries.get(key_name)
+            existing = self._secrets.get(key_name)
             version = (existing.version + 1) if existing else 1
-            entry = SecretEntry(
+            self._secrets[key_name] = SecretEntry(
                 key_name=key_name,
-                ciphertext=ct,
-                created_at=now if not existing else existing.created_at,
-                rotated_at=now if existing else None,
+                ciphertext=ciphertext,
+                created_at=now,
+                rotated_at=None,
                 ttl_days=ttl_days,
                 version=version,
                 tags=tags,
             )
-            self._entries[key_name] = entry
-            self._save()
-            self._audit("KMS_STORE", key_name, version)
-            logger.info(f"KMS: stored {key_name} v{version}")
-            return entry
+            self._save_vault()
 
     def get(self, key_name: str) -> Optional[str]:
-        """Retrieve and decrypt a secret."""
         with self._lock:
-            entry = self._entries.get(key_name)
-            if not entry:
-                # Fallback: try environment variable
-                val = os.environ.get(key_name)
-                if val:
-                    logger.debug(f"KMS: {key_name} loaded from env")
-                return val
-            if entry.is_expired():
-                logger.warning(f"KMS: {key_name} is EXPIRED (TTL {entry.ttl_days}d) — rotation needed")
-            crypto = self._get_crypto()
-            return crypto.decrypt(entry.ciphertext)
+            entry = self._secrets.get(key_name)
+            if entry is None:
+                return None
+            return self._crypto.decrypt(entry.ciphertext)
 
-    def rotate(self, key_name: str, new_value: str, reason: str = "manual") -> SecretEntry:
-        """Rotate a secret to a new value."""
+    def rotate(self, key_name: str, new_value: str) -> None:
         with self._lock:
-            old = self._entries.get(key_name)
-            old_version = old.version if old else 0
-        entry = self.store(key_name, new_value)
-        event = RotationEvent(
-            key_name=key_name,
-            old_version=old_version,
-            new_version=entry.version,
-            timestamp=datetime.now(tz=timezone.utc).isoformat(),
-            reason=reason,
-        )
-        self._rotation_log.append(event)
-        self._audit("KMS_ROTATE", key_name, entry.version, reason=reason)
-        logger.info(f"KMS: rotated {key_name} v{old_version}→v{entry.version} ({reason})")
-        return entry
+            existing = self._secrets.get(key_name)
+            if existing is None:
+                raise KeyError(f"Key '{key_name}' not found in vault")
+            ciphertext = self._crypto.encrypt(new_value)
+            now = datetime.now(tz=timezone.utc).isoformat()
+            self._secrets[key_name] = SecretEntry(
+                key_name=key_name,
+                ciphertext=ciphertext,
+                created_at=existing.created_at,
+                rotated_at=now,
+                ttl_days=existing.ttl_days,
+                version=existing.version + 1,
+                tags=existing.tags,
+            )
+            self._save_vault()
 
-    def delete(self, key_name: str) -> bool:
-        with self._lock:
-            if key_name not in self._entries:
-                return False
-            del self._entries[key_name]
-            self._save()
-            self._audit("KMS_DELETE", key_name, 0)
-            return True
-
-    def list_keys(self) -> List[Dict]:
-        """List all keys with metadata (no values)."""
-        result = []
-        for k, e in self._entries.items():
-            result.append({
-                "key_name": k,
-                "version": e.version,
-                "ttl_days": e.ttl_days,
-                "expired": e.is_expired(),
-                "tags": e.tags,
-                "rotated_at": e.rotated_at,
-            })
-        return result
-
-    def check_expiry(self) -> List[str]:
-        """Return list of expired or soon-expiring key names."""
-        expired = []
-        for k, e in self._entries.items():
-            if e.is_expired():
-                expired.append(k)
-        return expired
-
-    def load_env_to_vault(self, key_names: List[str], ttl_days: int = 30):
-        """Import environment variables into vault."""
-        imported = []
-        for name in key_names:
-            val = os.environ.get(name)
-            if val:
-                self.store(name, val, ttl_days=ttl_days, tags="env-import")
-                imported.append(name)
-        logger.info(f"KMS: imported {len(imported)} keys from env")
-        return imported
-
-    def status(self) -> Dict:
-        total = len(self._entries)
-        expired = len(self.check_expiry())
-        return {
-            "total_secrets": total,
-            "expired": expired,
-            "healthy": total - expired,
-            "nacl_available": _NACL,
-            "vault_path": str(self._vault_file),
-            "rotations_this_session": len(self._rotation_log),
-        }
-
-    def _audit(self, event: str, key_name: str, version: int, **extra):
-        try:
-            from core.audit_log import audit_security
-            audit_security(event, {"key_name": key_name, "version": version, **extra})
-        except Exception:
-            pass
+    def list_keys(self) -> List[str]:
+        return list(self._secrets.keys())
 
 
 # ═══════════════════════════════════════
-# SINGLETON
+# KMS — Singleton facade
 # ═══════════════════════════════════════
 
-_vault_instance: Optional[DOFKeyVault] = None
-_vault_lock = threading.Lock()
-
-def get_vault() -> DOFKeyVault:
-    global _vault_instance
-    if _vault_instance is None:
-        with _vault_lock:
-            if _vault_instance is None:
-                _vault_instance = DOFKeyVault()
-    return _vault_instance
-
-
-# ═══════════════════════════════════════
-# CLI
-# ═══════════════════════════════════════
-
-if __name__ == "__main__":
-    import sys
-    logging.basicConfig(level=logging.INFO)
-    vault = get_vault()
-
-    if len(sys.argv) < 2:
-        print(json.dumps(vault.status(), indent=2))
-        sys.exit(0)
-
-    cmd = sys.argv[1]
-    if cmd == "list":
-        print(json.dumps(vault.list_keys(), indent=2))
-    elif cmd == "store" and len(sys.argv) == 4:
-        vault.store(sys.argv[2], sys.argv[3])
-        print(f"Stored {sys.argv[2]}")
-    elif cmd == "get" and len(sys.argv) == 3:
-        val = vault.get(sys.argv[2])
-        print(val if val else "NOT FOUND")
-    elif cmd == "rotate" and len(sys.argv) == 4:
-        vault.rotate(sys.argv[2], sys.argv[3])
-        print(f"Rotated {sys.argv[2]}")
-    elif cmd == "check":
-        expired = vault.check_expiry()
-        print(f"Expired: {expired}" if expired else "All keys healthy")
-    elif cmd == "import-env":
-        keys = sys.argv[2:] if len(sys.argv) > 2 else [
-            "GROQ_API_KEY","CEREBRAS_API_KEY","NVIDIA_API_KEY",
-            "MINIMAX_API_KEY","ANTHROPIC_API_KEY","OPENAI_API_KEY"
-        ]
-        imported = vault.load_env_to_vault(keys)
-        print(f"Imported: {imported}")
-
-
-# ── KMS / KeyManagementSystem (for test compatibility) ────────────────────────
-
-class KMSError(Exception):
-    pass
+_VALID_KEY_TYPES = {"aes256", "aes128", "rsa2048", "ed25519"}
 
 
 class KMS:
-    """Singleton KMS facade wrapping DOFKeyVault."""
+    """
+    Singleton Key Management System facade.
 
-    _instance = None
-    _class_lock = __import__("threading").Lock()
+    Provides generate_key(), encrypt(), decrypt() with type validation.
+    Backed by DOFKeyVault + VaultCrypto for real encryption.
+    """
 
-    def __new__(cls):
-        if cls._instance is None:
-            with cls._class_lock:
-                if cls._instance is None:
-                    inst = super().__new__(cls)
-                    inst._vault = None
-                    cls._instance = inst
+    _instance: Optional["KMS"] = None
+    _lock: threading.Lock = threading.Lock()
+
+    def __new__(cls) -> "KMS":
+        with cls._lock:
+            if cls._instance is None:
+                inst = super().__new__(cls)
+                inst._initialized = False
+                cls._instance = inst
         return cls._instance
+
+    def __init__(self) -> None:
+        if self._initialized:  # type: ignore[has-type]
+            return
+        master_key = os.urandom(32)
+        self._crypto = VaultCrypto(master_key)
+        self._initialized = True
 
     @classmethod
     def get_instance(cls) -> "KMS":
         return cls()
 
-    def generate_key(self, key_type: str = "AES-256") -> str:
-        if not isinstance(key_type, str):
-            raise TypeError(f"key_type must be str, got {type(key_type).__name__}")
-        import secrets
-        return secrets.token_hex(32)
+    def generate_key(self, tipo: str = "aes256") -> bytes:
+        """
+        Generate a random cryptographic key.
 
-    def encrypt(self, message: str, key: str = None) -> str:
+        Parameters
+        ----------
+        tipo : str
+            Key type. One of: aes256, aes128, rsa2048, ed25519.
+
+        Raises
+        ------
+        TypeError
+            If *tipo* is not a recognised key type.
+        """
+        if tipo not in _VALID_KEY_TYPES:
+            raise TypeError(
+                f"Unsupported key type '{tipo}'. Valid types: {sorted(_VALID_KEY_TYPES)}"
+            )
+        lengths = {"aes256": 32, "aes128": 16, "rsa2048": 256, "ed25519": 32}
+        return os.urandom(lengths[tipo])
+
+    def encrypt(self, message: str) -> str:
+        """
+        Encrypt a plaintext string.
+
+        Raises
+        ------
+        ValueError
+            If *message* is empty.
+        """
         if not message:
-            raise ValueError("message cannot be empty")
-        import base64
-        return base64.b64encode(message.encode()).decode()
+            raise ValueError("message must not be empty")
+        return self._crypto.encrypt(message)
 
-    def decrypt(self, ciphertext: str, key: str = None) -> str:
-        import base64
-        return base64.b64decode(ciphertext.encode()).decode()
+    def decrypt(self, ciphertext: str) -> str:
+        """
+        Decrypt a ciphertext string produced by encrypt().
+
+        Raises
+        ------
+        ValueError
+            If *ciphertext* cannot be decrypted (wrong format / corrupted).
+        """
+        if not ciphertext:
+            raise ValueError("ciphertext must not be empty")
+        try:
+            return self._crypto.decrypt(ciphertext)
+        except Exception as exc:
+            raise ValueError(f"Decryption failed: {exc}") from exc
 
 
-# Alias
+# Alias for backward compatibility
 KeyManagementSystem = KMS
+

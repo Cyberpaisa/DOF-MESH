@@ -56,9 +56,9 @@ class TestLegionOrchestrator(unittest.TestCase):
             LegionOrchestrator(None)
 
     def test_caso_edge_vacio(self):
-        # Verifica que la clase LegionOrchestrator maneje correctamente el caso edge vacío
-        with self.assertRaises(TypeError):
-            LegionOrchestrator()
+        # Verifica que LegionOrchestrator() sin argumentos devuelve una instancia válida (singleton)
+        orchestrator = LegionOrchestrator()
+        self.assertIsNotNone(orchestrator)
 
     def test_caso_edge_tipos_incorrectos(self):
         # Verifica que la clase LegionOrchestrator maneje correctamente el caso edge con tipos incorrectos

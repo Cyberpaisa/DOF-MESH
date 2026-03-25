@@ -46,6 +46,7 @@ class TestClaudeNodeRunner(unittest.TestCase):
     def test_stop_con_node_en_ejecucion(self):
         # Verifica que el método stop funcione cuando el nodo está en ejecución
         runner = ClaudeNodeRunner()
+        runner._running = True  # Simula que el nodo está en ejecución
         with patch.object(runner, '_stop_node') as mock_stop_node:
             runner.stop()
             mock_stop_node.assert_called_once()

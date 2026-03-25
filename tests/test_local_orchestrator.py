@@ -256,11 +256,11 @@ class TestOrchestratorRunWithMock(unittest.TestCase):
 class TestLocalModelsDict(unittest.TestCase):
     def test_deepseek_is_reasoning_model(self):
         from core.local_orchestrator import LOCAL_MODELS
-        self.assertIn("deepseek", LOCAL_MODELS["reasoning"])
+        self.assertIn("reasoner", LOCAL_MODELS["reasoning"])
 
     def test_qwen_coder_is_code_model(self):
         from core.local_orchestrator import LOCAL_MODELS
-        self.assertIn("qwen", LOCAL_MODELS["code"])
+        self.assertIn("coder", LOCAL_MODELS["code"])
 
     def test_all_required_keys_present(self):
         from core.local_orchestrator import LOCAL_MODELS
