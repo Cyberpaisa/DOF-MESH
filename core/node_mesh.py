@@ -331,8 +331,10 @@ class NodeMesh:
                         data = json.loads(f.read())
                     finally:
                         fcntl.flock(f, fcntl.LOCK_UN)
+                valid_fields = {f.name for f in MeshNode.__dataclass_fields__.values()}
                 for nid, ndata in data.items():
-                    self._nodes[nid] = MeshNode(**ndata)
+                    filtered = {k: v for k, v in ndata.items() if k in valid_fields}
+                    self._nodes[nid] = MeshNode(**filtered)
         except Exception as e:
             logger.warning(f"Failed to load nodes: {e}")
             self._nodes = {}
