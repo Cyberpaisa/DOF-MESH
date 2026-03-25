@@ -485,3 +485,8 @@ class ConstitutionEnforcer:
         Delegates to module-level enforce_hierarchy().
         """
         return enforce_hierarchy(system_prompt, user_prompt, response)
+
+
+def check_governance(text: str, context: str = "") -> GovernanceResult:
+    """Top-level convenience wrapper around ConstitutionEnforcer.check()."""
+    return ConstitutionEnforcer().check(text, context)
