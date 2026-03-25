@@ -220,7 +220,11 @@ def _dof_groq_reply(chat_id: int, user_message: str) -> str:
     """Fallback: Llama a Groq si Anthropic no está disponible."""
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
-        return "No tengo ANTHROPIC_API_KEY ni GROQ_API_KEY. Configura al menos una en .env."
+        # No external keys — route directly to local Ollama (free, always available)
+        messages_for_ollama = [{"role": "system", "content": DOF_SYSTEM_PROMPT}]
+        if chat_id in _dof_histories:
+            messages_for_ollama.extend(_dof_histories[chat_id][-10:])
+        return _dof_ollama_reply(messages_for_ollama)
 
     import urllib.request
     import urllib.error
@@ -279,7 +283,7 @@ def _dof_fallback_cerebras(messages: list) -> str:
 
     api_key = os.getenv("CEREBRAS_API_KEY")
     if not api_key:
-        return "Groq no disponible y no hay CEREBRAS_API_KEY de fallback."
+        return _dof_ollama_reply(messages)
 
     payload = json.dumps({
         "model": "llama-3.3-70b",
@@ -307,7 +311,40 @@ def _dof_fallback_cerebras(messages: list) -> str:
             return data.get("choices", [{}])[0].get("message", {}).get("content", "") or "Error en fallback."
     except Exception as e:
         logger.error(f"Cerebras fallback error: {e}")
-        return f"Ambos proveedores no disponibles. Error: {e}"
+        # Last resort: local Ollama (zero cost, always available)
+        return _dof_ollama_reply(messages)
+
+
+def _dof_ollama_reply(messages: list) -> str:
+    """Fallback final: Ollama local — zero cost, always available, no API key needed."""
+    import urllib.request
+    import re as _re
+
+    ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
+    model = "local-agi-m4max"  # DOF custom model with full SOUL
+
+    payload = json.dumps({
+        "model": model,
+        "messages": messages,
+        "stream": False,
+        "options": {"temperature": 0.3, "num_predict": -1},
+    }).encode()
+
+    req = urllib.request.Request(
+        f"{ollama_url}/api/chat",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            data = json.loads(resp.read())
+            content = data.get("message", {}).get("content", "").strip()
+            # Strip deepseek thinking tokens if present
+            content = _re.sub(r"<think>[\s\S]*?</think>", "", content).strip()
+            return content or "Ollama no generó respuesta."
+    except Exception as e:
+        logger.error(f"Ollama fallback error: {e}")
+        return f"Sin conexión a proveedores externos ni a Ollama local. Error: {e}"
 
 
 # Palabras que activan crew en vez de DOF directo
@@ -1765,6 +1802,80 @@ def start_bot():
         except Exception as e:
             bot.reply_to(message, f"❌ Error descargando archivo: {e}")
 
+    # ─── Fotos / imágenes → visión con moondream ───
+    def _analyze_image_with_vision(image_path: str, caption: str = "") -> str:
+        """Send image to Ollama moondream and return description."""
+        import base64
+        prompt = caption.strip() if caption.strip() else "Describe this image"
+        try:
+            with open(image_path, "rb") as f:
+                b64 = base64.b64encode(f.read()).decode("utf-8")
+            payload = {
+                "model": "moondream",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": prompt,
+                        "images": [b64],
+                    }
+                ],
+                "stream": False,
+            }
+            resp = requests.post(
+                "http://localhost:11434/api/chat",
+                json=payload,
+                timeout=60,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            text = data.get("message", {}).get("content", "")
+            # Strip <think>...</think> blocks
+            import re
+            text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+            return text or "No se obtuvo respuesta del modelo de visión."
+        except requests.exceptions.ConnectionError:
+            return "Modelo de visión no disponible. Instala: ollama pull moondream"
+        except Exception as e:
+            return f"Error al analizar imagen: {e}"
+
+    @bot.message_handler(content_types=["photo"])
+    def handle_photo(message):
+        # Largest photo = last element in the array (highest resolution)
+        photo = message.photo[-1]
+        file_id = photo.file_id
+        caption = message.caption or ""
+
+        try:
+            file_info = bot.get_file(file_id)
+            file_path = file_info.file_path
+            download_url = f"https://api.telegram.org/file/bot{TELEGRAM_TOKEN}/{file_path}"
+            local_path = f"/tmp/tg_photo_{file_id}.jpg"
+
+            img_resp = requests.get(download_url, timeout=30)
+            img_resp.raise_for_status()
+            with open(local_path, "wb") as f:
+                f.write(img_resp.content)
+
+            bot.reply_to(message, "🔍 Analizando imagen...")
+
+            def _vision_reply():
+                try:
+                    analysis = _analyze_image_with_vision(local_path, caption)
+                    _send_long_message(bot, message.chat.id, analysis)
+                except Exception as e:
+                    bot.send_message(message.chat.id, f"❌ Error procesando imagen: {e}")
+                finally:
+                    try:
+                        os.remove(local_path)
+                    except OSError:
+                        pass
+
+            thread = threading.Thread(target=_vision_reply, daemon=True)
+            thread.start()
+
+        except Exception as e:
+            bot.reply_to(message, f"❌ Error descargando imagen: {e}")
+
     # ─── Texto libre → DOF Oracle (default) o Crew (si tiene trigger) ───
     @bot.message_handler(func=lambda m: True)
     def handle_text(message):
@@ -1798,19 +1909,52 @@ def start_bot():
         thread = threading.Thread(target=_reply, daemon=True)
         thread.start()
 
+    # ─── PID file — previene instancias duplicadas ───
+    import time as _time
+    PID_FILE = os.path.join(PROJECT_ROOT, "logs", "telegram_bot.pid")
+    os.makedirs(os.path.dirname(PID_FILE), exist_ok=True)
+
+    # Check if another instance is already running
+    if os.path.exists(PID_FILE):
+        try:
+            with open(PID_FILE) as _pf:
+                old_pid = int(_pf.read().strip())
+            import signal as _signal
+            os.kill(old_pid, _signal.SIGTERM)
+            logger.info(f"Sent SIGTERM to old bot instance PID {old_pid}")
+            _time.sleep(3)
+        except (ProcessLookupError, ValueError):
+            pass  # PID is stale or invalid — proceed
+        except Exception as e:
+            logger.warning(f"Could not kill old instance: {e}")
+
+    # Write our PID
+    with open(PID_FILE, "w") as _pf:
+        _pf.write(str(os.getpid()))
+
     # ─── Polling ───
     # Limpiar webhook y sesiones anteriores para evitar Error 409
     bot.remove_webhook()
-    import time; time.sleep(1)
+    _time.sleep(20)  # long_polling_timeout=15 — wait for old session to expire on Telegram server
 
     print("=" * 50)
     print("🤖 OpenClawd Telegram Bot activo")
     print(f"   Token: ...{TELEGRAM_TOKEN[-8:]}")
+    print(f"   PID: {os.getpid()}")
     print("   Ctrl+C para detener")
     print("=" * 50)
-    logger.info("OpenClawd Telegram Bot activo")
+    logger.info(f"OpenClawd Telegram Bot activo (PID {os.getpid()})")
 
-    bot.infinity_polling(timeout=60, long_polling_timeout=60)
+    try:
+        bot.infinity_polling(timeout=60, long_polling_timeout=15, restart_on_change=False)
+    except Exception as poll_err:
+        logger.error(f"Polling crashed: {poll_err}")
+    finally:
+        # Remove PID file on exit
+        try:
+            os.remove(PID_FILE)
+        except OSError:
+            pass
 
 
 if __name__ == "__main__":

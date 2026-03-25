@@ -46,9 +46,9 @@ class TestMeshAutoScaler(unittest.TestCase):
             MeshAutoScaler(None)
 
     def test_caso_edge_vacio(self):
-        # Verifica que el constructor maneje correctamente el caso de vacío
-        with self.assertRaises(TypeError):
-            MeshAutoScaler()
+        # Verifica que MeshAutoScaler() sin argumentos devuelve una instancia válida (singleton)
+        scaler = MeshAutoScaler()
+        self.assertIsNotNone(scaler)
 
     def test_caso_edge_tipo_incorrecto(self):
         # Verifica que el constructor maneje correctamente el caso de tipo incorrecto

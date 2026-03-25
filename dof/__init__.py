@@ -286,6 +286,12 @@ from core.event_stream import (
 )
 
 # ─────────────────────────────────────────────────────────────────────
+# Mesh Scheduler
+# ─────────────────────────────────────────────────────────────────────
+
+from core.mesh_scheduler import MeshScheduler, TaskSlot, HIGH, NORMAL, LOW
+
+# ─────────────────────────────────────────────────────────────────────
 # Top-level convenience functions
 # ─────────────────────────────────────────────────────────────────────
 
@@ -445,10 +451,27 @@ __all__ = [
     "InMemoryBackend",
     "EventType",
     "Event",
+    # Mesh Scheduler
+    "MeshScheduler",
+    "TaskSlot",
+    "HIGH",
+    "NORMAL",
+    "LOW",
     # Regression Tracker
     "RegressionTracker",
     "RegressionReport",
     "ChangeType",
+    # Local AGI (v0.6.1)
+    "AutonomousExecutor",
+    "ExecutionResult",
+    "ToolCall",
+    "LocalOrchestrator",
+    "OrchestratorResult",
+    "LOCAL_MODELS",
 ]
 
 from dof.x402_gateway import TrustGateway, GatewayVerdict, GatewayAction
+
+# Local AGI — zero-token autonomous execution (v0.6.1)
+from core.autonomous_executor import AutonomousExecutor, ExecutionResult, ToolCall
+from core.local_orchestrator import LocalOrchestrator, OrchestratorResult, LOCAL_MODELS
