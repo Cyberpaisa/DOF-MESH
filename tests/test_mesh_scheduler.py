@@ -135,8 +135,10 @@ class TestMeshSchedulerRAM(unittest.TestCase):
         self.assertEqual(slots, self.sched.max_concurrent)
 
     def test_recommended_slots_floors_division(self):
+        # new formula: usable = available - 9 (model resident) - 2 (safety) = 16 - 11 = 5
+        # floor(5 / 2.5) = 2
         with patch("psutil.virtual_memory") as mock_mem:
-            mock_mem.return_value.available = 25 * (1024 ** 3)  # 25 GB → floor(2.5) = 2
+            mock_mem.return_value.available = 16 * (1024 ** 3)  # 16 GB → usable=5 → floor(5/2.5)=2
             slots = self.sched.recommended_slots()
         self.assertEqual(slots, 2)
 

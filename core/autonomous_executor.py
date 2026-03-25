@@ -561,20 +561,60 @@ class AutonomousExecutor:
             logger.warning("DeepSeek call failed: %s", exc)
             return None
 
-    def _call_llm(self, messages: list[dict], model: str) -> Optional[str]:
-        """Provider chain: DeepSeek (primary) → Ollama (local backup) → Cerebras → Groq.
+    def _call_llm_speculative(self, messages: list[dict], model: str) -> Optional[str]:
+        """Fire DeepSeek and Ollama simultaneously; return the FIRST non-None result.
 
-        DeepSeek is primary: fast, powerful, ~$0.03/month — effectively zero cost.
-        Ollama is the local fallback when DeepSeek is unavailable.
+        Uses threading (not asyncio) to keep everything synchronous.
+        Falls back to Cerebras then Groq if both return None.
         """
-        # Primary: DeepSeek — fast, reliable, virtually free
-        if DEEPSEEK_API_KEY:
-            response = self._call_deepseek(messages, DEEPSEEK_FALLBACK_MODEL)
-            if response is not None:
-                return response
-            logger.warning("DeepSeek unavailable — falling back to Ollama local")
+        import concurrent.futures
 
-        # Secondary: Ollama local — free, zero latency on LAN
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            future_deepseek = executor.submit(self._call_deepseek, messages, DEEPSEEK_FALLBACK_MODEL)
+            future_ollama = executor.submit(self._call_ollama, messages, model)
+
+            result: Optional[str] = None
+            # Iterate over futures as they complete; take first non-None
+            for future in concurrent.futures.as_completed(
+                [future_deepseek, future_ollama], timeout=360
+            ):
+                try:
+                    value = future.result()
+                except Exception as exc:
+                    logger.warning("Speculative future raised: %s", exc)
+                    value = None
+
+                if value is not None:
+                    result = value
+                    # Cancel the other future (best-effort — ignored if already done)
+                    for f in [future_deepseek, future_ollama]:
+                        if f is not future:
+                            f.cancel()
+                    break
+
+        if result is not None:
+            return result
+
+        # Both failed — fall through to cloud providers
+        logger.warning("Speculative DeepSeek+Ollama both failed — trying Cerebras")
+        response = self._call_external(messages, CEREBRAS_FALLBACK_MODEL)
+        if response is not None:
+            return response
+
+        logger.warning("Cerebras unavailable — trying Groq (model=%s)", GROQ_FALLBACK_MODEL)
+        return self._call_groq(messages, GROQ_FALLBACK_MODEL)
+
+    def _call_llm(self, messages: list[dict], model: str) -> Optional[str]:
+        """Provider chain: speculative DeepSeek+Ollama race → Cerebras → Groq.
+
+        When DEEPSEEK_API_KEY is set, DeepSeek and Ollama are fired simultaneously
+        and the first non-None response wins (SpeculativeExecutor pattern).
+        Without a DeepSeek key the original serial chain is used.
+        """
+        if DEEPSEEK_API_KEY:
+            return self._call_llm_speculative(messages, model)
+
+        # No DeepSeek key — serial chain: Ollama → Cerebras → Groq
         response = self._call_ollama(messages, model)
         if response is not None:
             return response

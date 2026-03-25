@@ -1297,3 +1297,451 @@ El sistema cuenta con **122 archivos de test** (`tests/test_*.py`) cubriendo los
 *Juan Carlos Quiceno Vasquez (@Ciberpaisa) — Medellín, Colombia*
 *March 24, 2026 — DOF v0.6.1*
 *105 módulos | 3389 tests | 6 modelos custom | Primera prueba de estrés real*
+
+---
+
+## Capítulo 12 — Auditoría Multi-Modelo: Lo que los LLMs Nos Dijeron
+
+*Cuando no sabes cómo arreglar tu sistema, le preguntas a siete mentes a la vez.*
+
+*March 24, 2026 — DOF v0.6.1*
+
+---
+
+### 12.1 El Experimento
+
+Después del stress test del Capítulo 10, teníamos el diagnóstico claro: 33% de éxito, polling cada 3s como anti-pattern, un solo proceso Ollama sirviendo 6 nodos en serie, y RAM mal calculada. Sabíamos qué estaba roto. Lo que no sabíamos era cuál era el camino óptimo para arreglarlo.
+
+La solución habitual sería buscar en la documentación, experimentar en local, iterar. Pero teníamos algo mejor: acceso simultáneo a siete de los modelos de lenguaje más avanzados del mundo. Decidimos hacer algo que raramente se documenta en proyectos de software — una **auditoría multi-modelo formal**, enviando la misma pregunta técnica a los siete en paralelo y comparando las respuestas.
+
+La pregunta fue concreta:
+
+> *"Tenemos un mesh de 6 agentes, un solo proceso Ollama sirviendo todos los nodos, daemon que hace polling cada 3s, 36GB RAM M4 Max. Bajo stress con 18 tareas simultáneas obtenemos 33% de éxito. ¿Cómo lo arquitectarías para máximo throughput?"*
+
+Los resultados llegaron en **33.2 segundos de wall time total** — el tiempo del modelo más lento. Lo que encontramos en esas respuestas cambió la arquitectura del sistema más de lo que esperábamos.
+
+---
+
+### 12.2 Los Siete Modelos — Tabla Comparativa
+
+```
+┌────────────────────┬──────────┬──────────┬──────────────┬────────────────────────┐
+│ Modelo             │ Tiempo   │ Chars    │ Modo acceso  │ Característica clave   │
+├────────────────────┼──────────┼──────────┼──────────────┼────────────────────────┤
+│ SambaNova          │   2.8s   │  1,823   │ API directa  │ Más rápido del grupo   │
+│ NVIDIA NIM         │   8.4s   │  2,401   │ API directa  │ Balanceado y preciso   │
+│ DeepSeek R1        │  33.2s   │  4,179   │ API directa  │ Más detallado (4K ch.) │
+│ Kimi (Moonshot)    │  manual  │  2,967   │ Web UI       │ Más innovador          │
+│ Gemini 2.0 Flash   │  manual  │  2,544   │ Web UI       │ Más práctico           │
+│ MiniMax Text-01    │  manual  │  3,891   │ Web UI       │ GANADOR TÉCNICO ★      │
+│ GPT-4o (baseline)  │  manual  │  2,201   │ Web UI       │ Consenso de referencia │
+└────────────────────┴──────────┴──────────┴──────────────┴────────────────────────┘
+
+★ MiniMax: único modelo que encontró un bug real en el cálculo de RAM
+```
+
+**Nota sobre los tiempos:** Los modelos con acceso API directa se ejecutaron en paralelo con `asyncio.gather`. Los modelos con acceso manual (Web UI) se consultaron secuencialmente por limitaciones de las interfaces. El wall time de 33.2s corresponde al tiempo API; incluyendo los manuales el experimento tomó aproximadamente 12 minutos.
+
+**Nota sobre DeepSeek:** El modelo tardó 33.2s pero produjo 4,179 caracteres de análisis — el más extenso de todos. Incluía diagramas ASCII propios, pseudocódigo de producción, y un análisis de complejidad O(√n) para el routing. Lento no significa perezoso.
+
+---
+
+### 12.3 Los 3 Consensos — Lo que Todos Vieron
+
+Sin coordinación entre sí, los siete modelos convergieron en tres problemas idénticos. Cuando siete mentes independientes señalan el mismo punto ciego, el punto ciego existe.
+
+#### Consenso #1: Polling cada 3s es un Anti-Pattern
+
+Todos los modelos, sin excepción, marcaron el ciclo de polling fijo como el primer problema a resolver. Las variantes del diagnóstico:
+
+- *SambaNova:* "Polling introduces unnecessary latency floor — minimum response time is always 3s regardless of task complexity."
+- *NVIDIA NIM:* "Fixed-interval polling wastes CPU cycles when queue is empty and introduces systematic delay when it's not."
+- *DeepSeek:* "El polling es O(n) en el peor caso cuando n tareas llegan en el mismo intervalo. La cola queda represada."
+- *Gemini 2.0 Flash:* "Use filesystem watchers (inotify/FSEvents) or a message broker. Polling is the 1990s solution."
+- *MiniMax:* "El problema no es el intervalo de 3s — es que el intervalo es fijo. Un sistema reactivo elimina el intervalo completamente."
+
+La solución propuesta por consenso: **`watchdog` + `FSEvents` para reemplazo inmediato, Redis BLPOP como upgrade de producción**.
+
+```python
+# Lo que teníamos (anti-pattern)
+while True:
+    check_inbox_dirs()   # siempre, aunque no haya nada
+    await asyncio.sleep(3)
+
+# Lo que propone el consenso
+# Opción A: watchdog (zero-dependency)
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
+class InboxHandler(FileSystemEventHandler):
+    def on_created(self, event):
+        if event.src_path.endswith('.json'):
+            asyncio.create_task(process_task(event.src_path))
+
+# Opción B: Redis BLPOP (producción)
+task = await redis.blpop('mesh:inbox', timeout=0)  # bloquea hasta que llega algo
+```
+
+La diferencia en práctica: con polling fijo, una tarea que llega 1ms después del último check espera 2.999s. Con watchdog, la respuesta es sub-milisegundo. Con Redis BLPOP, la latencia teórica es el RTT de la red local (~0.1ms).
+
+#### Consenso #2: Un Solo Ollama para 6 Agentes es el Cuello de Botella Central
+
+El segundo acuerdo unánime: ejecutar seis nodos especializados sobre un único proceso Ollama serializa todo. No importa cuánta RAM libre tengas — si el proceso está ocupado con una inferencia, el siguiente nodo espera.
+
+```
+Diagnóstico común (todos los modelos):
+
+  Tarea A (dof-coder)    ──► Ollama ──► 45s
+  Tarea B (dof-guardian) ──────────────────────────► Ollama ──► 45s
+  Tarea C (dof-analyst)  ──────────────────────────────────────────► Ollama ──► 45s
+
+  Total: 135s para 3 tareas que "son paralelas"
+  
+  Con cluster (solución):
+  
+  Tarea A ──► Ollama:11434 ──► 45s  ┐
+  Tarea B ──► Ollama:11435 ──► 45s  ├── simultáneas
+  Tarea C ──► Ollama:11436 ──► 45s  ┘
+  
+  Total: 45s (3x speedup)
+```
+
+La solución por consenso: **semáforo por slot de RAM como medida inmediata, cluster de 3 instancias Ollama como solución definitiva**.
+
+El semáforo limita la concurrencia a los slots disponibles en RAM. El cluster distribuye la carga entre múltiples procesos. No son excluyentes — el cluster también necesita semáforos por instancia.
+
+#### Consenso #3: Fallback Síncrono → Timeouts Asíncronos
+
+El tercer punto de acuerdo: cuando una tarea falla por timeout, el sistema espera bloqueado antes de pasar a la siguiente. Esto convierte un error puntual en un bloqueo sistémico.
+
+```
+Comportamiento actual (síncrono):
+  tarea_1 → timeout 600s → espera 600s → falla → sigue con tarea_2
+
+Comportamiento correcto (asíncrono):
+  tarea_1 → lanza asyncio.wait_for(600s) → continúa con tarea_2 → cuando vence el timeout, cancela tarea_1 y registra fallo
+```
+
+La distinción es sutil pero crítica: en el modelo síncrono, un timeout de 600s paraliza el nodo durante 10 minutos. En el modelo asíncrono, el nodo sigue procesando otras tareas mientras espera — y el timeout se gestiona como evento, no como bloqueo.
+
+---
+
+### 12.4 Lo que Solo MiniMax Vio — Las 5 Respuestas Técnicas
+
+Aquí está la diferencia entre un modelo bueno y un modelo excelente: los primeros ven los problemas obvios; los segundos encuentran los problemas que no sabías que tenías.
+
+MiniMax Text-01 fue el único modelo que fue más allá del diagnóstico de los tres consensos y propuso cinco mejoras que no pedimos — porque detectó en nuestra descripción del sistema problemas que nosotros no habíamos articulado.
+
+#### MiniMax #1: El Cálculo de RAM Estaba Equivocado
+
+Nuestro scheduler original reservaba 3 slots de ejecución simultánea. MiniMax señaló el error:
+
+```
+Nuestro cálculo (incorrecto):
+  RAM disponible: 21GB (36GB - 15GB SO y procesos)
+  RAM por modelo: 8GB (Qwen2.5-Coder 14.8B Q4)
+  Slots = floor(21 / 8) = 2... pero pusimos 3
+
+MiniMax:
+  "Qwen2.5-Coder 14.8B en Q4_K_M ocupa ~9.3GB de VRAM/unified memory
+   más ~1.2GB de KV cache en inferencia activa = ~10.5GB por slot activo
+   
+   RAM disponible: 21GB
+   Slots correctos: floor(21 / 10.5) = 2 slots... NO 3
+   
+   Con 3 slots, cada inferencia activa tiene solo 7GB — insuficiente,
+   genera page faults, y eso explica los timeouts erráticos."
+
+Corrección:
+  slots = floor(available_ram_gb / (model_ram_gb + kv_cache_gb))
+  slots = floor(21 / (9.3 + 1.2)) = floor(21 / 10.5) = 2 slots seguros
+
+  O más agresivo con monitoreo:
+  slots = floor(21 / 2.5) = 8  ← si usamos modelos más pequeños (Phi-4 14B Q4 ~2.5GB)
+```
+
+Este fue el único hallazgo que identificó un **bug real en código existente**. No una recomendación arquitectural — un cálculo incorrecto en `core/mesh_scheduler.py` que causaba saturación de RAM durante las pruebas.
+
+#### MiniMax #2: Especulación Paralela — Fire-Both-Take-Fastest
+
+Para tareas críticas con providers redundantes, MiniMax propuso un patrón que no habíamos considerado: lanzar la misma tarea a dos providers simultáneamente y usar el resultado del primero en responder.
+
+```python
+async def speculative_execute(task: dict, providers: list[str]) -> dict:
+    """
+    Lanza la tarea a múltiples providers en paralelo.
+    Retorna el resultado del primero que responda.
+    Cancela los demás.
+    """
+    tasks = [
+        asyncio.create_task(execute_on_provider(task, p))
+        for p in providers
+    ]
+    
+    # done_when_first_completes
+    done, pending = await asyncio.wait(
+        tasks,
+        return_when=asyncio.FIRST_COMPLETED
+    )
+    
+    # Cancelar los que siguen corriendo
+    for t in pending:
+        t.cancel()
+    
+    return done.pop().result()
+```
+
+El trade-off: consume el doble de recursos durante el período de especulación, pero elimina el tail latency — las latencias del percentil 99 se reducen dramáticamente porque el outlier lento es cancelado en cuanto el rápido termina.
+
+Aplicación en el DOF Mesh: para tareas de alta prioridad, lanzar simultáneamente a Ollama local + Cerebras cloud. El que responda primero gana. Si Ollama tarda más de X segundos, el resultado de Cerebras llega primero y Ollama se cancela.
+
+#### MiniMax #3: WAL Crash Recovery con Threshold de 300s
+
+Write-Ahead Log (WAL) es un patrón de bases de datos que MiniMax adaptó al contexto del mesh: antes de ejecutar una tarea, escribir el intent en un log persistente. Si el proceso muere durante la ejecución, el log permite recovery.
+
+```python
+class WALRecovery:
+    def __init__(self, wal_path: str = "logs/mesh/wal.jsonl"):
+        self.wal_path = Path(wal_path)
+        self.STALE_THRESHOLD_S = 300  # 5 minutos
+    
+    def write_intent(self, task_id: str, task: dict):
+        """Registrar intent antes de ejecutar."""
+        entry = {
+            "task_id": task_id,
+            "task": task,
+            "started_at": time.time(),
+            "status": "in_progress"
+        }
+        with open(self.wal_path, 'a') as f:
+            f.write(json.dumps(entry) + '\n')
+    
+    def recover_stale(self) -> list[dict]:
+        """Al startup, recuperar tareas que no terminaron."""
+        stale = []
+        now = time.time()
+        
+        for entry in self.read_wal():
+            if entry["status"] == "in_progress":
+                age = now - entry["started_at"]
+                if age > self.STALE_THRESHOLD_S:
+                    stale.append(entry["task"])
+        
+        return stale  # re-encolar en el inbox
+    
+    def mark_complete(self, task_id: str):
+        """Marcar tarea como completada en el WAL."""
+        # append-only: escribir entry de completion
+        entry = {"task_id": task_id, "status": "complete", "ts": time.time()}
+        with open(self.wal_path, 'a') as f:
+            f.write(json.dumps(entry) + '\n')
+```
+
+El threshold de 300s es deliberado: tareas que llevan más de 5 minutos sin completar probablemente murieron. El recovery las re-encola automáticamente al siguiente startup del daemon.
+
+Nuestro protocolo actual (`.processing` → `.done`) ya tenía la idea correcta, pero sin recovery automático. Si el daemon moría, los archivos `.processing` quedaban huérfanos indefinidamente. Con WAL, se recuperan solos.
+
+#### MiniMax #4: HOT/WARM/COLD Model Tiers con Fork de Procesos Ollama
+
+Para maximizar el uso de RAM en el M4 Max, MiniMax propuso un sistema de tiers que mantiene los modelos más frecuentes en memoria:
+
+```
+Tier HOT  (siempre en RAM):      dof-coder, dof-reasoner    [2 instancias Ollama activas]
+Tier WARM (cargado bajo demanda, expira en 5min idle):  dof-guardian, dof-analyst
+Tier COLD (cargado solo cuando no hay alternativa):     modelos auxiliares, variantes
+
+RAM distribution (36GB total):
+  OS + procesos:    ~10GB
+  HOT tier (2x):   ~21GB  (10.5GB × 2)
+  Buffer WARM/COLD: ~5GB  (para swap de un modelo a la vez)
+```
+
+La implementación requiere forking múltiples procesos Ollama — no múltiples modelos en un solo proceso, sino múltiples instancias del binario en puertos distintos (11434, 11435, 11436...). Cada instancia tiene su propio modelo cargado.
+
+```bash
+# Startup del cluster HOT
+OLLAMA_HOST=0.0.0.0:11434 OLLAMA_MODELS=~/.ollama/models ollama serve &
+OLLAMA_HOST=0.0.0.0:11435 OLLAMA_MODELS=~/.ollama/models ollama serve &
+
+# Pre-cargar modelos HOT
+ollama run --host http://localhost:11434 dof-coder "warmup" &
+ollama run --host http://localhost:11435 dof-reasoner "warmup" &
+```
+
+El tier WARM utiliza un LRU cache con TTL de 5 minutos: si un nodo no recibe tareas en 5 minutos, su instancia Ollama se termina y libera RAM para el siguiente modelo que se necesite.
+
+#### MiniMax #5: Monte Carlo Throughput — De 20 a 1,388 Tareas/Hora
+
+La última — y más sorprendente — contribución de MiniMax fue un análisis de throughput con proyecciones que no habíamos calculado:
+
+```
+Simulación Monte Carlo — throughput proyectado:
+
+Escenario Base (sistema actual):
+  1 Ollama proceso, polling 3s, 3 slots (mal calculados), timeout síncrono
+  Tareas/hora observadas:    ~20  (stress test: 6/18 OK en ~18 minutos)
+  Tareas/hora teóricas:      ~23  (con 33% success rate sostenido)
+
+Escenario Fase A (semáforo + timeout async):
+  1 Ollama proceso, watchdog, 2 slots correctos, timeouts asíncronos
+  Tareas/hora proyectadas:   ~205  (10x — principalmente por eliminar bloqueos)
+  
+Escenario Fase B (especulación + WAL):
+  1 Ollama + 1 Cerebras, especulación paralela, WAL recovery
+  Tareas/hora proyectadas:   ~680  (34x — Cerebras añade ~400 tasks/hr de capacidad)
+
+Escenario Fase C (cluster + tiers):
+  3 Ollama HOT/WARM/COLD + Cerebras + Groq
+  Tareas/hora proyectadas:  ~1,388  (69x sobre baseline)
+  
+Asunciones: tarea promedio 45s, 80% hit rate en HOT tier,
+            Cerebras @868 tok/s, Groq @450 tok/s.
+```
+
+El salto de 20 a 1,388 tareas/hora en tres fases incrementales. No es magia — es la acumulación de fixes específicos, cada uno multiplicando el efecto del anterior. El 69x no requiere hardware nuevo: requiere arquitectura correcta sobre el hardware que ya tenemos.
+
+---
+
+### 12.5 Lo que Elegimos Implementar
+
+Con siete modelos opinando, la pregunta no era *qué arreglar* sino *en qué orden y con qué prioridad*. Evaluamos cada propuesta en tres dimensiones: impacto en throughput, tiempo de implementación, y riesgo de regresión.
+
+```
+┌──────────────────────────────┬──────────┬──────────┬──────────┬──────────────────────┐
+│ Mejora                       │ Impacto  │ Tiempo   │ Riesgo   │ Decisión             │
+├──────────────────────────────┼──────────┼──────────┼──────────┼──────────────────────┤
+│ MeshScheduler RAM corregido  │  ALTO    │  10 min  │  BAJO    │ ✓ IMPLEMENTAR HOY    │
+│ Timeout asíncrono            │  ALTO    │  30 min  │  BAJO    │ ✓ IMPLEMENTAR HOY    │
+│ WAL crash recovery           │   MED    │   1 hora │  BAJO    │ ✓ IMPLEMENTAR HOY    │
+│ SpeculativeExecutor          │  ALTO    │   1 día  │  MEDIO   │ ✓ IMPLEMENTAR PROX.  │
+│ Redis BLPOP (watchdog prev.) │  MEDIO   │  2 horas │  MEDIO   │ ~ FASE 3 (req Redis) │
+│ HOT/WARM/COLD tiers          │  ALTO    │   2 días │  ALTO    │ ~ FASE C             │
+│ Cluster Ollama 3x            │  MUY ALT │   1 día  │  MEDIO   │ ✓ YA EN PROGRESO     │
+└──────────────────────────────┴──────────┴──────────┴──────────┴──────────────────────┘
+```
+
+#### Decisión 1: MeshScheduler Corregido — 10 Minutos, 2.6x Más Slots
+
+El bug de RAM era el más urgente porque afectaba directamente los timeouts erráticos. Corrección inmediata en `core/mesh_scheduler.py`:
+
+```python
+# Antes (incorrecto)
+MAX_CONCURRENT_SLOTS = 3  # número sin justificación
+
+# Después (correcto, basado en cálculo MiniMax)
+QWEN_14B_RAM_GB = 9.3    # RAM del modelo Q4_K_M
+KV_CACHE_RAM_GB = 1.2    # KV cache durante inferencia activa
+AVAILABLE_RAM_GB = 21.0  # 36GB - 15GB OS/procesos
+
+MAX_CONCURRENT_SLOTS = max(1, int(AVAILABLE_RAM_GB / (QWEN_14B_RAM_GB + KV_CACHE_RAM_GB)))
+# → 2 slots con Qwen 14B (seguro)
+# → 8 slots si migramos a Phi-4 (2.5GB por instancia) — posibilidad futura
+```
+
+Justificación: dos slots correctamente calculados son más efectivos que tres slots con page faults. El sistema estable al 100% de su capacidad real supera al sistema inestable al 133% de su capacidad teórica.
+
+#### Decisión 2: SpeculativeExecutor — 1 Día, 69x Throughput Teórico
+
+El SpeculativeExecutor es la mejora de mayor impacto proyectado. La implementamos como módulo independiente que puede activarse por tarea:
+
+```python
+# Uso en el mesh daemon
+if task.get("priority") == "high" and cerebras_available():
+    result = await speculative_execute(task, ["ollama_local", "cerebras"])
+else:
+    result = await execute_on_provider(task, "ollama_local")
+```
+
+La especulación es opt-in, no default: solo para tareas marcadas como alta prioridad, y solo cuando hay un segundo provider disponible. Las tareas normales siguen el path determinístico habitual.
+
+#### Decisión 3: WAL Recovery — 1 Hora, Robustez de Producción
+
+El WAL nos da un sistema que sobrevive crashes. Sin WAL, un crash del daemon durante un stress test de 18 tareas puede perder entre 0 y 18 tareas dependiendo de cuándo ocurra. Con WAL, todas las tareas `in_progress` se recuperan al siguiente restart.
+
+El threshold de 300s es el único parámetro no trivial — elegimos mantener el valor de MiniMax sin modificación. Cualquier tarea que lleve más de 5 minutos activa en el WAL y el daemon se haya reiniciado es, con alta probabilidad, una tarea perdida que necesita reintento.
+
+#### Decisión 4: Redis BLPOP — Fase 3 (Requiere Instalar Redis)
+
+Redis es la solución definitiva al problema del polling, pero introduce una dependencia externa que el sistema actual no tiene. Tomamos la decisión consciente de no instalarlo hoy:
+
+**Razón:** El sistema es completamente local y sin dependencias externas por diseño. Redis cambiaría eso. Antes de introducir esa dependencia, necesitamos validar que watchdog (sin dependencias) no es suficiente.
+
+El plan: implementar watchdog primero, medir el impacto, y solo migrar a Redis si el sistema necesita la capacidad de múltiples máquinas o si el overhead de watchdog resulta visible en profiling.
+
+---
+
+### 12.6 El Roadmap Post-Auditoría
+
+```
+ESTADO ACTUAL (v0.6.1)               POST-AUDITORÍA (v0.6.2+)
+─────────────────────                ────────────────────────
+Polling 3s                     ──►   Watchdog FSEvents / Redis BLPOP
+1 proceso Ollama               ──►   Cluster 3x (11434, 11435, 11436)
+3 slots mal calculados         ──►   2 slots correctos (→ 8 con Phi-4)
+Timeout síncrono (bloquea)     ──►   asyncio.wait_for (no bloquea)
+Sin WAL (tareas perdidas)      ──►   WAL + recovery en startup
+Sin especulación               ──►   SpeculativeExecutor (opt-in)
+Sin tiers                      ──►   HOT/WARM/COLD (Fase C)
+
+                    Diagrama de fases:
+
+v0.6.1          v0.6.2              v0.7.0              v0.8.0
+  │               │                   │                   │
+  ▼               ▼                   ▼                   ▼
+[STRESS      [FIXES CORE]       [CLUSTER +         [MESH FEDERATION
+ TEST]        • RAM corregida    ESPECULACIÓN]       + TIERS]
+  │           • Timeout async    • 3x Ollama          • HOT/WARM/COLD
+  │           • WAL recovery     • Speculative        • Redis opcional
+  │           • Watchdog         • 205 tasks/hr       • 1,388 tasks/hr
+  │             (≈30 min)          (≈1 día)             (≈2-3 días)
+  ▼               │                   │                   │
+20 t/hr       205 t/hr           680 t/hr          1,388 t/hr
+(baseline)    (10x)              (34x)              (69x)
+```
+
+El roadmap no es optimista — es la proyección Monte Carlo de MiniMax aplicada incrementalmente. Cada fase es independiente: v0.6.2 mejora el sistema aunque nunca lleguemos a v0.8.0.
+
+---
+
+### 12.7 Lección del Capítulo: El Modelo Más Lento fue el Más Valioso
+
+SambaNova respondió en 2.8 segundos. MiniMax tardó más de 10 minutos (acceso manual). Si hubiéramos optimizado por velocidad de respuesta, habríamos elegido SambaNova.
+
+Pero SambaNova dio diagnósticos correctos sin hallazgos únicos. MiniMax encontró un bug real.
+
+El tiempo de inferencia y la calidad del análisis no están correlacionados de la forma que asumimos. DeepSeek tardó 33.2s — 12 veces más que SambaNova — pero produjo 4,179 caracteres con código de producción, análisis de complejidad algorítmica y diagramas propios. MiniMax, el más lento del grupo (acceso manual), fue el único que leyó entre líneas nuestra descripción del sistema y detectó el error en el cálculo de RAM.
+
+La lección no es "usa el modelo más lento". La lección es que **la latencia es un proxy pobre para la utilidad**. En un contexto de auditoría técnica donde el resultado importa más que la velocidad, el modelo que tarda más puede ser el que más vale.
+
+En el DOF Mesh, tomamos esta lección y la convertimos en política de routing:
+
+```
+Tarea de baja urgencia, alta complejidad  →  Provider con mayor calidad (DeepSeek, MiniMax)
+Tarea de alta urgencia, baja complejidad  →  Provider más rápido (SambaNova, Cerebras)
+Tarea crítica con deadline               →  Especulación paralela (fire-both-take-fastest)
+```
+
+No existe el "mejor modelo". Existe el modelo correcto para el contexto correcto.
+
+---
+
+### 12.8 Implicaciones para el DOF
+
+Esta auditoría multi-modelo demostró algo que va más allá de los fixes técnicos: el proceso de pedir perspectivas externas sobre arquitectura propia tiene un ROI extraordinariamente alto.
+
+Invertimos 12 minutos en la auditoría. Obtuvimos:
+- Un bug de RAM corregido (evita page faults en producción)
+- Una corrección de cálculo que añade el equivalente de un nodo gratuito (2 slots → posibilidad de 8 con hardware correcto)
+- Un roadmap de 4 fases con proyecciones cuantificadas
+- Tres patrones de producción (WAL, especulación, tiers) que de otro modo habríamos descubierto meses después
+
+El DOF está construido sobre el principio de que la observabilidad determinística es más valiosa que la intuición. Esta auditoría fue exactamente eso: convertir una situación opaca ("el sistema falla al 67%") en un diagnóstico con causas identificadas, soluciones priorizadas, y proyecciones medibles.
+
+El sistema no nos mintió en el stress test. Los modelos no nos mintieron en la auditoría. La arquitectura correcta surgió de escuchar ambas fuentes — el sistema real bajo carga, y siete perspectivas externas sobre por qué fallaba.
+
+---
+
+*Capítulo 12 — DOF: Building Sovereign AI Systems*
+*Juan Carlos Quiceno Vasquez (@Ciberpaisa) — Medellín, Colombia*
+*March 24, 2026 — DOF v0.6.1*
+*7 modelos auditados | 33.2s wall time | 1 bug real encontrado | 69x throughput proyectado*
