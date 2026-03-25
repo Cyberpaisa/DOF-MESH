@@ -243,7 +243,7 @@ class MetaSupervisor:
         # 2. Dispatch via NodeMesh (parallel via inbox protocol)
         results = {}
         try:
-            from core.node_mesh import NodeMesh
+            from core.hyperion_bridge import HyperionBridge as NodeMesh
             mesh = NodeMesh()
             for agent_role, task_text in subtasks.items():
                 mesh.send_message(
