@@ -92,11 +92,19 @@ class MeshScheduler:
 
     def recommended_slots(self) -> int:
         """
-        floor(available_ram_gb / 10) capped at max_concurrent.
-        Assumes each Qwen2.5-Coder instance needs ~10 GB.
-        Returns at least 1 when RAM is available.
+        MiniMax corrected formula:
+          per_task_overhead_gb = 2.5  (Python runtime + agent + temp tensors)
+          safety_margin_gb     = 2
+          usable               = available_ram_gb - 9 - safety_margin_gb
+          recommended_slots    = max(1, min(floor(usable / per_task_overhead_gb), max_concurrent))
+
+        On 36 GB M4 Max: usable = 36 - 9 - 2 = 25 → floor(25/2.5) = 10 → capped at max_concurrent.
+        Returns at least 1 even when usable RAM is very low.
         """
-        slots = math.floor(self.available_ram_gb() / 10)
+        per_task_overhead_gb = 2.5
+        safety_margin_gb = 2
+        usable = self.available_ram_gb() - 9 - safety_margin_gb
+        slots = int(usable // per_task_overhead_gb)
         return max(1, min(slots, self.max_concurrent))
 
     # ------------------------------------------------------------------

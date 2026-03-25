@@ -283,5 +283,75 @@ class TestAgentLoop(unittest.TestCase):
         self.assertIs(a, b)
 
 
+class TestSpeculativeExecutor(unittest.TestCase):
+    """Tests for _call_llm_speculative — racing DeepSeek and Ollama."""
+
+    def setUp(self):
+        AutonomousExecutor.reset()
+        self.ex = AutonomousExecutor(model="test-model")
+        self.messages = [{"role": "user", "content": "hello"}]
+
+    def test_speculative_returns_first_winner(self):
+        """DeepSeek wins the race — its response is returned."""
+        with patch.object(self.ex, "_call_deepseek", return_value="deepseek_answer"), \
+             patch.object(self.ex, "_call_ollama", return_value="ollama_answer"):
+            result = self.ex._call_llm_speculative(self.messages, "test-model")
+        self.assertIn(result, ("deepseek_answer", "ollama_answer"))
+
+    def test_speculative_falls_back_when_both_none(self):
+        """Both DeepSeek and Ollama return None — falls back to Cerebras."""
+        with patch.object(self.ex, "_call_deepseek", return_value=None), \
+             patch.object(self.ex, "_call_ollama", return_value=None), \
+             patch.object(self.ex, "_call_external", return_value="cerebras_answer") as mock_cerebras:
+            result = self.ex._call_llm_speculative(self.messages, "test-model")
+        self.assertEqual(result, "cerebras_answer")
+        mock_cerebras.assert_called_once()
+
+    def test_speculative_falls_back_to_groq_when_cerebras_none(self):
+        """DeepSeek+Ollama+Cerebras all fail — falls back to Groq."""
+        with patch.object(self.ex, "_call_deepseek", return_value=None), \
+             patch.object(self.ex, "_call_ollama", return_value=None), \
+             patch.object(self.ex, "_call_external", return_value=None), \
+             patch.object(self.ex, "_call_groq", return_value="groq_answer") as mock_groq:
+            result = self.ex._call_llm_speculative(self.messages, "test-model")
+        self.assertEqual(result, "groq_answer")
+        mock_groq.assert_called_once()
+
+    def test_speculative_returns_none_when_all_fail(self):
+        """All providers fail — returns None."""
+        with patch.object(self.ex, "_call_deepseek", return_value=None), \
+             patch.object(self.ex, "_call_ollama", return_value=None), \
+             patch.object(self.ex, "_call_external", return_value=None), \
+             patch.object(self.ex, "_call_groq", return_value=None):
+            result = self.ex._call_llm_speculative(self.messages, "test-model")
+        self.assertIsNone(result)
+
+    def test_call_llm_uses_speculative_when_deepseek_key_set(self):
+        """_call_llm delegates to _call_llm_speculative when DEEPSEEK_API_KEY is set."""
+        import core.autonomous_executor as ae
+        original_key = ae.DEEPSEEK_API_KEY
+        ae.DEEPSEEK_API_KEY = "fake-key"
+        try:
+            with patch.object(self.ex, "_call_llm_speculative", return_value="spec_result") as mock_spec:
+                result = self.ex._call_llm(self.messages, "test-model")
+            self.assertEqual(result, "spec_result")
+            mock_spec.assert_called_once_with(self.messages, "test-model")
+        finally:
+            ae.DEEPSEEK_API_KEY = original_key
+
+    def test_call_llm_serial_when_no_deepseek_key(self):
+        """_call_llm uses serial Ollama→Cerebras→Groq chain when no DEEPSEEK_API_KEY."""
+        import core.autonomous_executor as ae
+        original_key = ae.DEEPSEEK_API_KEY
+        ae.DEEPSEEK_API_KEY = ""
+        try:
+            with patch.object(self.ex, "_call_ollama", return_value="ollama_result") as mock_ollama:
+                result = self.ex._call_llm(self.messages, "test-model")
+            self.assertEqual(result, "ollama_result")
+            mock_ollama.assert_called_once()
+        finally:
+            ae.DEEPSEEK_API_KEY = original_key
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

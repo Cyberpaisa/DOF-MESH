@@ -43,6 +43,30 @@ INBOX_DIRS = [
     REPO_ROOT / "logs" / "mesh" / "inbox" / "local-agi-m4max",
 ]
 RESULTS_DIR = REPO_ROOT / "logs" / "local-agent" / "results"
+WAL_DIR = REPO_ROOT / "logs" / "mesh" / "wal"
+
+
+def wal_write(task_id: str, status: str) -> None:
+    """Append WAL entry: timestamp,task_id,status"""
+    WAL_DIR.mkdir(parents=True, exist_ok=True)
+    entry = f"{time.time()},{task_id},{status}\n"
+    (WAL_DIR / "tasks.wal").open("a").write(entry)
+
+
+def wal_recover_orphans() -> list[Path]:
+    """Find .processing files older than 300s and re-queue them."""
+    recovered = []
+    for inbox_dir in INBOX_DIRS:
+        for stale in inbox_dir.glob("*.processing"):
+            age = time.time() - stale.stat().st_mtime
+            if age > 300:
+                # Re-queue: rename back to .json
+                original = stale.with_suffix(".json")
+                stale.rename(original)
+                logger.warning("WAL RECOVERY: %s (age=%.0fs)", stale.name, age)
+                wal_write(stale.stem, "RECOVERED")
+                recovered.append(original)
+    return recovered
 
 # Map inbox folder → model to use
 NODE_MODEL_MAP = {
@@ -143,10 +167,19 @@ def process_task(task_file: Path, inbox_dir: Path, default_model: str) -> None:
     logger.info("▶ Task %s | node=%s model=%s", task_id, node, model)
     logger.info("  Prompt: %s", prompt[:120])
 
+    wal_write(task_id, "STARTED")
+
     executor = AutonomousExecutor(model=model)
     scheduler.acquire()
-    result = executor.execute(task_id=task_id, task=prompt, model=model)
+    try:
+        result = executor.execute(task_id=task_id, task=prompt, model=model)
+    except Exception as exc:
+        scheduler.release()
+        wal_write(task_id, "FAILED")
+        logger.error("Executor error for task %s: %s", task_id, exc)
+        raise
     write_result(task_id, result, node)
+    wal_write(task_id, "COMPLETED")
     scheduler.release()
 
     # Mark original as done (remove .processing)
@@ -212,8 +245,18 @@ def run(default_model: str = "dof-coder", poll_interval: int = 3) -> None:
     logger.info("=" * 60)
 
     iteration = 0
+    recovery_counter = 0
     while not _stop.is_set():
         iteration += 1
+        recovery_counter += 1
+
+        # Run orphan recovery once every ~60 seconds
+        if recovery_counter >= max(1, 60 // poll_interval):
+            recovered = wal_recover_orphans()
+            if recovered:
+                logger.info("WAL: re-queued %d orphaned task(s)", len(recovered))
+            recovery_counter = 0
+
         for inbox_dir in INBOX_DIRS:
             for task_file in scan_inbox(inbox_dir):
                 if _stop.is_set():
