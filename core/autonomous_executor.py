@@ -36,6 +36,17 @@ import requests
 logger = logging.getLogger("core.autonomous_executor")
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+# Load .env from repo root so API keys are always available
+_env_path = os.path.join(REPO_ROOT, ".env")
+if os.path.exists(_env_path):
+    with open(_env_path) as _f:
+        for _line in _f:
+            _line = _line.strip()
+            if _line and not _line.startswith("#") and "=" in _line:
+                _k, _, _v = _line.partition("=")
+                os.environ.setdefault(_k.strip(), _v.strip())
+
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 CEREBRAS_URL = "https://api.cerebras.ai/v1/chat/completions"
 CEREBRAS_API_KEY = os.getenv("CEREBRAS_API_KEY", "")
@@ -551,20 +562,24 @@ class AutonomousExecutor:
             return None
 
     def _call_llm(self, messages: list[dict], model: str) -> Optional[str]:
-        """Provider chain: Ollama (free local) → DeepSeek (cheap) → Cerebras → Groq.
+        """Provider chain: DeepSeek (primary) → Ollama (local backup) → Cerebras → Groq.
 
-        Prioritizes zero/low-cost providers first.
+        DeepSeek is primary: fast, powerful, ~$0.03/month — effectively zero cost.
+        Ollama is the local fallback when DeepSeek is unavailable.
         """
+        # Primary: DeepSeek — fast, reliable, virtually free
+        if DEEPSEEK_API_KEY:
+            response = self._call_deepseek(messages, DEEPSEEK_FALLBACK_MODEL)
+            if response is not None:
+                return response
+            logger.warning("DeepSeek unavailable — falling back to Ollama local")
+
+        # Secondary: Ollama local — free, zero latency on LAN
         response = self._call_ollama(messages, model)
         if response is not None:
             return response
 
-        logger.warning("Ollama unavailable for model=%s — trying DeepSeek", model)
-        response = self._call_deepseek(messages, DEEPSEEK_FALLBACK_MODEL)
-        if response is not None:
-            return response
-
-        logger.warning("DeepSeek unavailable — trying Cerebras (model=%s)", CEREBRAS_FALLBACK_MODEL)
+        logger.warning("Ollama unavailable — trying Cerebras (model=%s)", CEREBRAS_FALLBACK_MODEL)
         response = self._call_external(messages, CEREBRAS_FALLBACK_MODEL)
         if response is not None:
             return response
