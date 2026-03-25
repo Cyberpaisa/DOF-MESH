@@ -61,11 +61,11 @@ WEB_TARGETS = {
         "wait_ms": 40000,
     },
     "kimi": {
-        "url": "https://kimi.ai",
-        "input_selector": "textarea",
+        "url": "https://www.kimi.com/",
+        "input_selector": "div[contenteditable], textarea, [role=textbox]",
         "send_key": "Enter",
-        "response_selector": ".markdown-body p",
-        "wait_ms": 10000,
+        "response_selector": "[class*=markdown] p, [class*=segment] p, [class*=reply] p",
+        "wait_ms": 15000,
     },
     "deepseek": {
         "url": "https://chat.deepseek.com",
@@ -132,7 +132,7 @@ class WebBridge:
 
         self._page = self._ctx.new_page()
         logger.info("Opening %s → %s", self.node, self.target["url"])
-        self._page.goto(self.target["url"], timeout=30000)
+        self._page.goto(self.target["url"], timeout=60000, wait_until="domcontentloaded")
         time.sleep(3)
         logger.info("Browser ready. URL: %s", self._page.url)
 
