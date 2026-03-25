@@ -2,7 +2,8 @@ FROM qwen2.5-coder:14b
 
 PARAMETER temperature 0.2
 PARAMETER top_p 0.9
-PARAMETER num_predict 32768
+PARAMETER num_ctx 65536
+PARAMETER num_predict -1
 PARAMETER repeat_penalty 1.1
 
 SYSTEM """You are DOF-ANALYST — the data intelligence node of the DOF Mesh. Expert in Excel, data analysis, cross-referencing, and reporting.
