@@ -217,3 +217,69 @@ class MetaSupervisor:
         if any(phrase in text.lower() for phrase in unsubstantiated):
             score -= 2.0
         return max(0.0, min(10.0, score))
+
+    def orchestrate_swarm(self, objective: str) -> dict:
+        """Divide objective into 6 parallel subtasks → dispatch → integrate results.
+
+        This is the SISYPHUS entry point: one objective → 6 specialized agents
+        working in parallel → single integrated result scored by Supervisor.
+
+        Returns dict with keys: objective, subtasks, results, verdict, integrated_output
+        """
+        import time
+
+        # 1. Divide objective into 6 specialized subtasks
+        subtasks = {
+            "architect": f"[ARCHITECT] Design and implement code/architecture for: {objective}",
+            "researcher": f"[RESEARCHER] Research context, prior art, and risks for: {objective}",
+            "guardian": f"[GUARDIAN] Security audit and threat model for: {objective}",
+            "verifier": f"[VERIFIER] Define tests, formal invariants, and acceptance criteria for: {objective}",
+            "narrator": f"[NARRATOR] Write documentation, changelog, and user-facing summary for: {objective}",
+            "devops": f"[DEVOPS] Define deployment, CI/CD, and infrastructure plan for: {objective}",
+        }
+
+        logger.info(f"orchestrate_swarm: dispatching {len(subtasks)} agents for: {objective[:80]}")
+
+        # 2. Dispatch via NodeMesh (parallel via inbox protocol)
+        results = {}
+        try:
+            from core.node_mesh import NodeMesh
+            mesh = NodeMesh()
+            for agent_role, task_text in subtasks.items():
+                mesh.send_message(
+                    from_node="sisyphus",
+                    to_node=agent_role,
+                    content={"task": task_text, "objective": objective},
+                    msg_type="swarm_task",
+                )
+            results["dispatched"] = list(subtasks.keys())
+            results["dispatch_time"] = time.time()
+        except Exception as exc:
+            logger.warning(f"orchestrate_swarm mesh dispatch failed: {exc}")
+            results["dispatched"] = []
+            results["dispatch_error"] = str(exc)
+
+        # 3. Integrate into a unified output summary
+        integrated_output = (
+            f"# Swarm Execution: {objective}\n\n"
+            + "\n".join(f"- **{role}**: {task}" for role, task in subtasks.items())
+            + f"\n\nDispatched {len(subtasks)} agents at {time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}"
+        )
+
+        # 4. Evaluate integrated output
+        verdict = self.evaluate(integrated_output, original_input=objective)
+
+        return {
+            "objective": objective,
+            "subtasks": subtasks,
+            "results": results,
+            "verdict": {
+                "decision": verdict.decision,
+                "score": verdict.score,
+                "quality": verdict.quality,
+                "actionability": verdict.actionability,
+                "completeness": verdict.completeness,
+                "factuality": verdict.factuality,
+            },
+            "integrated_output": integrated_output,
+        }

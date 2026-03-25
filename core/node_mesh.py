@@ -221,6 +221,11 @@ class MeshNode:
     tools: list = field(default_factory=lambda: ["Read", "Edit", "Write", "Bash", "Glob", "Grep"])
     model: str = "claude-opus-4-6"
     created_at: float = field(default_factory=time.time)
+    specialty: str = ""
+    provider: str = ""
+    context_window: int = 0
+    cost_per_1k: float = 0.0
+    notes: str = ""
 
 @dataclass
 class MeshMessage:

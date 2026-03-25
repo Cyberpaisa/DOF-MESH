@@ -185,6 +185,8 @@
 
 ## Parte VII — El Camino
 
+- Chapter 20: The Swarm Awakens — Guardian Fusion & Legion Architecture (`BOOK_CH20_SWARM_GUARDIAN_LEGION.md`)
+
 ### Capítulo 14: El Artículo
 **No soy experto. No tengo equipo. Solo tengo curiosidad y un chip M4.**
 - La historia completa: desde la pregunta hasta el framework

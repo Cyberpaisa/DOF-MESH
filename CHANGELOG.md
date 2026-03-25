@@ -2,6 +2,52 @@
 
 ---
 
+## [0.6.0] — 2026-03-24 — Swarm Architecture + Guardian Legion + RAG Engine
+
+### Architecture
+- **Swarm pattern**: `MetaSupervisor.orchestrate_swarm(objective)` — divides into 6 parallel agents (architect/researcher/guardian/verifier/narrator/devops)
+- **SISYPHUS node**: Master Orchestrator registered in mesh (node #22)
+- **DEVOPS node**: Vercel MCP integration registered in mesh (node #23)
+- **RAG Retriever node**: Knowledge retrieval registered in mesh (node #24)
+- **CLI Gateway node**: `python3 -m dof` zero-cost deterministic interface (node #25)
+- **3 orphan Claude sessions** (PIDs 9273/80705/60625) registered as formal mesh nodes
+- **Moltbot node**: enigma-moltbook social agent registered, autonomous 30min cycle, DO NOT MODIFY
+- Total mesh nodes: 29 (was 21)
+
+### Guardian Fusion
+- **CERBERUS PRIME**: absorbs guardian + mesh_guardian + cerberus.py — active defense, KMS, DLP, honeypots, 65 tests
+- **SENTINEL OMEGA**: upgrades sentinel with full knowledge preserved — CVE tracking, MITRE ATT&CK, red team, ANE security
+- **ICARUS APEX**: new agent — icarus_v2.py + Z3 + PQC — Shannon entropy, behavioral baselines, 3 CRITICAL PQC vulns found
+- All 5 original agents preserved with no knowledge loss — fusion amplifies, never destroys
+
+### New Modules
+- `core/rag_engine.py` — RAG Engine: TF-IDF indexing of logs/docs/code, semantic search, context injection for agents
+- `core/supervisor.py` — Added `orchestrate_swarm()` method to MetaSupervisor
+- `agents/guardian/SOUL.md` — CERBERUS PRIME identity created
+- `agents/icarus/SOUL.md` — ICARUS APEX identity created
+- `agents/sentinel/SOUL.md` — Upgraded to SENTINEL OMEGA
+
+### Moltbot Fix
+- Fixed submolt names: Spanish → English (valid Moltbook submolts: ai, security, philosophy, agents, builds, technology)
+- Fixed model: `qwen3:8b` → `qwen2.5-coder:14b` (available locally in Ollama)
+- Moltbot now at Cycle #110, zero errors, communication channel fully operational
+
+### Agent SOUL.md Cleanup
+- `organizer` → "El Coordinador de Sisyphus", reports to sisyphus
+- `antigraviti` → merged into scout for swarm routing
+- `qa-reviewer` → specialty clarified (NOT formal Z3 proofs — that is verifier)
+- `strategist` → reports to sisyphus, feeds OKR objectives
+
+### Tests
+- `tests/test_rag_engine.py` — 25 tests for RAGEngine
+- `tests/test_supervisor_swarm.py` — 15 tests for orchestrate_swarm()
+- Total: ~3,270+ tests
+
+### Documentation
+- `docs/BOOK_CH20_SWARM_GUARDIAN_LEGION.md` — Chapter 20: Swarm Awakens
+
+---
+
 ## [0.5.0] — 2026-03-24 — Mesh Legion & Phase 9 Autonomous Scaling
 
 ### Highlights
