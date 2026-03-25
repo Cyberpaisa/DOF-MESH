@@ -3,9 +3,9 @@ LocalAgentLoop — Autonomous daemon using Ollama local models.
 Replaces Claude SDK with local inference. Zero API tokens. Zero external dependency.
 
 Models (configurable via env or constructor):
-  ORCHESTRATOR: phi4:14b  (fast, no thinking mode, 120 tok/s)
-  CODER:        qwen2.5-coder:14b  (already available)
-  FAST:         llama3.3:8b  (230 tok/s, tool-calling)
+  ORCHESTRATOR: deepseek-r1:14b  (9GB, ~80 tok/s, distilled reasoning, no thinking overhead)
+  CODER:        qwen2.5-coder:14b  (9GB, ~90 tok/s, already installed)
+  FAST:         qwen2.5-coder:14b  (fallback when deepseek not loaded)
 
 Falls back gracefully if a model is not available.
 """
@@ -28,11 +28,11 @@ OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 # deepseek-r1:14b: reasoning/orchestration (9GB, ~80 tok/s, distilled, no thinking overhead)
 # qwen2.5-coder:14b: code/implementation (9GB, ~90 tok/s, already installed)
 MODEL_ROUTING = {
-    "code":         os.getenv("LOCAL_MODEL_CODE",         "qwen2.5-coder:14b"),
-    "orchestration":os.getenv("LOCAL_MODEL_ORCHESTRATOR", "deepseek-r1:14b"),
-    "fast":         os.getenv("LOCAL_MODEL_FAST",         "qwen2.5-coder:14b"),
-    "reasoning":    os.getenv("LOCAL_MODEL_REASONING",    "deepseek-r1:14b"),
-    "default":      os.getenv("LOCAL_MODEL_DEFAULT",      "qwen2.5-coder:14b"),
+    "code":         os.getenv("LOCAL_MODEL_CODE",         "dof-coder"),
+    "orchestration":os.getenv("LOCAL_MODEL_ORCHESTRATOR", "dof-reasoner"),
+    "fast":         os.getenv("LOCAL_MODEL_FAST",         "dof-coder"),
+    "reasoning":    os.getenv("LOCAL_MODEL_REASONING",    "dof-reasoner"),
+    "default":      os.getenv("LOCAL_MODEL_DEFAULT",      "dof-coder"),
 }
 
 
