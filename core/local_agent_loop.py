@@ -25,11 +25,13 @@ _BASE_DIR = Path(__file__).parent.parent
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 
 # Model routing by task type
+# deepseek-r1:14b: reasoning/orchestration (9GB, ~80 tok/s, distilled, no thinking overhead)
+# qwen2.5-coder:14b: code/implementation (9GB, ~90 tok/s, already installed)
 MODEL_ROUTING = {
     "code":         os.getenv("LOCAL_MODEL_CODE",         "qwen2.5-coder:14b"),
-    "orchestration":os.getenv("LOCAL_MODEL_ORCHESTRATOR", "phi4:14b"),
-    "fast":         os.getenv("LOCAL_MODEL_FAST",         "llama3.3:8b"),
-    "reasoning":    os.getenv("LOCAL_MODEL_REASONING",    "qwen3:32b"),
+    "orchestration":os.getenv("LOCAL_MODEL_ORCHESTRATOR", "deepseek-r1:14b"),
+    "fast":         os.getenv("LOCAL_MODEL_FAST",         "qwen2.5-coder:14b"),
+    "reasoning":    os.getenv("LOCAL_MODEL_REASONING",    "deepseek-r1:14b"),
     "default":      os.getenv("LOCAL_MODEL_DEFAULT",      "qwen2.5-coder:14b"),
 }
 
