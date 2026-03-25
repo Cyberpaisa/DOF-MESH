@@ -191,28 +191,28 @@ class TestAgentLoop(unittest.TestCase):
         AutonomousExecutor.reset()
         self.ex = AutonomousExecutor(model="test-model")
 
-    @patch.object(AutonomousExecutor, "_call_ollama")
-    def test_plain_text_response(self, mock_ollama):
+    @patch.object(AutonomousExecutor, "_call_llm")
+    def test_plain_text_response(self, mock_llm):
         """Model returns plain text — no tools, direct result."""
-        mock_ollama.return_value = "The answer is 42."
+        mock_llm.return_value = "The answer is 42."
         result = self.ex.execute("t1", "What is the answer?")
         self.assertTrue(result.success)
         self.assertEqual(result.result, "The answer is 42.")
         self.assertEqual(result.iterations, 1)
         self.assertEqual(len(result.tool_calls), 0)
 
-    @patch.object(AutonomousExecutor, "_call_ollama")
-    def test_done_tag_terminates(self, mock_ollama):
+    @patch.object(AutonomousExecutor, "_call_llm")
+    def test_done_tag_terminates(self, mock_llm):
         """<done> tag terminates the loop."""
-        mock_ollama.return_value = "<done>File created and tests pass.</done>"
+        mock_llm.return_value = "<done>File created and tests pass.</done>"
         result = self.ex.execute("t2", "Create a file")
         self.assertTrue(result.success)
         self.assertEqual(result.result, "File created and tests pass.")
 
-    @patch.object(AutonomousExecutor, "_call_ollama")
-    def test_bash_tool_then_done(self, mock_ollama):
+    @patch.object(AutonomousExecutor, "_call_llm")
+    def test_bash_tool_then_done(self, mock_llm):
         """Model uses bash, gets result, then finishes."""
-        mock_ollama.side_effect = [
+        mock_llm.side_effect = [
             "<bash>echo dof_hello</bash>",
             "<done>Command ran successfully.</done>",
         ]
@@ -223,10 +223,10 @@ class TestAgentLoop(unittest.TestCase):
         self.assertIn("dof_hello", result.tool_calls[0].output)
         self.assertEqual(result.iterations, 2)
 
-    @patch.object(AutonomousExecutor, "_call_ollama")
-    def test_python_tool_then_done(self, mock_ollama):
+    @patch.object(AutonomousExecutor, "_call_llm")
+    def test_python_tool_then_done(self, mock_llm):
         """Model uses python execution."""
-        mock_ollama.side_effect = [
+        mock_llm.side_effect = [
             "<python>print('result_42')</python>",
             "<done>Python ran.</done>",
         ]
@@ -234,32 +234,30 @@ class TestAgentLoop(unittest.TestCase):
         self.assertTrue(result.success)
         self.assertIn("result_42", result.tool_calls[0].output)
 
-    @patch.object(AutonomousExecutor, "_call_external")
-    @patch.object(AutonomousExecutor, "_call_ollama")
-    def test_ollama_none_returns_error(self, mock_ollama, mock_external):
-        """If both Ollama and external fallback return None, result is error."""
-        mock_ollama.return_value = None
-        mock_external.return_value = None
+    @patch.object(AutonomousExecutor, "_call_llm")
+    def test_ollama_none_returns_error(self, mock_llm):
+        """If _call_llm returns None (all providers exhausted), result is error."""
+        mock_llm.return_value = None
         result = self.ex.execute("t5", "anything")
         self.assertFalse(result.success)
         self.assertIn("ERROR", result.result)
 
-    @patch.object(AutonomousExecutor, "_call_ollama")
-    def test_max_iterations_reached(self, mock_ollama):
+    @patch.object(AutonomousExecutor, "_call_llm")
+    def test_max_iterations_reached(self, mock_llm):
         """Loop stops after MAX_ITERATIONS."""
         import core.autonomous_executor as ae
         original_max = ae.MAX_ITERATIONS
         ae.MAX_ITERATIONS = 3
-        mock_ollama.return_value = "<bash>echo loop</bash>"
+        mock_llm.return_value = "<bash>echo loop</bash>"
         result = self.ex.execute("t6", "infinite task")
         ae.MAX_ITERATIONS = original_max
         self.assertFalse(result.success)
         self.assertIn("MAX ITERATIONS", result.result)
 
-    @patch.object(AutonomousExecutor, "_call_ollama")
-    def test_deepseek_think_tags_stripped(self, mock_ollama):
+    @patch.object(AutonomousExecutor, "_call_llm")
+    def test_deepseek_think_tags_stripped(self, mock_llm):
         """<think> tags from deepseek-r1 are stripped before parsing."""
-        mock_ollama.return_value = (
+        mock_llm.return_value = (
             "<think>Internal reasoning here...</think>\n"
             "<done>Clean answer without thinking.</done>"
         )
@@ -267,10 +265,10 @@ class TestAgentLoop(unittest.TestCase):
         self.assertTrue(result.success)
         self.assertNotIn("Internal reasoning", result.result)
 
-    @patch.object(AutonomousExecutor, "_call_ollama")
-    def test_multiple_tools_same_response(self, mock_ollama):
+    @patch.object(AutonomousExecutor, "_call_llm")
+    def test_multiple_tools_same_response(self, mock_llm):
         """Multiple tools in one response are all executed."""
-        mock_ollama.side_effect = [
+        mock_llm.side_effect = [
             "<bash>echo one</bash>\n<bash>echo two</bash>",
             "<done>Both ran.</done>",
         ]
