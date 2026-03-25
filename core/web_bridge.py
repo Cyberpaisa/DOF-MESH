@@ -62,10 +62,11 @@ WEB_TARGETS = {
     },
     "kimi": {
         "url": "https://www.kimi.com/",
-        "input_selector": "div[contenteditable], textarea, [role=textbox]",
+        "input_selector": "div[contenteditable='true']:not([class*=clipboard])",
         "send_key": "Enter",
-        "response_selector": "[class*=markdown] p, [class*=segment] p, [class*=reply] p",
+        "response_selector": "p",
         "wait_ms": 15000,
+        "profile": "kimi2",
     },
     "deepseek": {
         "url": "https://chat.deepseek.com",
@@ -101,8 +102,9 @@ class WebBridge:
         from playwright.sync_api import sync_playwright
         self._pw = sync_playwright().start()
 
-        # Use persistent context so cookies/login are preserved
-        user_data = REPO_ROOT / "logs" / "browser_profiles" / self.node
+        # Use persistent context — profile name can be overridden in target config
+        profile_name = self.target.get("profile", self.node)
+        user_data = REPO_ROOT / "logs" / "browser_profiles" / profile_name
         user_data.mkdir(parents=True, exist_ok=True)
 
         # Check if saved session state exists
@@ -167,9 +169,20 @@ class WebBridge:
             inp.type(prompt, delay=15)
             time.sleep(0.5)
 
+            # Note URL before sending (Kimi navigates to new conversation page)
+            url_before = page.url
+
             # Submit with Enter
             page.keyboard.press("Enter")
             logger.info("Sent. Waiting for response to generate...")
+
+            # Wait for navigation if page changes (e.g. Kimi opens new conversation)
+            for _ in range(10):
+                time.sleep(1)
+                if page.url != url_before:
+                    logger.info("Page navigated to: %s", page.url)
+                    time.sleep(2)
+                    break
 
             # Processing keywords — MiniMax shows these while thinking
             processing_kw = [
@@ -187,14 +200,19 @@ class WebBridge:
             for _ in range(max_wait):
                 time.sleep(1)
                 try:
+                    # Try specific selector first
                     els = page.locator(cfg["response_selector"]).all()
-                    if not els:
-                        continue
-                    current = els[-1].inner_text().strip()
+                    if els:
+                        current = els[-1].inner_text().strip()
+                    else:
+                        # Fallback: grab full page text and take last chunk
+                        current = page.inner_text("body").strip()
+                        # Trim to last 1000 chars (most recent response)
+                        current = current[-1000:].strip()
+
                     is_processing = any(k in current.lower() for k in processing_kw)
 
                     if not is_processing and current:
-                        # Real answer — wait for it to stabilize
                         if current == prev_text:
                             stable_count += 1
                             if stable_count >= 3:
@@ -203,6 +221,17 @@ class WebBridge:
                         else:
                             stable_count = 0
                         prev_text = current
+                except Exception:
+                    pass
+
+            # Debug: screenshot + raw body if nothing found
+            if not final_text:
+                try:
+                    page.screenshot(path=str(REPO_ROOT / "logs" / f"debug_{self.node}.png"))
+                    raw = page.inner_text("body").strip()[-500:]
+                    logger.warning("No selector match. Page tail: %s", repr(raw[:200]))
+                    if raw and len(raw) > 20:
+                        return raw
                 except Exception:
                     pass
 
