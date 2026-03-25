@@ -131,3 +131,28 @@ Z3 invariants (correctness), hierarchy patterns (security), test suite (function
 
 **L-50: EntropyDetector catches a new class of attacks.**
 Shannon entropy + special char ratio + sliding window detects GCG/suffix attacks that regex can't see. Moved suffix detection from 0% to 11.5%. Not a complete solution, but a legitimate new detection signal that has value independent of any benchmark.
+
+---
+
+## v0.4.x — DOF Mesh Hyperion (2026-03-25)
+
+**L-51: El filesystem es el cuello de botella, no la lógica.**
+NodeMesh usaba archivos JSON en disco: ~100 tasks/sec. MeshQueue en memoria: 402,000 tasks/sec. El código de negocio era correcto desde el inicio — el error era el transporte. Cambiar el transporte (sin cambiar la lógica) dio 4,000x de mejora.
+
+**L-52: Drop-in replacement como estrategia de migración.**
+`from core.hyperion_bridge import HyperionBridge as NodeMesh` — una línea.
+Cero cambios en supervisor.py, cero tests rotos, cero riesgo. La API compatible permite migración gradual sin big-bang rewrites. Patrón aplicable a cualquier subsistema.
+
+**L-53: stdlib Python es suficiente para infraestructura seria.**
+HyperionHTTPServer usa solo `http.server`. Sin FastAPI, sin uvicorn, sin dependencias externas. Funciona en cualquier máquina con Python 3.9+. Para servicios internos, las dependencias son deuda — evitarlas mientras se pueda.
+
+**L-54: Raft cabe en 300 líneas cuando el estado está bien definido.**
+La complejidad de Raft no está en el algoritmo sino en los casos borde de red real. In-process (nodos como objetos Python) elimina los problemas de red y permite iterar rápido. El patrón: implementar in-process primero, luego agregar capa de red encima.
+
+**L-55: Timeouts aleatorios evitan split votes en leader election.**
+Si todos los nodos tienen el mismo timeout de elección, todos se postulan a la vez y ninguno gana. Randomizar entre 300-600ms garantiza que siempre hay un candidato antes que los demás. Simple, efectivo, elegante.
+
+**L-56: Autonomía real = el sistema construye mientras el usuario vive.**
+El usuario durmió (00:00-06:00). El usuario fue al trabajo (09:00-12:00).
+En esas horas se construyeron 5 módulos, 107 tests, 4 commits, 2 capítulos de libro.
+La autonomía no es que el agente haga tareas — es que el agente toma decisiones de arquitectura y las ejecuta con criterio.
