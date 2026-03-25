@@ -39,13 +39,15 @@ logger = logging.getLogger("core.local_orchestrator")
 _BASE_DIR = Path(__file__).parent.parent
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 
-# Model assignments — updated when deepseek-r1:14b is downloaded
+# Model assignments — DOF-tuned variants preferred, base models as fallback
+# dof-coder   = qwen2.5-coder:14b + DOF system prompt embedded
+# dof-reasoner = deepseek-r1:14b + DOF system prompt embedded
 LOCAL_MODELS = {
-    "reasoning":    os.getenv("LOCAL_MODEL_REASONING",    "deepseek-r1:14b"),
-    "code":         os.getenv("LOCAL_MODEL_CODE",         "qwen2.5-coder:14b"),
-    "orchestration":os.getenv("LOCAL_MODEL_ORCHESTRATOR", "deepseek-r1:14b"),
-    "fast":         os.getenv("LOCAL_MODEL_FAST",         "qwen2.5-coder:14b"),
-    "default":      os.getenv("LOCAL_MODEL_DEFAULT",      "qwen2.5-coder:14b"),
+    "reasoning":    os.getenv("LOCAL_MODEL_REASONING",    "dof-reasoner"),
+    "code":         os.getenv("LOCAL_MODEL_CODE",         "dof-coder"),
+    "orchestration":os.getenv("LOCAL_MODEL_ORCHESTRATOR", "dof-reasoner"),
+    "fast":         os.getenv("LOCAL_MODEL_FAST",         "dof-coder"),
+    "default":      os.getenv("LOCAL_MODEL_DEFAULT",      "dof-coder"),
 }
 
 # Task type → model routing rules
@@ -230,13 +232,15 @@ class LocalOrchestrator:
     def _call_ollama(self, model: str, prompt: str,
                      system: str = "", temperature: float = 0.7) -> str:
         """Call Ollama generate API. Returns text or '' on failure."""
+        # deepseek-r1 needs more tokens: uses ~500-1000 for internal reasoning before output
+        num_predict = 6144 if "deepseek" in model or "reasoner" in model else 4096
         payload = {
             "model": model,
             "prompt": prompt,
             "stream": False,
             "options": {
                 "temperature": temperature,
-                "num_predict": 4096,
+                "num_predict": num_predict,
             },
         }
         if system:
