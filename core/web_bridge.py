@@ -75,6 +75,22 @@ WEB_TARGETS = {
         "response_selector": ".ds-markdown p",
         "wait_ms": 12000,
     },
+    "arena": {
+        "url": "https://arena.ai/",
+        "input_selector": "textarea",
+        "send_key": "Enter",
+        "response_selector": "div[class*='message'] p, div[class*='response'] p, div[class*='assistant'] p",
+        "wait_ms": 20000,
+        "profile": "arena",
+    },
+    "qwen": {
+        "url": "https://chat.qwenlm.ai/",
+        "input_selector": "textarea",
+        "send_key": "Enter",
+        "response_selector": "div[class*='markdown'] p, .prose p",
+        "wait_ms": 15000,
+        "profile": "qwen",
+    },
 }
 
 
