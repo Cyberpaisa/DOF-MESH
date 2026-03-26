@@ -14,6 +14,7 @@ API:
 import json
 import logging
 import threading
+import time
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -36,87 +37,91 @@ class AutoProvisioner:
     _instance = None
     _class_lock = threading.Lock()
 
-    def __new__(cls):
-        if cls._instance is None:
-            with cls._class_lock:
-                if cls._instance is None:
-                    inst = super().__new__(cls)
-                    inst._lock = threading.Lock()
-                    inst._active_tasks: Dict[str, int] = {}
-                    cls._instance = inst
+    def __new__(cls, *args, **kwargs):
+        with cls._class_lock:
+            if cls._instance is None:
+                cls._instance = super(AutoProvisioner, cls).__new__(cls)
+                cls._instance._initialized = False
+                cls._instance._lock = threading.Lock() # Initialize instance lock here
         return cls._instance
 
-    def __init__(self):
-        pass  # init handled in __new__
+    def __init__(self, bridge=None):
+        if self._initialized:
+            return
+        from core.hyperion_bridge import HyperionBridge
+        self._bridge = bridge or HyperionBridge()
+        self._initialized = True
 
     # ── Public API ─────────────────────────────────────────────────────────────
 
     def provision(self, task_type: str, context_tokens: int) -> str:
         """
-        Reserve a node for a task. Returns the selected node_id.
-
-        Args:
-            task_type:      Kind of task ("code", "research", "docs", …)
-            context_tokens: Estimated token count for routing decisions
-
-        Returns:
-            node_id string of the selected node
+        Reserve a node for a task using Hyperion routing.
         """
         from core.mesh_cost_optimizer import CostOptimizer
         node_id = CostOptimizer().get_cheapest_node(context_tokens, task_type)
 
+        # Notify bridge of new task (Hyperion handles queueing)
+        # The provisioner tracks 'active_tasks' for the autoscaler to see in nodes.json
         with self._lock:
-            if node_id not in self._active_tasks:
-                self._active_tasks[node_id] = self._read_active_tasks_from_disk(node_id)
-            self._active_tasks[node_id] += 1
-            self._persist_active_tasks(node_id, self._active_tasks[node_id])
+            current = self._read_active_tasks_from_disk(node_id)
+            new_val = current + 1
+            self._persist_active_tasks(node_id, new_val)
 
-        logger.info("Provisioned [%s] for task_type=%s tokens=%d", node_id, task_type, context_tokens)
+        logger.info("Hyperion Provisioned [%s] for %s (%d tokens)", node_id, task_type, context_tokens)
         return node_id
 
     def deprovision(self, node_id: str) -> None:
-        """
-        Release one active task slot on node_id.
-        """
+        """Release one task slot."""
         with self._lock:
-            if node_id not in self._active_tasks:
-                self._active_tasks[node_id] = self._read_active_tasks_from_disk(node_id)
-            new_val = max(0, self._active_tasks[node_id] - 1)
-            self._active_tasks[node_id] = new_val
+            current = self._read_active_tasks_from_disk(node_id)
+            new_val = max(0, current - 1)
             self._persist_active_tasks(node_id, new_val)
 
-        logger.info("Deprovisioned [%s] — active_tasks now %d", node_id, new_val)
+        logger.info("Hyperion Deprovisioned [%s] — active now %d", node_id, new_val)
+
+    def handle_scale_event(self, event) -> bool:
+        """
+        Act on a ScaleEvent (scale_up/scale_down).
+        Implementation for Phase 9: spawn siblings or mark for retirement.
+        """
+        if event.event_type == "scale_up":
+            sibling_id = f"{event.node_id}-clone-{int(time.time())}"
+            logger.warning("Hyperion SCALE_UP: Spawning sibling %s", sibling_id)
+            # In a real provisioner, this would trigger a container/process
+            # For now, we register it in the bridge
+            self._bridge.spawn_node(sibling_id, f"Scaling relief for {event.node_id}")
+            return True
+        return False
 
     def get_active_provisions(self) -> Dict[str, int]:
-        """Return a copy of the current active task counts per node."""
-        with self._lock:
-            return dict(self._active_tasks)
+        """Return task counts from the Hyperion status if possible."""
+        status = self._bridge.status()
+        return status.get("dispatched_by_node", {})
 
     # ── Persistence ────────────────────────────────────────────────────────────
 
     def _read_active_tasks_from_disk(self, node_id: str) -> int:
-        """Read current active_tasks for node_id from nodes.json (0 if not found)."""
+        """Read from nodes.json (legacy compatibility)."""
         try:
-            path = NODES_JSON_PATH
-            if not path.exists():
+            if not NODES_JSON_PATH.exists():
                 return 0
-            with open(path, "r", encoding="utf-8") as f:
+            with open(NODES_JSON_PATH, "r", encoding="utf-8") as f:
                 nodes = json.load(f)
             return nodes.get(node_id, {}).get("active_tasks", 0)
         except Exception:
             return 0
 
     def _persist_active_tasks(self, node_id: str, count: int) -> None:
-        """Write updated active_tasks count to nodes.json (if it exists)."""
+        """Sync active_tasks to nodes.json for the AutoScaler to read."""
         try:
-            path = NODES_JSON_PATH  # may be patched in tests
-            if not path.exists():
+            if not NODES_JSON_PATH.exists():
                 return
-            with open(path, "r", encoding="utf-8") as f:
+            with open(NODES_JSON_PATH, "r", encoding="utf-8") as f:
                 nodes = json.load(f)
             if node_id in nodes:
                 nodes[node_id]["active_tasks"] = count
-                with open(path, "w", encoding="utf-8") as f:
+                with open(NODES_JSON_PATH, "w", encoding="utf-8") as f:
                     json.dump(nodes, f, indent=2, ensure_ascii=False)
         except Exception as e:
-            logger.warning("Could not persist active_tasks for %s: %s", node_id, e)
+            logger.warning("Sync failed for %s: %s", node_id, e)

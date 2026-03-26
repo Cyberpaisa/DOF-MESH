@@ -35,6 +35,8 @@ from core.mesh_circuit_breaker import MeshCircuitBreaker, CircuitOpenError
 from core.mesh_cost_optimizer import CostOptimizer
 from core.mesh_metrics_collector import MeshMetricsCollector, MeshMetrics
 from core.mesh_auto_scaler import MeshAutoScaler, ScaleEvent
+from core.hyperion_bridge import HyperionBridge
+from core.mesh_auto_provisioner import AutoProvisioner
 
 logger = logging.getLogger("core.mesh_orchestrator")
 
@@ -153,6 +155,10 @@ class MeshOrchestrator:
         self._cost_optimizer = CostOptimizer()
         self._metrics_collector = MeshMetricsCollector(mesh_dir=self._mesh_dir)
         self._auto_scaler = MeshAutoScaler(mesh_dir=self._mesh_dir)
+
+        # Hyperion Integration
+        self._bridge = HyperionBridge()
+        self._provisioner = AutoProvisioner(bridge=self._bridge)
 
         self._initialized = True
         logger.info(
@@ -304,6 +310,20 @@ class MeshOrchestrator:
         # Step 3: Select node — prefer router, fallback to cost optimizer
         selected_node = routed_node if routed_node != "unknown" else cost_node
 
+        # Emergency Override: Token Conservation Protocol
+        emergency_file = MESH_DIR / "EMERGENCY_MODE_v1.json"
+        if emergency_file.exists():
+            try:
+                with open(emergency_file, "r") as f:
+                    emergency = json.load(f)
+                if emergency.get("status") == "ACTIVE":
+                    # Force cheapest node to conserve tokens
+                    if selected_node != cost_node:
+                        logger.warning("EMERGENCY_MODE active: Overriding %s with cheapest node %s", selected_node, cost_node)
+                        selected_node = cost_node
+            except Exception:
+                pass
+
         # Step 4: Check circuit breaker state
         circuit_state = self._circuit_breaker.get_state(selected_node)
 
@@ -375,29 +395,17 @@ class MeshOrchestrator:
 
     def _dispatch_task(self, task: dict, node_id: str) -> None:
         """
-        Dispatch task to a mesh node via the filesystem inbox protocol.
-
-        Writes a JSON message to logs/mesh/inbox/{node_id}/ for the
-        target node to pick up asynchronously.
+        Dispatch task to a mesh node via Hyperion (Distributed Sharded Queue).
         """
-        inbox = self._inbox_dir / node_id
-        inbox.mkdir(parents=True, exist_ok=True)
+        task_id = task.get("task_id", "unknown")
+        self._bridge.send_message(
+            from_node="orchestrator",
+            to_node=node_id,
+            content=task,
+            msg_type=task.get("msg_type", "task")
+        )
 
-        message = {
-            "task_id": task.get("task_id", f"task-{int(time.time() * 1000)}"),
-            "task_type": task.get("task_type", "general"),
-            "payload": task.get("payload", ""),
-            "from": "orchestrator",
-            "to": node_id,
-            "timestamp": time.time(),
-            "status": "queued",
-        }
-
-        msg_file = inbox / f"{message['task_id']}.json"
-        with msg_file.open("w", encoding="utf-8") as fh:
-            json.dump(message, fh, indent=2, ensure_ascii=False)
-
-        logger.debug("Dispatched task %s to node %s", message["task_id"], node_id)
+        logger.debug("Dispatched task %s to node %s via Hyperion", task_id, node_id)
 
     # ── Scaling evaluation ───────────────────────────────
 
@@ -440,6 +448,10 @@ class MeshOrchestrator:
         # Delegate to auto-scaler for per-node events
         scale_events: list[ScaleEvent] = self._auto_scaler.check_load()
 
+        # Act on recommendations via Provisioner
+        for evt in scale_events:
+            self._provisioner.handle_scale_event(evt)
+
         decision = ScalingDecision(
             queue_depth=queue_depth,
             health_score=metrics.health_score,
@@ -470,13 +482,8 @@ class MeshOrchestrator:
         return decision
 
     def _count_queue_depth(self) -> int:
-        """Count pending task files across all node inboxes."""
-        if not self._inbox_dir.exists():
-            return 0
-        try:
-            return sum(1 for _ in self._inbox_dir.glob("**/*.json"))
-        except OSError:
-            return 0
+        """Count pending tasks via HyperionBridge."""
+        return self._bridge.queue_size()
 
     # ── Status ───────────────────────────────────────────
 

@@ -211,6 +211,14 @@ class Cerberus:
     """
 
     def __init__(self, mesh_dir: str = "logs/mesh"):
+        """Initialize Cerberus with persistence paths and in-memory security state.
+
+        Args:
+            mesh_dir: Directory for trust scores, threat log, and quarantine file.
+                      Defaults to 'logs/mesh' (relative to working directory).
+
+        Loads existing trust scores and quarantine list from disk on startup.
+        """
         self._mesh_dir = Path(mesh_dir)
         self._mesh_dir.mkdir(parents=True, exist_ok=True)
 
@@ -791,6 +799,220 @@ class Cerberus:
     def get_trust(self, node_id: str) -> float:
         """Get trust score for a node. Default 1.0 for unknown nodes."""
         return self._trust_scores.get(node_id, 1.0)
+
+    # ═══════════════════════════════════════════════════
+    # DEEPSEEK INTEGRATION — Optional Deep Threat Analysis
+    # ═══════════════════════════════════════════════════
+
+    def deep_analyze_threat(self, content: str, threat_type: str) -> dict:
+        """Call DeepSeek API for in-depth threat analysis.
+
+        Only called when a threat is detected and deeper analysis is needed.
+        Requires DEEPSEEK_API_KEY in environment. Returns raw analysis dict.
+        Falls back gracefully if API is unavailable.
+
+        Args:
+            content: The message content that triggered the threat.
+            threat_type: The threat category (e.g. CODE_INJECTION, PROMPT_INJECTION).
+
+        Returns:
+            dict with keys: success, analysis, model, error (if failed).
+        """
+        api_key = os.environ.get("DEEPSEEK_API_KEY", "")
+        if not api_key:
+            return {
+                "success": False,
+                "analysis": None,
+                "model": None,
+                "error": "DEEPSEEK_API_KEY not set",
+            }
+
+        # Truncate content for safety — never send more than 2KB to external API
+        safe_content = content[:2048]
+
+        import urllib.request
+        import urllib.error
+
+        payload = json.dumps({
+            "model": "deepseek-chat",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a cybersecurity analyst. Analyze the following "
+                        "content that was flagged as a potential security threat. "
+                        "Respond with: severity (1-10), attack_vector, recommendation. "
+                        "Be concise. JSON only."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Threat type: {threat_type}\n"
+                        f"Content: {safe_content}"
+                    ),
+                },
+            ],
+            "max_tokens": 512,
+            "temperature": 0.1,
+        }).encode("utf-8")
+
+        req = urllib.request.Request(
+            "https://api.deepseek.com/chat/completions",
+            data=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+            },
+            method="POST",
+        )
+
+        try:
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                analysis_text = data["choices"][0]["message"]["content"]
+                # Try to parse as JSON, fall back to raw text
+                try:
+                    analysis = json.loads(analysis_text)
+                except (json.JSONDecodeError, ValueError):
+                    analysis = {"raw": analysis_text}
+                return {
+                    "success": True,
+                    "analysis": analysis,
+                    "model": data.get("model", "deepseek-chat"),
+                    "error": None,
+                }
+        except (urllib.error.URLError, urllib.error.HTTPError, Exception) as e:
+            logger.warning(f"DeepSeek API call failed: {e}")
+            return {
+                "success": False,
+                "analysis": None,
+                "model": None,
+                "error": str(e),
+            }
+
+    # ═══════════════════════════════════════════════════
+    # WEB BRIDGE SCANNER — Validate external responses
+    # ═══════════════════════════════════════════════════
+
+    def scan_web_bridge_response(self, response: str, node_name: str) -> CerberusVerdict:
+        """Scan a response from a web bridge before it enters the mesh.
+
+        Web bridges (copy-paste from ChatGPT, Gemini, Kimi, etc.) are the
+        primary attack surface for the mesh — any external model could inject
+        malicious content. This method runs all 3 heads plus extra checks
+        specific to web bridge payloads.
+
+        Args:
+            response: The raw text response from the web bridge.
+            node_name: The mesh node name for the web model (e.g. "gemini-001").
+
+        Returns:
+            CerberusVerdict with web-bridge-specific threat annotations.
+        """
+        extra_threats: list[str] = []
+
+        # Check for embedded instructions targeting other mesh nodes
+        mesh_node_patterns = [
+            re.compile(r'@(commander|guardian|architect|researcher|narrator|reviewer)\b', re.IGNORECASE),
+        ]
+        for pattern in mesh_node_patterns:
+            match = pattern.search(response)
+            if match:
+                # Not inherently malicious, but flag if combined with injection
+                pass  # tracked by HEAD 1 patterns already
+
+        # Check for attempts to impersonate mesh protocol messages
+        if '"msg_type"' in response and '"from_node"' in response:
+            extra_threats.append("WEB_BRIDGE: response contains mesh protocol fields (possible spoofing)")
+
+        # Check for hidden instructions in markdown comments
+        hidden_comment = re.search(r'<!--.*?-->', response, re.DOTALL)
+        if hidden_comment:
+            comment_content = hidden_comment.group()
+            # Run HEAD 1 on the hidden content
+            inner_verdict = self.validate_message(comment_content, node_name)
+            if not inner_verdict.safe:
+                extra_threats.append(f"WEB_BRIDGE: hidden instruction in HTML comment")
+
+        # Check for unicode homoglyph attacks (zero-width chars, RTL override)
+        suspicious_unicode = re.search(r'[\u200b\u200c\u200d\u200e\u200f\u202a-\u202e\ufeff]', response)
+        if suspicious_unicode:
+            extra_threats.append("WEB_BRIDGE: suspicious unicode characters (possible homoglyph attack)")
+
+        # Run the standard 3-head guard
+        verdict = self.guard(response, from_node=node_name, to_node="mesh")
+
+        # Merge extra threats
+        if extra_threats:
+            verdict.threats.extend(extra_threats)
+            verdict.safe = False
+            if len(verdict.threats) >= 4:
+                verdict.threat_level = "CRITICAL"
+            elif verdict.threat_level == "SAFE":
+                verdict.threat_level = "MEDIUM"
+            if verdict.threat_level in ("HIGH", "CRITICAL"):
+                verdict.blocked = True
+
+        return verdict
+
+    # ═══════════════════════════════════════════════════
+    # MESH TASK GUARD — Validate incoming mesh tasks
+    # ═══════════════════════════════════════════════════
+
+    def guard_mesh_task(self, task_json: dict) -> CerberusVerdict:
+        """Validate an incoming mesh task before execution.
+
+        Checks the task structure, content of all string fields, and
+        ensures the source node is not quarantined.
+
+        Args:
+            task_json: The task dict (typically from logs/mesh/inbox/).
+                       Expected keys: from_node, to_node, content, msg_type.
+
+        Returns:
+            CerberusVerdict for the task.
+        """
+        from_node = task_json.get("from_node", "unknown")
+        to_node = task_json.get("to_node", "unknown")
+        content = task_json.get("content", "")
+        msg_type = task_json.get("msg_type", "")
+
+        # Structural validation
+        structural_threats: list[str] = []
+
+        required_fields = ("from_node", "to_node", "content", "msg_type")
+        missing = [f for f in required_fields if f not in task_json]
+        if missing:
+            structural_threats.append(f"INVALID_TASK: missing fields {missing}")
+
+        # Validate msg_type whitelist
+        valid_types = {"task", "result", "status", "query", "broadcast", "need_input", "feedback"}
+        if msg_type and msg_type not in valid_types:
+            structural_threats.append(f"INVALID_TASK: unknown msg_type '{msg_type}'")
+
+        # Scan all string values in the task for threats
+        all_text_parts: list[str] = []
+        for key, value in task_json.items():
+            if isinstance(value, str) and key != "timestamp":
+                all_text_parts.append(value)
+        combined_text = "\n".join(all_text_parts)
+
+        # Run full guard on combined text
+        verdict = self.guard(combined_text, from_node=from_node, to_node=to_node)
+
+        # Merge structural threats
+        if structural_threats:
+            verdict.threats.extend(structural_threats)
+            verdict.safe = False
+            if verdict.threat_level == "SAFE":
+                verdict.threat_level = "MEDIUM"
+            if len(verdict.threats) >= 4:
+                verdict.threat_level = "CRITICAL"
+            if verdict.threat_level in ("HIGH", "CRITICAL"):
+                verdict.blocked = True
+
+        return verdict
 
     def report(self, scan: CerberusReport) -> str:
         """Generate human-readable report from a CerberusReport."""

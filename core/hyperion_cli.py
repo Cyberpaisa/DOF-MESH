@@ -65,10 +65,10 @@ def cmd_raft(args):
     print(f"  Nodos Raft:      {s['raft_nodes_total']}")
     print()
     for sid, ss in s["shards"].items():
-        status_icon = "✅" if ss["leader"] else "⚠️ "
+        status_icon = "✅" if ss["leader"] else "⚠ "
         print(f"  Shard {sid}: {status_icon} leader={ss['leader']} term={ss['term']}")
     print("=" * 56)
-    print(f"  SLA: {'✅ TODOS LOS SHARDS TIENEN LÍDER' if ok else '⚠️  ALGUNOS SHARDS SIN LÍDER'}")
+    print(f"  SLA: {'✅ TODOS LOS SHARDS TIENEN LÍDER' if ok else '⚠  ALGUNOS SHARDS SIN LÍDER'}")
     print("=" * 56)
 
     rsm.stop()

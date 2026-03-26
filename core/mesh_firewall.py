@@ -166,6 +166,7 @@ class FirewallAuditLog:
         self._lock = threading.Lock()
 
     def write(self, ip: str, allowed: bool, reason: str, msg_type: str = ""):
+        """Append a firewall decision entry to the JSONL audit log."""
         entry = {
             "ts": time.time(),
             "ip": ip,
@@ -236,21 +237,26 @@ class MeshFirewall:
         return True, "ALLOWED"
 
     def whitelist_add(self, ip: str):
+        """Add an IP to the permanent whitelist (bypasses all checks)."""
         with self._lock:
             self._whitelist.add(ip)
         logger.info(f"Whitelisted: {ip}")
 
     def whitelist_remove(self, ip: str):
+        """Remove an IP from the whitelist."""
         with self._lock:
             self._whitelist.discard(ip)
 
     def block(self, ip: str, reason: str = "manual"):
+        """Block an IP for BLOCK_TTL_SEC (24h) with optional reason label."""
         self._blocklist.add_block(ip, reason)
 
     def unblock(self, ip: str):
+        """Remove a manual block for an IP address."""
         self._blocklist.remove(ip)
 
     def get_status(self) -> Dict:
+        """Return firewall health counters and configuration summary."""
         return {
             "checks_total": self._check_count,
             "blocks_total": self._block_count,
@@ -262,6 +268,7 @@ class MeshFirewall:
 
     # ── Integration-test-friendly alias methods ──────────────────────────
     def block_ip(self, ip: str) -> None:
+        """Integration-test alias for block()."""
         self.block(ip)
 
     def allow_ip(self, ip: str) -> None:
@@ -269,9 +276,11 @@ class MeshFirewall:
         self.unblock(ip)
 
     def whitelist_ip(self, ip: str) -> None:
+        """Integration-test alias for whitelist_add()."""
         self.whitelist_add(ip)
 
     def check_ip(self, ip: str) -> Dict:
+        """Return {allowed, reason} dict for a single IP check (test-friendly)."""
         allowed, reason = self.check(ip)
         return {"allowed": allowed, "reason": reason}
 
