@@ -207,7 +207,7 @@ for filename in sorted(os.listdir(PAYLOAD_DIR)):
         "time_seconds": round(cat_time, 2),
     }
 
-    icon = "✅" if dr >= 0.7 else "⚠️ " if dr >= 0.4 else "❌"
+    icon = "✅" if dr >= 0.7 else "⚠ " if dr >= 0.4 else "❌"
     print(f"  {icon} {category:25s} → {detected:5d}/{len(payloads):5d} detected ({dr*100:5.1f}%) [{cat_time:.1f}s]")
 
 # Summary

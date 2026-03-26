@@ -1,0 +1,18 @@
+{
+  "subject_id": "mimo-studio-web-trap",
+  "source_url": "https://aistudio.xiaomimimo.com/#/c",
+  "mesh_role": "deep-reasoning-web",
+  "automation_schema": {
+    "selectors": {
+      "input_box": "textarea.n-input__textarea-el, [placeholder*='AI'], [placeholder*='mensaje']",
+      "send_button": "button.n-button--primary-type, button:has(svg), .send-icon",
+      "message_list": ".chat-message-list, .messages-container",
+      "last_ai_message": ".message-bubble.assistant:last-child, .chat-bubble-ai:last-child",
+      "loading_indicator": ".n-spin, .loading-dots"
+    },
+    "interaction_logic": "wait_for_input -> type_prompt -> click_send -> wait_for_response -> extract_text",
+    "sovereignty_mode": "local-proxy-intercept"
+  },
+  "auth_method": "session-injection",
+  "notes": "Este JSON permite a los agentes de la Legión 'atrapar' la interfaz y redirigir el flujo al Mesh local."
+}

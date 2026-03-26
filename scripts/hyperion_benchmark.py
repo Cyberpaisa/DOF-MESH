@@ -170,7 +170,7 @@ def main():
     print(f"  Queue:   {q['dequeue_throughput']:>12,} tasks/sec (dequeue)")
     print(f"  WAL:     {w['write_throughput']:>12,} entries/sec")
     print(f"  Gossip:  convergencia en {g['convergence_ms']}ms ({g['nodes']} nodos)")
-    print(f"  SLA <500ms: {'✅ CUMPLE' if isinstance(g['convergence_ms'], int) and g['convergence_ms'] < 500 else '⚠️ REVISAR'}")
+    print(f"  SLA <500ms: {'✅ CUMPLE' if isinstance(g['convergence_ms'], int) and g['convergence_ms'] < 500 else '⚠ REVISAR'}")
     print("=" * 60)
 
 

@@ -64,7 +64,7 @@ def show_order(order):
 
 def watch(interval=2):
     """Watch for new orders in real-time."""
-    print(f"👁️  Watching {QUEUE_DIR} for Telegram orders...")
+    print(f"👁  Watching {QUEUE_DIR} for Telegram orders...")
     print(f"   Send /claude <order> from Telegram to see it here.")
     print(f"   Press Ctrl+C to stop.\n")
 
