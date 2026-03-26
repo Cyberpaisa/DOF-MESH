@@ -46,12 +46,22 @@ class HyperionBridge:
     _instance: Optional["HyperionBridge"] = None  # Singleton
 
     def __new__(cls, machines=None, shard_count=10):
+        """Singleton constructor — returns existing instance if already initialized."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
 
     def __init__(self, machines=None, shard_count=10):
+        """Initialize HyperionBridge with a shard manager and distributed queue.
+
+        Args:
+            machines: List of machine identifiers in the cluster.
+                      Defaults to 5 predefined machine names.
+            shard_count: Number of hash-ring shards for distributed routing (default 10).
+
+        Also bootstraps a NodeMesh fallback for filesystem-protocol compatibility.
+        """
         if self._initialized:
             return
         self._initialized = True
@@ -126,7 +136,7 @@ class HyperionBridge:
 
     def broadcast(self, from_node: str, content: Any, nodes: list[str] = None) -> list[str]:
         """Enviar a múltiples nodos."""
-        targets = nodes or ["architect", "researcher", "guardian", "verifier", "narrator", "devops"]
+        targets = ["architect", "researcher", "guardian", "verifier", "narrator", "devops"] if nodes is None else nodes
         return [self.send_message(from_node, n, content, "broadcast") for n in targets]
 
     def spawn_node(self, node_id: str, task: str) -> str:
@@ -135,6 +145,7 @@ class HyperionBridge:
         return self.send_message("hyperion-bridge", node_id, {"task": task}, "spawn")
 
     def status(self) -> dict:
+        """Return a status snapshot: queue metrics, shard info, and per-node dispatch counts."""
         return {
             "queue": self._queue.status(),
             "shards": self._sm.status(),
@@ -143,10 +154,12 @@ class HyperionBridge:
         }
 
     def queue_size(self) -> int:
+        """Return the total number of tasks currently enqueued across all shards."""
         return self._queue.qsize()
 
     # ── Reset singleton (para tests) ─────────────────────────────────────────
 
     @classmethod
     def reset(cls):
+        """Destroy the singleton instance. Allows tests to obtain a fresh bridge."""
         cls._instance = None

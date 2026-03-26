@@ -568,6 +568,38 @@ class AutonomousDaemon:
             "last_cycle": asdict(self.history[-1]) if self.history else None,
         }
 
+    def get_summary(self) -> dict:
+        """Aggregate statistics across all completed cycles.
+
+        Returns a serialisable dict suitable for logging or the Telegram /daemon status command.
+        """
+        if not self.history:
+            return {
+                "cycle_count": self.cycle_count,
+                "total_improvements": self.total_improvements,
+                "agents_total": 0,
+                "success_rate": 0.0,
+                "mode_counts": {},
+                "avg_elapsed_ms": 0.0,
+            }
+
+        agents_total = sum(c.agents_spawned for c in self.history)
+        successes = sum(1 for c in self.history if c.result_status == "success")
+        mode_counts: dict[str, int] = {}
+        for c in self.history:
+            mode_counts[c.action.mode] = mode_counts.get(c.action.mode, 0) + 1
+        avg_ms = sum(c.elapsed_ms for c in self.history) / len(self.history)
+
+        success_rate = int(successes * 1000 / len(self.history)) / 1000.0
+        return {
+            "cycle_count": self.cycle_count,
+            "total_improvements": self.total_improvements,
+            "agents_total": agents_total,
+            "success_rate": success_rate,
+            "mode_counts": mode_counts,
+            "avg_elapsed_ms": int(avg_ms * 10) / 10.0,
+        }
+
 
 # ═══════════════════════════════════════════════════════
 # SPECIALIZED DAEMONS — 3 parallel persistent brains

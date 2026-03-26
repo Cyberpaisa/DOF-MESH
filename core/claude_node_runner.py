@@ -153,7 +153,7 @@ def run_claude_task(node_id: str, task: str, model: str, cwd: Path, timeout: int
         output = result.stdout.strip()
         if result.returncode != 0 and result.stderr:
             stderr = result.stderr.strip()[:500]
-            logger.warning("  ⚠️  [%s] stderr: %s", node_id, stderr)
+            logger.warning("  ⚠  [%s] stderr: %s", node_id, stderr)
             if not output:
                 return f"[ERROR] claude exited {result.returncode}: {stderr}"
         return output or "[No output from claude]"
@@ -215,7 +215,7 @@ def process_task(node_id: str, task_file: Path) -> bool:
         if out_path.exists():
             logger.info("  📄 [%s] Output file exists: %s (%d bytes)", node_id, output_file, out_path.stat().st_size)
         else:
-            logger.warning("  ⚠️  [%s] Output file NOT found: %s", node_id, output_file)
+            logger.warning("  ⚠  [%s] Output file NOT found: %s", node_id, output_file)
 
     # Mark done
     done_file = task_file.with_suffix(".done")

@@ -122,12 +122,14 @@ class FederationDiscovery:
         self._lock  = threading.Lock()
 
     def start(self):
+        """Launch broadcast and listen threads; returns immediately."""
         self._running = True
         threading.Thread(target=self._broadcast_loop, daemon=True).start()
         threading.Thread(target=self._listen_loop, daemon=True).start()
         logger.info(f"FederationDiscovery started on UDP:{DISCOVERY_PORT}")
 
     def stop(self):
+        """Signal both discovery threads to exit on their next iteration."""
         self._running = False
 
     def _broadcast_loop(self):
@@ -171,6 +173,7 @@ class FederationDiscovery:
         sock.close()
 
     def _handle_announce(self, data: bytes, addr):
+        """Parse a UDP ANNOUNCE packet and call on_peer_found for new peers."""
         try:
             msg = json.loads(data.decode())
             if msg.get("protocol") != MESH_PROTOCOL_V:
@@ -244,6 +247,7 @@ class FederationBridge:
         self._thread: Optional[threading.Thread] = None
 
     def start(self):
+        """Bind the HTTP server and serve in a background daemon thread."""
         _BridgeHandler.manager = self._manager
         try:
             self._server = HTTPServer((self._host, self._port), _BridgeHandler)
@@ -254,6 +258,7 @@ class FederationBridge:
             logger.warning(f"Cannot start FederationBridge: {e}")
 
     def stop(self):
+        """Shutdown the HTTP server if it is running."""
         if self._server:
             self._server.shutdown()
 
@@ -305,6 +310,7 @@ class FederationManager:
         logger.info(f"FederationManager started (node: {self._my_id})")
 
     def stop(self):
+        """Stop discovery broadcasts, bridge server, and heartbeat monitor."""
         self._running = False
         self._discovery.stop()
         self._bridge.stop()

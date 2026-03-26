@@ -313,6 +313,40 @@ def scan_contract(source: str, name: str = "unknown") -> ScanResult:
     return ContractScanner().scan(source, name)
 
 
+def scan_batch(contracts: list[tuple[str, str]]) -> list[ScanResult]:
+    """Scan multiple contracts in one call without repeated scanner instantiation.
+
+    Args:
+        contracts: List of (source_code, contract_name) pairs.
+
+    Returns:
+        List of ScanResult in the same order as input.
+    """
+    scanner = ContractScanner()
+    return [scanner.scan(source, name) for source, name in contracts]
+
+
+def get_risk_summary(results: list[ScanResult]) -> dict:
+    """Aggregate risk summary across multiple ScanResults.
+
+    Returns a dict with totals per severity and an overall pass/fail verdict.
+    """
+    total = len(results)
+    passed = sum(1 for r in results if r.passed)
+    return {
+        "total_contracts": total,
+        "passed": passed,
+        "failed": total - passed,
+        "critical_total": sum(r.critical_count for r in results),
+        "high_total": sum(r.high_count for r in results),
+        "medium_total": sum(r.medium_count for r in results),
+        "low_total": sum(r.low_count for r in results),
+        "info_total": sum(r.info_count for r in results),
+        "findings_total": sum(len(r.findings) for r in results),
+        "overall_pass": all(r.passed for r in results),
+    }
+
+
 # --- Quick test ---
 
 if __name__ == "__main__":

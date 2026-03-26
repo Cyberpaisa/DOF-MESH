@@ -44,7 +44,6 @@ import json
 import os
 import time
 import logging
-import hashlib
 import fcntl
 import threading
 from collections import defaultdict, deque
@@ -84,6 +83,38 @@ class NodeRole(Enum):
     AUDITOR = auto()
     ADMIN = auto()
     SECURITY = auto()
+
+
+# Roles that are allowed to send messages (all except read-only AUDITOR)
+_MESSAGING_ROLES: set = {
+    NodeRole.ARCHITECT, NodeRole.RESEARCHER, NodeRole.GUARDIAN,
+    NodeRole.WORKER, NodeRole.COORDINATOR, NodeRole.ADMIN, NodeRole.SECURITY,
+}
+
+# Map common role-name substrings → NodeRole for auto-authentication
+_ROLE_MAP: dict = {
+    "commander":    NodeRole.COORDINATOR,
+    "orchestrator": NodeRole.COORDINATOR,
+    "architect":    NodeRole.ARCHITECT,
+    "researcher":   NodeRole.RESEARCHER,
+    "analyst":      NodeRole.RESEARCHER,
+    "guardian":     NodeRole.GUARDIAN,
+    "security":     NodeRole.SECURITY,
+    "admin":        NodeRole.ADMIN,
+    "auditor":      NodeRole.AUDITOR,
+    "narrator":     NodeRole.WORKER,
+    "reviewer":     NodeRole.AUDITOR,
+    "worker":       NodeRole.WORKER,
+}
+
+
+def _infer_node_role(role_str: str) -> NodeRole:
+    """Infer a NodeRole from a free-text role string (case-insensitive substring match)."""
+    lower = role_str.lower()
+    for keyword, node_role in _ROLE_MAP.items():
+        if keyword in lower:
+            return node_role
+    return NodeRole.WORKER  # safe default
 
 
 class Permission(Enum):
@@ -159,6 +190,12 @@ class RateLimiter:
     """Rate limiter with sliding window algorithm."""
 
     def __init__(self, max_requests: int = 100, window_seconds: int = 60):
+        """Initialize the sliding-window rate limiter.
+
+        Args:
+            max_requests: Maximum number of requests allowed per window (default 100).
+            window_seconds: Length of the sliding window in seconds (default 60).
+        """
         self.max_requests = max_requests
         self.window_seconds = window_seconds
         self._requests: Dict[str, deque] = defaultdict(deque)
@@ -268,6 +305,16 @@ class NodeMesh:
                  max_budget_usd: float = 100.0,
                  mesh_dir: str = "logs/mesh",
                  claude_home: Optional[str] = None):
+        """Initialize the NodeMesh with registry, message bus, and security components.
+
+        Args:
+            cwd: Working directory for spawned Claude sessions (default: current dir).
+            model: Default Claude model for new nodes (default: claude-opus-4-6).
+            max_budget_usd: Per-session budget cap in USD (default: $100).
+            mesh_dir: Directory for mesh state files — nodes.json, messages.jsonl,
+                      inbox/, mesh_events.jsonl (default: 'logs/mesh').
+            claude_home: Path to Claude config dir for session discovery (default: ~/.claude).
+        """
         self.cwd = cwd or os.getcwd()
         self.model = model
         self.max_budget_usd = max_budget_usd
@@ -375,6 +422,11 @@ class NodeMesh:
             )
             self._nodes[node_id] = node
 
+        # Auto-authenticate with inferred role so RBAC checks work immediately
+        if node_id not in self._authenticated_nodes:
+            inferred = _infer_node_role(role)
+            self.authenticate_node(node_id, inferred)
+
         # Create inbox directory
         (self._inbox_dir / node_id).mkdir(parents=True, exist_ok=True)
         self._save_nodes()
@@ -411,12 +463,7 @@ class NodeMesh:
         """Authenticate a node and assign a role (RBAC)."""
         self._authenticated_nodes[node_id] = role
         logger.info(f"Node {node_id} authenticated as {role.name}")
-        self._audit_log.append({
-            "event": "node_authenticated",
-            "node_id": node_id,
-            "role": role.name,
-            "timestamp": time.time(),
-        })
+        self._audit_log.append({"event": "node_authenticated", "node_id": node_id, "role": role.name, "timestamp": time.time()})
         return node_id
 
     def check_rate_limit(self, node_id: str) -> bool:
@@ -424,11 +471,7 @@ class NodeMesh:
         allowed = self._rate_limiter.is_allowed(node_id)
         if not allowed:
             logger.warning(f"RATE_LIMIT_EXCEEDED: {node_id}")
-            self._audit_log.append({
-                "event": "rate_limit_exceeded",
-                "node_id": node_id,
-                "timestamp": time.time(),
-            })
+            self._audit_log.append({"event": "rate_limit_exceeded", "node_id": node_id, "timestamp": time.time()})
             raise RateLimitExceededError(f"Node {node_id} exceeded 100 req/min limit")
         return allowed
 
@@ -451,6 +494,19 @@ class NodeMesh:
 
         # Rate limit check (VULN-N003 fix by Kimi K2.5)
         self.check_rate_limit(from_node)
+
+        # RBAC: authenticated nodes must have a messaging-capable role
+        _sender_role = self._authenticated_nodes.get(from_node)
+        if _sender_role is not None and _sender_role not in _MESSAGING_ROLES:
+            logger.warning("RBAC DENIED: %s (%s) attempted send_message", from_node, _sender_role.name)
+            self._audit_log.append({
+                "event": "rbac_denied",
+                "node_id": from_node,
+                "role": _sender_role.name,
+                "action": "send_message",
+                "timestamp": time.time(),
+            })
+            raise PermissionError(f"Node {from_node} ({_sender_role.name}) lacks permission to send messages")
 
         if to_node != "*" and to_node not in self._nodes:
             logger.warning(f"Sending message to unknown node '{to_node}' — not in registry")
@@ -516,7 +572,16 @@ class NodeMesh:
         msg_file.write_text(json.dumps(asdict(msg), default=str))
 
     def read_inbox(self, node_id: str, mark_read: bool = True) -> list[MeshMessage]:
-        """Read all unread messages from a node's inbox (decrypts .enc files automatically)."""
+        """Read all unread messages from a node's inbox (decrypts .enc files automatically).
+
+        Rate-limited per node to prevent inbox-flood DoS (same 100 req/min window as send).
+        """
+        try:
+            self.check_rate_limit(node_id)
+        except RateLimitExceededError:
+            logger.warning("RATE_LIMIT read_inbox: %s", node_id)
+            return []
+
         inbox_dir = self._inbox_dir / node_id
         if not inbox_dir.exists():
             return []
@@ -1058,7 +1123,7 @@ async def spawn_dof_mesh(dry_run: bool = False) -> NodeMesh:
 
     All nodes communicate through the message bus.
     """
-    mesh = NodeMesh(cwd="/Users/jquiceva/equipo de agentes")
+    mesh = NodeMesh(cwd="/Users/jquiceva/equipo-de-agentes")
 
     # Register all nodes
     mesh.register_node("commander", "orchestrator",
@@ -1097,7 +1162,7 @@ async def _main():
 
     args = sys.argv[1:]
 
-    mesh = NodeMesh(cwd="/Users/jquiceva/equipo de agentes")
+    mesh = NodeMesh(cwd="/Users/jquiceva/equipo-de-agentes")
 
     if not args or args[0] == "status":
         print(mesh.status_report())

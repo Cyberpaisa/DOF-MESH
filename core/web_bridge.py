@@ -41,6 +41,7 @@ if _env.exists():
 WEB_TARGETS = {
     "gemini": {
         "url": "https://gemini.google.com/app",
+        "new_chat_url": "https://gemini.google.com/app",
         "input_selector": ".ql-editor",
         "send_key": "Enter",
         "response_selector": "message-content",
@@ -48,6 +49,7 @@ WEB_TARGETS = {
     },
     "chatgpt": {
         "url": "https://chatgpt.com",
+        "new_chat_url": "https://chatgpt.com",
         "input_selector": "#prompt-textarea",
         "send_key": "Enter",
         "response_selector": "div[data-message-author-role='assistant'] p",
@@ -55,6 +57,7 @@ WEB_TARGETS = {
     },
     "minimax": {
         "url": "https://agent.minimax.io/chat",
+        "new_chat_url": "https://agent.minimax.io/chat",
         "input_selector": ".tiptap.ProseMirror",
         "send_key": "Enter",
         "response_selector": ".message.received .message-content",
@@ -62,6 +65,7 @@ WEB_TARGETS = {
     },
     "kimi": {
         "url": "https://www.kimi.com/",
+        "new_chat_url": "https://www.kimi.com/",
         "input_selector": "div[contenteditable='true']:not([class*=clipboard])",
         "send_key": "Enter",
         "response_selector": "p",
@@ -70,6 +74,7 @@ WEB_TARGETS = {
     },
     "deepseek": {
         "url": "https://chat.deepseek.com",
+        "new_chat_url": "https://chat.deepseek.com/",
         "input_selector": "textarea",
         "send_key": "Enter",
         "response_selector": ".ds-markdown p",
@@ -77,19 +82,31 @@ WEB_TARGETS = {
     },
     "arena": {
         "url": "https://arena.ai/",
-        "input_selector": "textarea",
+        "new_chat_url": "https://arena.ai/",
+        "input_selector": "textarea[placeholder='Ask anything\u2026'], textarea.box-border",
         "send_key": "Enter",
-        "response_selector": "div[class*='message'] p, div[class*='response'] p, div[class*='assistant'] p",
-        "wait_ms": 20000,
+        "response_selector": ".prose.prose-sm",
+        "response_index": 0,
+        "wait_ms": 25000,
         "profile": "arena",
     },
     "qwen": {
         "url": "https://chat.qwenlm.ai/",
+        "new_chat_url": "https://chat.qwenlm.ai/",
         "input_selector": "textarea",
         "send_key": "Enter",
         "response_selector": "div[class*='markdown'] p, .prose p",
         "wait_ms": 15000,
         "profile": "qwen",
+    },
+    "mimo": {
+        "url": "https://aistudio.xiaomimimo.com/",
+        "new_chat_url": "https://aistudio.xiaomimimo.com/",
+        "input_selector": "textarea",
+        "send_key": "Enter",
+        "response_selector": ".markdown-body p, .message-content p, .prose p",
+        "wait_ms": 20000,
+        "profile": "mimo",
     },
 }
 
@@ -98,6 +115,14 @@ class WebBridge:
     """Playwright bridge — reads mesh inbox, sends to web AI, saves result."""
 
     def __init__(self, node: str, headless: bool = False):
+        """Initialize the bridge for a specific web AI target.
+
+        Args:
+            node: Target name (e.g. 'gemini', 'chatgpt', 'minimax').
+            headless: Run Chromium headless (default False — visible browser).
+        Raises:
+            ValueError: If node is not in WEB_TARGETS.
+        """
         self.node = node
         self.headless = headless
         self.target = WEB_TARGETS.get(node)
@@ -155,17 +180,31 @@ class WebBridge:
         logger.info("Browser ready. URL: %s", self._page.url)
 
     def stop(self):
+        """Close the browser context and stop Playwright."""
         if self._ctx:
             self._ctx.close()
         if self._pw:
             self._pw.stop()
 
+    def _navigate_new_chat(self):
+        """Navigate to a fresh conversation URL to avoid history contamination."""
+        new_url = self.target.get("new_chat_url", self.target["url"])
+        try:
+            self._page.goto(new_url, timeout=30000, wait_until="domcontentloaded")
+            time.sleep(2)
+            logger.info("Navigated to fresh chat: %s", new_url)
+        except Exception as e:
+            logger.warning("Could not navigate to new chat URL: %s", e)
+
     def send_and_receive(self, prompt: str) -> Optional[str]:
-        """Type prompt, submit, wait, extract response."""
+        """Navigate to fresh chat, type prompt, submit, wait, extract response."""
         page = self._page
         cfg = self.target
 
         try:
+            # Always start a fresh conversation to avoid history pollution
+            self._navigate_new_chat()
+
             # Find input
             page.wait_for_selector(cfg["input_selector"], timeout=15000)
             inp = page.locator(cfg["input_selector"]).last
@@ -219,7 +258,8 @@ class WebBridge:
                     # Try specific selector first
                     els = page.locator(cfg["response_selector"]).all()
                     if els:
-                        current = els[-1].inner_text().strip()
+                        idx = cfg.get("response_index", -1)
+                        current = els[idx].inner_text().strip()
                     else:
                         # Fallback: grab full page text and take last chunk
                         current = page.inner_text("body").strip()
@@ -322,14 +362,17 @@ class WebBridge:
         return processed
 
     def run(self, poll_interval: int = 10):
-        """Main polling loop."""
+        """Main polling loop — browser stays open indefinitely."""
         self.start()
         logger.info("WebBridge running — node=%s poll=%ds", self.node, poll_interval)
         try:
             while True:
-                n = self.process_inbox()
-                if n:
-                    logger.info("Processed %d tasks", n)
+                try:
+                    n = self.process_inbox()
+                    if n:
+                        logger.info("Processed %d tasks", n)
+                except Exception as e:
+                    logger.error("Poll cycle error: %s", e)
                 time.sleep(poll_interval)
         except KeyboardInterrupt:
             logger.info("Stopping WebBridge...")
@@ -338,6 +381,7 @@ class WebBridge:
 
 
 def main():
+    """CLI entry point — parse args and start WebBridge in polling or one-shot mode."""
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",

@@ -20,9 +20,10 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-REPO_ROOT  = Path(__file__).resolve().parent.parent
-INBOX_ROOT = REPO_ROOT / "logs" / "mesh" / "inbox"
-LOGS_DIR   = REPO_ROOT / "logs" / "mesh"
+REPO_ROOT    = Path(__file__).resolve().parent.parent
+INBOX_ROOT   = REPO_ROOT / "logs" / "mesh" / "inbox"
+LOGS_DIR     = REPO_ROOT / "logs" / "mesh"
+STATE_FILE   = LOGS_DIR / "planner_state.json"
 
 logger = logging.getLogger("core.autonomous_planner")
 
@@ -241,6 +242,164 @@ class AutonomousPlanner:
         self._logger.info("  📤 Dispatched → [%s] %s", item.target_node, item.subject[:60])
         return True
 
+    # ── Feedback loop ────────────────────────────────────────────────────────
+
+    def check_completed_tasks(self) -> Dict[str, Any]:
+        """Scan logs/mesh/inbox/*/ for .done files and update planner_state.json."""
+        done_files: List[Path] = []
+        results: List[Dict[str, Any]] = []
+
+        if INBOX_ROOT.exists():
+            for node_dir in sorted(INBOX_ROOT.iterdir()):
+                if not node_dir.is_dir():
+                    continue
+                for done in node_dir.glob("*.done"):
+                    done_files.append(done)
+                    try:
+                        data = json.loads(done.read_text(errors="ignore"))
+                        results.append({
+                            "file": str(done),
+                            "node": node_dir.name,
+                            "subject": data.get("subject", ""),
+                            "has_result": "result" in data,
+                            "result_text": str(data.get("result", "")),
+                            "from_planner": done.name.startswith("PLAN-"),
+                        })
+                    except (json.JSONDecodeError, OSError):
+                        results.append({
+                            "file": str(done),
+                            "node": node_dir.name,
+                            "subject": "",
+                            "has_result": False,
+                            "result_text": "",
+                            "from_planner": done.name.startswith("PLAN-"),
+                        })
+
+        planner_tasks = [r for r in results if r["from_planner"]]
+        total_done = len(done_files)
+        planner_done = len(planner_tasks)
+
+        # Use dispatched count from memory or state file, whichever is larger
+        dispatched_count = len(self._dispatched_hashes)
+        if STATE_FILE.exists():
+            try:
+                prev = json.loads(STATE_FILE.read_text())
+                file_count = len(prev.get("dispatched_hashes", []))
+                dispatched_count = max(dispatched_count, file_count,
+                                       prev.get("tasks_dispatched", 0))
+            except (json.JSONDecodeError, OSError):
+                pass
+        completion_rate = (planner_done / max(dispatched_count, 1)) * 100
+
+        # Update state file
+        state: Dict[str, Any] = {}
+        if STATE_FILE.exists():
+            try:
+                state = json.loads(STATE_FILE.read_text())
+            except (json.JSONDecodeError, OSError):
+                state = {}
+
+        state["completed_total"] = total_done
+        state["completed_planner"] = planner_done
+        state["completion_rate_pct"] = round(completion_rate, 1)
+
+        STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        STATE_FILE.write_text(json.dumps(state, ensure_ascii=False, indent=2))
+
+        self._logger.info(
+            "Feedback: %d total .done files, %d from planner (%.1f%% completion rate)",
+            total_done, planner_done, completion_rate,
+        )
+        return {
+            "total_done": total_done,
+            "planner_done": planner_done,
+            "completion_rate_pct": completion_rate,
+            "details": planner_tasks,
+        }
+
+    def verify_task_quality(self, completed: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Basic quality check on completed tasks that have results."""
+        if completed is None:
+            completed = self.check_completed_tasks()
+
+        details = completed.get("details", [])
+        quality_scores: List[Dict[str, Any]] = []
+
+        for task in details:
+            result_text = task.get("result_text", "")
+            subject = task.get("subject", "")
+
+            non_empty = bool(result_text.strip())
+            sufficient_length = len(result_text.strip()) > 50
+
+            # Extract keywords from subject (words > 3 chars, lowered)
+            keywords = [w.lower() for w in subject.split() if len(w) > 3]
+            result_lower = result_text.lower()
+            keyword_hits = sum(1 for kw in keywords if kw in result_lower) if keywords else 0
+            keyword_match = (keyword_hits / max(len(keywords), 1)) > 0.2
+
+            score = sum([non_empty, sufficient_length, keyword_match])
+            label = {0: "empty", 1: "poor", 2: "acceptable", 3: "good"}[score]
+
+            quality_scores.append({
+                "file": task["file"],
+                "node": task["node"],
+                "subject": subject[:80],
+                "score": score,
+                "label": label,
+                "checks": {
+                    "non_empty": non_empty,
+                    "sufficient_length": sufficient_length,
+                    "keyword_match": keyword_match,
+                },
+            })
+
+            self._logger.info(
+                "  Quality [%s] %s — %s",
+                task["node"], subject[:50], label,
+            )
+
+        good = sum(1 for q in quality_scores if q["score"] >= 2)
+        total = len(quality_scores)
+        quality_rate = (good / max(total, 1)) * 100
+
+        self._logger.info(
+            "Quality: %d/%d tasks acceptable or better (%.1f%%)",
+            good, total, quality_rate,
+        )
+        return {
+            "quality_rate_pct": quality_rate,
+            "total_checked": total,
+            "good_count": good,
+            "scores": quality_scores,
+        }
+
+    def report(self) -> Dict[str, Any]:
+        """Print current state without dispatching new tasks."""
+        completed = self.check_completed_tasks()
+        quality = self.verify_task_quality(completed)
+
+        state: Dict[str, Any] = {}
+        if STATE_FILE.exists():
+            try:
+                state = json.loads(STATE_FILE.read_text())
+            except (json.JSONDecodeError, OSError):
+                pass
+
+        report_data = {
+            "dispatched_total": len(self._dispatched_hashes),
+            "completed": completed,
+            "quality": quality,
+            "state_file": state,
+        }
+
+        self._logger.info("=== Planner Report ===")
+        self._logger.info("Dispatched: %d", len(self._dispatched_hashes))
+        self._logger.info("Completed (planner): %d", completed["planner_done"])
+        self._logger.info("Completion rate: %.1f%%", completed["completion_rate_pct"])
+        self._logger.info("Quality rate: %.1f%%", quality["quality_rate_pct"])
+        return report_data
+
     # ── Run loop ──────────────────────────────────────────────────────────────
 
     def run(self, interval: int = 3600, max_cycles: int = 0) -> None:
@@ -249,6 +408,10 @@ class AutonomousPlanner:
         cycle = 0
         while True:
             cycle += 1
+            self._logger.info("🔍 Cycle %d — checking completed tasks…", cycle)
+            completed = self.check_completed_tasks()
+            self.verify_task_quality(completed)
+
             self._logger.info("🔍 Cycle %d — scanning repo…", cycle)
             items = self.analyze()
             dispatched = sum(1 for item in items if self._dispatch(item))
@@ -272,10 +435,14 @@ def main() -> None:
     parser.add_argument("--once",   action="store_true", help="Run one cycle and exit")
     parser.add_argument("--daemon", action="store_true", help="Run forever (default interval 3600s)")
     parser.add_argument("--interval", type=int, default=3600)
+    parser.add_argument("--report", action="store_true", help="Print current state without dispatching")
     args = parser.parse_args()
 
     planner = AutonomousPlanner()
-    if args.once:
+    if args.report:
+        data = planner.report()
+        print(json.dumps(data, indent=2, default=str))
+    elif args.once:
         planner.run(interval=0, max_cycles=1)
     else:
         planner.run(interval=args.interval)

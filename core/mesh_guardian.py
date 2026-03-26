@@ -165,6 +165,12 @@ class MeshGuardian:
     QUARANTINE_THRESHOLD = 0.3
 
     def __init__(self, mesh_dir: str = "logs/mesh"):
+        """Initialise the guardian.
+
+        Args:
+            mesh_dir: Base directory for trust scores, threats log, and inbox.
+                      Defaults to ``logs/mesh`` relative to the repo root.
+        """
         self.mesh_dir = Path(mesh_dir)
         self.mesh_dir.mkdir(parents=True, exist_ok=True)
 

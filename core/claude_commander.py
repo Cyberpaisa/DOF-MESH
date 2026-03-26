@@ -669,7 +669,7 @@ class ClaudeCommander:
 async def _test():
     """Quick test of the commander."""
     commander = ClaudeCommander(
-        cwd="/Users/jquiceva/equipo de agentes",
+        cwd="/Users/jquiceva/equipo-de-agentes",
         model="claude-sonnet-4-6",
         max_turns=5,
     )
