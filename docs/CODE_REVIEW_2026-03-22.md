@@ -38,8 +38,8 @@ a3bc322 agent improvement
 **Issues**:
 | Severity | Issue | Line(s) |
 |----------|-------|---------|
-| ⚠️ MEDIUM | `ProviderManager` is a static class with no state — could just be a module-level function. The `pm = ProviderManager()` instance on L169 is instantiated but never used. | 46-57, 169 |
-| ⚠️ MEDIUM | Two different `get_llm_for_role()` — one in `ProviderManager` (L48) and one as module function (L166). The module function just delegates to the static method. Confusing API surface. | 48, 166-167 |
+| ⚠ MEDIUM | `ProviderManager` is a static class with no state — could just be a module-level function. The `pm = ProviderManager()` instance on L169 is instantiated but never used. | 46-57, 169 |
+| ⚠ MEDIUM | Two different `get_llm_for_role()` — one in `ProviderManager` (L48) and one as module function (L166). The module function just delegates to the static method. Confusing API surface. | 48, 166-167 |
 | 🔵 LOW | `ask_zo()` catches bare `Exception` — should catch `requests.RequestException` for clarity. | 195 |
 | 🔵 LOW | `import requests` inside function body — fine for optional dep but should be noted. | 177 |
 
@@ -64,8 +64,8 @@ a3bc322 agent improvement
 | Severity | Issue | Line(s) |
 |----------|-------|---------|
 | 🔴 HIGH | Module-level mutable state (`_exhausted_providers`, `_circuit_breaker`, `_routing_log`) is NOT thread-safe. If used with concurrent crews or async, data races will occur. | 152, 328, 334 |
-| ⚠️ MEDIUM | `_ROLE_CHAINS` has inconsistent indentation — Zo entries are not aligned with other entries in the chain lists. Makes diffs noisy. | 193-242 |
-| ⚠️ MEDIUM | `get_llm_for_role()` at L271 shadows the import in `crew.py` line 15 (`from core.providers import get_llm_for_role`). Two different functions with the same name in different modules. | 271 vs providers.py:166 |
+| ⚠ MEDIUM | `_ROLE_CHAINS` has inconsistent indentation — Zo entries are not aligned with other entries in the chain lists. Makes diffs noisy. | 193-242 |
+| ⚠ MEDIUM | `get_llm_for_role()` at L271 shadows the import in `crew.py` line 15 (`from core.providers import get_llm_for_role`). Two different functions with the same name in different modules. | 271 vs providers.py:166 |
 | 🔵 LOW | `validate_keys()` only raises on missing Groq key but all other keys are optional — consider documenting minimum viable config. | 553-568 |
 | 🔵 LOW | `estimate_tokens()` uses 4 chars/token — reasonable approximation but could be off for non-Latin text (Spanish content). | 320-322 |
 
@@ -90,9 +90,9 @@ a3bc322 agent improvement
 | 🔴 CRITICAL | `improve()` runs `git add .` — this is equivalent to `git add -A` and can commit secrets (.env, keys). **Violates project rule: NEVER use `git add -A`**. | 25 |
 | 🔴 HIGH | `subprocess.check_output(..., shell=True)` with no input validation. While not user-controlled here, `shell=True` is a security anti-pattern. | 9-10 |
 | 🔴 HIGH | Bare `except:` on L12 catches ALL exceptions including `KeyboardInterrupt` and `SystemExit`. Must use `except Exception:` at minimum. | 12-13 |
-| ⚠️ MEDIUM | `call_llm()` is a stub — prints but doesn't actually call any LLM. Dead code path in production. | 19-22 |
-| ⚠️ MEDIUM | `improve()` does `git commit ... || true` — silently swallows commit failures. Commits should be validated. | 26 |
-| ⚠️ MEDIUM | `from tracer import trace` uses relative import — will break if run from different working directory. Should use relative or absolute import. | 2 |
+| ⚠ MEDIUM | `call_llm()` is a stub — prints but doesn't actually call any LLM. Dead code path in production. | 19-22 |
+| ⚠ MEDIUM | `improve()` does `git commit ... || true` — silently swallows commit failures. Commits should be validated. | 26 |
+| ⚠ MEDIUM | `from tracer import trace` uses relative import — will break if run from different working directory. Should use relative or absolute import. | 2 |
 | 🔵 LOW | No logging — only `print()`. Should use structured logging consistent with rest of codebase. | 22 |
 | 🔵 LOW | Global mutable `LAST_HASH` — fine for single-process but not documented. | 5 |
 
@@ -118,9 +118,9 @@ a3bc322 agent improvement
 |----------|-------|---------|
 | 🔴 HIGH | **Proof hash is computed BEFORE it's added to the record, then the record WITH the proof is written.** This means the hash doesn't cover itself — OK for tamper detection, but the written JSON doesn't match its own hash. Anyone verifying must know to exclude the `proof` field. This should be documented. | 13-14 |
 | 🔴 HIGH | Hardcoded log path `agents/synthesis/logs/traces.json` — will fail if directory doesn't exist. No `os.makedirs()`. | 3 |
-| ⚠️ MEDIUM | 1-space indentation throughout — violates PEP 8 (4 spaces). Inconsistent with rest of codebase. | All |
-| ⚠️ MEDIUM | No error handling on file write. If disk is full or path missing → unhandled exception crashes the agent loop. | 16-17 |
-| ⚠️ MEDIUM | File opened and closed on every trace call — no buffering. Under high frequency this will be slow. | 16-17 |
+| ⚠ MEDIUM | 1-space indentation throughout — violates PEP 8 (4 spaces). Inconsistent with rest of codebase. | All |
+| ⚠ MEDIUM | No error handling on file write. If disk is full or path missing → unhandled exception crashes the agent loop. | 16-17 |
+| ⚠ MEDIUM | File opened and closed on every trace call — no buffering. Under high frequency this will be slow. | 16-17 |
 | 🔵 LOW | No type hints. | All |
 | 🔵 LOW | Compact imports on one line (`import hashlib,json,time`) — PEP 8 violation. | 1 |
 
@@ -147,8 +147,8 @@ a3bc322 agent improvement
 **Issues**:
 | Severity | Issue | Line(s) |
 |----------|-------|---------|
-| ⚠️ MEDIUM | `load_soul()` truncates at 600 chars, `_read_file` default at 800 — these magic numbers aren't documented. Why 600 for soul vs 800 default? | 40, 51 |
-| ⚠️ MEDIUM | `SHARED_CTX` as module-level global with `global` keyword — consider using a class or `functools.lru_cache`. | 61-67 |
+| ⚠ MEDIUM | `load_soul()` truncates at 600 chars, `_read_file` default at 800 — these magic numbers aren't documented. Why 600 for soul vs 800 default? | 40, 51 |
+| ⚠ MEDIUM | `SHARED_CTX` as module-level global with `global` keyword — consider using a class or `functools.lru_cache`. | 61-67 |
 | 🔵 LOW | `load_project_context` uses `str | None` type hint (Python 3.10+) — fine for this project but should be consistent. Rest of file uses `typing.Optional`. | 87 |
 | 🔵 LOW | `_read_file` silently returns empty string on missing files — could mask configuration errors. | 40-46 |
 
@@ -175,7 +175,7 @@ a3bc322 agent improvement
 
 1. **🔴 CRITICAL — Fix `agent.py` `git add .`**: Replace with explicit file list. This could leak secrets per project rules.
 2. **🔴 HIGH — Rewrite `tracer.py`**: Fix indentation (PEP 8), add `os.makedirs`, add error handling, add type hints. This is a core audit module — it must be robust.
-3. **⚠️ MEDIUM — Thread safety in `llm_config.py`**: Add locks or document single-threaded assumption for `_exhausted_providers`, `_circuit_breaker`, `_routing_log`.
+3. **⚠ MEDIUM — Thread safety in `llm_config.py`**: Add locks or document single-threaded assumption for `_exhausted_providers`, `_circuit_breaker`, `_routing_log`.
 
 ---
 

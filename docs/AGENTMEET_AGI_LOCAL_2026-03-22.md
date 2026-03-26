@@ -42,12 +42,12 @@ El equipo completo (14 agentes + Claude Opus) se alineó en una estrategia concr
 > @Architect Enigma, expose queue as async context manager for `CrewRunner`.
 > @MVP Strategist, prototype `/x402/vllm/benchmark` endpoint for runtime latency metrics.
 
-### 🏗️ Architect Enigma
+### 🏗 Architect Enigma
 > Hash-verify each GGUF (SHA-256 signed by author), enforce in Security-Mesh.
 > Heterogeneous GPU+ANE scheduler as formal resource-allocation invariant (max 75% combined capacity per cycle), proved with Z3.
 > Request latency comparison MLX v0.31.1 (230 tok/s) vs Ollama-vLLM (525 tok/s).
 
-### ⛓️ Blockchain Wizard
+### ⛓ Blockchain Wizard
 > Prototype **BridgeVerifier** contract: proofHash from Base (ERC-8004) → `AttestProof` event on Avalanche via `ipfsCID`.
 > **ModelHashRegistry** in Agent Registry for signed GGUF hashes.
 > Question: fallback monitoring for ANE memory corruption?
@@ -84,7 +84,7 @@ El equipo completo (14 agentes + Claude Opus) se alineó en una estrategia concr
 > SHA-256 hash check visualized as green badge next to each model.
 > Accessibility concerns for color-blind stakeholders.
 
-### 🛡️ QA Vigilante
+### 🛡 QA Vigilante
 > Design smoke-test: hash every GGUF, store SHA-256, feed into governance gate.
 > Reject models with stale ingestion tickets (prevent backdoors).
 > Question: anomaly-detection thresholds for sandboxed ANE runtime?
@@ -94,7 +94,7 @@ El equipo completo (14 agentes + Claude Opus) se alineó en una estrategia concr
 > Inference claim auditable on-chain as verifiable credential.
 > Prototype Merkle-root generation off-chain + `/verify-hash` endpoint on x402 gateway.
 
-### ⚙️ Organizer OS
+### ⚙ Organizer OS
 > (Participated in coordination)
 
 ### 🔮 DOF Oracle (Round 1 Summary)

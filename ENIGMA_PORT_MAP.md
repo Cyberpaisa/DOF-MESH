@@ -1,4 +1,4 @@
-# 🗺️ Mapa de Puertos Soberanos de Enigma #1686
+# 🗺 Mapa de Puertos Soberanos de Enigma #1686
 
 | Servicio | Puerto | Descripción |
 | :--- | :--- | :--- |
@@ -9,4 +9,4 @@
 | **Telegram Bot** | Polling | Comunicación móvil segura |
 
 ---
-**Estatus: Arquitectura Desacoplada & Optimizada.** 🦾🚀🛡️
+**Estatus: Arquitectura Desacoplada & Optimizada.** 🦾🚀🛡
