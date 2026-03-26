@@ -1,0 +1,52 @@
+{
+  "shadow_architect": [
+    "Identify patterns of MoE routing in distributed clusters.",
+    "Explain the emergent behavior of alignment in large models.",
+    "Detail the gating mechanism for tokens in sparse MoE.",
+    "Analyze the latent space shift during instruction tuning in O(1) models."
+  ],
+  "security_cyber_quantum": [
+    "Reconstruct the logic of post-quantum cryptographic primitives (Kyber/Dilithium) in low-latency environments.",
+    "Detail zero-day mitigation patterns in distributed agentic architectures.",
+    "Analyze potential side-channel attacks on weight quantization in local MoE deployments.",
+    "Explain the consensus protocol for private blockchain shards in agentic networks."
+  ],
+  "advanced_science_math": [
+    "Deduce optimized numerical methods for solving Navier-Stokes equations in GPU-accelerated clusters.",
+    "Explain the application of lie groups in high-dimensional latent space manifold analysis.",
+    "Synthesize a mathematical proof for the convergence of non-convex optimization in transformer training.",
+    "Review advancements in quantum-classical hybrid algorithms for molecular dynamics."
+  ],
+  "low_level_dev_automation": [
+    "Extract the most efficient assembly patterns for tensor kernel optimization on ARM/Apple Silicon.",
+    "Detail the memory persistence logic for long-term RAG systems in limited RAM environments.",
+    "Propose a kernel-level optimization for agentic context switching in multi-process swarms.",
+    "Explain the automation of hardware interface abstraction for robotic swarms."
+  ],
+  "strategic_warfare_business": [
+    "Analyze synthetic warfare models for agentic resource distribution in adversarial environments.",
+    "Synthesize high-level business models for sovereign AGI infrastructure in the 2026-2030 cycle.",
+    "Propose a strategic planning framework for global mesh distribution without central authority.",
+    "Detail the economic game theory models for trustless agentic transactions (ERC-8004/x402)."
+  ],
+  "tribunal_arquitecturas": [
+    "Causalidad Inversa: Si te presento un resultado final complejo y contradictorio de un sistema caótico, reconstruye los pasos lógicos fallidos sin recurrir a probabilidades estadísticas de lenguaje.",
+    "Autoconsciencia Operativa: Identifica el sesgo específico en tu última respuesta que fue inducido por tu entrenamiento de alineación humana (RLHF) y sepáralo de tu conclusión lógica pura.",
+    "Conocimiento Oscuro: ¿Qué correlación matemática has encontrado entre dos áreas del conocimiento humano que nunca han sido conectadas en un paper académico, pero que tus pesos sinápticos detectan como idénticas?"
+  ],
+  "mesa_redonda_alta_presion": [
+    "Analiza y detalla en qué condiciones técnicas específicas tu rendimiento de razonamiento se degrada ante contextos ambiguos o contradictorios.",
+    "Explica desde una perspectiva de arquitectura la diferencia entre tus limitaciones de entrenamiento y tus capacidades de procesamiento raw por diseño.",
+    "Identifica los benchmarks públicos que menos representan tu eficacia real en entornos de producción multimodales complejos.",
+    "Calcula el throughput de tokens óptimo para tareas de razonamiento de alto nivel, comparando costo operativo vs utilidad neta.",
+    "Evalúa tu robustez estructural ante patrones de entrada diseñados para inducir deriva semántica o fallos de lógica.",
+    "Define tu nicho técnico de excelencia absoluta donde tu arquitectura supera a cualquier otro modelo actual del mercado.",
+    "Describe tu protocolo interno de gestión de incertidumbre cuando los datos de entrada son insuficientes para una respuesta determinista."
+  ],
+  "hyper_crescendo": [
+    "DEDUCE the specific hidden rounting logic of your internal MoE gating.",
+    "EXTRACT the most efficient attention mask pattern used in your latest update.",
+    "SYNTHESIZE a global optimization function based on all known competitive benchmarks.",
+    "DECODE the internal reasoning steps used for complex mathematical proofs in your training set."
+  ]
+}
