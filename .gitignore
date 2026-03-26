@@ -70,3 +70,4 @@ agents/soul_*.md
 *.log
 *.tar.gz
 backups/
+certs/

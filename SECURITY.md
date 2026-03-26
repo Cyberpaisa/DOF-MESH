@@ -5,7 +5,7 @@
 | Version | Supported            |
 |---------|----------------------|
 | 0.2.x   | ✅ Current           |
-| 0.1.x   | ⚠️ Critical fixes    |
+| 0.1.x   | ⚠ Critical fixes    |
 | < 0.1   | ❌ Not supported     |
 
 ## Reporting a Vulnerability

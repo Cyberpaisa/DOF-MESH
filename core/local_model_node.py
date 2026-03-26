@@ -56,8 +56,8 @@ def _detect_ollama() -> Optional[str]:
         models = [m["name"] for m in data.get("models", [])]
         if not models:
             return None
-        # Prefer small, fast models
-        for preferred in ["llama3.2:3b", "llama3.2:1b", "phi4:14b", "qwen2.5:7b"]:
+        # Prefer small, fast models or powerful local ones
+        for preferred in ["qwen2.5-coder:14b", "deepseek-r1:14b", "llama3.2:3b", "phi4:14b"]:
             if any(preferred in m for m in models):
                 return preferred
         return models[0]
@@ -214,6 +214,21 @@ Respond concisely. Output JSON when the task asks for structured data.
 # LOCAL AGI NODE
 # ═══════════════════════════════════════════════════
 
+import re
+
+# Glassworm/Unicode Malware Protection Pattern
+# Variation Selectors (U+FE00 - U+FE0F) and Tags (U+E0100 - U+E01EF)
+GHOST_PATTERN = re.compile(r"[\uFE00-\uFE0F\U000E0100-\U000E01EF]")
+
+def sanitize_text(text: str) -> str:
+    """Removes invisible Unicode characters used for steganography attacks."""
+    if not isinstance(text, str):
+        return text
+    sanitized = GHOST_PATTERN.sub("", text)
+    if sanitized != text:
+        logging.warning("  [⚠] GHOST-UNICODE DETECTADO Y ELIMINADO!")
+    return sanitized
+
 class LocalAGINode:
     """
     A mesh node that uses local model inference (MLX/Ollama/llama.cpp).
@@ -280,6 +295,8 @@ class LocalAGINode:
         if not self.engine:
             return f"[local-agi-m4max] ERROR: no runtime available ({self.runtime.details})"
 
+        # Security: sanitize prompt against Glassworm attacks
+        prompt = sanitize_text(prompt)
         full_prompt = f"{self._system_prompt}\n\nTask: {prompt}\n\nResponse:"
         start = time.time()
         try:
