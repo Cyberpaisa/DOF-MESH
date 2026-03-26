@@ -121,7 +121,7 @@ class TestQuickVerify(unittest.TestCase):
     def test_verify_returns_blocked_for_violations(self):
         from dof.quick import verify
         # Empty text triggers NO_EMPTY_OUTPUT hard rule
-        result = verify("short")
+        result = verify("")
         self.assertEqual(result["status"], "blocked")
         self.assertTrue(len(result["violations"]) > 0)
 

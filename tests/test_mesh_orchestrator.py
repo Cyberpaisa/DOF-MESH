@@ -205,3 +205,130 @@ class TestMeshOrchestratorQueueDepth(unittest.TestCase):
         depth = self.orch._count_queue_depth()
         self.assertIsInstance(depth, int)
         self.assertGreaterEqual(depth, 0)
+
+
+class TestMeshOrchestratorCycleCount(unittest.TestCase):
+    def setUp(self):
+        from core.mesh_orchestrator import MeshOrchestrator
+        MeshOrchestrator.reset()
+        self.orch = MeshOrchestrator()
+
+    def tearDown(self):
+        from core.mesh_orchestrator import MeshOrchestrator
+        MeshOrchestrator.reset()
+
+    def test_cycle_count_initial_zero(self):
+        self.assertEqual(self.orch.cycle_count, 0)
+
+    def test_cycle_count_setter(self):
+        self.orch.cycle_count = 7
+        self.assertEqual(self.orch.cycle_count, 7)
+
+    def test_total_failures_accessible(self):
+        self.assertGreaterEqual(self.orch._total_failures, 0)
+
+
+class TestMeshOrchestratorDiscoverWorkOrders(unittest.TestCase):
+    def setUp(self):
+        from core.mesh_orchestrator import MeshOrchestrator
+        MeshOrchestrator.reset()
+        self.tmp = tempfile.mkdtemp()
+        self.orch = MeshOrchestrator(mesh_dir=Path(self.tmp))
+
+    def tearDown(self):
+        from core.mesh_orchestrator import MeshOrchestrator
+        MeshOrchestrator.reset()
+        import shutil
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_empty_inbox_returns_empty_list(self):
+        orders = self.orch._discover_work_orders()
+        self.assertIsInstance(orders, list)
+        self.assertEqual(len(orders), 0)
+
+    def test_finds_json_task_files(self):
+        inbox = Path(self.tmp) / "inbox" / "commander"
+        inbox.mkdir(parents=True, exist_ok=True)
+        task = {"task_id": "w1", "type": "code", "content": "build it"}
+        (inbox / "w1.json").write_text(json.dumps(task))
+        orders = self.orch._discover_work_orders()
+        self.assertEqual(len(orders), 1)
+
+    def test_ignores_response_files(self):
+        inbox = Path(self.tmp) / "inbox" / "commander"
+        inbox.mkdir(parents=True, exist_ok=True)
+        task = {"task_id": "w2"}
+        (inbox / "w2-RESPONSE.json").write_text(json.dumps(task))
+        orders = self.orch._discover_work_orders()
+        self.assertEqual(len(orders), 0)
+
+    def test_ignores_failed_files(self):
+        inbox = Path(self.tmp) / "inbox" / "commander"
+        inbox.mkdir(parents=True, exist_ok=True)
+        task = {"task_id": "w3"}
+        (inbox / "w3-FAILED.json").write_text(json.dumps(task))
+        orders = self.orch._discover_work_orders()
+        self.assertEqual(len(orders), 0)
+
+    def test_returns_path_and_dict_tuples(self):
+        inbox = Path(self.tmp) / "inbox" / "commander"
+        inbox.mkdir(parents=True, exist_ok=True)
+        task = {"task_id": "w4", "type": "analysis"}
+        (inbox / "w4.json").write_text(json.dumps(task))
+        orders = self.orch._discover_work_orders()
+        self.assertEqual(len(orders), 1)
+        path, data = orders[0]
+        self.assertIsInstance(path, Path)
+        self.assertEqual(data["task_id"], "w4")
+
+
+class TestMeshOrchestratorRunStop(unittest.TestCase):
+    def setUp(self):
+        from core.mesh_orchestrator import MeshOrchestrator
+        MeshOrchestrator.reset()
+        self.orch = MeshOrchestrator()
+
+    def tearDown(self):
+        from core.mesh_orchestrator import MeshOrchestrator
+        MeshOrchestrator.reset()
+
+    def test_stop_sets_running_false(self):
+        self.orch.stop()
+        self.assertFalse(self.orch._running)
+
+    def test_stop_idempotent(self):
+        self.orch.stop()
+        self.orch.stop()  # second call should not raise
+        self.assertFalse(self.orch._running)
+
+    def test_get_status_after_stop(self):
+        self.orch.stop()
+        status = self.orch.get_status()
+        self.assertIsInstance(status, dict)
+        self.assertIn("scaling", status)
+
+
+class TestOrchestrateManyTasks(unittest.TestCase):
+    def setUp(self):
+        from core.mesh_orchestrator import MeshOrchestrator
+        MeshOrchestrator.reset()
+        self.orch = MeshOrchestrator()
+
+    def tearDown(self):
+        from core.mesh_orchestrator import MeshOrchestrator
+        MeshOrchestrator.reset()
+
+    def test_orchestrate_five_tasks_increments_counter(self):
+        from core.mesh_orchestrator import OrchestrationResult
+        for i in range(5):
+            task = {"task_id": f"multi-{i}", "type": "code", "content": f"task {i}"}
+            result = self.orch.orchestrate(task)
+            self.assertIsInstance(result, OrchestrationResult)
+        self.assertGreaterEqual(self.orch.work_orders_processed, 5)
+
+    def test_orchestrate_different_task_types(self):
+        from core.mesh_orchestrator import OrchestrationResult
+        for ttype in ("code", "research", "security", "analysis"):
+            task = {"task_id": f"t-{ttype}", "type": ttype, "content": "data"}
+            result = self.orch.orchestrate(task)
+            self.assertEqual(result.task_type, ttype)
