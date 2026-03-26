@@ -88,7 +88,7 @@ router = Router(
     cooldown_time=30,
 )
 
-DB_PATH = Path(__file__).parent / "mission-control" / ".data" / "mission-control.db"
+DB_PATH = Path(__file__).parent / "data" / "legion_tasks.db"
 
 def get_tasks():
     """Read tasks from Mission Control SQLite database."""

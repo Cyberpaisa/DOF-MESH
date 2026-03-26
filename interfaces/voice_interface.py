@@ -19,7 +19,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
-logger = logging.getLogger("mission_control.voice")
+logger = logging.getLogger("q_aion.voice")
 
 
 # ═══════════════════════════════════════════════════════
@@ -136,7 +136,7 @@ def record_audio(duration: int = 5) -> str | None:
         import wave
 
         sample_rate = 16000
-        print(f"\n🎙️  Habla ahora ({duration} segundos)...")
+        print(f"\n🎙  Habla ahora ({duration} segundos)...")
         audio = sd.rec(
             int(duration * sample_rate),
             samplerate=sample_rate,
@@ -301,7 +301,7 @@ def start_voice_loop(duration: int = 7):
         duration: Segundos de grabacion por turno (default 7 para frases largas)
     """
     print("\n" + "=" * 50)
-    print("🎙️  MODO VOZ ACTIVADO — Cyber Paisa Mission Control")
+    print("🎙  MODO VOZ ACTIVADO — Q-AION Legion Dashboard")
     print("=" * 50)
     print("Habla naturalmente. Di cosas como:")
     print('  - "Buenos dias, ejecuta la rutina diaria"')

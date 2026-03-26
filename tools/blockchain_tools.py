@@ -78,7 +78,7 @@ class CheckAgentEndpointTool(BaseTool):
         except urllib.error.HTTPError as e:
             elapsed = int((time.time() - start) * 1000)
             body = e.read().decode("utf-8", errors="replace")[:500] if hasattr(e, "read") else ""
-            results.append(f"  ⚠️ MCP: HTTP {e.code} ({elapsed}ms)\n     {body}")
+            results.append(f"  ⚠ MCP: HTTP {e.code} ({elapsed}ms)\n     {body}")
         except Exception as e:
             results.append(f"  ❌ MCP: {type(e).__name__}: {e}")
 
@@ -130,7 +130,7 @@ class AnalyzeAgentMetadataTool(BaseTool):
             if wallet.startswith("eip155:"):
                 checks.append(f"  ✅ wallet CAIP-10: {wallet}")
             else:
-                checks.append(f"  ⚠️ wallet NOT CAIP-10: {wallet}")
+                checks.append(f"  ⚠ wallet NOT CAIP-10: {wallet}")
         else:
             checks.append("  ❌ wallet: MISSING")
 
@@ -142,7 +142,7 @@ class AnalyzeAgentMetadataTool(BaseTool):
                 endpoint = svc.get("endpoint", svc.get("url", "N/A"))
                 checks.append(f"  📡 Service: {name} -> {endpoint}")
         else:
-            checks.append("  ⚠️ No services declared")
+            checks.append("  ⚠ No services declared")
 
         # Capabilities / skills
         caps = data.get("capabilities", data.get("skills", []))
@@ -218,7 +218,7 @@ class QuerySupabaseAgentsTool(BaseTool):
                         FROM agents WHERE trust_score < 42
                         ORDER BY trust_score ASC LIMIT 20
                     """), conn)
-                    return f"⚠️ LOW TRUST AGENTS\n{'='*40}\n{df.to_string(index=False)}"
+                    return f"⚠ LOW TRUST AGENTS\n{'='*40}\n{df.to_string(index=False)}"
 
                 else:
                     return "❌ Tipo de consulta no reconocido. Usa: stats, top, search:nombre, low-trust"

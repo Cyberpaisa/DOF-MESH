@@ -73,7 +73,7 @@ async function main() {
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
         console.log(`✅ chains_config.json actualizado (${chainKey})`);
     } else {
-        console.warn(`⚠️  Network '${networkName}' no encontrada en networkToKey — actualiza manualmente`);
+        console.warn(`⚠  Network '${networkName}' no encontrada en networkToKey — actualiza manualmente`);
     }
 
     // Verificación básica adaptada a la ABI real (verifica length)

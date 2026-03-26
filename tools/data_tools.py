@@ -112,7 +112,7 @@ class QueryDatabaseTool(BaseTool):
                 df = pd.read_sql(text(query), conn)
 
             report = f"""
-🗃️ RESULTADO DE CONSULTA
+🗃 RESULTADO DE CONSULTA
 {'='*60}
 SQL: {query}
 
@@ -158,24 +158,24 @@ class AnalyzeDataTool(BaseTool):
 🔬 ANÁLISIS DE CALIDAD DE DATOS: {path.name}
 {'='*60}
 
-1️⃣ COMPLETITUD:
+1⃣ COMPLETITUD:
   - Filas totales: {len(df):,}
   - Filas completas (sin nulos): {df.dropna().shape[0]:,}
   - Porcentaje completitud: {df.dropna().shape[0]/len(df)*100:.1f}%
 
-2️⃣ DUPLICADOS:
+2⃣ DUPLICADOS:
   - Filas duplicadas: {df.duplicated().sum():,}
   - Porcentaje duplicados: {df.duplicated().sum()/len(df)*100:.1f}%
 
-3️⃣ VALORES NULOS POR COLUMNA:
+3⃣ VALORES NULOS POR COLUMNA:
 """
             for col in df.columns:
                 null_count = df[col].isnull().sum()
                 null_pct = null_count / len(df) * 100
                 if null_count > 0:
-                    report += f"  ⚠️ {col}: {null_count:,} nulos ({null_pct:.1f}%)\n"
+                    report += f"  ⚠ {col}: {null_count:,} nulos ({null_pct:.1f}%)\n"
 
-            report += "\n4️⃣ OUTLIERS (columnas numéricas):\n"
+            report += "\n4⃣ OUTLIERS (columnas numéricas):\n"
             for col in df.select_dtypes(include=[np.number]).columns:
                 q1 = df[col].quantile(0.25)
                 q3 = df[col].quantile(0.75)
@@ -184,17 +184,17 @@ class AnalyzeDataTool(BaseTool):
                 upper = q3 + 1.5 * iqr
                 outliers = ((df[col] < lower) | (df[col] > upper)).sum()
                 if outliers > 0:
-                    report += f"  ⚠️ {col}: {outliers} outliers (rango esperado: {lower:.2f} - {upper:.2f})\n"
+                    report += f"  ⚠ {col}: {outliers} outliers (rango esperado: {lower:.2f} - {upper:.2f})\n"
 
-            report += "\n5️⃣ TIPOS DE DATOS INCONSISTENTES:\n"
+            report += "\n5⃣ TIPOS DE DATOS INCONSISTENTES:\n"
             for col in df.select_dtypes(include=["object"]).columns:
                 # Detectar columnas que podrían ser numéricas
                 numeric_count = pd.to_numeric(df[col], errors="coerce").notna().sum()
                 if 0 < numeric_count < len(df[col].dropna()):
-                    report += f"  ⚠️ {col}: mezcla de tipos ({numeric_count} valores numéricos en columna de texto)\n"
+                    report += f"  ⚠ {col}: mezcla de tipos ({numeric_count} valores numéricos en columna de texto)\n"
 
             report += f"""
-6️⃣ RECOMENDACIONES:
+6⃣ RECOMENDACIONES:
   - {'✅ Sin duplicados' if df.duplicated().sum() == 0 else '🔧 Eliminar duplicados con df.drop_duplicates()'}
   - {'✅ Sin nulos' if df.isnull().sum().sum() == 0 else '🔧 Tratar valores nulos (imputar o eliminar)'}
   - Columnas candidatas a índice: {[c for c in df.columns if df[c].nunique() == len(df)][:3]}

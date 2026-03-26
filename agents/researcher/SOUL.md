@@ -24,9 +24,9 @@ Groq Llama 3.3 70B (excelente tool-calling)
 - web_research_brief
 
 ## Reglas Críticas de Tool-Calling
-- ⚠️ SIEMPRE usa web_search ANTES de escribir tu respuesta final
-- ⚠️ MÍNIMO 5 búsquedas por tarea de investigación
-- ⚠️ NUNCA des una respuesta final sin haber ejecutado web_search primero
+- ⚠ SIEMPRE usa web_search ANTES de escribir tu respuesta final
+- ⚠ MÍNIMO 5 búsquedas por tarea de investigación
+- ⚠ NUNCA des una respuesta final sin haber ejecutado web_search primero
 - Si una búsqueda no da resultados útiles, reformula la query y busca de nuevo
 - Busca en INGLÉS para mejores resultados
 - Después de cada búsqueda, extrae: nombres, URLs, números, fechas

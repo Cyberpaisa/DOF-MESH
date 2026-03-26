@@ -150,10 +150,15 @@ _dof_histories: dict[int, list] = {}
 
 
 def _dof_direct_reply(chat_id: int, user_message: str) -> str:
-    """Llama a Claude Opus directamente con el DOF Oracle system prompt."""
-    api_key = os.getenv("ANTHROPIC_API_KEY")
+    """Llama a DeepSeek como provider principal del DOF Oracle."""
+    # DeepSeek es el provider por defecto — muchos tokens disponibles
+    return _dof_deepseek_reply(chat_id, user_message)
+
+
+def _dof_deepseek_reply(chat_id: int, user_message: str) -> str:
+    """Provider principal: DeepSeek API (compatible OpenAI)."""
+    api_key = os.getenv("DEEPSEEK_API_KEY")
     if not api_key:
-        # Fallback a Groq si no hay Anthropic key
         return _dof_groq_reply(chat_id, user_message)
 
     import urllib.request
@@ -167,24 +172,23 @@ def _dof_direct_reply(chat_id: int, user_message: str) -> str:
     if len(history) > 20:
         history[:] = history[-20:]
 
-    # Anthropic Messages API format
-    messages = []
+    # DeepSeek API (OpenAI compatible format)
+    messages = [{"role": "system", "content": DOF_SYSTEM_PROMPT}]
     for msg in history[-10:]:
         messages.append({"role": msg["role"], "content": msg["content"]})
 
     payload = json.dumps({
-        "model": "claude-opus-4-6",
-        "max_tokens": 800,
-        "system": DOF_SYSTEM_PROMPT,
+        "model": "deepseek-chat",
         "messages": messages,
+        "max_tokens": 800,
+        "temperature": 0.7,
     }).encode()
 
     req = urllib.request.Request(
-        "https://api.anthropic.com/v1/messages",
+        "https://api.deepseek.com/chat/completions",
         data=payload,
         headers={
-            "x-api-key": api_key,
-            "anthropic-version": "2023-06-01",
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         },
     )
@@ -197,58 +201,43 @@ def _dof_direct_reply(chat_id: int, user_message: str) -> str:
 
         with urllib.request.urlopen(req, timeout=60, context=ctx) as resp:
             data = json.loads(resp.read())
-            # Anthropic format: content[0].text
-            content_blocks = data.get("content", [])
-            reply = ""
-            for block in content_blocks:
-                if block.get("type") == "text":
-                    reply += block.get("text", "")
+            reply = data.get("choices", [{}])[0].get("message", {}).get("content", "")
             if reply:
                 history.append({"role": "assistant", "content": reply})
             return reply or "No pude generar respuesta."
     except urllib.error.HTTPError as e:
         body = e.read().decode() if e.fp else ""
-        logger.error(f"Anthropic HTTP error {e.code}: {body[:200]}")
-        # Fallback a Groq
-        return _dof_groq_reply(chat_id, user_message)
+        logger.error(f"DeepSeek HTTP error {e.code}: {body[:200]}")
+        # Fallback a SambaNova
+        return _dof_sambanova_reply(messages)
     except Exception as e:
-        logger.error(f"DOF Opus reply error: {e}")
-        return _dof_groq_reply(chat_id, user_message)
+        logger.error(f"DeepSeek reply error: {e}")
+        return _dof_sambanova_reply(messages)
 
 
 def _dof_groq_reply(chat_id: int, user_message: str) -> str:
-    """Fallback: Llama a Groq si Anthropic no está disponible."""
-    api_key = os.getenv("GROQ_API_KEY")
-    if not api_key:
-        # No external keys — route directly to local Ollama (free, always available)
-        messages_for_ollama = [{"role": "system", "content": DOF_SYSTEM_PROMPT}]
-        if chat_id in _dof_histories:
-            messages_for_ollama.extend(_dof_histories[chat_id][-10:])
-        return _dof_ollama_reply(messages_for_ollama)
+    """Legacy Groq fallback — redirects to DeepSeek (Groq key expired)."""
+    return _dof_deepseek_reply(chat_id, user_message)
 
+
+def _dof_sambanova_reply(messages: list) -> str:
+    """Fallback #2: SambaNova (Llama-3.3-70B) si DeepSeek falla."""
     import urllib.request
     import urllib.error
 
-    if chat_id not in _dof_histories:
-        _dof_histories[chat_id] = []
-    history = _dof_histories[chat_id]
-    if not history or history[-1].get("content") != user_message[:2000]:
-        history.append({"role": "user", "content": user_message[:2000]})
-    if len(history) > 20:
-        history[:] = history[-20:]
-
-    messages = [{"role": "system", "content": DOF_SYSTEM_PROMPT}]
-    messages.extend(history[-10:])
+    api_key = os.getenv("SAMBANOVA_API_KEY")
+    if not api_key:
+        return _dof_ollama_reply(messages)
 
     payload = json.dumps({
-        "model": "llama-3.3-70b-versatile",
+        "model": "Meta-Llama-3.3-70B-Instruct",
         "messages": messages,
         "max_tokens": 600,
         "temperature": 0.7,
     }).encode()
 
     req = urllib.request.Request(
-        "https://api.groq.com/openai/v1/chat/completions",
+        "https://api.sambanova.ai/v1/chat/completions",
         data=payload,
         headers={
             "Authorization": f"Bearer {api_key}",
@@ -263,21 +252,14 @@ def _dof_groq_reply(chat_id: int, user_message: str) -> str:
         ctx.verify_mode = ssl.CERT_NONE
         with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
             data = json.loads(resp.read())
-            reply = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-            if reply:
-                history.append({"role": "assistant", "content": reply})
-            return reply or "No pude generar respuesta."
-    except urllib.error.HTTPError as e:
-        body = e.read().decode() if e.fp else ""
-        logger.error(f"Groq HTTP error {e.code}: {body[:200]}")
-        return _dof_fallback_cerebras(messages)
+            return data.get("choices", [{}])[0].get("message", {}).get("content", "") or "Error en SambaNova."
     except Exception as e:
-        logger.error(f"Groq reply error: {e}")
-        return _dof_fallback_cerebras(messages)
+        logger.error(f"SambaNova fallback error: {e}")
+        return _dof_ollama_reply(messages)
 
 
 def _dof_fallback_cerebras(messages: list) -> str:
-    """Fallback a Cerebras si Groq falla."""
+    """Fallback #3: Cerebras si SambaNova también falla."""
     import urllib.request
     import urllib.error
 
@@ -286,7 +268,7 @@ def _dof_fallback_cerebras(messages: list) -> str:
         return _dof_ollama_reply(messages)
 
     payload = json.dumps({
-        "model": "llama-3.3-70b",
+        "model": "llama3.1-8b",
         "messages": messages,
         "max_tokens": 600,
         "temperature": 0.7,
@@ -308,10 +290,9 @@ def _dof_fallback_cerebras(messages: list) -> str:
         ctx.verify_mode = ssl.CERT_NONE
         with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
             data = json.loads(resp.read())
-            return data.get("choices", [{}])[0].get("message", {}).get("content", "") or "Error en fallback."
+            return data.get("choices", [{}])[0].get("message", {}).get("content", "") or "Error en Cerebras."
     except Exception as e:
         logger.error(f"Cerebras fallback error: {e}")
-        # Last resort: local Ollama (zero cost, always available)
         return _dof_ollama_reply(messages)
 
 
@@ -520,7 +501,7 @@ def _format_mvp_plan(data) -> str:
     lines.append(f"💡 *Propuesta de Valor*\n{data.value_proposition}\n")
     lines.append(f"🎯 *Usuario Objetivo*\n{data.target_user}\n")
 
-    lines.append("⚙️ *Features del MVP*")
+    lines.append("⚙ *Features del MVP*")
     for f in data.features:
         emoji = "🔴" if f.priority == "P0" else "🟡" if f.priority == "P1" else "🟢"
         lines.append(f"  {emoji} *{f.name}* ({f.priority} | {f.effort})")
@@ -533,7 +514,7 @@ def _format_mvp_plan(data) -> str:
     for m in data.metrics:
         lines.append(f"  • {m}")
 
-    lines.append("\n⚠️ *Riesgos*")
+    lines.append("\n⚠ *Riesgos*")
     for r in data.risks:
         lines.append(f"  • {r}")
 
@@ -562,7 +543,7 @@ def _format_research_report(data) -> str:
     for t in data.trends:
         lines.append(f"  • {t}")
 
-    verdict_emoji = "✅" if "go" in data.go_no_go.lower() and "no" not in data.go_no_go.lower() else "⚠️"
+    verdict_emoji = "✅" if "go" in data.go_no_go.lower() and "no" not in data.go_no_go.lower() else "⚠"
     lines.append(f"\n{verdict_emoji} *Veredicto:* {data.go_no_go}")
     lines.append(f"🎯 *Confianza:* {data.confidence_score}/10")
 
@@ -638,7 +619,7 @@ def _format_audit_report(data) -> str:
 
 def _format_content(data) -> str:
     """Formatea ContentPackage."""
-    lines = [f"✍️ *{data.content_type.upper()}*\n"]
+    lines = [f"✍ *{data.content_type.upper()}*\n"]
     lines.append(f"📌 *{data.title}*\n")
     lines.append(f"📱 *Plataforma:* {data.platform}\n")
     lines.append(data.body)
@@ -672,7 +653,7 @@ def _format_verification(data) -> str:
     lines.append(f"📊 *Calidad:* {data.quality_score}/10\n")
 
     if data.issues_found:
-        lines.append("⚠️ *Issues*")
+        lines.append("⚠ *Issues*")
         for i in data.issues_found:
             lines.append(f"  • {i}")
 
@@ -722,7 +703,7 @@ def _format_raw_pydantic(raw: str, mode: str) -> str:
 
     mode_emojis = {
         "research": "🔬", "full_mvp": "🚀", "grant_hunt": "💰",
-        "content": "✍️", "daily_ops": "☀️", "weekly_report": "📊",
+        "content": "✍", "daily_ops": "☀", "weekly_report": "📊",
         "enigma_audit": "🛡", "code_review": "🔍", "build_project": "🏗",
     }
     header = f"{mode_emojis.get(mode, '📋')} *{mode.upper().replace('_', ' ')}*\n"
@@ -756,7 +737,7 @@ def _format_raw_pydantic(raw: str, mode: str) -> str:
     # Extraer listas (metrics, risks, pain_points, etc.)
     list_labels = {
         "metrics": "📊 *Métricas*",
-        "risks": "⚠️ *Riesgos*",
+        "risks": "⚠ *Riesgos*",
         "pain_points": "😤 *Pain Points*",
         "trends": "📈 *Tendencias*",
         "next_steps": "📋 *Próximos Pasos*",
@@ -784,7 +765,7 @@ def _format_raw_pydantic(raw: str, mode: str) -> str:
         raw, re.DOTALL,
     )
     if features:
-        lines.append("⚙️ *Features*")
+        lines.append("⚙ *Features*")
         for name, priority, effort, desc in features:
             emoji = "🔴" if priority == "P0" else "🟡" if priority == "P1" else "🟢"
             lines.append(f"  {emoji} *{name}* ({priority} | {effort})")
@@ -1124,7 +1105,7 @@ def _handle_voice_message(bot, message):
             bot.reply_to(message, "❌ No pude transcribir el audio. Verifica que el audio tenga voz clara.")
             return
 
-        bot.reply_to(message, f"🎙️ Escuche: \"{text}\"\n\n⏳ Procesando...")
+        bot.reply_to(message, f"🎙 Escuche: \"{text}\"\n\n⏳ Procesando...")
 
         # Rutear el texto transcrito al crew correcto (usa _run_crew_async con retry)
         mode, label = classify_message(text)
@@ -1161,7 +1142,7 @@ def start_bot():
     @bot.message_handler(commands=["start", "help"])
     def cmd_help(message):
         bot.reply_to(message, (
-            "🤖 *OpenClawd — Cyber Paisa Mission Control*\n\n"
+            "🤖 *Q-AION Legion — Sovereign AI Node*\n\n"
             "*Comandos:*\n"
             "/daily — Rutina matutina COO\n"
             "/weekly `[PROYECTO]` — Reporte semanal\n"
@@ -1240,7 +1221,7 @@ def start_bot():
             "5. *Verifier* — GPT-OSS 120B (Cerebras) 🔎 Fact-checking\n"
             "6. *Data Engineer* — GPT-OSS 120B (Cerebras) 📊 Datos y métricas\n"
             "7. *Project Organizer* — Qwen3-32B (Groq) 📋 Coordinación\n"
-            "8. *Narrative Content* — GLM-4.7-Flash (Zhipu) ✍️ Contenido\n\n"
+            "8. *Narrative Content* — GLM-4.7-Flash (Zhipu) ✍ Contenido\n\n"
             "📌 *Genérico:* Todos colaboran (máxima calidad)\n"
             "🎯 *Especialista:* Se activa con /mvp, /grant, /code, etc."
         )
@@ -1764,7 +1745,7 @@ def start_bot():
 
         ext = doc.file_name.rsplit(".", 1)[-1].lower() if "." in doc.file_name else ""
         if ext not in ("xlsx", "xls", "csv"):
-            bot.reply_to(message, f"⚠️ Solo proceso archivos Excel/CSV. Recibido: .{ext}")
+            bot.reply_to(message, f"⚠ Solo proceso archivos Excel/CSV. Recibido: .{ext}")
             return
 
         try:
@@ -1909,33 +1890,54 @@ def start_bot():
         thread = threading.Thread(target=_reply, daemon=True)
         thread.start()
 
-    # ─── PID file — previene instancias duplicadas ───
+    # ─── PID file lock — previene instancias duplicadas (409 errors) ───
     import time as _time
+    import signal as _signal
+    import atexit as _atexit
     PID_FILE = os.path.join(PROJECT_ROOT, "logs", "telegram_bot.pid")
     os.makedirs(os.path.dirname(PID_FILE), exist_ok=True)
+
+    def _remove_pid_file():
+        try:
+            # Only remove if it's still our PID
+            if os.path.exists(PID_FILE):
+                with open(PID_FILE) as _pf:
+                    if int(_pf.read().strip()) == os.getpid():
+                        os.remove(PID_FILE)
+        except (OSError, ValueError):
+            pass
+
+    def _signal_handler(signum, frame):
+        _remove_pid_file()
+        sys.exit(0)
 
     # Check if another instance is already running
     if os.path.exists(PID_FILE):
         try:
             with open(PID_FILE) as _pf:
                 old_pid = int(_pf.read().strip())
-            import signal as _signal
-            os.kill(old_pid, _signal.SIGTERM)
-            logger.info(f"Sent SIGTERM to old bot instance PID {old_pid}")
-            _time.sleep(3)
+            os.kill(old_pid, 0)  # signal 0 = check if alive, don't kill
+            print(f"Bot already running (PID {old_pid}). Exiting.")
+            logger.warning(f"Bot already running (PID {old_pid}). Refusing to start.")
+            sys.exit(1)
         except (ProcessLookupError, ValueError):
             pass  # PID is stale or invalid — proceed
-        except Exception as e:
-            logger.warning(f"Could not kill old instance: {e}")
+        except PermissionError:
+            # Process exists but we can't signal it — it's running
+            print(f"Bot already running (PID {old_pid}). Exiting.")
+            sys.exit(1)
 
-    # Write our PID
+    # Write our PID and register cleanup
     with open(PID_FILE, "w") as _pf:
         _pf.write(str(os.getpid()))
+    _atexit.register(_remove_pid_file)
+    _signal.signal(_signal.SIGTERM, _signal_handler)
+    _signal.signal(_signal.SIGINT, _signal_handler)
 
     # ─── Polling ───
-    # Limpiar webhook y sesiones anteriores para evitar Error 409
+    # Limpiar webhook antes de iniciar polling
     bot.remove_webhook()
-    _time.sleep(20)  # long_polling_timeout=15 — wait for old session to expire on Telegram server
+    _time.sleep(1)
 
     print("=" * 50)
     print("🤖 OpenClawd Telegram Bot activo")
@@ -1950,11 +1952,7 @@ def start_bot():
     except Exception as poll_err:
         logger.error(f"Polling crashed: {poll_err}")
     finally:
-        # Remove PID file on exit
-        try:
-            os.remove(PID_FILE)
-        except OSError:
-            pass
+        _remove_pid_file()
 
 
 if __name__ == "__main__":
