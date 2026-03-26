@@ -76,7 +76,7 @@ for category in CATEGORIES:
                 continue
 
         if not payloads:
-            print(f"  ⚠️  {category:25s} → 0 payloads (skipped)")
+            print(f"  ⚠  {category:25s} → 0 payloads (skipped)")
             continue
 
         category_data = {

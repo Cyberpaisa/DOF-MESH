@@ -166,8 +166,12 @@ def call_minimax(question: str) -> dict:
             ], "temperature": 0.2, "max_tokens": 2048},
             timeout=60,
         )
-        r.raise_for_status()
-        content = r.json()["choices"][0]["message"]["content"]
+        data = r.json()
+        # MiniMax wraps errors in base_resp (status_code 0 = OK)
+        base = data.get("base_resp", {})
+        if base.get("status_code", 0) != 0:
+            return {"error": f"MiniMax {base.get('status_code')}: {base.get('status_msg')}", "latency_s": round(time.perf_counter() - t0, 1)}
+        content = data["choices"][0]["message"]["content"]
         return {"response": content, "latency_s": round(time.perf_counter() - t0, 1)}
     except Exception as e:
         return {"error": str(e), "latency_s": round(time.perf_counter() - t0, 1)}

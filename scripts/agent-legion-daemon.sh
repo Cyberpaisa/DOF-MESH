@@ -253,7 +253,7 @@ start_daemon() {
         local topic_idx=$(( (cycle / 8) % 4 ))
         local topic="${topics[$topic_idx]}"
         log "AgentMeet session: $topic"
-        python3 "$HOME/equipo de agentes/scripts/agentmeet-live.py" --topic "$topic" >> "$LOG_DIR/agentmeet.log" 2>&1 &
+        python3 "$HOME/equipo-de-agentes/scripts/agentmeet-live.py" --topic "$topic" >> "$LOG_DIR/agentmeet.log" 2>&1 &
         report_to_mc "DOF Oracle" "AgentMeet session launched: $topic"
       fi
 
