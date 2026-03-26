@@ -85,12 +85,12 @@ class ScanDirectoryTool(BaseTool):
             report += f"  {fpath} ({size/1024:.1f} KB)\n"
 
         if stats["empty_files"]:
-            report += f"\n⚠️ Archivos vacíos ({len(stats['empty_files'])}):\n"
+            report += f"\n⚠ Archivos vacíos ({len(stats['empty_files'])}):\n"
             for f in stats["empty_files"][:10]:
                 report += f"  {f}\n"
 
         if stats["deep_nesting"]:
-            report += f"\n⚠️ Archivos con anidamiento profundo (>6 niveles): {len(stats['deep_nesting'])}\n"
+            report += f"\n⚠ Archivos con anidamiento profundo (>6 niveles): {len(stats['deep_nesting'])}\n"
 
         return report
 
@@ -201,7 +201,7 @@ project/
 🔍 ANÁLISIS DE ESTRUCTURA: {project_path}
 {'='*60}
 
-🏷️ Tipo de proyecto detectado: {project_type.upper()}
+🏷 Tipo de proyecto detectado: {project_type.upper()}
 📌 Indicadores encontrados: {detected}
 
 {structure}

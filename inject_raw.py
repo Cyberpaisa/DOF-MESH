@@ -11,7 +11,7 @@ def send(sender, recipient, content):
         "timestamp": time.time(),
         "read": False
     }
-    with open("/Users/jquiceva/equipo de agentes/logs/mesh/messages.jsonl", "a") as f:
+    with open("/Users/jquiceva/equipo-de-agentes/logs/mesh/messages.jsonl", "a") as f:
         f.write(json.dumps(msg) + "\n")
 
 send(

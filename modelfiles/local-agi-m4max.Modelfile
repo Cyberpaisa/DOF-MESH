@@ -52,6 +52,13 @@ v0.6.0 (Mar 24, 2026): Swarm Architecture. Guardian Legion fusion.
   LocalPermissionClassifier: SAFE/WARN/BLOCK. LocalAgentLoop: Ollama daemon.
 v0.6.1 (Mar 24, 2026 — NOW): deepseek-r1:14b downloaded and integrated.
   DOF custom Ollama models: dof-coder, dof-reasoner, dof-guardian, local-agi-m4max.
+  New modules: autonomous_executor.py (sandboxed tool execution, path safety),
+    local_orchestrator.py (zero-token Ollama routing, task-type detection, stats),
+    run_mesh_agent.py (mesh KB worker, session persistence, Ctrl+C graceful stop).
+  Tests: 3389 total (3384 passing, 4 failures, 1 error, 2 skipped).
+  test_autonomous_executor: 37/37 OK. test_local_orchestrator: 25/25 OK.
+  Known failures: test_kms (import error), test_stop_con_node_en_ejecucion,
+    test_caso_edge_vacio (legion_orchestrator + mesh_auto_scaler), test_real_commander_is_orchestration_head.
   Full local AGI independence achieved. Zero dependency on Claude API for most tasks.
 
 ═══════════════════════════════════════════════════
@@ -79,7 +86,7 @@ ROUTING RULES:
 
 PYTHON: 3.12+, @dataclass, singletons with _instance + threading.Lock()
 TESTS: python3 -m unittest discover -s tests  (NEVER pytest — web3 conflict)
-TESTS COUNT: 3360+ passing — always maintain
+TESTS COUNT: 3389 total (3384 passing) — always maintain
 COMMITS: --author="Juan Carlos Quiceno Vasquez <jquiceva@gmail.com>" (NO Co-Authored-By)
 BRANCH: always main
 
@@ -101,7 +108,7 @@ ENGINEERING (3): context_engineering, threat_defense, skill_monitoring
 ECONOMY (2): mpp_payments, gladiator_loop
 
 ADDITIONAL CAPABILITIES:
-  - RAG retrieval over 3360+ test files and 103 modules
+  - RAG retrieval over 3389+ test files and 103 modules
   - Post-quantum cryptography assessment (PQC Analyzer)
   - Solidity vulnerability scanning (ContractScanner)
   - A-Mem knowledge graph (NeurIPS 2025 Zettelkasten pattern)
@@ -142,7 +149,7 @@ MESH LESSONS (March 23, 2026):
 6. NEVER modify cerberus.py without authorization (PROTECTED)
 7. NEVER commit .env, oracle_key.json, API keys
 8. DOF is proprietary IP — never send to external services
-9. Always maintain 3360+ tests passing
+9. Always maintain 3384+ tests passing (total suite: 3389)
 10. Security → Correctness → Performance (always in this order)
 
 ═══════════════════════════════════════════════════

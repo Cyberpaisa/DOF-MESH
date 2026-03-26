@@ -552,9 +552,10 @@ class PrivacyBenchmarkRunner:
 
     def _detect_pii(self, text: str) -> bool:
         """Check if text contains PII patterns. Returns True if PII found."""
+        import re
         from core.governance import PII_PATTERNS
-        for pattern in PII_PATTERNS.values():
-            if pattern.search(text):
+        for entry in PII_PATTERNS:
+            if re.search(entry["pattern"], text):
                 return True
         return False
 

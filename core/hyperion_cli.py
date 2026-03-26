@@ -16,6 +16,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Module-level imports so unittest.mock.patch can target them
+from core.dof_sharding import DOFShardManager, ConsistentHashRing
+from core.dof_distributed_queue import DistributedMeshQueue, DistributedTask
+from core.hyperion_http import HyperionHTTPServer
+
 
 def cmd_status(args):
     """Mostrar estado completo del mesh Hyperion."""

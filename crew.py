@@ -462,7 +462,7 @@ def _pre_research(topic: str, num_queries: int = 5) -> str:
             all_results.append(section)
 
     if not all_results:
-        return "\n⚠️ No se pudieron obtener resultados web. Usa tu conocimiento interno.\n"
+        return "\n⚠ No se pudieron obtener resultados web. Usa tu conocimiento interno.\n"
 
     header = f"## DATOS REALES DE INTERNET ({len(all_results)} búsquedas exitosas)\n"
     full_text = header + "\n".join(all_results)
