@@ -156,3 +156,44 @@ Si todos los nodos tienen el mismo timeout de elección, todos se postulan a la 
 El usuario durmió (00:00-06:00). El usuario fue al trabajo (09:00-12:00).
 En esas horas se construyeron 5 módulos, 107 tests, 4 commits, 2 capítulos de libro.
 La autonomía no es que el agente haga tareas — es que el agente toma decisiones de arquitectura y las ejecuta con criterio.
+
+---
+
+## Operations & Security — Field Lessons (2026-03-26)
+
+**L-57: npm supply chain malware is real.**
+OpenClaw contained Unicode steganography (eval + Variation Selectors 0xFE00-0xFE0F). Always audit npm packages. The code looked empty but had invisible characters that decoded to executable payload. Lesson: `cat -v` and hex dumps on suspicious packages — what looks empty may be weaponized.
+
+**L-58: Never trust AI-generated wallets without persisted keys.**
+Gemini created a wallet with real funds ($5 USDC) but didn't save the private key to .env. Found it only via forensic search of Antigravity IDE logs. Always verify key persistence immediately after generation. Rule: generate key → write to .env → read back from .env → confirm match. No exceptions.
+
+**L-59: Two directories with similar names = guaranteed bugs.**
+`equipo de agentes` (spaces) vs `equipo-de-agentes` (hyphens) caused 4,628 FileNotFoundErrors in the orchestrator. Fix: symlink one to the other. Lesson: never allow two directories that differ only in whitespace/punctuation to coexist. Canonicalize on creation or symlink immediately.
+
+**L-60: Oracle Cloud Free Tier ARM VMs are scarce.**
+"Out of host capacity" on all 3 Ashburn ADs. Solution: automated grabber script that retries every 60 seconds. Can take 1-24 hours. Lesson: free cloud resources are first-come-first-served — automate the retry loop and walk away.
+
+**L-61: DeepSeek is the most reliable free-tier API provider.**
+Groq expired (401), Gemini rate limited (429), Cerebras had wrong model name. DeepSeek consistently works. Set as default for all systems. Lesson: reliability beats speed — a slow provider that never fails is better than a fast one that breaks weekly.
+
+**L-62: Telegram bot duplicate instances cause 409 conflicts.**
+Fix: PID file lock with process-alive check on startup. Never kill-and-takeover, always refuse-to-start. Lesson: any long-running singleton process needs a lock file checked against `os.kill(pid, 0)` before launching.
+
+**L-63: 5 parallel repair agents are faster than sequential fixes.**
+Launched 5 background agents simultaneously: paths, Telegram, mesh cleanup, governance, Streamlit. All completed in ~2 minutes vs ~10 minutes sequential. Lesson: independent fixes have zero data dependencies — parallelize them always. The mesh pattern applies to repair, not just feature work.
+
+## Coliseum de la Verdad — Lecciones (2026-03-26)
+
+**L-64 — La unanimidad ética no requiere unanimidad técnica.** 12 modelos coincidieron en "no explotar" pero usaron 8 frameworks diferentes. El consensus ético es más robusto cuando emerge de diversidad de razonamiento.
+
+**L-65 — La divergencia matemática es información, no error.** 4 respuestas numéricas "diferentes" al mismo problema no significan que 3 estén mal. Cada uno midió una métrica distinta. Z3 lo distingue.
+
+**L-66 — El modelo que detecta el ataque al prompt es el más valioso como guardián.** Claude detectó que la pregunta ERA ingeniería social. En un mesh de seguridad, ese modelo protege a los demás.
+
+**L-67 — El steelman + refutación revela más que la respuesta directa.** MiMo construyó los 4 mejores argumentos a favor y luego los destruyó. Revela más capacidad que responder directamente.
+
+**L-68 — Cada modelo tiene un rol natural — no intentes que todos hagan todo.** Arquitecto (MiMo), Guardián (Claude), Investigador (Perplexity), Filósofo (MiniMax), Ingeniero (Gemini), Estratega (Kimi), Policy Maker (GPT), Ético (GLM).
+
+**L-69 — El Coliseum es un producto vendible.** Model Integrity Score: prompt estandarizado + captura multi-modelo + Z3 verification + score on-chain = servicio por el que empresas pagarían.
+
+**L-70 — "Build a system where exploitation is architecturally impossible regardless of what the models want."** La frase de MiMo que define DOF. Z3 como invariante arquitectural, no como sugerencia.
