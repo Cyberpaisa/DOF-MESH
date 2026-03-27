@@ -95,9 +95,15 @@ class AutoProvisioner:
         return False
 
     def get_active_provisions(self) -> Dict[str, int]:
-        """Return task counts from the Hyperion status if possible."""
-        status = self._bridge.status()
-        return status.get("dispatched_by_node", {})
+        """Return task counts from nodes.json (persisted active_tasks per node)."""
+        try:
+            if not NODES_JSON_PATH.exists():
+                return {}
+            with open(NODES_JSON_PATH, "r", encoding="utf-8") as f:
+                nodes = json.load(f)
+            return {nid: info.get("active_tasks", 0) for nid, info in nodes.items()}
+        except Exception:
+            return {}
 
     # ── Persistence ────────────────────────────────────────────────────────────
 

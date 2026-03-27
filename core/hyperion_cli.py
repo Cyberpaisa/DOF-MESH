@@ -24,9 +24,6 @@ from core.hyperion_http import HyperionHTTPServer
 
 def cmd_status(args):
     """Mostrar estado completo del mesh Hyperion."""
-    from core.dof_sharding import DOFShardManager
-    from core.dof_distributed_queue import DistributedMeshQueue
-
     machines = args.machines.split(",")
     sm = DOFShardManager(machines, shard_count=args.shards, replication_factor=3)
     q  = DistributedMeshQueue("cli-status", sm)
@@ -81,8 +78,6 @@ def cmd_raft(args):
 
 def cmd_bench(args):
     """Benchmark rápido del stack."""
-    from core.dof_sharding import DOFShardManager, ConsistentHashRing
-    from core.dof_distributed_queue import DistributedMeshQueue, DistributedTask
     import statistics
 
     machines = args.machines.split(",")
@@ -130,7 +125,6 @@ def cmd_bench(args):
 
 def cmd_http(args):
     """Arrancar el HTTP Bridge."""
-    from core.hyperion_http import HyperionHTTPServer
     srv = HyperionHTTPServer(
         host=args.host,
         port=args.port,
@@ -183,6 +177,7 @@ Comandos:
         cmd_http(args)
     else:
         parser.print_help()
+        sys.exit(2)
 
 
 if __name__ == "__main__":
