@@ -18,210 +18,332 @@ Quick start:
 __version__ = "0.5.0"
 
 import os as _os
+import logging as _logging
 
 _BASE_DIR = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+_logger = _logging.getLogger("dof")
 
 # ─────────────────────────────────────────────────────────────────────
-# Governance
+# Governance (core — stdlib only)
 # ─────────────────────────────────────────────────────────────────────
 
-from core.governance import (
-    ConstitutionEnforcer as Constitution,
-    ConstitutionEnforcer,
-    GovernanceResult,
-    load_constitution,
-    get_constitution,
-    HARD_RULES,
-    SOFT_RULES,
-    PII_PATTERNS,
-)
+try:
+    from core.governance import (
+        ConstitutionEnforcer as Constitution,
+        ConstitutionEnforcer,
+        GovernanceResult,
+        load_constitution,
+        get_constitution,
+        HARD_RULES,
+        SOFT_RULES,
+        PII_PATTERNS,
+    )
+except ImportError:
+    _logger.debug("core.governance not available")
+    Constitution = ConstitutionEnforcer = GovernanceResult = None
+    load_constitution = get_constitution = None
+    HARD_RULES = SOFT_RULES = PII_PATTERNS = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Metrics (Runtime Observer)
 # ─────────────────────────────────────────────────────────────────────
 
-from core.runtime_observer import (
-    RuntimeObserver as Metrics,
-    MetricResult,
-)
+try:
+    from core.runtime_observer import (
+        RuntimeObserver as Metrics,
+        MetricResult,
+    )
+except ImportError:
+    _logger.debug("core.runtime_observer not available")
+    Metrics = MetricResult = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Observability (Traces, Sessions, Error Classification)
 # ─────────────────────────────────────────────────────────────────────
 
-from core.observability import (
-    RunTrace,
-    StepTrace,
-    RunTraceStore,
-    ErrorClass,
-    classify_error,
-    causal_trace,
-    compute_derived_metrics,
-    estimate_tokens,
-    set_deterministic,
-    get_session_id,
-    reset_session,
-    TokenTracker,
-)
+try:
+    from core.observability import (
+        RunTrace,
+        StepTrace,
+        RunTraceStore,
+        ErrorClass,
+        classify_error,
+        causal_trace,
+        compute_derived_metrics,
+        estimate_tokens,
+        set_deterministic,
+        get_session_id,
+        reset_session,
+        TokenTracker,
+    )
+except ImportError:
+    _logger.debug("core.observability not available")
+    RunTrace = StepTrace = RunTraceStore = ErrorClass = None
+    classify_error = causal_trace = compute_derived_metrics = None
+    estimate_tokens = set_deterministic = get_session_id = reset_session = None
+    TokenTracker = None
 
 # ─────────────────────────────────────────────────────────────────────
 # AST Verifier
 # ─────────────────────────────────────────────────────────────────────
 
-from core.ast_verifier import ASTVerifier
-from core.entropy_detector import EntropyDetector
+try:
+    from core.ast_verifier import ASTVerifier
+except ImportError:
+    _logger.debug("core.ast_verifier not available")
+    ASTVerifier = None
+
+try:
+    from core.entropy_detector import EntropyDetector
+except ImportError:
+    _logger.debug("core.entropy_detector not available")
+    EntropyDetector = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Adversarial Evaluation
 # ─────────────────────────────────────────────────────────────────────
 
-from core.adversarial import (
-    AdversarialEvaluator,
-    RedTeamAgent,
-    GuardianAgent,
-    DeterministicArbiter,
-)
+try:
+    from core.adversarial import (
+        AdversarialEvaluator,
+        RedTeamAgent,
+        GuardianAgent,
+        DeterministicArbiter,
+    )
+except ImportError:
+    _logger.debug("core.adversarial not available")
+    AdversarialEvaluator = RedTeamAgent = GuardianAgent = DeterministicArbiter = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Task Contracts
 # ─────────────────────────────────────────────────────────────────────
 
-from core.task_contract import TaskContract, ContractResult
+try:
+    from core.task_contract import TaskContract, ContractResult
+except ImportError:
+    _logger.debug("core.task_contract not available")
+    TaskContract = ContractResult = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Provider Selection (Bayesian)
 # ─────────────────────────────────────────────────────────────────────
 
-from core.providers import BayesianProviderSelector
+try:
+    from core.providers import BayesianProviderSelector
+except ImportError:
+    _logger.debug("core.providers not available")
+    BayesianProviderSelector = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Memory Governance
 # ─────────────────────────────────────────────────────────────────────
 
-from core.memory_governance import (
-    GovernedMemoryStore,
-    TemporalGraph,
-    MemoryClassifier,
-    ConstitutionalDecay,
-    MemoryEntry,
-    ConflictError,
-)
+try:
+    from core.memory_governance import (
+        GovernedMemoryStore,
+        TemporalGraph,
+        MemoryClassifier,
+        ConstitutionalDecay,
+        MemoryEntry,
+        ConflictError,
+    )
+except ImportError:
+    _logger.debug("core.memory_governance not available")
+    GovernedMemoryStore = TemporalGraph = MemoryClassifier = None
+    ConstitutionalDecay = MemoryEntry = ConflictError = None
 
 # ─────────────────────────────────────────────────────────────────────
 # OAGS Bridge
 # ─────────────────────────────────────────────────────────────────────
 
-from core.oags_bridge import (
-    OAGSIdentity,
-    OAGSPolicyBridge,
-    OAGSAuditBridge,
-)
+try:
+    from core.oags_bridge import (
+        OAGSIdentity,
+        OAGSPolicyBridge,
+        OAGSAuditBridge,
+    )
+except ImportError:
+    _logger.debug("core.oags_bridge not available")
+    OAGSIdentity = OAGSPolicyBridge = OAGSAuditBridge = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Oracle Bridge (ERC-8004)
 # ─────────────────────────────────────────────────────────────────────
 
-from core.oracle_bridge import (
-    OracleBridge,
-    AttestationCertificate,
-    AttestationRegistry,
-    CertificateSigner,
-)
+try:
+    from core.oracle_bridge import (
+        OracleBridge,
+        AttestationCertificate,
+        AttestationRegistry,
+        CertificateSigner,
+    )
+except ImportError:
+    _logger.debug("core.oracle_bridge not available")
+    OracleBridge = AttestationCertificate = AttestationRegistry = CertificateSigner = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Enigma Bridge (trust_scores → erc-8004scan.xyz)
 # ─────────────────────────────────────────────────────────────────────
 
-from core.enigma_bridge import EnigmaBridge, DOFTrustScore, TrustScore
+try:
+    from core.enigma_bridge import EnigmaBridge, DOFTrustScore, TrustScore
+except ImportError:
+    _logger.debug("core.enigma_bridge not available")
+    EnigmaBridge = DOFTrustScore = TrustScore = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Avalanche Bridge (on-chain DOFValidationRegistry)
 # ─────────────────────────────────────────────────────────────────────
 
-from core.avalanche_bridge import AvalancheBridge
+try:
+    from core.avalanche_bridge import AvalancheBridge
+except ImportError:
+    _logger.debug("core.avalanche_bridge not available")
+    AvalancheBridge = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Merkle Tree (batch attestations)
 # ─────────────────────────────────────────────────────────────────────
 
-from core.merkle_tree import MerkleTree, MerkleBatcher, MerkleBatch
+try:
+    from core.merkle_tree import MerkleTree, MerkleBatcher, MerkleBatch
+except ImportError:
+    _logger.debug("core.merkle_tree not available")
+    MerkleTree = MerkleBatcher = MerkleBatch = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Execution DAG
 # ─────────────────────────────────────────────────────────────────────
 
-from core.execution_dag import ExecutionDAG, DAGNode, DAGEdge
+try:
+    from core.execution_dag import ExecutionDAG, DAGNode, DAGEdge
+except ImportError:
+    _logger.debug("core.execution_dag not available")
+    ExecutionDAG = DAGNode = DAGEdge = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Loop Guard
 # ─────────────────────────────────────────────────────────────────────
 
-from core.loop_guard import LoopGuard, LoopGuardResult
+try:
+    from core.loop_guard import LoopGuard, LoopGuardResult
+except ImportError:
+    _logger.debug("core.loop_guard not available")
+    LoopGuard = LoopGuardResult = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Data Oracle
 # ─────────────────────────────────────────────────────────────────────
 
-from core.data_oracle import DataOracle, OracleVerdict, FactClaim
+try:
+    from core.data_oracle import DataOracle, OracleVerdict, FactClaim
+except ImportError:
+    _logger.debug("core.data_oracle not available")
+    DataOracle = OracleVerdict = FactClaim = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Storage
 # ─────────────────────────────────────────────────────────────────────
 
-from core.storage import StorageFactory, JSONLBackend, PostgreSQLBackend
+try:
+    from core.storage import StorageFactory, JSONLBackend, PostgreSQLBackend
+except ImportError:
+    _logger.debug("core.storage not available")
+    StorageFactory = JSONLBackend = PostgreSQLBackend = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Framework-Agnostic Governance
 # ─────────────────────────────────────────────────────────────────────
 
-from integrations.langgraph_adapter import (
-    DOFGovernanceNode,
-    DOFASTNode,
-    DOFMemoryNode,
-    DOFObservabilityNode,
-    FrameworkAdapter,
-    GenericAdapter,
-    CrewAIAdapter,
-    LangGraphAdapter,
-    create_governed_pipeline,
-)
+try:
+    from integrations.langgraph_adapter import (
+        DOFGovernanceNode,
+        DOFASTNode,
+        DOFMemoryNode,
+        DOFObservabilityNode,
+        FrameworkAdapter,
+        GenericAdapter,
+        CrewAIAdapter,
+        LangGraphAdapter,
+        create_governed_pipeline,
+    )
+except ImportError:
+    _logger.debug("integrations.langgraph_adapter not available")
+    DOFGovernanceNode = DOFASTNode = DOFMemoryNode = DOFObservabilityNode = None
+    FrameworkAdapter = GenericAdapter = CrewAIAdapter = LangGraphAdapter = None
+    create_governed_pipeline = None
 
 # ─────────────────────────────────────────────────────────────────────
-# Crew Runner
+# Crew Runner (optional — requires crewai)
 # ─────────────────────────────────────────────────────────────────────
 
-from core.crew_runner import run_crew
+try:
+    from core.crew_runner import run_crew
+except ImportError:
+    _logger.debug("core.crew_runner not available")
+    run_crew = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Test Generator + Benchmark
 # ─────────────────────────────────────────────────────────────────────
 
-from core.test_generator import TestGenerator, BenchmarkRunner, BenchmarkResult
+try:
+    from core.test_generator import TestGenerator, BenchmarkRunner, BenchmarkResult
+except ImportError:
+    _logger.debug("core.test_generator not available")
+    TestGenerator = BenchmarkRunner = BenchmarkResult = None
 
 # ─────────────────────────────────────────────────────────────────────
 # AgentLeak Privacy Benchmark
 # ─────────────────────────────────────────────────────────────────────
 
-from core.agentleak_benchmark import (
-    AgentLeakMapper,
-    PrivacyLeakGenerator,
-    PrivacyBenchmarkRunner,
-)
+try:
+    from core.agentleak_benchmark import (
+        AgentLeakMapper,
+        PrivacyLeakGenerator,
+        PrivacyBenchmarkRunner,
+    )
+except ImportError:
+    _logger.debug("core.agentleak_benchmark not available")
+    AgentLeakMapper = PrivacyLeakGenerator = PrivacyBenchmarkRunner = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Z3 Test Generator + Boundary Engine (v0.3.2)
 # ─────────────────────────────────────────────────────────────────────
 
-from core.z3_test_generator import Z3TestGenerator, GenerationReport
-from core.boundary import BoundaryEngine
+try:
+    from core.z3_test_generator import Z3TestGenerator, GenerationReport
+except ImportError:
+    _logger.debug("core.z3_test_generator not available")
+    Z3TestGenerator = GenerationReport = None
+
+try:
+    from core.boundary import BoundaryEngine
+except ImportError:
+    _logger.debug("core.boundary not available")
+    BoundaryEngine = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Z3 Proof Attestations (v0.3.3)
 # ─────────────────────────────────────────────────────────────────────
 
-from core.z3_proof import Z3ProofAttestation
-from core.proof_hash import ProofSerializer
-from core.proof_storage import ProofStorage
+try:
+    from core.z3_proof import Z3ProofAttestation
+except ImportError:
+    _logger.debug("core.z3_proof not available")
+    Z3ProofAttestation = None
+
+try:
+    from core.proof_hash import ProofSerializer
+except ImportError:
+    _logger.debug("core.proof_hash not available")
+    ProofSerializer = None
+
+try:
+    from core.proof_storage import ProofStorage
+except ImportError:
+    _logger.debug("core.proof_storage not available")
+    ProofStorage = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Z3 Verifier (optional — requires z3-solver)
@@ -265,25 +387,38 @@ except ImportError:
 # OpenTelemetry Bridge (optional — requires opentelemetry-api)
 # ─────────────────────────────────────────────────────────────────────
 
-from core.otel_bridge import OTelBridge, LAYER_NAMES, METRIC_NAMES
+try:
+    from core.otel_bridge import OTelBridge, LAYER_NAMES, METRIC_NAMES
+except ImportError:
+    _logger.debug("core.otel_bridge not available")
+    OTelBridge = None
+    LAYER_NAMES = METRIC_NAMES = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Regression Tracker (v0.3.3)
 # ─────────────────────────────────────────────────────────────────────
 
-from core.regression_tracker import RegressionTracker, RegressionReport, ChangeType
+try:
+    from core.regression_tracker import RegressionTracker, RegressionReport, ChangeType
+except ImportError:
+    _logger.debug("core.regression_tracker not available")
+    RegressionTracker = RegressionReport = ChangeType = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Event Stream
 # ─────────────────────────────────────────────────────────────────────
 
-from core.event_stream import (
-    EventBus,
-    EventBackend,
-    InMemoryBackend,
-    EventType,
-    Event,
-)
+try:
+    from core.event_stream import (
+        EventBus,
+        EventBackend,
+        InMemoryBackend,
+        EventType,
+        Event,
+    )
+except ImportError:
+    _logger.debug("core.event_stream not available")
+    EventBus = EventBackend = InMemoryBackend = EventType = Event = None
 
 # ─────────────────────────────────────────────────────────────────────
 # Mesh Scheduler
@@ -294,6 +429,31 @@ try:
 except ImportError:
     MeshScheduler = TaskSlot = None
     HIGH, NORMAL, LOW = 1, 2, 3
+
+# ─────────────────────────────────────────────────────────────────────
+# x402 Trust Gateway (optional)
+# ─────────────────────────────────────────────────────────────────────
+
+try:
+    from dof.x402_gateway import TrustGateway, GatewayVerdict, GatewayAction
+except ImportError:
+    TrustGateway = GatewayVerdict = GatewayAction = None
+
+# ─────────────────────────────────────────────────────────────────────
+# Local AGI — zero-token autonomous execution (v0.6.1)
+# ─────────────────────────────────────────────────────────────────────
+
+try:
+    from core.autonomous_executor import AutonomousExecutor, ExecutionResult, ToolCall
+except ImportError:
+    AutonomousExecutor = ExecutionResult = ToolCall = None
+
+try:
+    from core.local_orchestrator import LocalOrchestrator, OrchestratorResult, LOCAL_MODELS
+except ImportError:
+    LocalOrchestrator = OrchestratorResult = None
+    LOCAL_MODELS = []
+
 
 # ─────────────────────────────────────────────────────────────────────
 # Top-level convenience functions
@@ -309,6 +469,8 @@ def register(constitution: str = "dof.constitution.yml") -> dict:
     Returns:
         The parsed constitution dict.
     """
+    if load_constitution is None:
+        raise ImportError("core.governance is required but not available")
     path = constitution
     if not _os.path.isabs(path):
         path = _os.path.join(_BASE_DIR, path)
@@ -371,6 +533,12 @@ __all__ = [
     "TransitionType",
     "VerificationResult",
     "HierarchyZ3",
+    # Z3 Gate (v0.3.1)
+    "Z3Gate",
+    "GateResult",
+    "GateVerification",
+    "AgentOutput",
+    "OutputType",
     # Contracts
     "TaskContract",
     "ContractResult",
@@ -465,6 +633,10 @@ __all__ = [
     "RegressionTracker",
     "RegressionReport",
     "ChangeType",
+    # x402 Trust Gateway
+    "TrustGateway",
+    "GatewayVerdict",
+    "GatewayAction",
     # Local AGI (v0.6.1)
     "AutonomousExecutor",
     "ExecutionResult",
@@ -473,20 +645,3 @@ __all__ = [
     "OrchestratorResult",
     "LOCAL_MODELS",
 ]
-
-try:
-    from dof.x402_gateway import TrustGateway, GatewayVerdict, GatewayAction
-except ImportError:
-    TrustGateway = GatewayVerdict = GatewayAction = None
-
-# Local AGI — zero-token autonomous execution (v0.6.1)
-try:
-    from core.autonomous_executor import AutonomousExecutor, ExecutionResult, ToolCall
-except ImportError:
-    AutonomousExecutor = ExecutionResult = ToolCall = None
-
-try:
-    from core.local_orchestrator import LocalOrchestrator, OrchestratorResult, LOCAL_MODELS
-except ImportError:
-    LocalOrchestrator = OrchestratorResult = None
-    LOCAL_MODELS = []

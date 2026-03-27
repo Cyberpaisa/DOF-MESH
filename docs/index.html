@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DOF — Deterministic Observability Framework</title>
+<meta name="description" content="Governance matematica para agentes autonomos de IA. Z3 proofs, no opiniones.">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0a;
+    color: #e0e0e0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  code, pre, .mono {
+    font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', 'Courier New', monospace;
+  }
+
+  a {
+    color: #00d4aa;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* --- Header --- */
+  header {
+    padding: 80px 0 64px;
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  header h1 {
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+    margin-bottom: 16px;
+  }
+
+  header h1 span {
+    color: #00d4aa;
+  }
+
+  header p.subtitle {
+    font-size: 18px;
+    color: #888;
+    max-width: 540px;
+    line-height: 1.5;
+  }
+
+  /* --- Stats bar --- */
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    padding: 32px 0;
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  .stat {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .stat strong {
+    color: #e0e0e0;
+    font-weight: 600;
+  }
+
+  /* --- Features --- */
+  .features {
+    padding: 56px 0;
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  .features h2 {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #555;
+    margin-bottom: 32px;
+  }
+
+  .feature {
+    margin-bottom: 32px;
+  }
+
+  .feature:last-child {
+    margin-bottom: 0;
+  }
+
+  .feature h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 6px;
+  }
+
+  .feature h3 .label {
+    color: #00d4aa;
+    font-weight: 500;
+  }
+
+  .feature p {
+    font-size: 15px;
+    color: #888;
+  }
+
+  /* --- Quick start --- */
+  .quickstart {
+    padding: 56px 0;
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  .quickstart h2 {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #555;
+    margin-bottom: 24px;
+  }
+
+  pre {
+    background: #111;
+    border: 1px solid #1a1a1a;
+    border-radius: 6px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #c8c8c8;
+    margin-bottom: 16px;
+  }
+
+  pre .comment {
+    color: #555;
+  }
+
+  pre .keyword {
+    color: #00d4aa;
+  }
+
+  pre .string {
+    color: #e8a86d;
+  }
+
+  pre .shell {
+    color: #888;
+    user-select: none;
+  }
+
+  /* --- Links --- */
+  .links {
+    padding: 48px 0;
+    border-bottom: 1px solid #1a1a1a;
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .links a {
+    font-size: 15px;
+    font-weight: 500;
+    color: #00d4aa;
+    padding: 10px 20px;
+    border: 1px solid #1f3d35;
+    border-radius: 6px;
+  }
+
+  .links a:hover {
+    background: #0d2920;
+    text-decoration: none;
+  }
+
+  /* --- Footer --- */
+  footer {
+    padding: 48px 0;
+    font-size: 14px;
+    color: #444;
+  }
+
+  /* --- Mobile --- */
+  @media (max-width: 600px) {
+    header {
+      padding: 48px 0 40px;
+    }
+
+    header h1 {
+      font-size: 24px;
+    }
+
+    header p.subtitle {
+      font-size: 16px;
+    }
+
+    .stats {
+      gap: 20px;
+    }
+
+    .stat {
+      font-size: 13px;
+    }
+
+    pre {
+      font-size: 13px;
+      padding: 16px;
+    }
+
+    .links {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .links a {
+      text-align: center;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <h1><span>DOF</span> — Deterministic Observability Framework</h1>
+    <p class="subtitle">Governance matematica para agentes autonomos de IA. Z3 proofs, no opiniones.</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><strong>127</strong> modules</div>
+    <div class="stat"><strong>650+</strong> tests</div>
+    <div class="stat"><strong>21</strong> on-chain attestations</div>
+    <div class="stat"><strong>SDK</strong> on PyPI</div>
+  </div>
+
+  <section class="features">
+    <h2>Core</h2>
+
+    <div class="feature">
+      <h3><span class="label">Zero-LLM Governance</span></h3>
+      <p>Reglas deterministas, no otro modelo evaluando modelos.</p>
+    </div>
+
+    <div class="feature">
+      <h3><span class="label">Z3 Formal Proofs</span></h3>
+      <p>4 teoremas matematicamente verificados, 42 patrones de jerarquia.</p>
+    </div>
+
+    <div class="feature">
+      <h3><span class="label">On-Chain Attestations</span></h3>
+      <p>21 certificaciones en Avalanche C-Chain mainnet.</p>
+    </div>
+  </section>
+
+  <section class="quickstart">
+    <h2>Quick start</h2>
+
+    <pre><span class="shell">$ </span>pip install dof-sdk</pre>
+
+    <pre><span class="keyword">from</span> dof <span class="keyword">import</span> Constitution
+
+enforcer = Constitution()
+result = enforcer.check(<span class="string">"your agent output"</span>)
+<span class="keyword">print</span>(result.passed, result.violations)</pre>
+  </section>
+
+  <div class="links">
+    <a href="https://github.com/Cyberpaisa/DOF-MESH">GitHub</a>
+    <a href="https://pypi.org/project/dof-sdk">PyPI</a>
+  </div>
+
+  <footer>
+    Built by Cyber Paisa — Enigma Group | Medellin, Colombia
+  </footer>
+
+</div>
+
+</body>
+</html>
