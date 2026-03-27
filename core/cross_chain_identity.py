@@ -33,6 +33,8 @@ SUPPORTED_CHAINS = {
     "base": 8453,
     "celo": 42220,
     "ethereum": 1,
+    "tempo": 4217,
+    "tempo_testnet": 42431,
 }
 
 CHAIN_ID_TO_NAME = {v: k for k, v in SUPPORTED_CHAINS.items()}
