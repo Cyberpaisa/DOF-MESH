@@ -6,11 +6,13 @@ Exposes DOF governance functions via Model Context Protocol (JSON-RPC 2.0
 over stdio).  Compatible with Claude Desktop, Cursor, Windsurf, and any
 MCP-compatible client.
 
-10 tools:
-  dof_verify_governance, dof_verify_ast, dof_run_z3,
-  dof_memory_add, dof_memory_query, dof_memory_snapshot,
-  dof_get_metrics, dof_create_attestation,
-  dof_oags_identity, dof_conformance_check
+15 tools:
+  Governance: dof_verify_governance, dof_verify_ast, dof_run_z3
+  Memory:     dof_memory_add, dof_memory_query, dof_memory_snapshot
+  Metrics:    dof_get_metrics, dof_create_attestation
+  Identity:   dof_oags_identity, dof_conformance_check
+  Mesh:       mesh_send_task, mesh_broadcast, mesh_route_smart,
+              mesh_read_inbox, mesh_consensus
 
 3 resources:
   dof://constitution, dof://metrics/latest, dof://memory/stats
@@ -239,6 +241,192 @@ def tool_conformance_check(params: dict) -> dict:
 
 
 # ─────────────────────────────────────────────────────────────────────
+# Mesh Communication Tools (Agent Teams ↔ DOF Mesh bridge)
+# ─────────────────────────────────────────────────────────────────────
+
+def _get_mesh():
+    """Lazy-load NodeMesh singleton."""
+    from core.node_mesh import NodeMesh
+    return NodeMesh()
+
+
+def tool_mesh_send_task(params: dict) -> dict:
+    """Send a task to a specific mesh node and return its response."""
+    node_id = params.get("node_id", "")
+    task = params.get("task", "")
+    task_type = params.get("task_type", "task")
+
+    if not node_id or not task:
+        return {"error": "node_id and task are required"}
+
+    mesh = _get_mesh()
+
+    # Send message via MessageBus
+    msg_id = mesh.send_message(
+        from_node="agent-teams-bridge",
+        to_node=node_id,
+        content=task,
+        msg_type=task_type,
+    )
+
+    # Check if node is registered
+    nodes = mesh.list_nodes()
+    node_info = None
+    for n in nodes:
+        if n.node_id == node_id:
+            node_info = {
+                "node_id": n.node_id,
+                "role": n.role,
+                "status": n.status,
+            }
+            break
+
+    return {
+        "msg_id": msg_id,
+        "to_node": node_id,
+        "task_type": task_type,
+        "node_info": node_info or {"error": f"Node {node_id} not in registry"},
+        "status": "delivered",
+    }
+
+
+def tool_mesh_broadcast(params: dict) -> dict:
+    """Broadcast a message to ALL active mesh nodes."""
+    content = params.get("content", "")
+    task_type = params.get("task_type", "query")
+
+    if not content:
+        return {"error": "content is required"}
+
+    mesh = _get_mesh()
+    msg_id = mesh.broadcast(
+        from_node="agent-teams-bridge",
+        content=content,
+    )
+
+    nodes = mesh.list_nodes()
+    node_ids = [n.node_id for n in nodes if n.status != "error"]
+
+    return {
+        "msg_id": msg_id,
+        "broadcast_to": node_ids,
+        "node_count": len(node_ids),
+        "status": "broadcast_sent",
+    }
+
+
+def tool_mesh_route_smart(params: dict) -> dict:
+    """Use MeshRouterV2 to find the best node for a task type, then send it."""
+    task_type = params.get("task_type", "")
+    task = params.get("task", "")
+
+    if not task_type or not task:
+        return {"error": "task_type and task are required"}
+
+    try:
+        from core.mesh_router_v2 import MeshRouterV2
+        router = MeshRouterV2()
+        best_node = router.route(task_type)
+    except Exception as e:
+        return {"error": f"Router failed: {e}", "fallback": "use mesh_send_task directly"}
+
+    if not best_node:
+        return {"error": f"No suitable node for task_type={task_type}"}
+
+    # Send to the best node
+    mesh = _get_mesh()
+    msg_id = mesh.send_message(
+        from_node="agent-teams-bridge",
+        to_node=best_node,
+        content=task,
+        msg_type="task",
+    )
+
+    return {
+        "routed_to": best_node,
+        "task_type": task_type,
+        "msg_id": msg_id,
+        "routing": "MeshRouterV2 (specialty + latency + load)",
+        "status": "routed_and_sent",
+    }
+
+
+def tool_mesh_read_inbox(params: dict) -> dict:
+    """Read pending messages from a node's inbox."""
+    node_id = params.get("node_id", "agent-teams-bridge")
+    mark_read = params.get("mark_read", True)
+
+    mesh = _get_mesh()
+    messages = mesh.read_inbox(node_id, mark_read=mark_read)
+
+    results = []
+    for msg in messages[:20]:  # limit to 20
+        results.append({
+            "msg_id": getattr(msg, "msg_id", ""),
+            "from_node": getattr(msg, "from_node", ""),
+            "content": str(getattr(msg, "content", ""))[:1000],
+            "msg_type": getattr(msg, "msg_type", ""),
+            "timestamp": str(getattr(msg, "timestamp", "")),
+        })
+
+    return {
+        "node_id": node_id,
+        "messages": results,
+        "count": len(results),
+        "total_unread": len(messages),
+    }
+
+
+def tool_mesh_consensus(params: dict) -> dict:
+    """Send a question to N nodes and compare responses for consensus."""
+    question = params.get("question", "")
+    node_ids = params.get("node_ids", [])
+    min_nodes = params.get("min_nodes", 3)
+
+    if not question:
+        return {"error": "question is required"}
+
+    mesh = _get_mesh()
+
+    # If no specific nodes, pick from active nodes
+    if not node_ids:
+        nodes = mesh.list_nodes()
+        active = [n.node_id for n in nodes if n.status != "error"]
+        node_ids = active[:min_nodes]
+
+    if len(node_ids) < 2:
+        return {"error": f"Need at least 2 nodes for consensus, found {len(node_ids)}"}
+
+    # Send to all selected nodes
+    sent = []
+    for nid in node_ids:
+        msg_id = mesh.send_message(
+            from_node="agent-teams-bridge",
+            to_node=nid,
+            content=question,
+            msg_type="query",
+        )
+        sent.append({"node_id": nid, "msg_id": msg_id})
+
+    # Apply governance check to the question itself
+    from core.governance import ConstitutionEnforcer
+    enforcer = ConstitutionEnforcer()
+    gov_check = enforcer.check(question)
+
+    return {
+        "question": question[:200],
+        "sent_to": sent,
+        "node_count": len(sent),
+        "governance_pre_check": {
+            "passed": gov_check.passed,
+            "score": gov_check.score,
+        },
+        "status": "consensus_initiated",
+        "next_step": "Use mesh_read_inbox to collect responses, then compare",
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────
 # Resource implementations
 # ─────────────────────────────────────────────────────────────────────
 
@@ -375,6 +563,68 @@ TOOLS = {
         "description": "Validate OAGS conformance at Levels 1-3 (declarative, runtime, attestation)",
         "inputSchema": {"type": "object", "properties": {}},
     },
+    # ── Mesh Communication Tools (Agent Teams ↔ DOF Mesh) ──
+    "mesh_send_task": {
+        "handler": tool_mesh_send_task,
+        "description": "Send a task to a specific DOF mesh node (DeepSeek, SambaNova, MiMo, Kimi, etc.)",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "node_id": {"type": "string", "description": "Target mesh node ID"},
+                "task": {"type": "string", "description": "Task prompt to send"},
+                "task_type": {"type": "string", "description": "Type: task, query, alert, sync (default: task)"},
+            },
+            "required": ["node_id", "task"],
+        },
+    },
+    "mesh_broadcast": {
+        "handler": tool_mesh_broadcast,
+        "description": "Broadcast a message to ALL active mesh nodes simultaneously",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "content": {"type": "string", "description": "Message to broadcast"},
+                "task_type": {"type": "string", "description": "Type: task, query, alert (default: query)"},
+            },
+            "required": ["content"],
+        },
+    },
+    "mesh_route_smart": {
+        "handler": tool_mesh_route_smart,
+        "description": "Smart-route a task to the best mesh node using MeshRouterV2 (specialty + latency + load)",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "task_type": {"type": "string", "description": "Type: code, test, security, research, docs, consensus"},
+                "task": {"type": "string", "description": "Task prompt to send"},
+            },
+            "required": ["task_type", "task"],
+        },
+    },
+    "mesh_read_inbox": {
+        "handler": tool_mesh_read_inbox,
+        "description": "Read pending messages from a mesh node inbox (responses, results, alerts)",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "node_id": {"type": "string", "description": "Node ID to read inbox (default: agent-teams-bridge)"},
+                "mark_read": {"type": "boolean", "description": "Mark messages as read (default: true)"},
+            },
+        },
+    },
+    "mesh_consensus": {
+        "handler": tool_mesh_consensus,
+        "description": "Send a question to multiple nodes for consensus — governance pre-check included",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "question": {"type": "string", "description": "Question to send for multi-node consensus"},
+                "node_ids": {"type": "array", "items": {"type": "string"}, "description": "Specific nodes (optional, auto-selects if empty)"},
+                "min_nodes": {"type": "integer", "description": "Minimum nodes for consensus (default: 3)"},
+            },
+            "required": ["question"],
+        },
+    },
 }
 
 RESOURCES = {
@@ -435,8 +685,11 @@ def handle_tools_list(params: dict) -> dict:
     return {"tools": tools}
 
 
+_MESH_TOOL_NAMES = {"mesh_send_task", "mesh_broadcast", "mesh_route_smart", "mesh_read_inbox", "mesh_consensus"}
+
+
 def handle_tools_call(params: dict) -> dict:
-    """Handle tools/call request."""
+    """Handle tools/call request. Mesh tools get DOF governance post-check."""
     tool_name = params.get("name", "")
     arguments = params.get("arguments", {})
     if tool_name not in TOOLS:
@@ -446,6 +699,21 @@ def handle_tools_call(params: dict) -> dict:
         }
     try:
         result = TOOLS[tool_name]["handler"](arguments)
+        # Governance post-check for mesh tools
+        if tool_name in _MESH_TOOL_NAMES:
+            try:
+                from core.governance import ConstitutionEnforcer
+                enforcer = ConstitutionEnforcer()
+                gov = enforcer.check(json.dumps(result, default=str))
+                result["_dof_governance"] = {
+                    "checked": True,
+                    "passed": gov.passed,
+                    "score": gov.score,
+                    "violations": len(gov.violations),
+                    "warnings": len(gov.warnings),
+                }
+            except Exception as ge:
+                result["_dof_governance"] = {"checked": False, "error": str(ge)}
         return {
             "content": [{"type": "text", "text": json.dumps(result, default=str)}],
             "isError": False,

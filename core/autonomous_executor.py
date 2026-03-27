@@ -179,6 +179,18 @@ class AutonomousExecutor:
         result = ExecutionResult(task_id=task_id, task=task, model_used=model, result="")
         t0 = time.time()
 
+        # Sentinel: validar agente externo antes de interactuar
+        try:
+            from core.sentinel_lite import SentinelEngine
+            sentinel = SentinelEngine()
+            # Solo validar si hay endpoint externo en el task
+            if hasattr(self, 'endpoint') and self.endpoint:
+                report = sentinel.validate_offline(self.endpoint)
+                if report.result == 'FAIL':
+                    logger.warning(f"Sentinel FAIL para {self.endpoint} — score {report.overall_score}")
+        except Exception as e:
+            logger.debug(f"Sentinel skip: {e}")
+
         messages = [
             {"role": "system", "content": AGENT_SYSTEM},
             {"role": "user", "content": task},

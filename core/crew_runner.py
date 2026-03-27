@@ -261,6 +261,15 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
             gov_result = enforcer.check(output)
             metrics.log_governance(run_id, gov_result.passed, gov_result.score, gov_result.violations)
 
+            # Generar ZK proof de la decisión de governance
+            try:
+                from core.zk_governance_proof import GovernanceProofGenerator
+                gen = GovernanceProofGenerator()
+                proof = gen.generate_proof_from_result(gov_result)
+                logger.info(f"[{run_id[:8]}] ZK proof: {proof.proof_hash[:16]}... verdict={proof.verdict}")
+            except Exception as e:
+                logger.debug(f"ZK proof skip: {e}")
+
             # DAG: governance node
             gov_node_id = f"gov_{attempt}"
             dag.add_node(gov_node_id, "GOVERNANCE", {

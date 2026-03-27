@@ -37,8 +37,8 @@ from mcp_server import (
 class TestMCPToolRegistry(unittest.TestCase):
     """Test that the tool registry is correct."""
 
-    def test_has_10_tools(self):
-        self.assertEqual(len(TOOLS), 10)
+    def test_has_15_tools(self):
+        self.assertEqual(len(TOOLS), 15)
 
     def test_has_3_resources(self):
         self.assertEqual(len(RESOURCES), 3)
@@ -55,6 +55,11 @@ class TestMCPToolRegistry(unittest.TestCase):
             "dof_create_attestation",
             "dof_oags_identity",
             "dof_conformance_check",
+            "mesh_send_task",
+            "mesh_broadcast",
+            "mesh_route_smart",
+            "mesh_read_inbox",
+            "mesh_consensus",
         }
         self.assertEqual(set(TOOLS.keys()), expected)
 
@@ -95,10 +100,12 @@ class TestMCPProtocol(unittest.TestCase):
         req = {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}
         resp = handle_request(req)
         tools = resp["result"]["tools"]
-        self.assertEqual(len(tools), 10)
+        self.assertEqual(len(tools), 15)
         names = {t["name"] for t in tools}
         self.assertIn("dof_verify_governance", names)
         self.assertIn("dof_run_z3", names)
+        self.assertIn("mesh_send_task", names)
+        self.assertIn("mesh_consensus", names)
 
     def test_resources_list(self):
         req = {"jsonrpc": "2.0", "id": 3, "method": "resources/list", "params": {}}

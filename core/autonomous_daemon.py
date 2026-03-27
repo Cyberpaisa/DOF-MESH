@@ -476,6 +476,16 @@ class AutonomousDaemon:
 
         self.history.append(cycle_result)
 
+        # Auto-improvement: extraer lecciones del ciclo
+        try:
+            from core.self_improvement import SelfImprover
+            improver = SelfImprover()
+            cycle = improver.run_improvement_cycle()
+            if cycle.lessons:
+                logger.info(f"Self-improvement: {len(cycle.lessons)} lecciones extraídas")
+        except Exception as e:
+            logger.debug(f"Self-improvement skip: {e}")
+
     # ═══════════════════════════════════════════════════
     # MAIN LOOP
     # ═══════════════════════════════════════════════════
