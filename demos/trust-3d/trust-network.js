@@ -14,6 +14,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 // ═══════════════════════════════════════════════════════
 // DATA — Sistema DOF-MESH real
@@ -137,10 +140,23 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.minDistance = 3;
 controls.maxDistance = 30;
-controls.target.set(0, 1, 0);
+controls.target.set(0, 1.5, 0);
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.4; // cinematográfico lento
+
+// ── BLOOM POST-PROCESSING ──
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  0.8,   // strength
+  0.4,   // radius
+  0.85   // threshold
+);
+composer.addPass(bloomPass);
 
 // Lights
-scene.add(new THREE.AmbientLight(0x111122, 0.8));
+scene.add(new THREE.AmbientLight(0x111122, 0.6));
 const mainLight = new THREE.PointLight(0x00ff88, 3, 30);
 mainLight.position.set(0, 5, 0);
 scene.add(mainLight);
@@ -150,6 +166,9 @@ scene.add(blueLight);
 const purpleLight = new THREE.PointLight(0xaa88ff, 1.5, 20);
 purpleLight.position.set(5, 2, -5);
 scene.add(purpleLight);
+const warmLight = new THREE.PointLight(0xff8844, 1, 15);
+warmLight.position.set(3, 0, -3);
+scene.add(warmLight);
 
 // ═══════════════════════════════════════════════════════
 // LAYER 0 — DOF CONSTITUTION (centro)
@@ -468,8 +487,8 @@ for (let r = 2; r <= 10; r += 2) {
   scene.add(ring);
 }
 
-// Partículas
-const pCount = 500;
+// Partículas ambiente
+const pCount = 800;
 const pGeo = new THREE.BufferGeometry();
 const pPos = new Float32Array(pCount * 3);
 const pColors = new Float32Array(pCount * 3);
@@ -477,15 +496,49 @@ for (let i = 0; i < pCount; i++) {
   pPos[i * 3] = (Math.random() - 0.5) * 25;
   pPos[i * 3 + 1] = Math.random() * 8 - 1;
   pPos[i * 3 + 2] = (Math.random() - 0.5) * 25;
-  const c = new THREE.Color().setHSL(0.45 + Math.random() * 0.15, 0.8, 0.5);
+  const c = new THREE.Color().setHSL(0.35 + Math.random() * 0.25, 0.7, 0.5);
   pColors[i * 3] = c.r;
   pColors[i * 3 + 1] = c.g;
   pColors[i * 3 + 2] = c.b;
 }
 pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
 pGeo.setAttribute('color', new THREE.BufferAttribute(pColors, 3));
-const pMat = new THREE.PointsMaterial({ size: 0.02, transparent: true, opacity: 0.35, vertexColors: true });
-scene.add(new THREE.Points(pGeo, pMat));
+const pMat = new THREE.PointsMaterial({ size: 0.025, transparent: true, opacity: 0.3, vertexColors: true });
+const particles = new THREE.Points(pGeo, pMat);
+scene.add(particles);
+
+// ── ENERGY PULSES — partículas que viajan entre agentes y core ──
+const PULSE_COUNT = 30;
+const pulses = [];
+for (let i = 0; i < PULSE_COUNT; i++) {
+  const pulseGeo = new THREE.SphereGeometry(0.02, 6, 6);
+  const pulseColor = [0x00ff88, 0x00b4ff, 0xaa88ff, 0xffaa00][i % 4];
+  const pulseMat = new THREE.MeshBasicMaterial({
+    color: pulseColor, transparent: true, opacity: 0.8,
+  });
+  const pulse = new THREE.Mesh(pulseGeo, pulseMat);
+  pulse.userData = {
+    progress: Math.random(),
+    speed: 0.003 + Math.random() * 0.005,
+    sourceIdx: Math.floor(Math.random() * AGENTS.length),
+    returning: Math.random() > 0.5,
+  };
+  scene.add(pulse);
+  pulses.push(pulse);
+}
+
+// ── ENERGY RINGS — anillos de energía expandiéndose desde el core ──
+const energyRings = [];
+for (let i = 0; i < 3; i++) {
+  const ringGeo = new THREE.TorusGeometry(0.5, 0.005, 8, 64);
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0x00ff88, transparent: true, opacity: 0.3 });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = 1.5;
+  ring.userData = { phase: i * (Math.PI * 2 / 3) };
+  scene.add(ring);
+  energyRings.push(ring);
+}
 
 // ═══════════════════════════════════════════════════════
 // RAYCASTER — click to inspect
@@ -634,11 +687,51 @@ function animate() {
   meshRing.rotation.z = t * 0.025;
   mcpRing.rotation.z = -t * 0.008;
 
-  // Lights pulse
-  mainLight.intensity = 2.5 + Math.sin(t) * 0.5;
+  // ── ENERGY PULSES — viajan entre agentes y core
+  pulses.forEach(pulse => {
+    pulse.userData.progress += pulse.userData.speed;
+    if (pulse.userData.progress > 1) {
+      pulse.userData.progress = 0;
+      pulse.userData.sourceIdx = Math.floor(Math.random() * agentMeshes.length);
+      pulse.userData.returning = !pulse.userData.returning;
+    }
+    const p = pulse.userData.progress;
+    const agent = agentMeshes[pulse.userData.sourceIdx];
+    if (agent) {
+      const from = pulse.userData.returning ? core.position : agent.position;
+      const to = pulse.userData.returning ? agent.position : core.position;
+      const mid = from.clone().add(to).multiplyScalar(0.5);
+      mid.y += 0.5 + Math.sin(p * Math.PI) * 0.8;
+      // Bezier interpolation
+      const invP = 1 - p;
+      pulse.position.x = invP * invP * from.x + 2 * invP * p * mid.x + p * p * to.x;
+      pulse.position.y = invP * invP * from.y + 2 * invP * p * mid.y + p * p * to.y;
+      pulse.position.z = invP * invP * from.z + 2 * invP * p * mid.z + p * p * to.z;
+      pulse.material.opacity = Math.sin(p * Math.PI) * 0.9;
+    }
+  });
+
+  // ── ENERGY RINGS — expandiéndose desde el core
+  energyRings.forEach((ring, i) => {
+    const phase = (t * 0.3 + ring.userData.phase) % (Math.PI * 2);
+    const scale = 0.5 + (phase / (Math.PI * 2)) * 4;
+    ring.scale.set(scale, scale, 1);
+    ring.material.opacity = 0.25 * (1 - phase / (Math.PI * 2));
+    ring.position.y = 1.5;
+  });
+
+  // ── PARTICLES — rotación lenta ambiental
+  particles.rotation.y = t * 0.01;
+
+  // ── LIGHTS — pulso orgánico
+  mainLight.intensity = 2.5 + Math.sin(t * 0.7) * 0.8;
+  blueLight.intensity = 1.5 + Math.sin(t * 0.5 + 1) * 0.5;
+  purpleLight.intensity = 1.2 + Math.sin(t * 0.4 + 2) * 0.4;
+  warmLight.position.x = Math.cos(t * 0.2) * 4;
+  warmLight.position.z = Math.sin(t * 0.2) * 4;
 
   controls.update();
-  renderer.render(scene, camera);
+  composer.render(); // bloom pipeline
   labelRenderer.render(scene, camera);
 }
 
@@ -646,6 +739,7 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
   labelRenderer.setSize(window.innerWidth, window.innerHeight);
 });
 
