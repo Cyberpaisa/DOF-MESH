@@ -35,7 +35,9 @@ print()
 # ── 3. Access governance rules ────────────────────────────────────────────────
 enforcer = Constitution()
 sample = "The research findings indicate clear evidence of deterministic behavior across all test conditions."
-allowed, message = enforcer.enforce(sample)
+result = enforcer.enforce(sample)
+allowed = result["status"] == "COMPLIANT"
+message = result["status"]
 print(f"Governance check on sample output:")
 print(f"  Allowed:     {allowed}")
 print(f"  Message:     {message}")

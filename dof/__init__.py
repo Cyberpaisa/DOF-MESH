@@ -474,8 +474,19 @@ __all__ = [
     "LOCAL_MODELS",
 ]
 
-from dof.x402_gateway import TrustGateway, GatewayVerdict, GatewayAction
+try:
+    from dof.x402_gateway import TrustGateway, GatewayVerdict, GatewayAction
+except ImportError:
+    TrustGateway = GatewayVerdict = GatewayAction = None
 
 # Local AGI — zero-token autonomous execution (v0.6.1)
-from core.autonomous_executor import AutonomousExecutor, ExecutionResult, ToolCall
-from core.local_orchestrator import LocalOrchestrator, OrchestratorResult, LOCAL_MODELS
+try:
+    from core.autonomous_executor import AutonomousExecutor, ExecutionResult, ToolCall
+except ImportError:
+    AutonomousExecutor = ExecutionResult = ToolCall = None
+
+try:
+    from core.local_orchestrator import LocalOrchestrator, OrchestratorResult, LOCAL_MODELS
+except ImportError:
+    LocalOrchestrator = OrchestratorResult = None
+    LOCAL_MODELS = []
