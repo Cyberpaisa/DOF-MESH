@@ -1,293 +1,998 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DOF — Deterministic Observability Framework</title>
-<meta name="description" content="Governance matematica para agentes autonomos de IA. Z3 proofs, no opiniones.">
+<meta name="description" content="Mathematical governance for autonomous AI agents. Z3 proofs, not opinions.">
+<meta name="theme-color" content="#0a0a0f">
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+  :root {
+    --bg: #0a0a0f;
+    --bg-card: rgba(255,255,255,0.03);
+    --border: rgba(255,255,255,0.06);
+    --teal: #00d4aa;
+    --teal-dim: rgba(0,212,170,0.15);
+    --teal-glow: rgba(0,212,170,0.3);
+    --purple: #7c3aed;
+    --purple-dim: rgba(124,58,237,0.15);
+    --purple-glow: rgba(124,58,237,0.25);
+    --text: #e0e0e8;
+    --text-dim: #6b7280;
+    --text-muted: #4b5563;
+    --white: #ffffff;
+  }
+
+  html { scroll-behavior: smooth; }
+
   body {
-    background: #0a0a0a;
-    color: #e0e0e0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  /* Background pattern */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Ambient glow orbs */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(0,212,170,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
   }
 
   code, pre, .mono {
-    font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', 'Courier New', monospace;
+    font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Courier New', monospace;
   }
 
-  a {
-    color: #00d4aa;
-    text-decoration: none;
-  }
-
-  a:hover {
-    text-decoration: underline;
-  }
+  a { color: var(--teal); text-decoration: none; transition: all 0.3s ease; }
+  a:hover { color: var(--white); }
 
   .container {
-    max-width: 720px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 0 24px;
+    position: relative;
+    z-index: 1;
   }
 
-  /* --- Header --- */
-  header {
-    padding: 80px 0 64px;
-    border-bottom: 1px solid #1a1a1a;
+  /* ========== NAV ========== */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 16px 0;
+    background: rgba(10,10,15,0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
   }
 
-  header h1 {
-    font-size: 32px;
-    font-weight: 600;
-    letter-spacing: -0.5px;
-    color: #ffffff;
+  nav .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  nav .logo {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, var(--teal), var(--white));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  nav .links {
+    display: flex;
+    gap: 32px;
+  }
+
+  nav .links a {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dim);
+    transition: color 0.3s;
+  }
+
+  nav .links a:hover { color: var(--teal); }
+
+  /* ========== HERO ========== */
+  .hero {
+    padding: 180px 0 100px;
+    text-align: center;
+    position: relative;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(0,212,170,0.08) 0%, rgba(124,58,237,0.04) 50%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: var(--teal-dim);
+    border: 1px solid rgba(0,212,170,0.2);
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--teal);
+    margin-bottom: 32px;
+  }
+
+  .hero-badge .dot {
+    width: 6px;
+    height: 6px;
+    background: var(--teal);
+    border-radius: 50%;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--teal-glow); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 6px transparent; }
+  }
+
+  .hero h1 {
+    font-size: clamp(72px, 12vw, 140px);
+    font-weight: 900;
+    letter-spacing: -4px;
+    line-height: 0.9;
+    background: linear-gradient(180deg, var(--teal) 0%, var(--white) 40%, rgba(255,255,255,0.6) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 16px;
   }
 
-  header h1 span {
-    color: #00d4aa;
-  }
-
-  header p.subtitle {
-    font-size: 18px;
-    color: #888;
-    max-width: 540px;
-    line-height: 1.5;
-  }
-
-  /* --- Stats bar --- */
-  .stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 32px;
-    padding: 32px 0;
-    border-bottom: 1px solid #1a1a1a;
-  }
-
-  .stat {
-    font-size: 14px;
-    color: #666;
-  }
-
-  .stat strong {
-    color: #e0e0e0;
-    font-weight: 600;
-  }
-
-  /* --- Features --- */
-  .features {
-    padding: 56px 0;
-    border-bottom: 1px solid #1a1a1a;
-  }
-
-  .features h2 {
-    font-size: 14px;
-    font-weight: 600;
+  .hero h2 {
+    font-size: clamp(16px, 2.5vw, 22px);
+    font-weight: 400;
+    color: var(--text-dim);
+    letter-spacing: 4px;
     text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: #555;
-    margin-bottom: 32px;
-  }
-
-  .feature {
-    margin-bottom: 32px;
-  }
-
-  .feature:last-child {
-    margin-bottom: 0;
-  }
-
-  .feature h3 {
-    font-size: 16px;
-    font-weight: 600;
-    color: #ffffff;
-    margin-bottom: 6px;
-  }
-
-  .feature h3 .label {
-    color: #00d4aa;
-    font-weight: 500;
-  }
-
-  .feature p {
-    font-size: 15px;
-    color: #888;
-  }
-
-  /* --- Quick start --- */
-  .quickstart {
-    padding: 56px 0;
-    border-bottom: 1px solid #1a1a1a;
-  }
-
-  .quickstart h2 {
-    font-size: 14px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: #555;
     margin-bottom: 24px;
   }
 
-  pre {
-    background: #111;
-    border: 1px solid #1a1a1a;
-    border-radius: 6px;
-    padding: 20px 24px;
-    overflow-x: auto;
-    font-size: 14px;
+  .hero .tagline {
+    font-size: clamp(16px, 2vw, 20px);
+    color: var(--text);
+    max-width: 600px;
+    margin: 0 auto 48px;
     line-height: 1.7;
-    color: #c8c8c8;
-    margin-bottom: 16px;
+    font-weight: 300;
   }
 
-  pre .comment {
-    color: #555;
+  .hero .tagline strong {
+    color: var(--white);
+    font-weight: 600;
   }
 
-  pre .keyword {
-    color: #00d4aa;
-  }
-
-  pre .string {
-    color: #e8a86d;
-  }
-
-  pre .shell {
-    color: #888;
-    user-select: none;
-  }
-
-  /* --- Links --- */
-  .links {
-    padding: 48px 0;
-    border-bottom: 1px solid #1a1a1a;
+  /* CTA Buttons */
+  .cta-group {
     display: flex;
-    gap: 32px;
+    gap: 16px;
+    justify-content: center;
     flex-wrap: wrap;
+    margin-bottom: 64px;
   }
 
-  .links a {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 12px;
     font-size: 15px;
-    font-weight: 500;
-    color: #00d4aa;
-    padding: 10px 20px;
-    border: 1px solid #1f3d35;
-    border-radius: 6px;
-  }
-
-  .links a:hover {
-    background: #0d2920;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
     text-decoration: none;
   }
 
-  /* --- Footer --- */
-  footer {
-    padding: 48px 0;
-    font-size: 14px;
-    color: #444;
+  .btn-primary {
+    background: var(--teal);
+    color: var(--bg);
+    box-shadow: 0 0 20px var(--teal-glow), 0 4px 12px rgba(0,0,0,0.3);
   }
 
-  /* --- Mobile --- */
+  .btn-primary:hover {
+    background: #00e8bb;
+    box-shadow: 0 0 40px var(--teal-glow), 0 8px 24px rgba(0,0,0,0.4);
+    transform: translateY(-2px);
+    color: var(--bg);
+  }
+
+  .btn-secondary {
+    background: var(--bg-card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--teal);
+    color: var(--teal);
+    box-shadow: 0 0 20px rgba(0,212,170,0.1);
+    transform: translateY(-2px);
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    flex-wrap: wrap;
+    padding: 32px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-item .number {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--white);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-item .label {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  /* ========== SECTIONS ========== */
+  section {
+    padding: 120px 0;
+  }
+
+  .section-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--teal);
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 800;
+    color: var(--white);
+    letter-spacing: -1px;
+    line-height: 1.1;
+    margin-bottom: 24px;
+  }
+
+  .section-subtitle {
+    font-size: 18px;
+    color: var(--text-dim);
+    max-width: 640px;
+    line-height: 1.7;
+  }
+
+  /* ========== PROBLEM ========== */
+  .problem {
+    border-top: 1px solid var(--border);
+    position: relative;
+  }
+
+  .problem::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 300px;
+    background: radial-gradient(ellipse, rgba(124,58,237,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+    margin-top: 64px;
+  }
+
+  .problem-text h3 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 24px;
+    line-height: 1.3;
+  }
+
+  .problem-text p {
+    font-size: 16px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    margin-bottom: 16px;
+  }
+
+  .problem-text .highlight {
+    color: var(--teal);
+    font-weight: 600;
+  }
+
+  .problem-visual {
+    position: relative;
+    padding: 48px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+  }
+
+  .problem-visual .quote {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--white);
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  .problem-visual .quote .em {
+    color: #ef4444;
+    text-decoration: line-through;
+    opacity: 0.6;
+  }
+
+  .problem-visual .quote .fix {
+    color: var(--teal);
+    font-style: normal;
+  }
+
+  /* ========== LAYERS ========== */
+  .layers {
+    border-top: 1px solid var(--border);
+  }
+
+  .layers-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 64px;
+  }
+
+  .layer-card {
+    position: relative;
+    padding: 32px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.4s ease;
+    overflow: hidden;
+  }
+
+  .layer-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--teal), var(--purple));
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .layer-card:hover {
+    border-color: rgba(0,212,170,0.2);
+    box-shadow: 0 0 40px rgba(0,212,170,0.05), 0 8px 32px rgba(0,0,0,0.3);
+    transform: translateY(-4px);
+  }
+
+  .layer-card:hover::before { opacity: 1; }
+
+  .layer-number {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    font-family: 'SF Mono', monospace;
+  }
+
+  .layer-card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 12px;
+  }
+
+  .layer-card p {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  .layer-card.featured {
+    grid-column: span 1;
+    border-color: rgba(0,212,170,0.15);
+    box-shadow: 0 0 30px rgba(0,212,170,0.04);
+  }
+
+  /* ========== QUICKSTART ========== */
+  .quickstart {
+    border-top: 1px solid var(--border);
+  }
+
+  .code-window {
+    max-width: 700px;
+    margin: 48px auto 0;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 0 60px rgba(0,212,170,0.05), 0 24px 48px rgba(0,0,0,0.4);
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .code-dot:nth-child(1) { background: #ff5f57; }
+  .code-dot:nth-child(2) { background: #febc2e; }
+  .code-dot:nth-child(3) { background: #28c840; }
+
+  .code-title {
+    margin-left: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-family: 'SF Mono', monospace;
+  }
+
+  .code-body {
+    padding: 24px;
+    background: rgba(0,0,0,0.4);
+    font-size: 14px;
+    line-height: 1.8;
+    overflow-x: auto;
+  }
+
+  .code-body pre {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: var(--text);
+  }
+
+  .code-body .kw { color: var(--purple); font-weight: 500; }
+  .code-body .fn { color: var(--teal); }
+  .code-body .str { color: #fbbf24; }
+  .code-body .cm { color: var(--text-muted); }
+  .code-body .op { color: var(--text-dim); }
+  .code-body .sh { color: var(--text-muted); user-select: none; }
+  .code-body .var { color: #e0e0e8; }
+
+  /* ========== NUMBERS ========== */
+  .numbers {
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 64px;
+  }
+
+  .number-card {
+    padding: 40px 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    transition: all 0.4s ease;
+  }
+
+  .number-card:hover {
+    border-color: rgba(0,212,170,0.15);
+    box-shadow: 0 0 40px rgba(0,212,170,0.06);
+    transform: translateY(-2px);
+  }
+
+  .number-card .big {
+    font-size: 48px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--teal), var(--white));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+
+  .number-card .desc {
+    font-size: 14px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  /* ========== COMPARISON ========== */
+  .comparison {
+    border-top: 1px solid var(--border);
+  }
+
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 64px;
+  }
+
+  .compare-card {
+    padding: 40px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+  }
+
+  .compare-card.others {
+    background: rgba(239,68,68,0.03);
+    border-color: rgba(239,68,68,0.1);
+  }
+
+  .compare-card.dof {
+    background: rgba(0,212,170,0.03);
+    border-color: rgba(0,212,170,0.15);
+    box-shadow: 0 0 40px rgba(0,212,170,0.05);
+  }
+
+  .compare-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 24px;
+  }
+
+  .compare-card.others h3 { color: #ef4444; }
+  .compare-card.dof h3 { color: var(--teal); }
+
+  .compare-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .compare-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 15px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .compare-list .icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin-top: 2px;
+  }
+
+  .compare-card.others .icon { color: #ef4444; }
+  .compare-card.dof .icon { color: var(--teal); }
+
+  /* ========== FOOTER ========== */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 64px 0;
+    text-align: center;
+  }
+
+  footer .footer-brand {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+    line-height: 1.8;
+  }
+
+  footer .footer-brand strong {
+    color: var(--text);
+  }
+
+  footer .footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 32px;
+  }
+
+  footer .footer-links a {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dim);
+    transition: color 0.3s;
+  }
+
+  footer .footer-links a:hover { color: var(--teal); }
+
+  footer .footer-tagline {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* ========== ANIMATIONS ========== */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .fade-in-delay-1 { transition-delay: 0.1s; }
+  .fade-in-delay-2 { transition-delay: 0.2s; }
+  .fade-in-delay-3 { transition-delay: 0.3s; }
+  .fade-in-delay-4 { transition-delay: 0.4s; }
+  .fade-in-delay-5 { transition-delay: 0.5s; }
+  .fade-in-delay-6 { transition-delay: 0.6s; }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 900px) {
+    .layers-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .numbers-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .problem-grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+    .comparison-grid {
+      grid-template-columns: 1fr;
+    }
+    nav .links { display: none; }
+    .stats-bar { gap: 24px; }
+  }
+
   @media (max-width: 600px) {
-    header {
-      padding: 48px 0 40px;
-    }
-
-    header h1 {
-      font-size: 24px;
-    }
-
-    header p.subtitle {
-      font-size: 16px;
-    }
-
-    .stats {
-      gap: 20px;
-    }
-
-    .stat {
-      font-size: 13px;
-    }
-
-    pre {
-      font-size: 13px;
-      padding: 16px;
-    }
-
-    .links {
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .links a {
-      text-align: center;
-    }
+    .hero { padding: 140px 0 80px; }
+    .hero h1 { letter-spacing: -2px; }
+    .layers-grid { grid-template-columns: 1fr; }
+    .numbers-grid { grid-template-columns: 1fr; }
+    .cta-group { flex-direction: column; align-items: center; }
+    .stats-bar { gap: 16px; }
+    .stat-item .number { font-size: 20px; }
+    section { padding: 80px 0; }
+    .layer-card { padding: 24px; }
+    .number-card { padding: 32px 20px; }
+    .compare-card { padding: 28px; }
   }
 </style>
 </head>
 <body>
 
-<div class="container">
-
-  <header>
-    <h1><span>DOF</span> — Deterministic Observability Framework</h1>
-    <p class="subtitle">Governance matematica para agentes autonomos de IA. Z3 proofs, no opiniones.</p>
-  </header>
-
-  <div class="stats">
-    <div class="stat"><strong>127</strong> modules</div>
-    <div class="stat"><strong>650+</strong> tests</div>
-    <div class="stat"><strong>21</strong> on-chain attestations</div>
-    <div class="stat"><strong>SDK</strong> on PyPI</div>
+<!-- NAV -->
+<nav>
+  <div class="container">
+    <div class="logo">DOF</div>
+    <div class="links">
+      <a href="#problem">Problem</a>
+      <a href="#layers">Layers</a>
+      <a href="#quickstart">Quick Start</a>
+      <a href="#numbers">Numbers</a>
+      <a href="https://github.com/Cyberpaisa/DOF-MESH">GitHub</a>
+    </div>
   </div>
+</nav>
 
-  <section class="features">
-    <h2>Core</h2>
-
-    <div class="feature">
-      <h3><span class="label">Zero-LLM Governance</span></h3>
-      <p>Reglas deterministas, no otro modelo evaluando modelos.</p>
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge fade-in">
+      <span class="dot"></span>
+      Z3 Verified &middot; On-Chain Attested
     </div>
-
-    <div class="feature">
-      <h3><span class="label">Z3 Formal Proofs</span></h3>
-      <p>4 teoremas matematicamente verificados, 42 patrones de jerarquia.</p>
+    <h1 class="fade-in fade-in-delay-1">DOF</h1>
+    <h2 class="fade-in fade-in-delay-2">Deterministic Observability Framework</h2>
+    <p class="tagline fade-in fade-in-delay-3">
+      Mathematical governance for autonomous AI agents.<br>
+      <strong>Z3 proofs, not opinions.</strong>
+    </p>
+    <div class="cta-group fade-in fade-in-delay-4">
+      <a href="https://github.com/Cyberpaisa/DOF-MESH" class="btn btn-primary">
+        Get Started
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10m0 0L9 4m4 4L9 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a href="https://pypi.org/project/dof-sdk" class="btn btn-secondary">
+        pip install dof-sdk
+      </a>
     </div>
-
-    <div class="feature">
-      <h3><span class="label">On-Chain Attestations</span></h3>
-      <p>21 certificaciones en Avalanche C-Chain mainnet.</p>
+    <div class="stats-bar fade-in fade-in-delay-5">
+      <div class="stat-item">
+        <div class="number">127</div>
+        <div class="label">Modules</div>
+      </div>
+      <div class="stat-item">
+        <div class="number">650+</div>
+        <div class="label">Tests</div>
+      </div>
+      <div class="stat-item">
+        <div class="number">21</div>
+        <div class="label">On-Chain Attestations</div>
+      </div>
+      <div class="stat-item">
+        <div class="number">Z3</div>
+        <div class="label">Verified</div>
+      </div>
     </div>
-  </section>
-
-  <section class="quickstart">
-    <h2>Quick start</h2>
-
-    <pre><span class="shell">$ </span>pip install dof-sdk</pre>
-
-    <pre><span class="keyword">from</span> dof <span class="keyword">import</span> Constitution
-
-enforcer = Constitution()
-result = enforcer.check(<span class="string">"your agent output"</span>)
-<span class="keyword">print</span>(result.passed, result.violations)</pre>
-  </section>
-
-  <div class="links">
-    <a href="https://github.com/Cyberpaisa/DOF-MESH">GitHub</a>
-    <a href="https://pypi.org/project/dof-sdk">PyPI</a>
   </div>
+</section>
 
-  <footer>
-    Built by Cyber Paisa — Enigma Group | Medellin, Colombia
-  </footer>
+<!-- THE PROBLEM -->
+<section class="problem" id="problem">
+  <div class="container">
+    <div class="section-label fade-in">The Problem</div>
+    <div class="section-title fade-in fade-in-delay-1">Who governs the AI agents?</div>
+    <div class="problem-grid">
+      <div class="problem-text fade-in fade-in-delay-2">
+        <h3>245K tech layoffs in 2025. AI agents replacing humans at scale.</h3>
+        <p>But nobody built the safety rails. Autonomous agents make decisions, execute code, move money, and interact with real systems.</p>
+        <p>The industry's solution? <span class="highlight">Use another LLM to evaluate the LLM.</span></p>
+        <p>That is not governance. That is hope dressed as engineering.</p>
+      </div>
+      <div class="problem-visual fade-in fade-in-delay-3">
+        <div class="quote">
+          "Using an LLM to evaluate another LLM is <span class="em">not governance</span>. It's <span class="em">hope</span>."
+          <br><br>
+          <span class="fix">DOF uses deterministic rules, AST analysis, and Z3 formal proofs. Zero neural networks in the governance loop.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-</div>
+<!-- 7 LAYERS -->
+<section class="layers" id="layers">
+  <div class="container">
+    <div class="section-label fade-in">Architecture</div>
+    <div class="section-title fade-in fade-in-delay-1">7 Layers of Governance</div>
+    <p class="section-subtitle fade-in fade-in-delay-2">Each layer is deterministic. No LLM in the loop. Every decision is auditable, reproducible, and mathematically verifiable.</p>
+
+    <div class="layers-grid">
+      <div class="layer-card fade-in fade-in-delay-1">
+        <div class="layer-number">LAYER 01</div>
+        <h3>Constitution</h3>
+        <p>Deterministic rules engine. Hard rules block, soft rules warn. Zero neural network dependencies. YAML-defined, version-controlled.</p>
+      </div>
+      <div class="layer-card fade-in fade-in-delay-2">
+        <div class="layer-number">LAYER 02</div>
+        <h3>AST Verifier</h3>
+        <p>Static analysis catches eval(), exec(), secret leaks, and dangerous patterns in generated code before execution.</p>
+      </div>
+      <div class="layer-card fade-in fade-in-delay-3">
+        <div class="layer-number">LAYER 03</div>
+        <h3>Meta-Supervisor</h3>
+        <p>Quality gate scoring: Q(0.4) + A(0.25) + C(0.2) + F(0.15). Weighted composite ensures multi-dimensional output evaluation.</p>
+      </div>
+      <div class="layer-card fade-in fade-in-delay-1">
+        <div class="layer-number">LAYER 04</div>
+        <h3>Adversarial</h3>
+        <p>Red Team + Guardian + Arbiter protocol. Systematic adversarial testing with an independent arbiter resolving disputes.</p>
+      </div>
+      <div class="layer-card fade-in fade-in-delay-2">
+        <div class="layer-number">LAYER 05</div>
+        <h3>Memory Governance</h3>
+        <p>Bi-temporal versioning with constitutional decay. Memory entries degrade over time unless reinforced by governance checks.</p>
+      </div>
+      <div class="layer-card featured fade-in fade-in-delay-3">
+        <div class="layer-number">LAYER 06</div>
+        <h3>Z3 Formal Proofs</h3>
+        <p>4 theorems mathematically verified in 109ms. 42 hierarchy patterns proven. Not tested -- proven.</p>
+      </div>
+      <div class="layer-card fade-in fade-in-delay-1">
+        <div class="layer-number">LAYER 07</div>
+        <h3>Oracle Attestation</h3>
+        <p>On-chain certificates on Avalanche C-Chain. 21 attestations deployed. Immutable, verifiable, public governance records.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUICKSTART -->
+<section class="quickstart" id="quickstart">
+  <div class="container">
+    <div class="section-label fade-in">Get Started</div>
+    <div class="section-title fade-in fade-in-delay-1">Up and running in 30 seconds</div>
+
+    <div class="code-window fade-in fade-in-delay-2">
+      <div class="code-header">
+        <span class="code-dot"></span>
+        <span class="code-dot"></span>
+        <span class="code-dot"></span>
+        <span class="code-title">main.py</span>
+      </div>
+      <div class="code-body">
+<pre><span class="sh">$ </span><span class="var">pip install dof-sdk</span>
+
+<span class="kw">from</span> <span class="var">dof</span> <span class="kw">import</span> <span class="fn">Constitution</span>
+
+<span class="cm"># Initialize the governance engine</span>
+<span class="var">enforcer</span> <span class="op">=</span> <span class="fn">Constitution</span><span class="op">()</span>
+
+<span class="cm"># Check any agent output</span>
+<span class="var">result</span> <span class="op">=</span> <span class="var">enforcer</span><span class="op">.</span><span class="fn">check</span><span class="op">(</span><span class="str">"your agent output here"</span><span class="op">)</span>
+
+<span class="cm"># Deterministic verdict</span>
+<span class="var">result</span><span class="op">.</span><span class="var">passed</span>      <span class="cm"># True / False</span>
+<span class="var">result</span><span class="op">.</span><span class="var">violations</span>  <span class="cm"># ["[AST_VERIFY] eval() detected"]</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- THE NUMBERS -->
+<section class="numbers" id="numbers">
+  <div class="container">
+    <div class="section-label fade-in">Metrics</div>
+    <div class="section-title fade-in fade-in-delay-1">The Numbers</div>
+
+    <div class="numbers-grid">
+      <div class="number-card fade-in fade-in-delay-1">
+        <div class="big">127</div>
+        <div class="desc">Core modules</div>
+      </div>
+      <div class="number-card fade-in fade-in-delay-2">
+        <div class="big">650+</div>
+        <div class="desc">Tests passing</div>
+      </div>
+      <div class="number-card fade-in fade-in-delay-3">
+        <div class="big">21</div>
+        <div class="desc">On-chain attestations</div>
+      </div>
+      <div class="number-card fade-in fade-in-delay-1">
+        <div class="big">4/4</div>
+        <div class="desc">Z3 theorems PROVEN</div>
+      </div>
+      <div class="number-card fade-in fade-in-delay-2">
+        <div class="big">7</div>
+        <div class="desc">Governance layers</div>
+      </div>
+      <div class="number-card fade-in fade-in-delay-3">
+        <div class="big">0</div>
+        <div class="desc">LLM dependencies in governance</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BUILT DIFFERENT -->
+<section class="comparison" id="comparison">
+  <div class="container">
+    <div class="section-label fade-in">Why DOF</div>
+    <div class="section-title fade-in fade-in-delay-1">Built Different</div>
+
+    <div class="comparison-grid">
+      <div class="compare-card others fade-in fade-in-delay-2">
+        <h3>Other Frameworks</h3>
+        <ul class="compare-list">
+          <li><span class="icon">&#10005;</span> LLM evaluating LLM</li>
+          <li><span class="icon">&#10005;</span> Prompt-based safety guardrails</li>
+          <li><span class="icon">&#10005;</span> No formal verification</li>
+          <li><span class="icon">&#10005;</span> Trust the vibes</li>
+          <li><span class="icon">&#10005;</span> No on-chain audit trail</li>
+          <li><span class="icon">&#10005;</span> Non-deterministic by design</li>
+        </ul>
+      </div>
+      <div class="compare-card dof fade-in fade-in-delay-3">
+        <h3>DOF</h3>
+        <ul class="compare-list">
+          <li><span class="icon">&#10003;</span> Deterministic rules engine</li>
+          <li><span class="icon">&#10003;</span> AST + regex + Z3 proofs</li>
+          <li><span class="icon">&#10003;</span> 4 theorems mathematically proven</li>
+          <li><span class="icon">&#10003;</span> Every decision auditable</li>
+          <li><span class="icon">&#10003;</span> 21 on-chain attestations</li>
+          <li><span class="icon">&#10003;</span> Zero LLM in governance loop</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-brand">
+      Built by <strong>Cyber Paisa</strong> &mdash; Enigma Group<br>
+      Medellin, Colombia
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/Cyberpaisa/DOF-MESH">GitHub</a>
+      <a href="https://pypi.org/project/dof-sdk">PyPI</a>
+      <a href="https://github.com/Cyberpaisa/DOF-MESH/tree/main/docs">Documentation</a>
+    </div>
+    <div class="footer-tagline">Open source. Shipped. Not a whitepaper.</div>
+  </div>
+</footer>
+
+<!-- Scroll Animation (IntersectionObserver) -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, {
+      threshold: 0.1,
+      rootMargin: '0px 0px -40px 0px'
+    });
+
+    document.querySelectorAll('.fade-in').forEach(function(el) {
+      observer.observe(el);
+    });
+  });
+</script>
 
 </body>
 </html>
