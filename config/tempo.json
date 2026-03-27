@@ -18,8 +18,12 @@
     "name": "Tempo Testnet (Moderato)"
   },
   "dof_contracts": {
-    "identity_registry": null,
-    "reputation_registry": null
+    "identity_registry": "0x94e8Ed614Cb051D9212c7610ECcbAEA58BE02f4e",
+    "reputation_registry": "0x432E2ab9d11544A8767559675996e34756E32790",
+    "deployer": "0xb481C5CE9e2beFb2bf307Ed2b580D53EC92Adea0",
+    "network": "tempo_testnet_moderato",
+    "chain_id": 42431,
+    "deployed_at": "2026-03-27"
   },
   "mpp": {
     "sdk": "pympp",
