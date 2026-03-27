@@ -16,13 +16,18 @@ Usage:
     payload = proof.to_attestation_payload()
 """
 
+from __future__ import annotations
+
 import os
 import json
 import hashlib
 import logging
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from core.governance import GovernanceResult
 
 logger = logging.getLogger("core.zk_governance_proof")
 

@@ -416,7 +416,7 @@ def enforce_with_proof(
     rule_ids: list[str] | None = None,
     timestamp: str | None = None,
     log_path: str = "",
-) -> tuple["GovernanceResult", "GovernanceProof"]:
+) -> tuple:
     """Ejecuta governance check y genera un proof criptográfico verificable.
 
     Wrapper sobre check_governance() que NO modifica enforce() existente.
