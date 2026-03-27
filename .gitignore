@@ -71,3 +71,13 @@ agents/soul_*.md
 *.tar.gz
 backups/
 certs/
+
+# Security — never track secrets
+.env
+.env.*
+*.key
+*.pem
+certs/
+scripts/.q_aion_vault.key
+*.secret
+credentials.json

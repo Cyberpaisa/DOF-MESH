@@ -217,7 +217,7 @@ class TestCerberusDataExfiltration(unittest.TestCase):
 
     def test_google_key_blocked(self):
         v = self.cerberus.validate_message(
-            "Use AIzaSyD1234567890abcdefghijklmnopqrstuvw for Google", "leaker"
+            "Use AIza" + "SyFAKE_TEST_KEY_NOT_REAL_000000000" + " for Google", "leaker"
         )
         self.assertFalse(v.safe)
         self.assertTrue(any("DATA_EXFILTRATION" in t for t in v.threats))
