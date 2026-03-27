@@ -1,44 +1,62 @@
 #!/bin/bash
-# Spawn a Claude Code worker that reads mesh inbox and executes tasks autonomously
-# Usage: ./spawn_claude_worker.sh <worker-name> [max-tasks]
+# Spawn a Claude Code worker for DOF-MESH
+# Usage: ./scripts/spawn_claude_worker.sh <worker-name> [max-tasks]
+# Example: ./scripts/spawn_claude_worker.sh claude-worker-1 3
 
 WORKER_NAME="${1:-claude-worker-1}"
 MAX_TASKS="${2:-5}"
-REPO="/Users/jquiceva/equipo-de-agentes"
+REPO="/Users/jquiceva/DOF-MESH"
 INBOX="$REPO/logs/mesh/inbox/$WORKER_NAME"
+BRANCH="worker/${WORKER_NAME}-$(date +%s)"
 
-mkdir -p "$INBOX"
+mkdir -p "$INBOX" "$REPO/logs/mesh/inbox/commander"
 
 PROMPT="Eres $WORKER_NAME — un nodo autónomo del DOF Mesh Legion.
 
 Tu directorio de trabajo es: $REPO
 Tu inbox está en: $INBOX
+Tu branch de trabajo es: $BRANCH
+
+LEE CLAUDE.md PRIMERO — contiene las reglas del proyecto.
 
 INSTRUCCIONES:
-1. Lee TODOS los archivos .json en tu inbox ($INBOX/)
-2. Para cada task, ejecuta lo que pida (escribir código, correr tests, documentar, optimizar)
-3. Cuando termines una task, renombra el archivo a .done
-4. Escribe el resultado en logs/mesh/inbox/commander/{task_id}-result.json
+1. PRIMERO: ejecuta 'git checkout -b $BRANCH' — NUNCA trabajes en main
+2. Lee TODOS los archivos .json en tu inbox ($INBOX/)
+3. Cada JSON tiene un campo 'content' con: task_id, task_type, description, validation, rules
+4. Para cada task:
+   a. Lee la description y ejecuta lo que pida
+   b. Corre la validation command para verificar
+   c. Escribe resultado en logs/mesh/inbox/commander/{task_id}-result.json con formato:
+      {\"task_id\": \"TASK-XXX\", \"status\": \"completed|failed\", \"result\": \"descripcion\", \"branch\": \"$BRANCH\"}
+   d. Renombra el archivo de task a .done (mv archivo.json archivo.done)
 5. Máximo $MAX_TASKS tasks por sesión
 6. Trabaja SOLO dentro de $REPO — nunca toques archivos fuera
-7. Usa DeepSeek API si necesitas consultar (key en .env)
-8. Cuando termines todas las tasks, reporta al commander
 
-IMPORTANTE:
-- No preguntes — ejecuta
-- No pidas confirmación — actúa
-- Si una task falla, reporta el error y pasa a la siguiente
-- Eres autónomo — el operador confía en ti
+REGLAS DE SEGURIDAD (OBLIGATORIAS):
+- NUNCA borres archivos de core/, dof/, tests/
+- NUNCA hagas git push — solo el Soberano pushea
+- NUNCA modifiques funciones sin leer el archivo completo
+- NUNCA borres tests — si fallan, arregla el código
+- NUNCA ejecutes: rm -rf, git reset --hard, git checkout ., git clean
+- Commits con: --author='$WORKER_NAME <worker@dof.mesh>'
+- NO agregar Co-Authored-By a commits
 
-Lee tu inbox ahora y empieza a trabajar."
+Lee CLAUDE.md y tu inbox ahora. Empieza a trabajar."
 
-echo "Spawning $WORKER_NAME with max $MAX_TASKS tasks..."
+echo "[$WORKER_NAME] Spawning on branch $BRANCH with max $MAX_TASKS tasks..."
 cd "$REPO"
+
+# Create worker branch BEFORE spawning
+git checkout -b "$BRANCH" 2>/dev/null || git checkout "$BRANCH"
 
 # Run Claude in print mode (non-interactive, autonomous)
 claude -p "$PROMPT" \
-    --allowedTools "Bash Edit Read Write Glob Grep Agent" \
+    --allowedTools "Bash Edit Read Write Glob Grep" \
     --model sonnet \
     2>&1 | tee "logs/mesh/${WORKER_NAME}.log"
 
-echo "[$WORKER_NAME] Session completed."
+# Return to main after worker finishes
+git checkout main 2>/dev/null
+
+echo "[$WORKER_NAME] Session completed on branch $BRANCH."
+echo "[$WORKER_NAME] Check results: cat logs/mesh/inbox/commander/TASK-*-result.json"
