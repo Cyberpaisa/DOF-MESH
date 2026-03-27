@@ -294,7 +294,7 @@ class MeshOrchestrator:
             OrchestrationResult with routing decision and outcome.
         """
         task_id = task.get("task_id", f"task-{int(time.time() * 1000)}")
-        task_type = task.get("task_type", "general")
+        task_type = task.get("task_type") or task.get("type", "general")
         context_length = int(task.get("context_length", 4096))
 
         # Step 1: Router decision (specialty + load + latency)

@@ -331,8 +331,8 @@ class HybridScheduler:
         try:
             from core.governance import ConstitutionEnforcer
             enforcer = ConstitutionEnforcer()
-            passed, _ = enforcer.enforce(output)
-            return passed
+            result = enforcer.enforce(output)
+            return result.get("status") == "COMPLIANT"
         except ImportError:
             return True  # Skip if governance not available
 

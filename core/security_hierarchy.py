@@ -144,7 +144,9 @@ class SecurityHierarchy:
         try:
             from core.governance import ConstitutionEnforcer
             enforcer = ConstitutionEnforcer()
-            passed, reason = enforcer.enforce(output_text)
+            result = enforcer.enforce(output_text)
+            passed = result.get("status") == "COMPLIANT"
+            reason = "; ".join(result.get("hard_violations", [])) or "compliant"
             return LayerResult(
                 "L1", passed, reason,
                 1.0 if passed else 0.0,
