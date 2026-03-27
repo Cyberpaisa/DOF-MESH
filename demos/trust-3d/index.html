@@ -1,86 +1,301 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>Enigma Trust Network 3D | DOF-MESH × XR Blocks</title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { background: #0a0a0f; color: #e0e0e0; font-family: 'SF Mono', 'Fira Code', monospace; overflow: hidden; }
-      canvas { display: block; }
-      #hud {
-        position: fixed; top: 20px; left: 20px; z-index: 100;
-        background: rgba(10, 10, 20, 0.85); border: 1px solid rgba(0, 255, 136, 0.3);
-        border-radius: 12px; padding: 16px 20px; backdrop-filter: blur(10px);
-        max-width: 320px;
-      }
-      #hud h1 { font-size: 14px; color: #00ff88; margin-bottom: 8px; letter-spacing: 1px; }
-      #hud .subtitle { font-size: 11px; color: #888; margin-bottom: 12px; }
-      #hud .stat { font-size: 11px; color: #aaa; margin: 4px 0; }
-      #hud .stat span { color: #00ff88; font-weight: bold; }
-      #agent-info {
-        position: fixed; bottom: 20px; right: 20px; z-index: 100;
-        background: rgba(10, 10, 20, 0.9); border: 1px solid rgba(0, 180, 255, 0.3);
-        border-radius: 12px; padding: 16px 20px; backdrop-filter: blur(10px);
-        max-width: 360px; display: none;
-      }
-      #agent-info h2 { font-size: 13px; color: #00b4ff; margin-bottom: 8px; }
-      #agent-info .field { font-size: 11px; color: #aaa; margin: 3px 0; }
-      #agent-info .field span { color: #fff; }
-      #agent-info .score-bar {
-        height: 6px; border-radius: 3px; margin-top: 8px;
-        background: rgba(255,255,255,0.1);
-      }
-      #agent-info .score-fill {
-        height: 100%; border-radius: 3px; transition: width 0.5s ease;
-      }
-      .sentinel-badge {
-        display: inline-block; padding: 2px 8px; border-radius: 4px;
-        font-size: 10px; font-weight: bold; margin-top: 6px;
-      }
-      .sentinel-pass { background: rgba(0, 255, 136, 0.2); color: #00ff88; border: 1px solid #00ff88; }
-      .sentinel-fail { background: rgba(255, 68, 68, 0.2); color: #ff4444; border: 1px solid #ff4444; }
-      #instructions {
-        position: fixed; bottom: 20px; left: 20px; z-index: 100;
-        font-size: 10px; color: #555;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="hud">
-      <h1>DOF-MESH LEGION</h1>
-      <div class="subtitle">Deterministic Observability Framework — 3D System Map</div>
-      <div class="stat">Sistema: <span id="agent-count">0</span></div>
-      <div class="stat">Governance: <span id="edge-count">0</span></div>
-      <div class="stat">Coliseum Avg: <span id="avg-score">0</span></div>
-      <div class="stat">Z3 Proofs: <span id="sentinel-rate">—</span></div>
-    </div>
+<html lang="es">
+<head>
+  <title>DOF-MESH Enterprise Visualizer | Trust Network</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-    <div id="agent-info">
-      <h2 id="info-name">Agent</h2>
-      <div class="field">Token ID: <span id="info-id">—</span></div>
-      <div class="field">Trust Score: <span id="info-score">—</span></div>
-      <div class="field">Classification: <span id="info-class">—</span></div>
-      <div class="field">Uptime: <span id="info-uptime">—</span></div>
-      <div class="field">Scans: <span id="info-scans">—</span></div>
-      <div class="field">MCP Tools: <span id="info-tools">—</span></div>
-      <div class="field">Capabilities: <span id="info-caps">—</span></div>
-      <div class="score-bar"><div class="score-fill" id="info-bar"></div></div>
-      <div id="info-sentinel"></div>
-    </div>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #030308;
+      color: #e0e0e0;
+      font-family: 'Inter', -apple-system, sans-serif;
+      overflow: hidden;
+    }
 
-    <div id="instructions">
-      Click agent node to inspect · Drag to rotate · Scroll to zoom · Hover for highlight
-    </div>
+    /* ── Graph container ── */
+    #graph-container { width: 100vw; height: 100vh; }
 
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.module.js",
-          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/"
-        }
-      }
-    </script>
-    <script type="module" src="trust-network.js"></script>
-  </body>
+    /* ── Top bar ── */
+    #topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      height: 48px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(3, 3, 8, 0.85);
+      border-bottom: 1px solid rgba(0, 255, 136, 0.12);
+      backdrop-filter: blur(20px);
+    }
+    #topbar .logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600; font-size: 14px; color: #00ff88;
+      letter-spacing: 1.5px;
+    }
+    #topbar .logo .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #00ff88;
+      box-shadow: 0 0 12px #00ff88;
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; box-shadow: 0 0 12px #00ff88; }
+      50% { opacity: 0.5; box-shadow: 0 0 4px #00ff88; }
+    }
+    #topbar .stats {
+      display: flex; gap: 24px; font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    #topbar .stat-item { display: flex; align-items: center; gap: 6px; color: #666; }
+    #topbar .stat-item .val { color: #fff; font-weight: 600; }
+    #topbar .stat-item .val.green { color: #00ff88; }
+    #topbar .stat-item .val.blue { color: #00b4ff; }
+    #topbar .stat-item .val.amber { color: #ffaa00; }
+    #topbar .stat-item .val.purple { color: #aa88ff; }
+
+    /* ── Sidebar filters ── */
+    #sidebar {
+      position: fixed; top: 48px; left: 0; bottom: 0; z-index: 150;
+      width: 240px;
+      background: rgba(3, 3, 8, 0.9);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20px);
+      padding: 16px;
+      overflow-y: auto;
+      transform: translateX(0);
+      transition: transform 0.3s ease;
+    }
+    #sidebar.collapsed { transform: translateX(-240px); }
+    #sidebar h3 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; font-weight: 600;
+      color: #555; letter-spacing: 2px;
+      text-transform: uppercase;
+      margin: 16px 0 8px 0;
+    }
+    #sidebar h3:first-child { margin-top: 0; }
+    .filter-group { margin-bottom: 4px; }
+    .filter-btn {
+      display: flex; align-items: center; gap: 8px;
+      width: 100%; padding: 7px 10px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: #999; font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .filter-btn:hover { background: rgba(255, 255, 255, 0.04); color: #ddd; }
+    .filter-btn.active { background: rgba(0, 255, 136, 0.08); border-color: rgba(0, 255, 136, 0.2); color: #00ff88; }
+    .filter-btn .indicator {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .filter-btn .count {
+      margin-left: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; color: #444;
+    }
+
+    /* ── Node detail panel ── */
+    #detail-panel {
+      position: fixed; top: 48px; right: 0; bottom: 0; z-index: 150;
+      width: 360px;
+      background: rgba(3, 3, 8, 0.92);
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20px);
+      padding: 24px;
+      overflow-y: auto;
+      transform: translateX(360px);
+      transition: transform 0.3s ease;
+    }
+    #detail-panel.open { transform: translateX(0); }
+    #detail-panel .close-btn {
+      position: absolute; top: 12px; right: 12px;
+      width: 28px; height: 28px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px; color: #666;
+      cursor: pointer; font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #detail-panel .close-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+    #detail-panel .node-header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 20px; padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    #detail-panel .node-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    #detail-panel .node-title { font-size: 16px; font-weight: 600; color: #fff; }
+    #detail-panel .node-subtitle { font-size: 12px; color: #666; margin-top: 2px; }
+    #detail-panel .badge {
+      display: inline-block; padding: 3px 8px;
+      border-radius: 4px; font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600; letter-spacing: 0.5px;
+    }
+    .badge-pass { background: rgba(0, 255, 136, 0.12); color: #00ff88; border: 1px solid rgba(0, 255, 136, 0.25); }
+    .badge-warn { background: rgba(255, 170, 0, 0.12); color: #ffaa00; border: 1px solid rgba(255, 170, 0, 0.25); }
+    .badge-fail { background: rgba(255, 68, 68, 0.12); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.25); }
+    .badge-info { background: rgba(0, 180, 255, 0.12); color: #00b4ff; border: 1px solid rgba(0, 180, 255, 0.25); }
+
+    .detail-section { margin-bottom: 20px; }
+    .detail-section h4 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; font-weight: 600;
+      color: #444; letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .detail-row {
+      display: flex; justify-content: space-between;
+      padding: 6px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      font-size: 12px;
+    }
+    .detail-row .label { color: #666; }
+    .detail-row .value { color: #ddd; font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+
+    /* ── Score bar ── */
+    .score-bar-container { margin: 12px 0; }
+    .score-bar-bg {
+      height: 6px; border-radius: 3px;
+      background: rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+    }
+    .score-bar-fill {
+      height: 100%; border-radius: 3px;
+      transition: width 0.6s ease;
+    }
+    .score-label {
+      display: flex; justify-content: space-between;
+      margin-top: 4px; font-size: 10px; color: #555;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Connections list ── */
+    .connection-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 8px; margin-bottom: 4px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 6px; font-size: 11px; color: #888;
+    }
+    .connection-item .conn-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+
+    /* ── Legend ── */
+    #legend {
+      position: fixed; bottom: 16px; left: 256px; z-index: 150;
+      display: flex; gap: 16px;
+      font-size: 11px; color: #555;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    /* ── Controls ── */
+    #view-controls {
+      position: fixed; bottom: 16px; right: 16px; z-index: 150;
+      display: flex; gap: 8px;
+    }
+    .view-btn {
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px; color: #888;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .view-btn:hover { background: rgba(255, 255, 255, 0.08); color: #ddd; }
+    .view-btn.active { background: rgba(0, 255, 136, 0.1); border-color: rgba(0, 255, 136, 0.3); color: #00ff88; }
+
+    /* ── Toggle sidebar ── */
+    #toggle-sidebar {
+      position: fixed; top: 56px; left: 8px; z-index: 200;
+      width: 28px; height: 28px;
+      background: rgba(3, 3, 8, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px; color: #666;
+      cursor: pointer; font-size: 14px;
+      display: none; align-items: center; justify-content: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      #sidebar { transform: translateX(-240px); }
+      #sidebar.open-mobile { transform: translateX(0); }
+      #toggle-sidebar { display: flex; }
+      #legend { left: 16px; }
+      #detail-panel { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Top bar -->
+  <div id="topbar">
+    <div class="logo">
+      <div class="dot"></div>
+      DOF-MESH LEGION
+    </div>
+    <div class="stats">
+      <div class="stat-item">Nodos <span class="val green" id="s-nodes">0</span></div>
+      <div class="stat-item">Links <span class="val blue" id="s-links">0</span></div>
+      <div class="stat-item">Mensajes <span class="val amber" id="s-msgs">0</span></div>
+      <div class="stat-item">Z3 <span class="val purple" id="s-z3">4/4</span></div>
+      <div class="stat-item">Health <span class="val green" id="s-health">--</span></div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <h3>Capas</h3>
+    <div class="filter-group" id="layer-filters"></div>
+
+    <h3>Tipo de Nodo</h3>
+    <div class="filter-group" id="type-filters"></div>
+
+    <h3>Estado</h3>
+    <div class="filter-group" id="state-filters"></div>
+
+    <h3>Circuit Breaker</h3>
+    <div class="filter-group" id="cb-filters"></div>
+  </div>
+
+  <!-- Detail panel -->
+  <div id="detail-panel">
+    <button class="close-btn" onclick="closeDetail()">&times;</button>
+    <div id="detail-content"></div>
+  </div>
+
+  <!-- Legend -->
+  <div id="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#00ff88"></div>Constitution</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00b4ff"></div>Agentes</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ffaa00"></div>LLM Mesh</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#aa88ff"></div>MCPs</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff6644"></div>Tools</div>
+  </div>
+
+  <!-- View controls -->
+  <div id="view-controls">
+    <button class="view-btn active" onclick="setView('force')">Force</button>
+    <button class="view-btn" onclick="setView('radial')">Radial</button>
+    <button class="view-btn" onclick="setView('tree')">Tree</button>
+    <button class="view-btn" onclick="toggleOrbit(this)">Orbit</button>
+    <button class="view-btn" onclick="resetCamera()">Reset</button>
+  </div>
+
+  <!-- Graph -->
+  <div id="graph-container"></div>
+
+  <script src="https://unpkg.com/3d-force-graph@1.73.4/dist/3d-force-graph.min.js"></script>
+  <script src="trust-network.js"></script>
+</body>
 </html>
