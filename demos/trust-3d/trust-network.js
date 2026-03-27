@@ -211,45 +211,95 @@ scene.add(govRing);
 const agentMeshes = [];
 const agentRadius = 3.5;
 
+// Distribución ESFÉRICA (no plana) — hélice DNA ascendente
 AGENTS.forEach((agent, i) => {
-  const angle = (i / AGENTS.length) * Math.PI * 2;
+  const t_param = i / AGENTS.length;
+  const angle = t_param * Math.PI * 4; // 2 vueltas de hélice
+  const height = 0.3 + t_param * 2.8;  // sube en espiral
   const x = Math.cos(angle) * agentRadius;
   const z = Math.sin(angle) * agentRadius;
-  const y = 1.2 + Math.sin(i * 0.7) * 0.4;
+  const y = height;
 
-  const size = 0.15 + agent.mcps * 0.02;
-  const geo = new THREE.SphereGeometry(size, 24, 24);
+  const size = 0.15 + agent.mcps * 0.025;
+  const geo = new THREE.SphereGeometry(size, 32, 32);
   const mat = new THREE.MeshPhysicalMaterial({
     color: agent.color,
-    emissive: new THREE.Color(agent.color).multiplyScalar(0.2),
-    metalness: 0.3, roughness: 0.4, clearcoat: 0.8, transparent: true, opacity: 0.9,
+    emissive: new THREE.Color(agent.color).multiplyScalar(0.3),
+    metalness: 0.3, roughness: 0.35, clearcoat: 1.0, clearcoatRoughness: 0.1,
+    transparent: true, opacity: 0.9,
   });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.set(x, y, z);
-  mesh.userData = { type: 'agent', data: agent };
+  mesh.userData = { type: 'agent', data: agent, baseAngle: angle, baseY: height };
   scene.add(mesh);
   agentMeshes.push(mesh);
 
-  // Anillo Sentinel
-  const ringGeo = new THREE.TorusGeometry(size + 0.06, 0.008, 8, 32);
-  const ringMat = new THREE.MeshBasicMaterial({ color: agent.color, transparent: true, opacity: 0.5 });
+  // Anillo orbital 1 (Sentinel style)
+  const ringGeo = new THREE.TorusGeometry(size + 0.07, 0.01, 8, 32);
+  const ringMat = new THREE.MeshBasicMaterial({ color: agent.color, transparent: true, opacity: 0.6 });
   const ring = new THREE.Mesh(ringGeo, ringMat);
   ring.rotation.x = Math.PI / 2;
   mesh.add(ring);
+
+  // Anillo orbital 2 (inclinado)
+  const ring2Geo = new THREE.TorusGeometry(size + 0.13, 0.007, 8, 32);
+  const ring2Mat = new THREE.MeshBasicMaterial({ color: agent.color, transparent: true, opacity: 0.25 });
+  const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
+  ring2.rotation.x = Math.PI / 3;
+  ring2.rotation.y = Math.PI / 5;
+  mesh.add(ring2);
+
   mesh.userData.ring = ring;
+  mesh.userData.ring2 = ring2;
+
+  // Glow esfera
+  const glowGeo = new THREE.SphereGeometry(size * 1.4, 16, 16);
+  const glowMat = new THREE.MeshBasicMaterial({ color: agent.color, transparent: true, opacity: 0.07 });
+  mesh.add(new THREE.Mesh(glowGeo, glowMat));
+  mesh.userData.glow = mesh.children[2];
 
   // Label
   const label = createLabel(`${agent.role}`, '#bbb', '0,200,255', '9px');
-  label.position.set(0, size + 0.12, 0);
+  label.position.set(0, size + 0.14, 0);
   mesh.add(label);
 
-  // Línea al core (governance connection)
-  const mid = new THREE.Vector3(x * 0.5, y + 0.5, z * 0.5);
+  // Línea de energía al core (curva con arco alto)
+  const mid = new THREE.Vector3(x * 0.4, y + 0.8, z * 0.4);
   const curve = new THREE.QuadraticBezierCurve3(mesh.position.clone(), mid, core.position.clone());
-  const lineGeo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(20));
-  const lineMat = new THREE.LineBasicMaterial({ color: agent.color, transparent: true, opacity: 0.06 });
+  const lineGeo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(25));
+  const lineMat = new THREE.LineBasicMaterial({ color: agent.color, transparent: true, opacity: 0.07 });
   scene.add(new THREE.Line(lineGeo, lineMat));
 });
+
+// Hélice DNA visual (tubo espiral conectando los agentes)
+const helixPoints = [];
+for (let h = 0; h <= 1; h += 0.01) {
+  const angle = h * Math.PI * 4;
+  helixPoints.push(new THREE.Vector3(
+    Math.cos(angle) * agentRadius * 0.95,
+    0.3 + h * 2.8,
+    Math.sin(angle) * agentRadius * 0.95,
+  ));
+}
+const helixCurve = new THREE.CatmullRomCurve3(helixPoints);
+const helixGeo = new THREE.TubeGeometry(helixCurve, 100, 0.008, 6, false);
+const helixMat = new THREE.MeshBasicMaterial({ color: 0x00b4ff, transparent: true, opacity: 0.12 });
+scene.add(new THREE.Mesh(helixGeo, helixMat));
+
+// Segunda hélice (DNA doble)
+const helix2Points = [];
+for (let h = 0; h <= 1; h += 0.01) {
+  const angle = h * Math.PI * 4 + Math.PI; // offset 180°
+  helix2Points.push(new THREE.Vector3(
+    Math.cos(angle) * agentRadius * 0.95,
+    0.3 + h * 2.8,
+    Math.sin(angle) * agentRadius * 0.95,
+  ));
+}
+const helix2Curve = new THREE.CatmullRomCurve3(helix2Points);
+const helix2Geo = new THREE.TubeGeometry(helix2Curve, 100, 0.008, 6, false);
+const helix2Mat = new THREE.MeshBasicMaterial({ color: 0x00ff88, transparent: true, opacity: 0.08 });
+scene.add(new THREE.Mesh(helix2Geo, helix2Mat));
 
 // Agent ring
 const agentRingGeo = new THREE.TorusGeometry(agentRadius, 0.01, 8, 64);
@@ -272,9 +322,11 @@ const meshRadius = 6.0;
 
 MESH_NODES.forEach((node, i) => {
   const angle = (i / MESH_NODES.length) * Math.PI * 2;
-  const x = Math.cos(angle) * meshRadius;
-  const z = Math.sin(angle) * meshRadius;
-  const y = 0.8 + (node.score / 100) * 1.5;
+  // Distribución esférica — no plana
+  const phi = (i / MESH_NODES.length) * Math.PI * 0.6 + 0.4; // elevación variada
+  const x = Math.cos(angle) * meshRadius * Math.sin(phi);
+  const z = Math.sin(angle) * meshRadius * Math.sin(phi);
+  const y = 0.5 + Math.cos(phi) * 2.5 + (node.score / 100) * 0.8;
 
   const size = 0.12 + (node.score / 100) * 0.12;
   const color = scoreToColor(node.score);
@@ -360,23 +412,33 @@ scene.add(meshRingLabel);
 
 const mcpRadius = 8.5;
 
+const mcpMeshes = [];
 MCPS.forEach((mcp, i) => {
   const angle = (i / MCPS.length) * Math.PI * 2;
+  const elevation = Math.sin(i * 0.8) * 1.2;
   const x = Math.cos(angle) * mcpRadius;
   const z = Math.sin(angle) * mcpRadius;
-  const y = 0.5;
+  const y = 1.0 + elevation;
 
-  const geo = new THREE.TetrahedronGeometry(0.1, 0);
+  // Diamantes brillantes para MCPs
+  const geo = new THREE.OctahedronGeometry(0.08, 0);
   const mat = new THREE.MeshPhysicalMaterial({
-    color: 0x00ff88, emissive: 0x00ff88, emissiveIntensity: 0.2,
-    metalness: 0.6, roughness: 0.2, transparent: true, opacity: 0.7,
+    color: 0x00ff88, emissive: 0x00ff88, emissiveIntensity: 0.3,
+    metalness: 0.8, roughness: 0.1, clearcoat: 1.0, transparent: true, opacity: 0.8,
   });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.set(x, y, z);
+  mesh.userData = { baseAngle: angle, baseY: y };
   scene.add(mesh);
+  mcpMeshes.push(mesh);
 
-  const label = createLabel(`${mcp.name}`, '#888', '0,255,136', '8px');
-  label.position.set(0, 0.18, 0);
+  // Mini glow
+  const glowGeo = new THREE.SphereGeometry(0.15, 8, 8);
+  const glowMat = new THREE.MeshBasicMaterial({ color: 0x00ff88, transparent: true, opacity: 0.04 });
+  mesh.add(new THREE.Mesh(glowGeo, glowMat));
+
+  const label = createLabel(`${mcp.name}`, '#777', '0,255,136', '8px');
+  label.position.set(0, 0.16, 0);
   mesh.add(label);
 });
 
@@ -514,26 +576,34 @@ function animate() {
     mesh.rotation.x = t * 1.8;
   });
 
-  // ── Capa 1: Agentes — MEDIO (orbitando suavemente)
+  // ── Capa 1: Agentes — ESPIRAL DNA ROTANDO
   agentMeshes.forEach((mesh, i) => {
-    const baseAngle = (i / AGENTS.length) * Math.PI * 2;
-    const orbitAngle = baseAngle + t * 0.08; // órbita lenta
-    mesh.position.x = Math.cos(orbitAngle) * agentRadius;
-    mesh.position.z = Math.sin(orbitAngle) * agentRadius;
-    mesh.position.y = 1.2 + Math.sin(i * 0.7) * 0.4 + Math.sin(t * 0.35 + i * 0.5) * 0.06;
-    if (mesh.userData.ring) {
-      mesh.userData.ring.rotation.z = t * 0.8 + i;
+    const d = mesh.userData;
+    const orbitSpeed = t * 0.06;
+    const spiralAngle = d.baseAngle + orbitSpeed;
+    const bobY = Math.sin(t * 0.4 + i * 0.6) * 0.08;
+    const breathRadius = agentRadius + Math.sin(t * 0.2 + i) * 0.15;
+    mesh.position.x = Math.cos(spiralAngle) * breathRadius;
+    mesh.position.z = Math.sin(spiralAngle) * breathRadius;
+    mesh.position.y = d.baseY + bobY;
+    if (d.ring) d.ring.rotation.z = t * 0.9 + i;
+    if (d.ring2) {
+      d.ring2.rotation.y = t * 0.5 + i;
+      d.ring2.rotation.z = t * 0.3 + i * 0.4;
     }
+    if (d.glow) d.glow.material.opacity = 0.05 + Math.sin(t * 1.5 + i) * 0.025;
   });
 
-  // ── Capa 2: Mesh Nodes (LLMs) — LENTO (planetas lejanos)
+  // ── Capa 2: Mesh Nodes (LLMs) — LENTO + ESFÉRICO (sistema solar)
   meshNodeMeshes.forEach((mesh, i) => {
     const node = mesh.userData.data;
     const baseAngle = (i / MESH_NODES.length) * Math.PI * 2;
-    const orbitAngle = baseAngle + t * 0.03; // muy lento
-    mesh.position.x = Math.cos(orbitAngle) * meshRadius;
-    mesh.position.z = Math.sin(orbitAngle) * meshRadius;
-    mesh.position.y = 0.8 + (node.score / 100) * 1.5 + Math.sin(t * 0.2 + i * 0.8) * 0.06;
+    const phi = (i / MESH_NODES.length) * Math.PI * 0.6 + 0.4;
+    const orbitAngle = baseAngle + t * 0.025; // muy lento
+    const breathR = meshRadius + Math.sin(t * 0.15 + i * 1.2) * 0.2;
+    mesh.position.x = Math.cos(orbitAngle) * breathR * Math.sin(phi);
+    mesh.position.z = Math.sin(orbitAngle) * breathR * Math.sin(phi);
+    mesh.position.y = 0.5 + Math.cos(phi) * 2.5 + (node.score / 100) * 0.8 + Math.sin(t * 0.18 + i * 0.7) * 0.07;
     // Anillos orbitales del nodo
     if (mesh.userData.orbit1) {
       mesh.userData.orbit1.rotation.z = t * 0.5 + i;
@@ -547,11 +617,22 @@ function animate() {
     }
   });
 
+  // ── Capa 3: MCPs — MUY LENTO (diamantes orbitando)
+  mcpMeshes.forEach((mesh, i) => {
+    const d = mesh.userData;
+    const orbitAngle = d.baseAngle + t * 0.012; // ultra lento
+    mesh.position.x = Math.cos(orbitAngle) * mcpRadius;
+    mesh.position.z = Math.sin(orbitAngle) * mcpRadius;
+    mesh.position.y = d.baseY + Math.sin(t * 0.15 + i * 0.9) * 0.04;
+    mesh.rotation.y = t * 1.5 + i; // diamante gira sobre sí mismo
+    mesh.rotation.x = t * 0.8 + i * 0.5;
+  });
+
   // ── Ring rotations — progresivamente más lentas hacia afuera
   govRing.rotation.z = t * 0.15;
-  agentRing.rotation.z = -t * 0.08;
-  meshRing.rotation.z = t * 0.03;
-  mcpRing.rotation.z = -t * 0.01;
+  agentRing.rotation.z = -t * 0.06;
+  meshRing.rotation.z = t * 0.025;
+  mcpRing.rotation.z = -t * 0.008;
 
   // Lights pulse
   mainLight.intensity = 2.5 + Math.sin(t) * 0.5;
