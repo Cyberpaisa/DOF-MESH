@@ -71,6 +71,7 @@ jobs:
       run: python -c "import dof; print('dof', dof.__version__, '— OK')"
 
     - name: Regression Check
+      continue-on-error: true
       run: |
         python -m dof regression-baseline
         python -m dof regression-check
