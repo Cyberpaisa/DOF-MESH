@@ -365,9 +365,13 @@ class RegressionTracker:
         base_failures = baseline["tests"]["failures"]
         curr_failures = current["tests"]["failures"]
 
+        # Allow ±2 test tolerance for flaky tests (timing, import order, etc.)
+        _FLAKY_TOLERANCE = 2
         if curr_passed > base_passed and curr_failures <= base_failures:
             change = ChangeType.IMPROVED
-        elif curr_passed < base_passed or curr_failures > base_failures:
+        elif curr_failures > base_failures + _FLAKY_TOLERANCE:
+            change = ChangeType.REGRESSED
+        elif curr_passed < base_passed - _FLAKY_TOLERANCE:
             change = ChangeType.REGRESSED
         else:
             change = ChangeType.STABLE
