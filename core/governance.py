@@ -405,3 +405,37 @@ def load_constitution(path: str | Path | None = None) -> dict:
 def get_constitution() -> dict:
     """Alias for load_constitution() with no arguments."""
     return load_constitution()
+
+
+# ─────────────────────────────────────────────────────────────────────
+# ZK Governance Proof integration
+# ─────────────────────────────────────────────────────────────────────
+
+def enforce_with_proof(
+    text: str,
+    rule_ids: list[str] | None = None,
+    timestamp: str | None = None,
+    log_path: str = "",
+) -> tuple["GovernanceResult", "GovernanceProof"]:
+    """Ejecuta governance check y genera un proof criptográfico verificable.
+
+    Wrapper sobre check_governance() que NO modifica enforce() existente.
+    Genera un GovernanceProof con hash keccak256 del resultado.
+
+    Args:
+        text: Texto a verificar contra la constitución.
+        rule_ids: IDs de reglas a incluir en el proof (opcional, auto-extraído).
+        timestamp: ISO 8601 timestamp (opcional, auto-generado).
+        log_path: Ruta al JSONL de proofs (opcional).
+
+    Returns:
+        Tupla (GovernanceResult, GovernanceProof).
+    """
+    from core.zk_governance_proof import GovernanceProofGenerator
+
+    result = check_governance(text)
+    gen = GovernanceProofGenerator(log_path=log_path)
+    proof = gen.generate_proof_from_result(
+        result, rule_ids=rule_ids, timestamp=timestamp,
+    )
+    return result, proof
