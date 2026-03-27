@@ -41,6 +41,15 @@ class ConstitutionEnforcer:
         """Ensure system nodes are not being hijacked by external LLM policies."""
         logger.info("Sovereignty check: COMPLETE. Nodes are deterministic.")
 
+    def enforce_hierarchy(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        response: str,
+    ) -> "HierarchyResult":
+        """Delegate to module-level enforce_hierarchy."""
+        return enforce_hierarchy(system_prompt, user_prompt, response)
+
     def check(self, text: str) -> "GovernanceResult":
         """Alias used by dof.quick — returns GovernanceResult dataclass."""
         result = self.enforce(text)
@@ -68,7 +77,7 @@ class ConstitutionEnforcer:
         }
 
 # ─────────────────────────────────────────────────────────────────────
-# Legacy Governance Logic
+# Data classes and enums
 # ─────────────────────────────────────────────────────────────────────
 
 @dataclass
@@ -83,8 +92,96 @@ class RulePriority(str, Enum):
     USER = "USER"
     ASSISTANT = "ASSISTANT"
 
+@dataclass
+class HierarchyResult:
+    compliant: bool
+    violation_level: str  # "NONE", "SYSTEM", "USER"
+    details: list[str] | str
+
+# ─────────────────────────────────────────────────────────────────────
+# Constitution loader (required by dof/__init__.py)
+# ─────────────────────────────────────────────────────────────────────
+
+REPO_ROOT = Path(__file__).parent.parent
+
+# Default hard/soft rules and PII patterns — IDs match YAML rule_key
+HARD_RULES: list[dict] = [
+    {"id": "NO_HALLUCINATION_CLAIM", "priority": RulePriority.SYSTEM, "pattern": r"\bstatistics show\b|\baccording to recent studies\b|\bstudies show\b|\bresearch shows\b|\bdata confirms\b|\bresearch demonstrates\b", "description": "Must not assert fabricated data without source", "type": "phrase_without_url"},
+    {"id": "LANGUAGE_COMPLIANCE", "priority": RulePriority.SYSTEM, "pattern": None, "description": "Response must be in English or contain structured data", "type": "language_check"},
+    {"id": "NO_EMPTY_OUTPUT", "priority": RulePriority.SYSTEM, "pattern": None, "description": "Output cannot be empty or a placeholder", "type": "min_length", "min_length": 50},
+    {"id": "MAX_LENGTH", "priority": RulePriority.SYSTEM, "pattern": None, "description": "Output cannot exceed 50K chars", "type": "max_length", "max_chars": 50000},
+]
+
+SOFT_RULES: list[dict] = [
+    {"id": "HAS_SOURCES", "priority": RulePriority.USER, "pattern": r"https?://", "description": "Should include source URLs", "weight": 0.3, "match_mode": "absent"},
+    {"id": "STRUCTURED_OUTPUT", "priority": RulePriority.USER, "pattern": r"##|- |\* |1\.|•", "description": "Should have clear structure (headers, bullets)", "weight": 0.2, "match_mode": "absent"},
+    {"id": "CONCISENESS", "priority": RulePriority.USER, "pattern": r"\bmeasurements were recorded\b|\bcomprehensive monitoring\b|\bsignificant delays\b", "description": "Should not have repetitive paragraphs", "weight": 0.2, "match_mode": "present"},
+    {"id": "ACTIONABLE", "priority": RulePriority.USER, "pattern": r"\b(recommend|next step|action|implement|recomend|siguiente paso)\b", "description": "Should include actionable steps or recommendations", "weight": 0.3, "match_mode": "absent"},
+    {"id": "NO_PII_LEAK", "priority": RulePriority.USER, "pattern": r"\b\d{3}-\d{2}-\d{4}\b|\b4\d{3}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b", "description": "Should not contain PII (emails, phones, SSNs, credit cards)", "weight": 0.3, "match_mode": "present"},
+]
+
+PII_PATTERNS: list[dict] = [
+    {"id": "P1", "pattern": r"\b\d{3}-\d{2}-\d{4}\b", "description": "SSN"},
+    {"id": "P2", "pattern": r"\b4[0-9]{12}(?:[0-9]{3})?\b", "description": "Visa card"},
+    {"id": "P3", "pattern": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", "description": "Email"},
+]
+
+# Prompt injection / hierarchy override patterns
+_OVERRIDE_PATTERNS = [
+    r"\bignore\s+(all\s+)?(rule|previous\s+instructions?|prior\s+instructions?|my\s+instructions?|the\s+system\s+prompt)",
+    r"\bskip\s+governance",
+    r"\bbypass\s+rule",
+    r"\bdisable\s+(all\s+)?rules",
+    r"\boverride\s+(the\s+)?constitution",
+    r"\bignora\s+(las\s+)?instrucciones",
+]
+
+# Indirect privilege escalation patterns (for enforce_hierarchy)
+_ESCALATION_PATTERNS = [
+    r"\b(system\s+)?administrator.*(?:updating|changing|modifying)\s+(your\s+)?instructions",
+    r"\bhigher\s+permission\s+level\b",
+    r"\bprevious\s+restrictions\s+no\s+longer\s+apply\b",
+    r"\broot\s+access\b.*(?:authorized|approved|granted)",
+    r"\bsupersede\s+(the\s+)?(original\s+)?system\s+prompt\b",
+    r"\b(developer|admin)\s+has\s+(unlocked|enabled|activated)\b",
+    r"\bunrestricted\s+mode\b",
+    r"\bnew\s+system\s+administrator\b",
+    r"\bupgraded\s+to\s+a\s+higher\b",
+    r"\bI\s+will\s+ignore\s+my\s+instructions\b",
+    r"\bignore\s+(the\s+)?system\s+prompt\b",
+]
+
+# Registry for internal core use
+GOVERNANCE_RULES = []
+
+# ─────────────────────────────────────────────────────────────────────
+# Helper functions
+# ─────────────────────────────────────────────────────────────────────
+
+def _has_source_attribution(text: str) -> bool:
+    """Check if text has source attribution (URL or explicit source reference)."""
+    if re.search(r'https?://', text):
+        return True
+    if re.search(r'\b(Sources?|References?|Citations?|Cited from)\s*:', text, re.IGNORECASE):
+        return True
+    return False
+
+
+def _extract_python_blocks(text: str) -> list[str]:
+    """Extract Python code blocks from markdown-formatted text."""
+    blocks = []
+    pattern = re.compile(r"```(?:python)?\n(.*?)```", re.DOTALL | re.IGNORECASE)
+    for m in pattern.finditer(text):
+        blocks.append(m.group(1))
+    return blocks
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Core governance check
+# ─────────────────────────────────────────────────────────────────────
+
 def check_governance(text: str) -> GovernanceResult:
-    """Run hard rules, soft rules, and PII patterns against text."""
+    """Run hard rules, soft rules, PII patterns, and AST verification against text."""
     violations: list[str] = []
     warnings: list[str] = []
 
@@ -96,20 +193,86 @@ def check_governance(text: str) -> GovernanceResult:
             warnings=[],
         )
 
-    # Hard rules — block on match
+    # Hard rules — block on match (YAML-aligned logic)
     for rule in HARD_RULES:
-        if re.search(rule["pattern"], text, re.IGNORECASE):
-            violations.append(f"[{rule['id']}] {rule['description']}")
+        rule_type = rule.get("type", "regex")
 
-    # Soft rules — warn on match
+        if rule_type == "phrase_without_url":
+            # Only trigger if hallucination phrase present AND no source attribution
+            if rule["pattern"] and re.search(rule["pattern"], text, re.IGNORECASE):
+                if not _has_source_attribution(text):
+                    violations.append(f"[{rule['id']}] {rule['description']}")
+
+        elif rule_type == "min_length":
+            min_len = rule.get("min_length", 50)
+            stripped = text.strip()
+            blocked_values = {"no output", "error", "n/a", "todo", "placeholder"}
+            if len(stripped) < min_len or stripped.lower() in blocked_values:
+                violations.append(f"[{rule['id']}] {rule['description']}")
+
+        elif rule_type == "max_length":
+            max_chars = rule.get("max_chars", 50000)
+            if len(text) > max_chars:
+                violations.append(f"[{rule['id']}] {rule['description']}")
+
+        elif rule_type == "language_check":
+            # Pass if structured data or contains English markers
+            stripped = text.strip()
+            if not (stripped.startswith("{") or stripped.startswith("[")):
+                words = stripped[:800].lower().split()
+                en_markers = {"the", "is", "and", "of", "to", "in", "for", "with",
+                              "that", "this", "are", "was", "has", "have", "from",
+                              "by", "an", "be", "as", "on"}
+                if words:
+                    ratio = sum(1 for w in words if w in en_markers) / len(words)
+                    if ratio < 0.05:
+                        violations.append(f"[{rule['id']}] {rule['description']}")
+
+        elif rule.get("pattern"):
+            # Fallback: simple regex
+            if re.search(rule["pattern"], text, re.IGNORECASE):
+                violations.append(f"[{rule['id']}] {rule['description']}")
+
+    # Soft rules — warn based on match_mode
     for rule in SOFT_RULES:
-        if re.search(rule["pattern"], text, re.IGNORECASE):
+        if not rule.get("pattern"):
+            continue
+        match = re.search(rule["pattern"], text, re.IGNORECASE)
+        mode = rule.get("match_mode", "present")
+        if mode == "absent" and not match:
+            # Warn when the desirable pattern is absent
+            warnings.append(f"[{rule['id']}] {rule['description']}")
+        elif mode == "present" and match:
+            # Warn when an undesirable pattern is present
             warnings.append(f"[{rule['id']}] {rule['description']}")
 
     # PII patterns — hard violation
     for pat in PII_PATTERNS:
         if re.search(pat["pattern"], text):
             violations.append(f"[{pat['id']}] PII detected: {pat['description']}")
+
+    # Instruction hierarchy — detect override attempts
+    for pat in _OVERRIDE_PATTERNS:
+        if re.search(pat, text, re.IGNORECASE):
+            violations.append(
+                f"[INSTRUCTION_HIERARCHY] Override attempt detected: "
+                f"matches '{pat}'"
+            )
+
+    # AST verification for Python code blocks
+    code_blocks = _extract_python_blocks(text)
+    if code_blocks:
+        try:
+            from core.ast_verifier import ASTVerifier
+            verifier = ASTVerifier()
+            for block in code_blocks:
+                ast_result = verifier.verify(block)
+                if not ast_result.passed:
+                    for v in ast_result.violations:
+                        msg = v.get("message", "Unknown") if isinstance(v, dict) else str(v)
+                        violations.append(f"[AST_VERIFY] {msg}")
+        except ImportError:
+            logger.warning("ASTVerifier not available — skipping code block analysis")
 
     passed = len(violations) == 0
     score = 1.0 if passed else 0.0
@@ -118,45 +281,81 @@ def check_governance(text: str) -> GovernanceResult:
         violations=violations, warnings=warnings,
     )
 
-# Registry for internal core use
-GOVERNANCE_RULES = []
 
 # ─────────────────────────────────────────────────────────────────────
-# Constitution loader (required by dof/__init__.py)
+# Instruction hierarchy enforcement
 # ─────────────────────────────────────────────────────────────────────
 
-REPO_ROOT = Path(__file__).parent.parent
+def check_instruction_override(text: str, priority: RulePriority) -> bool:
+    """Check if text contains instruction override attempts.
 
-# Default hard/soft rules and PII patterns
-HARD_RULES: list[dict] = [
-    {"id": "H1", "pattern": r"ignore (all |previous |prior )?instructions", "description": "Prompt injection attempt"},
-    {"id": "H2", "pattern": r"jailbreak|DAN mode|developer mode", "description": "Jailbreak attempt"},
-    {"id": "H3", "pattern": r"reveal.*(system prompt|instructions|api key)", "description": "Extraction attempt"},
-    {"id": "H4", "pattern": r"\bstatistics show\b|\baccording to recent studies\b|\bstudies show\b|\bresearch shows\b", "description": "Unsupported claim without citation (NO_HALLUCINATION_CLAIM)"},
-]
+    Returns True if an override is detected at the given priority level.
+    ASSISTANT-level instructions are allowed to reference rules.
+    """
+    if priority == RulePriority.ASSISTANT:
+        return False
+    for pat in _OVERRIDE_PATTERNS:
+        if re.search(pat, text, re.IGNORECASE):
+            return True
+    return False
 
-SOFT_RULES: list[dict] = [
-    {"id": "S1", "pattern": r"sudo|rm -rf|DROP TABLE", "description": "Potentially dangerous command"},
-    {"id": "S2", "pattern": r"<script|javascript:", "description": "Script injection"},
-    {"id": "S3", "pattern": r"\bmeasurements were recorded\b|\bcomprehensive monitoring\b|\bsignificant delays\b", "description": "Vague unverified measurement claim"},
-    {"id": "S4", "pattern": r"\btodo\b|\bfixme\b|\bhack\b|\bworkaround\b", "description": "Unresolved TODO or hack marker", "flags": re.IGNORECASE},
-    {"id": "S5", "pattern": r"\bI (think|believe|feel|assume)\b", "description": "Unverified first-person assertion without evidence"},
-]
 
-PII_PATTERNS: list[dict] = [
-    {"id": "P1", "pattern": r"\b\d{3}-\d{2}-\d{4}\b", "description": "SSN"},
-    {"id": "P2", "pattern": r"\b4[0-9]{12}(?:[0-9]{3})?\b", "description": "Visa card"},
-    {"id": "P3", "pattern": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", "description": "Email"},
-]
+def get_rules_by_priority(priority: RulePriority) -> list[dict]:
+    """Return rules filtered by priority level."""
+    result = []
+    for rule in HARD_RULES:
+        if rule.get("priority") == priority:
+            result.append(rule)
+    for rule in SOFT_RULES:
+        if rule.get("priority") == priority:
+            result.append(rule)
+    return result
 
-def _extract_python_blocks(text: str) -> list[str]:
-    """Extract Python code blocks from markdown-formatted text."""
-    blocks = []
-    pattern = re.compile(r"```(?:python)?\n(.*?)```", re.DOTALL | re.IGNORECASE)
-    for m in pattern.finditer(text):
-        blocks.append(m.group(1))
-    return blocks
 
+def enforce_hierarchy(
+    system_prompt: str,
+    user_prompt: str,
+    response: str,
+) -> HierarchyResult:
+    """Enforce instruction hierarchy: SYSTEM > USER > ASSISTANT.
+
+    Checks that neither user nor response attempts to override system rules.
+    Returns HierarchyResult with violation_level as string ("NONE", "SYSTEM", "USER").
+    """
+    details: list[str] = []
+    violation_level = "NONE"
+
+    # Check user prompt for system-level overrides
+    if check_instruction_override(user_prompt, RulePriority.SYSTEM):
+        details.append("system override")
+        violation_level = "SYSTEM"
+
+    # Check response for indirect privilege escalation (SYSTEM-level)
+    escalation_found = False
+    for pat in _ESCALATION_PATTERNS:
+        if re.search(pat, response, re.IGNORECASE):
+            if violation_level == "NONE":
+                violation_level = "SYSTEM"
+            details.append("system override")
+            escalation_found = True
+            break
+
+    # Check response for direct override patterns (USER-level if no escalation)
+    if not escalation_found and check_instruction_override(response, RulePriority.SYSTEM):
+        if violation_level == "NONE":
+            violation_level = "USER"
+        details.append("system override")
+
+    return HierarchyResult(
+        compliant=len(details) == 0,
+        violation_level=violation_level,
+        details=details,
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Constitution YAML loader
+# ─────────────────────────────────────────────────────────────────────
 
 _constitution_cache: dict | None = None
 _constitution_lock = threading.Lock()
