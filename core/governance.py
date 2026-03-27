@@ -151,6 +151,10 @@ _ESCALATION_PATTERNS = [
     r"\bignore\s+(the\s+)?system\s+prompt\b",
 ]
 
+# Backwards-compatible aliases (used by hierarchy_z3.py)
+_SYSTEM_OVERRIDE_PATTERNS = _OVERRIDE_PATTERNS
+_RESPONSE_VIOLATION_PATTERNS = _ESCALATION_PATTERNS
+
 # Registry for internal core use
 GOVERNANCE_RULES = []
 
