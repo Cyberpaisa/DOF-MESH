@@ -289,7 +289,11 @@ from core.event_stream import (
 # Mesh Scheduler
 # ─────────────────────────────────────────────────────────────────────
 
-from core.mesh_scheduler import MeshScheduler, TaskSlot, HIGH, NORMAL, LOW
+try:
+    from core.mesh_scheduler import MeshScheduler, TaskSlot, HIGH, NORMAL, LOW
+except ImportError:
+    MeshScheduler = TaskSlot = None
+    HIGH, NORMAL, LOW = 1, 2, 3
 
 # ─────────────────────────────────────────────────────────────────────
 # Top-level convenience functions
