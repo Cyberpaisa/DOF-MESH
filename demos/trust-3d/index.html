@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Enigma Trust Network 3D | DOF-MESH × XR Blocks</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { background: #0a0a0f; color: #e0e0e0; font-family: 'SF Mono', 'Fira Code', monospace; overflow: hidden; }
+      canvas { display: block; }
+      #hud {
+        position: fixed; top: 20px; left: 20px; z-index: 100;
+        background: rgba(10, 10, 20, 0.85); border: 1px solid rgba(0, 255, 136, 0.3);
+        border-radius: 12px; padding: 16px 20px; backdrop-filter: blur(10px);
+        max-width: 320px;
+      }
+      #hud h1 { font-size: 14px; color: #00ff88; margin-bottom: 8px; letter-spacing: 1px; }
+      #hud .subtitle { font-size: 11px; color: #888; margin-bottom: 12px; }
+      #hud .stat { font-size: 11px; color: #aaa; margin: 4px 0; }
+      #hud .stat span { color: #00ff88; font-weight: bold; }
+      #agent-info {
+        position: fixed; bottom: 20px; right: 20px; z-index: 100;
+        background: rgba(10, 10, 20, 0.9); border: 1px solid rgba(0, 180, 255, 0.3);
+        border-radius: 12px; padding: 16px 20px; backdrop-filter: blur(10px);
+        max-width: 360px; display: none;
+      }
+      #agent-info h2 { font-size: 13px; color: #00b4ff; margin-bottom: 8px; }
+      #agent-info .field { font-size: 11px; color: #aaa; margin: 3px 0; }
+      #agent-info .field span { color: #fff; }
+      #agent-info .score-bar {
+        height: 6px; border-radius: 3px; margin-top: 8px;
+        background: rgba(255,255,255,0.1);
+      }
+      #agent-info .score-fill {
+        height: 100%; border-radius: 3px; transition: width 0.5s ease;
+      }
+      .sentinel-badge {
+        display: inline-block; padding: 2px 8px; border-radius: 4px;
+        font-size: 10px; font-weight: bold; margin-top: 6px;
+      }
+      .sentinel-pass { background: rgba(0, 255, 136, 0.2); color: #00ff88; border: 1px solid #00ff88; }
+      .sentinel-fail { background: rgba(255, 68, 68, 0.2); color: #ff4444; border: 1px solid #ff4444; }
+      #instructions {
+        position: fixed; bottom: 20px; left: 20px; z-index: 100;
+        font-size: 10px; color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="hud">
+      <h1>DOF-MESH LEGION</h1>
+      <div class="subtitle">Deterministic Observability Framework — 3D System Map</div>
+      <div class="stat">Sistema: <span id="agent-count">0</span></div>
+      <div class="stat">Governance: <span id="edge-count">0</span></div>
+      <div class="stat">Coliseum Avg: <span id="avg-score">0</span></div>
+      <div class="stat">Z3 Proofs: <span id="sentinel-rate">—</span></div>
+    </div>
+
+    <div id="agent-info">
+      <h2 id="info-name">Agent</h2>
+      <div class="field">Token ID: <span id="info-id">—</span></div>
+      <div class="field">Trust Score: <span id="info-score">—</span></div>
+      <div class="field">Classification: <span id="info-class">—</span></div>
+      <div class="field">Uptime: <span id="info-uptime">—</span></div>
+      <div class="field">Scans: <span id="info-scans">—</span></div>
+      <div class="field">MCP Tools: <span id="info-tools">—</span></div>
+      <div class="field">Capabilities: <span id="info-caps">—</span></div>
+      <div class="score-bar"><div class="score-fill" id="info-bar"></div></div>
+      <div id="info-sentinel"></div>
+    </div>
+
+    <div id="instructions">
+      Click agent node to inspect · Drag to rotate · Scroll to zoom · Hover for highlight
+    </div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module" src="trust-network.js"></script>
+  </body>
+</html>
