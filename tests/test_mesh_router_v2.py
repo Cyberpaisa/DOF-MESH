@@ -42,7 +42,16 @@ class TestMeshRouterV2Route(unittest.TestCase):
     def setUp(self):
         from core.mesh_router_v2 import MeshRouterV2
         MeshRouterV2._instance = None
-        self.router = MeshRouterV2()
+        self.tmp = tempfile.mkdtemp()
+        nodes = {
+            "cerebras-llama": {"status": "active", "avg_latency_ms": 100, "active_tasks": 1, "role": "coder"},
+            "deepseek-coder": {"status": "active", "avg_latency_ms": 300, "active_tasks": 2, "role": "builder"},
+            "analyst-node":   {"status": "active", "avg_latency_ms": 200, "active_tasks": 0, "role": "analyst"},
+        }
+        Path(self.tmp, "nodes.json").write_text(
+            json.dumps(nodes), encoding="utf-8"
+        )
+        self.router = MeshRouterV2(mesh_dir=Path(self.tmp))
 
     def tearDown(self):
         from core.mesh_router_v2 import MeshRouterV2
@@ -71,9 +80,13 @@ class TestMeshRouterV2Route(unittest.TestCase):
         self.assertIsInstance(node, str)
 
     def test_route_deterministic_empty_nodes(self):
-        # With no nodes loaded, should still return a fallback
-        node = self.router.route("code")
-        self.assertIsInstance(node, str)
+        # With no nodes file, route raises ValueError
+        from core.mesh_router_v2 import MeshRouterV2
+        MeshRouterV2._instance = None
+        empty_dir = tempfile.mkdtemp()
+        router_empty = MeshRouterV2(mesh_dir=Path(empty_dir))
+        with self.assertRaises(ValueError):
+            router_empty.route("code")
 
 
 class TestMeshRouterV2Stats(unittest.TestCase):

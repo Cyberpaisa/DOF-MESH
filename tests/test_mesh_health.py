@@ -21,8 +21,11 @@ class TestMeshHealth(unittest.TestCase):
 
     def test_metodo_check_health(self):
         # Verificar que el método check_health se ejecuta correctamente
+        # check_nodes reads logs/mesh/nodes.json which may not exist in test env,
+        # so we mock it to return active nodes.
         mesh_health = MeshHealth.get_instance()
-        result = mesh_health.check_health()
+        with patch.object(mesh_health, 'check_nodes', return_value=['ollama', 'deepseek']):
+            result = mesh_health.check_health()
         self.assertTrue(result)
 
     def test_metodo_check_health_con_error(self):

@@ -214,13 +214,12 @@ class TestProcessInbox(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             with patch("core.web_bridge.REPO_ROOT", Path(tmpdir)):
                 b = WebBridge(node="gemini")
-            task = {"task_id": "t-001", "prompt": "What is 2+2?"}
-            (b.inbox / "task_t001.json").write_text(json.dumps(task))
+                task = {"task_id": "t-001", "prompt": "What is 2+2?"}
+                (b.inbox / "task_t001.json").write_text(json.dumps(task))
 
-            with patch.object(b, "send_and_receive", return_value="4"), \
-                 patch("time.sleep"), \
-                 patch.object(Path, "mkdir", return_value=None):
-                count = b.process_inbox()
+                with patch.object(b, "send_and_receive", return_value="4"), \
+                     patch("time.sleep"):
+                    count = b.process_inbox()
         self.assertEqual(count, 1)
 
     def test_result_saved_on_success(self):

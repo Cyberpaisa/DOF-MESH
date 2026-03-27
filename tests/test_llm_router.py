@@ -3,11 +3,24 @@
 import os
 import sys
 import time
+import types
 import unittest
 from unittest.mock import MagicMock, patch
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
+
+# ─────────────────────────────────────────────────────────────────────
+# Pre-import: mock 'crewai' if not installed so llm_config can load
+# ─────────────────────────────────────────────────────────────────────
+if "crewai" not in sys.modules:
+    _crewai_mock = types.ModuleType("crewai")
+    _crewai_mock.LLM = MagicMock  # placeholder; overridden by class-level @patch
+    sys.modules["crewai"] = _crewai_mock
+
+# Force re-import of llm_config with the mock in place
+if "llm_config" in sys.modules:
+    del sys.modules["llm_config"]
 
 
 # ─────────────────────────────────────────────────────────────────────
