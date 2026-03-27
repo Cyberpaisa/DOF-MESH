@@ -20,6 +20,8 @@ logger = logging.getLogger("dof.api")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 
+from dof import __version__ as DOF_VERSION
+
 try:
     from fastapi import FastAPI, Query, Request
     from fastapi.middleware.cors import CORSMiddleware
@@ -28,6 +30,39 @@ except ImportError:
     raise ImportError(
         "FastAPI is required for the REST API. Install with: pip install fastapi uvicorn"
     )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# API Key configuration
+# ─────────────────────────────────────────────────────────────────────
+
+def _load_api_keys() -> set:
+    """Load valid API keys from DOF_API_KEYS env var or api/keys.json file.
+    Returns empty set if none configured (open mode)."""
+    keys = set()
+
+    # 1. From environment variable (comma-separated)
+    env_keys = os.environ.get("DOF_API_KEYS", "").strip()
+    if env_keys:
+        keys.update(k.strip() for k in env_keys.split(",") if k.strip())
+
+    # 2. From api/keys.json file
+    keys_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "keys.json")
+    if os.path.isfile(keys_file):
+        try:
+            with open(keys_file, "r") as f:
+                data = json.load(f)
+            if isinstance(data, list):
+                keys.update(k for k in data if isinstance(k, str) and k.strip())
+            elif isinstance(data, dict) and "keys" in data:
+                keys.update(k for k in data["keys"] if isinstance(k, str) and k.strip())
+        except Exception:
+            pass
+
+    return keys
+
+# Endpoints excluded from API key auth
+_AUTH_EXCLUDED_PATHS = {"/api/v1/health", "/docs", "/openapi.json", "/redoc"}
 
 from mcp_server import (
     tool_verify_governance,
@@ -51,7 +86,7 @@ from mcp_server import (
 app = FastAPI(
     title="DOF Governance API",
     description="Deterministic Observability Framework — REST API for governance, verification, and observability",
-    version="0.1.0",
+    version=DOF_VERSION,
 )
 
 app.add_middleware(
@@ -63,6 +98,40 @@ app.add_middleware(
 )
 
 API_LOG = os.path.join(BASE_DIR, "logs", "api_requests.jsonl")
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Middleware: API key authentication
+# ─────────────────────────────────────────────────────────────────────
+
+@app.middleware("http")
+async def api_key_auth(request: Request, call_next):
+    """Simple API key middleware.
+    - Open mode (no keys configured): allow all requests.
+    - Keys configured: require valid X-API-Key header or api_key query param.
+    - /health, /docs, /openapi.json, /redoc are always excluded.
+    """
+    api_keys = _load_api_keys()
+
+    # Open mode: no keys configured, allow everything
+    if not api_keys:
+        return await call_next(request)
+
+    # Exclude certain paths from auth
+    path = request.url.path
+    if path in _AUTH_EXCLUDED_PATHS:
+        return await call_next(request)
+
+    # Check header first, then query param
+    provided_key = request.headers.get("X-API-Key") or request.query_params.get("api_key")
+
+    if not provided_key or provided_key not in api_keys:
+        return JSONResponse(
+            status_code=401,
+            content={"error": "Unauthorized", "detail": "Invalid or missing API key"},
+        )
+
+    return await call_next(request)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -113,7 +182,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 async def health():
     return {
         "status": "ok",
-        "version": "0.1.0",
+        "version": DOF_VERSION,
         "tests": 350,
         "modules": 30,
     }

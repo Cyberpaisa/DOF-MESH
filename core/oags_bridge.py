@@ -33,6 +33,17 @@ from datetime import datetime
 
 import yaml
 
+def _get_dof_version() -> str:
+    """Read DOF version without circular import."""
+    _init = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dof", "__init__.py")
+    with open(_init) as f:
+        for line in f:
+            if line.startswith("__version__"):
+                return line.split("=")[1].strip().strip('"').strip("'")
+    return "0.5.0"
+
+DOF_VERSION = _get_dof_version()
+
 try:
     import blake3 as _blake3
 
@@ -128,7 +139,7 @@ class OAGSIdentity:
             "tools": sorted(self._tools),
             "created_at": self._created_at,
             "framework": "DOF",
-            "version": "0.1.0",
+            "version": DOF_VERSION,
         }
 
     def _persist_agent_card(self):

@@ -23,6 +23,8 @@ Usage:
 import json
 import os
 import sys
+
+from dof import __version__ as DOF_VERSION
 import time
 import tempfile
 import logging
@@ -403,7 +405,7 @@ RESOURCES = {
 
 SERVER_INFO = {
     "name": "dof-governance",
-    "version": "0.1.0",
+    "version": DOF_VERSION,
 }
 
 CAPABILITIES = {

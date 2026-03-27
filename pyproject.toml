@@ -27,8 +27,6 @@ classifiers = [
 ]
 
 dependencies = [
-    "crewai[tools]>=0.108.0",
-    "litellm",
     "python-dotenv>=1.0.0",
     "pyyaml>=6.0.0",
     "rich>=13.9.0",
@@ -62,6 +60,10 @@ db = [
     "sqlalchemy>=2.0.0",
     "psycopg2-binary>=2.9.0",
 ]
+agents = [
+    "crewai[tools]>=0.108.0",
+    "litellm",
+]
 langgraph = [
     "langgraph>=0.2.0",
 ]
@@ -70,7 +72,12 @@ otel = [
     "opentelemetry-sdk>=1.20",
     "opentelemetry-exporter-otlp>=1.20",
 ]
-all = ["dof-sdk[dev,data,interfaces,api,db,langgraph,otel]"]
+whisper = [
+    "transformers>=4.36.0",
+    "torch>=2.0.0",
+    "accelerate>=0.20.0",
+]
+all = ["dof-sdk[dev,data,interfaces,api,db,agents,langgraph,otel,whisper]"]
 
 [project.scripts]
 dof = "dof.cli:main"

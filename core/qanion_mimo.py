@@ -1,9 +1,14 @@
-```python
 #!/usr/bin/env python3
 """
 """
 
+import asyncio
+import copy
+import heapq
+import math
 import os
+import queue
+import random
 import sys
 import json
 import time
@@ -14,19 +19,34 @@ import logging
 import secrets
 import threading
 import traceback
-from enum import IntEnum, auto
+import uuid
+from enum import Enum, IntEnum, auto
 from typing import (
-    Dict, List, Optional, Tuple, Any, Union, Callable, 
+    Any, Callable, Coroutine, Deque, Dict, FrozenSet, List,
+    Optional, Set, Tuple, Union,
     ByteString, NamedTuple, Final
 )
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from datetime import datetime, timedelta
-from collections import deque
+from collections import defaultdict, deque
 from io import BytesIO
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
-import copy
+
+import numpy as np
+
+try:
+    import mmh3
+    HAS_MMH3 = True
+except ImportError:
+    HAS_MMH3 = False
+
+try:
+    from sortedcontainers import SortedDict
+    HAS_SORTEDCONTAINERS = True
+except ImportError:
+    HAS_SORTEDCONTAINERS = False
 
 # CRYPTOGRAPHIC BACKENDS
 
@@ -831,19 +851,20 @@ class QanionLogger:
         self._initialized = True
     
     def _setup_handlers(self) -> None:
-        """Config```python
-import random
-import time
-import threading
-import queue
-import hashlib
-import json
-import numpy as np
-from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Optional, Any, Callable
-from enum import Enum, auto
-from collections import deque
-from concurrent.futures import ThreadPoolExecutor
+        """Configura handlers de logging."""
+        # Buffer handler
+        buffer_handler = QanionBufferHandler(self._buffer)
+        self._logger.addHandler(buffer_handler)
+
+        # Metrics handler
+        metrics_handler = QanionMetricsHandler(self._metrics)
+        self._logger.addHandler(metrics_handler)
+
+        # Console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(QanionJSONFormatter())
+        self._logger.addHandler(console_handler)
+
 
 # ============================================
 # 1. QanionRouting COMPLETA
@@ -1711,29 +1732,16 @@ class TrafficProfile:
             return TrafficPatternType.CONSTANT
         
         # Calcular métricas
-        interval_cv = np.std(intervals) / np.mean(intervals) if np.mean(intervals) > 0 else float('inf```python
-#!/usr/bin/env python3
-"""
-"""
+        interval_cv = np.std(intervals) / np.mean(intervals) if np.mean(intervals) > 0 else float('inf')
 
-import asyncio
-import hashlib
-import heapq
-import math
-import mmh3
-import numpy as np
-import struct
-import time
-import uuid
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from enum import Enum, auto
-from typing import (
-    Any, Callable, Coroutine, Deque, Dict, FrozenSet, List, 
-    Optional, Set, Tuple, Union
-)
-from concurrent.futures import ThreadPoolExecutor
-from sortedcontainers import SortedDict
+        if interval_cv < 0.1:
+            return TrafficPatternType.CONSTANT
+        elif interval_cv < 0.5:
+            return TrafficPatternType.PERIODIC
+        elif interval_cv < 1.0:
+            return TrafficPatternType.BURSTY
+        else:
+            return TrafficPatternType.RANDOM
 
 
 # SECTION 1: TRAPDETECTION ENGINE
@@ -2659,7 +2667,7 @@ class TrapDetectionEngine:
     def _compute_adaptive_weights(self) -> Tuple[float, ...]:
         """Calcula pesos adaptativos basados en historial."""
         if len(self._entropy_history) < 10:
-            return (0.35, 0.35, 0.15,            return (0.35, 0.35, 0.15, 0.15)
+            return (0.35, 0.35, 0.15, 0.15)
         
         weights = [0.4, 0.3, 0.2, 0.1]
         return tuple(weights)

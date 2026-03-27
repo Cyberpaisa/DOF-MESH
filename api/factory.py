@@ -18,6 +18,8 @@ import asyncio
 import json
 import os
 import sys
+
+from dof import __version__ as DOF_VERSION
 import time
 import uuid
 import logging
@@ -356,7 +358,7 @@ async def discover_sessions():
 app = FastAPI(
     title="DOF Software Factory",
     description="Node Mesh + Claude Commander as HTTP API",
-    version="0.1.0",
+    version=DOF_VERSION,
 )
 
 app.add_middleware(
@@ -373,7 +375,7 @@ app.include_router(factory_router, prefix="/api/v1")
 async def root():
     return {
         "name": "DOF Software Factory",
-        "version": "0.1.0",
+        "version": DOF_VERSION,
         "docs": "/docs",
         "health": "/api/v1/monitor/health",
         "mesh": "/api/v1/mesh/status",
