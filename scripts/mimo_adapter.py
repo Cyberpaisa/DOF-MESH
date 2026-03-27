@@ -18,7 +18,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "YOUR_OPENAI_KEY")
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY", "YOUR_PERPLEXITY_KEY")
 KIMI_API_KEY = os.getenv("KIMI_API_KEY", "YOUR_KIMI_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "YOUR_ANTHROPIC_KEY")
-MIMO_API_KEY = "sk-sej9ye5gv5s2ywsrvyi20wnudbd0h96mz0dfyies6qaymtv6" 
+MIMO_API_KEY = os.getenv("MIMO_API_KEY", "YOUR_MIMO_KEY")
 
 def query_provider(provider, prompt):
     """

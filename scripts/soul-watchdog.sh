@@ -23,7 +23,7 @@ alert() {
 
   if [[ "$ALERT_METHOD" == "telegram" || "$ALERT_METHOD" == "both" ]]; then
     # Send Telegram alert to Cyber Paisa
-    local BOT_TOKEN="8706259296:AAHIJgQu6x59tZZ-KgpvJHW-OPZVJFWZYew"
+    local BOT_TOKEN="${TELEGRAM_WATCHDOG_TOKEN:?Set TELEGRAM_WATCHDOG_TOKEN in .env}"
     local CHAT_ID="1353800773"
     curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
       -d chat_id="$CHAT_ID" \

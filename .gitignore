@@ -81,3 +81,6 @@ certs/
 scripts/.q_aion_vault.key
 *.secret
 credentials.json
+data/extraction/*.jsonl
+data/extraction/coliseum_vault.jsonl
+data/extraction/due_diligence_vault.jsonl
