@@ -76,7 +76,7 @@ class TestToolExecution(unittest.TestCase):
     def test_python_accesses_repo_root(self):
         out, ok = self.ex._run_python("print(REPO_ROOT)")
         self.assertTrue(ok)
-        self.assertIn("equipo", out)
+        self.assertIn("DOF-MESH", out)
 
     # ------------------------------------------------------------------ read_file
     def test_read_file_existing(self):
