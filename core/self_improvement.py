@@ -96,6 +96,26 @@ class Lesson:
 
 
 @dataclass
+class DriftAnalysis:
+    """Performance Drift Ratio (PDR) — del issue #1 (nanookclaw).
+
+    PDR = 1 - (observed / baseline)
+    PDR = 0: sin drift. PDR > 0: degradación. PDR < 0: mejora.
+    Detecta degradación ANTES de que se viole un invariante Z3.
+    """
+    pdr: float = 0.0
+    baseline: float = 0.0
+    observed: float = 0.0
+    trend: str = "stable"  # "degrading", "improving", "stable", "oscillating"
+    window_size: int = 0
+    near_misses: int = 0  # scores cercanos al threshold sin cruzarlo
+    threshold: float = 0.8
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
 class ImprovementCycle:
     """Resultado de un ciclo completo de auto-mejora."""
     cycle_id: str = ""
@@ -103,6 +123,7 @@ class ImprovementCycle:
     governance: Optional[dict] = None
     mesh: Optional[dict] = None
     tests: Optional[dict] = None
+    drift: Optional[dict] = None
     lessons: list = field(default_factory=list)
     recommendations_count: int = 0
 
@@ -388,13 +409,88 @@ class SelfImprover:
             return tests
         return None
 
-    # ── d) Extract Lessons ──
+    # ── d) Analyze Drift (PDR) — del issue #1 ──
+
+    def analyze_drift(
+        self,
+        scores: list[float],
+        threshold: float = 0.8,
+        window_size: int = 0,
+    ) -> DriftAnalysis:
+        """Calcula Performance Drift Ratio sobre una serie temporal de scores.
+
+        PDR = 1 - (observed / baseline)
+        Basado en propuesta de nanookclaw (issue #1, tracer-protocol).
+
+        Args:
+            scores: Lista de scores temporales (0.0 a 1.0).
+            threshold: Umbral de governance (default 0.8 para INV-6).
+            window_size: Tamaño de ventana (0 = auto, mitad de datos).
+
+        Returns:
+            DriftAnalysis con PDR, trend, near-misses.
+        """
+        if not scores or len(scores) < 2:
+            return DriftAnalysis(threshold=threshold)
+
+        n = len(scores)
+        ws = window_size if window_size > 0 else max(n // 2, 1)
+
+        baseline = sum(scores[:ws]) / ws
+        observed = sum(scores[-ws:]) / ws
+
+        pdr = 1.0 - (observed / baseline) if baseline > 0 else 0.0
+
+        # Near-misses: scores entre threshold y threshold+0.05
+        margin = 0.05
+        near_misses = sum(
+            1 for s in scores
+            if threshold <= s < threshold + margin
+        )
+
+        # Trend detection: monotonic vs oscillating
+        if n >= 4:
+            q1 = sum(scores[:n // 4]) / (n // 4)
+            q2 = sum(scores[n // 4:n // 2]) / (n // 2 - n // 4)
+            q3 = sum(scores[n // 2:3 * n // 4]) / (3 * n // 4 - n // 2)
+            q4 = sum(scores[3 * n // 4:]) / (n - 3 * n // 4)
+            quarters = [q1, q2, q3, q4]
+
+            diffs = [quarters[i + 1] - quarters[i] for i in range(3)]
+            if all(d < -0.01 for d in diffs):
+                trend = "degrading"
+            elif all(d > 0.01 for d in diffs):
+                trend = "improving"
+            elif any(d > 0.01 for d in diffs) and any(d < -0.01 for d in diffs):
+                trend = "oscillating"
+            else:
+                trend = "stable"
+        else:
+            if pdr > 0.05:
+                trend = "degrading"
+            elif pdr < -0.05:
+                trend = "improving"
+            else:
+                trend = "stable"
+
+        return DriftAnalysis(
+            pdr=round(pdr, 4),
+            baseline=round(baseline, 4),
+            observed=round(observed, 4),
+            trend=trend,
+            window_size=ws,
+            near_misses=near_misses,
+            threshold=threshold,
+        )
+
+    # ── e) Extract Lessons ──
 
     def extract_lessons(
         self,
         governance: GovernanceAnalysis,
         mesh: MeshAnalysis,
         tests: TestAnalysis,
+        drift: Optional[DriftAnalysis] = None,
     ) -> list[Lesson]:
         """Genera lecciones automáticas a partir de los análisis.
 
@@ -405,6 +501,9 @@ class SelfImprover:
         - Si tests empeoraron -> lesson regresión
         - Si governance mejorando -> lesson positiva
         - Si un nodo es 3x más rápido que el promedio -> lesson priorizar
+        - Si PDR > 0.1 -> lesson drift detectado (issue #1)
+        - Si near_misses > 3 -> lesson umbral en riesgo
+        - Si trend oscillating -> lesson degradación no-monotónica
 
         Returns:
             Lista de Lesson dataclasses.
@@ -516,9 +615,50 @@ class SelfImprover:
                 timestamp=now,
             ))
 
+        # ── Drift lessons (PDR — issue #1) ──
+        if drift:
+            if drift.pdr > 0.1:
+                lessons.append(Lesson(
+                    id=self._next_lesson_id(),
+                    category="drift",
+                    finding=f"Performance Drift detectado: PDR={drift.pdr:.2%} (baseline={drift.baseline:.3f} → observed={drift.observed:.3f})",
+                    recommendation="Investigar causa de degradación. Revisar providers, carga, o cambios recientes.",
+                    severity="high" if drift.pdr > 0.2 else "medium",
+                    timestamp=now,
+                ))
+            elif drift.pdr < -0.05:
+                lessons.append(Lesson(
+                    id=self._next_lesson_id(),
+                    category="drift",
+                    finding=f"Mejora detectada: PDR={drift.pdr:.2%} — el sistema está mejorando",
+                    recommendation="Documentar qué cambios produjeron la mejora para replicar.",
+                    severity="low",
+                    timestamp=now,
+                ))
+
+            if drift.near_misses > 3:
+                lessons.append(Lesson(
+                    id=self._next_lesson_id(),
+                    category="drift",
+                    finding=f"{drift.near_misses} near-misses detectados (scores cerca del threshold {drift.threshold})",
+                    recommendation="El sistema está operando al límite. Subir threshold o investigar causa.",
+                    severity="high",
+                    timestamp=now,
+                ))
+
+            if drift.trend == "oscillating":
+                lessons.append(Lesson(
+                    id=self._next_lesson_id(),
+                    category="drift",
+                    finding="Degradación no-monotónica detectada — oscilación alrededor de media declinante",
+                    recommendation="Patrón de fallo intermitente. Revisar estabilidad de providers y circuit breakers.",
+                    severity="medium",
+                    timestamp=now,
+                ))
+
         return lessons
 
-    # ── e) Run Improvement Cycle ──
+    # ── f) Run Improvement Cycle ──
 
     def run_improvement_cycle(
         self,
@@ -526,11 +666,12 @@ class SelfImprover:
         governance_log: str = DEFAULT_GOVERNANCE_LOG,
         mesh_log: str = DEFAULT_MESH_LOG,
         test_output: str = "",
+        drift_scores: Optional[list[float]] = None,
     ) -> ImprovementCycle:
         """Ejecuta un ciclo completo de auto-mejora.
 
-        1. Analiza governance, mesh, tests (si los logs existen)
-        2. Extrae lecciones
+        1. Analiza governance, mesh, tests, drift (si los datos existen)
+        2. Extrae lecciones (incluyendo PDR del issue #1)
         3. Guarda resultado en cycles.jsonl y lessons.jsonl
         4. Retorna ImprovementCycle
 
@@ -539,6 +680,7 @@ class SelfImprover:
             governance_log: Ruta a governance_proofs.jsonl
             mesh_log: Ruta a orchestrator.jsonl
             test_output: Output de unittest (string)
+            drift_scores: Serie temporal de scores para PDR (optional)
 
         Returns:
             ImprovementCycle con análisis y lecciones.
@@ -550,9 +692,10 @@ class SelfImprover:
         gov = self.analyze_governance_logs(governance_log)
         mesh = self.analyze_mesh_performance(mesh_log)
         tests = self.analyze_test_results(test_output)
+        drift = self.analyze_drift(drift_scores) if drift_scores else None
 
         # Extraer lecciones
-        lessons = self.extract_lessons(gov, mesh, tests)
+        lessons = self.extract_lessons(gov, mesh, tests, drift)
 
         # Construir ciclo
         cycle = ImprovementCycle(
@@ -561,6 +704,7 @@ class SelfImprover:
             governance=gov.to_dict(),
             mesh=mesh.to_dict(),
             tests=tests.to_dict(),
+            drift=drift.to_dict() if drift else None,
             lessons=[l.to_dict() for l in lessons],
             recommendations_count=len(lessons),
         )
