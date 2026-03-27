@@ -39,6 +39,8 @@ VALIDATIONS_FILE = os.path.join(SENTINEL_LOG_DIR, "validations.jsonl")
 # ── Constantes ───────────────────────────────────────────────────────────────
 
 DEFAULT_RPC = "https://api.avax.network/ext/bc/C/rpc"
+TEMPO_RPC = "https://rpc.moderato.tempo.xyz"
+TEMPO_MAINNET_RPC = "https://rpc.tempo.xyz"
 
 TRACER_WEIGHTS = {
     "trust": 0.20,

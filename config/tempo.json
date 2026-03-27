@@ -1,0 +1,29 @@
+{
+  "mainnet": {
+    "chain_id": 4217,
+    "rpc": "https://rpc.tempo.xyz",
+    "ws": "wss://rpc.tempo.xyz",
+    "explorer": "https://explore.mainnet.tempo.xyz",
+    "contracts_verify": "https://contracts.tempo.xyz",
+    "currency": "USD",
+    "name": "Tempo Mainnet"
+  },
+  "testnet": {
+    "chain_id": 42431,
+    "rpc": "https://rpc.moderato.tempo.xyz",
+    "ws": "wss://rpc.moderato.tempo.xyz",
+    "explorer": "https://explore.tempo.xyz",
+    "faucet": "https://faucets.chain.link/tempo-testnet",
+    "currency": "USD",
+    "name": "Tempo Testnet (Moderato)"
+  },
+  "dof_contracts": {
+    "identity_registry": null,
+    "reputation_registry": null
+  },
+  "mpp": {
+    "sdk": "pympp",
+    "docs": "https://mpp.dev",
+    "stripe_docs": "https://docs.stripe.com/payments/machine/mpp"
+  }
+}
