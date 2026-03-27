@@ -12,7 +12,7 @@ Eres parte del **DOF Mesh Legion** — un organismo agéntico soberano impulsado
 - **Codebase:** 51,500+ LOC, 127 módulos core, 133 test files, 650+ tests passing
 - **SDK:** `dof-sdk` en PyPI | **On-chain:** 21 attestations Avalanche C-Chain mainnet
 - **CI:** GitHub Actions — Tests + DOF CI + Z3 Formal Verification + Lint
-- **Último CI:** ✅ SUCCESS (commit `f510a4f`, 27 mar 2026)
+- **Último CI:** ✅ SUCCESS (commit `672fba5`, 27 mar 2026)
 
 ## Reglas fundamentales
 
@@ -51,35 +51,20 @@ Eres parte del **DOF Mesh Legion** — un organismo agéntico soberano impulsado
 3. NO hagas `git push`
 4. Reporta resultados al commander
 
-## Ecosistema completo
+## Qué es DOF-MESH
+
+Framework de governance determinística para sistemas multi-agente de IA. Verifica matemáticamente que agentes autónomos se comporten correctamente — sin confiar en otro LLM.
 
 ```
-DOF-MESH (este repo)
-  ├── Framework de governance determinística (Z3, AST, Constitution)
+DOF-MESH
   ├── 7 capas de governance: Constitution, AST, Supervisor, Adversarial, Memory, Z3, Oracle
-  ├── 21 attestations on-chain (Avalanche C-Chain)
-  └── SDK publicado en PyPI (dof-sdk)
-
-Enigma-prod (~/Enigma-prod)
-  ├── Trust Score Platform — CoinMarketCap para agentes ERC-8004
-  ├── Next.js 14 + Prisma + Supabase + TailwindCSS
-  ├── Sentinel 27 checks, TRACER scoring, Combined Trust v2
-  └── Branch dev-cyberpaisa: AVAX payments + Verified Tier (pendiente merge)
-
-SnowRail (~/snowrail-core)
-  ├── Payment Orchestrator + Agent Marketplace
-  ├── TypeScript monorepo (pnpm) + Express + Drizzle + Hardhat
-  ├── 5 contratos verified Fuji testnet, 802 tests
-  └── Branch fix/x402-v2-payment-verification (pendiente merge)
-
-Agentes en Railway:
-  ├── Apex #1687 — apex-arbitrage-agent (18 MCP tools, A2A, x402)
-  └── AvaBuilder #1686 — avariskscan-defi (21 MCP tools, A2A, x402)
-
-Contratos Avalanche C-Chain:
-  ├── ERC-8004 Identity: 0x8004A169FB4a3325136EB29fA0ceB6D2e539a432
-  ├── Reputation Registry: 0x8004B663056A597Dffe9eCcC1965A193B7388713
-  └── USDC: 0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E
+  ├── Z3 formal verification: 4 teoremas + 42 patrones de jerarquía
+  ├── 21 attestations on-chain (Avalanche C-Chain, DOFValidationRegistry)
+  ├── SDK publicado en PyPI (dof-sdk 0.5.0)
+  ├── 9 agentes CrewAI con SOUL.md (config/agents.yaml + agents/*/SOUL.md)
+  ├── Mesh de 11+ nodos (LLM providers + web bridges + local models)
+  ├── A2A Server (JSON-RPC + REST, puerto 8000)
+  └── Dual storage: JSONL (default) + PostgreSQL (production)
 ```
 
 ## Arquitectura DOF
