@@ -198,3 +198,43 @@ def ask_zo(prompt: str, model: str = "vercel:minimax/minimax-m2.5") -> str:
         return f"ERROR: {resp.status_code} - {resp.text}"
     except Exception as e:
         return f"ERROR: {str(e)[:100]}"
+
+
+# ── Prompt Repetition (arxiv 2512.14982) ──────────────────────
+# Repetir el prompt mejora LLMs sin reasoning (47/70 wins, 0 losses).
+# Solo aplicar a modelos sin chain-of-thought.
+
+NON_REASONING_MODELS = {
+    'deepseek', 'sambanova', 'groq', 'minimax', 'glm', 'cerebras',
+    'gemini-flash', 'claude-haiku', 'qwen', 'llama',
+}
+
+
+def should_repeat_prompt(model_name: str) -> bool:
+    """Determina si el modelo se beneficia de prompt repetition."""
+    model_lower = model_name.lower()
+    return any(nr in model_lower for nr in NON_REASONING_MODELS)
+
+
+def apply_prompt_repetition(prompt: str, model_name: str, times: int = 2) -> str:
+    """Aplica prompt repetition si el modelo se beneficia.
+
+    Args:
+        prompt: Prompt original.
+        model_name: Nombre del modelo (e.g. 'deepseek-chat').
+        times: Número de repeticiones (2=double, 3=triple).
+
+    Returns:
+        Prompt repetido si aplica, original si no.
+    """
+    if not should_repeat_prompt(model_name):
+        return prompt
+
+    if times == 2:
+        return f"{prompt}\n\nLet me repeat that:\n\n{prompt}"
+    elif times >= 3:
+        return (
+            f"{prompt}\n\nLet me repeat that:\n\n{prompt}"
+            f"\n\nLet me repeat that one more time:\n\n{prompt}"
+        )
+    return prompt
