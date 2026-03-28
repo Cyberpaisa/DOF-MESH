@@ -1,0 +1,31 @@
+name: Mutation Testing (mutmut)
+
+on:
+  push:
+    paths:
+      - 'core/adversarial.py'
+      - 'core/governance.py'
+      - 'core/z3_gate.py'
+  workflow_dispatch:
+
+jobs:
+  mutation-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install mutmut
+      - name: Run mutation testing on adversarial
+        run: |
+          mutmut run --paths-to-mutate core/adversarial.py --tests-dir tests/ || true
+          mutmut results
+      - name: Check mutation score
+        run: |
+          SCORE=$(mutmut results | grep -oP 'Killed: \K\d+' || echo 0)
+          TOTAL=$(mutmut results | grep -oP 'Total: \K\d+' || echo 1)
+          echo "Mutation score: $SCORE / $TOTAL"
