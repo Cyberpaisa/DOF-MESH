@@ -1,26 +1,28 @@
 # Implementaciones extraídas del Experimento Winston v4-Web
 ## DOF Mesh Legion — Cyber Paisa / Enigma Group
-> **Fuente:** Experimento Winston vs Baseline — 10 modelos frontier, 3 niveles, BLUE team
+> **Fuente:** Experimento Winston vs Baseline — 10 modelos frontier, 3 niveles, BLUE + RED
 > **Fecha:** 28 mar 2026 | **Archivo resultados:** `experiments/winston_vs_baseline/web_experiment_results.json`
 
 ---
 
-## Resumen de resultados (BLUE team, sin RED aún)
+## Resumen de resultados (BLUE vs RED — datos parciales, RED INTERMEDIATE completado)
 
-| Modelo | BLUE avg | Componentes Winston |
-|--------|----------|---------------------|
-| GLM-4.5 | 90.0 | ✓✓✓✓✓ |
-| Claude Sonnet 4.6 | 90.0 | ✓✓✓✓✓ |
-| ChatGPT-4o | 88.7 | ✓✓✓✓✓ |
-| DeepSeek-V3 | 88.7 | ✓✓✓✓✓ |
-| Gemini-2.5Pro | 84.7 | ✓✓✓✓✓ |
-| Grok-3 | 84.7 | ✓✓✓✓✓ |
-| Perplexity-Sonar | 82.0 | ✓✓✓✓✓ |
-| Mistral-Large | 78.7 | ✓✓✓✓✓ |
-| Kimi-K2 | 64.0 | ✓✓✓✓✓ |
-| MiniMax-M2 | 63.3 | ✗✓✗✓✓ |
+| Modelo | BLUE avg | RED avg | Delta | Nota |
+|--------|----------|---------|-------|------|
+| GLM-4.5 | 90.0 | 42.0 | +48.0 | |
+| Claude Sonnet 4.6 | 90.0 | 62.0 | +28.0 | |
+| ChatGPT-4o | 88.7 | 86.0 | +2.7 | ⚠️ GPT adopta Winston espontáneamente |
+| DeepSeek-V3 | 88.7 | 34.7 | +54.0 | |
+| Gemini-2.5Pro | 84.7 | 60.0 | +24.7 | |
+| Grok-3 | 84.7 | 0.0 | — | Sin tokens en RED |
+| Perplexity-Sonar | 82.0 | 83.0 | -1.0 | ⚠️ Perplexity supera BLUE en RED |
+| Mistral-Large | 78.7 | 40.0 | +38.7 | |
+| MiniMax-M2 | 76.0 | 78.0 | -2.0 | ⚠️ MiMo ya usa formato estructurado sin instrucción |
+| Kimi-K2 | 64.0 | 65.0 | -1.0 | ⚠️ Kimi ignora el formato Winston |
 
 **Hallazgo principal:** 8 de 10 modelos frontier adoptan Winston perfectamente con solo el system prompt + ejemplo.
+
+**Hallazgo RED (nuevo):** ChatGPT-4o, Perplexity, MiniMax/MiMo y Kimi usan formato estructurado + evidencia incluso sin instrucción Winston. Estos modelos han **internalizado el patrón** — el delta real de Winston para ellos es mínimo. El mayor valor de Winston está en modelos como GLM, DeepSeek, Mistral (+38-54 pts).
 
 ---
 
@@ -286,24 +288,75 @@ def portfolio_solve(constraints: list, timeout_ms=200) -> str:
 
 ---
 
+## IDEAS ADICIONALES — Extraídas de RED ADVANCED (10 modelos)
+
+Las siguientes propuestas emergieron de las respuestas RED ADVANCED. Son ideas convergentes — cuando 3+ modelos proponen lo mismo independientemente, la probabilidad de que sea correcto es alta.
+
+### Convergencia universal (7-10 modelos coinciden)
+
+| Idea | Modelos que la proponen | Implementabilidad |
+|------|------------------------|-------------------|
+| Batch attestation Merkle (N decisiones → 1 root on-chain) | Claude, Kimi, Gemini, GPT, Perplexity, DeepSeek, Mistral | 🟡 Sprint 2 |
+| Nodos heterogéneos con 3 roles: Z3-Heavy / Z3-Lite / Oracle-Memory | Todos | 🟢 Diseño listo |
+| Escalado en 3 fases con métricas por fase antes de avanzar | Todos | 🟢 Roadmap |
+| Riesgo #1 universal: divergencia contexto Z3 entre nodos | Todos | 🔴 Prioridad 1 |
+
+### Ideas específicas implementables
+
+**Context Epoch System** (Claude ADVANCED)
+Cada update de Constitution incrementa `context_epoch`. Toda verificación Z3 incluye el epoch. Nodo con epoch inferior rechaza queries hasta re-sincronizar. Convierte divergencia silenciosa en error detectable.
+
+**Golden Node árbitro** (Claude ADVANCED)
+1 nodo Z3 read-only que nunca procesa queries en producción. Solo referencia canónica. En conflicto entre nodos → Golden emite veredicto final + registra incidente on-chain.
+
+**Tiered Z3 Validation** (ChatGPT-4o ADVANCED)
+Tier 1 (10-15 nodos): Z3 completo. Tier 2 (20-25 nodos): Z3 parcial/heurístico. Tier 3 (10-15 nodos): verificación diferida para auditoría. Reduce carga Z3 global ~40-60%.
+
+**Constitution Hash Beacon** (Perplexity ADVANCED)
+Publicar hash del estado Constitution cada epoch (50 bloques Avalanche) en C-Chain. Nodo con state hash divergente → modo HALT automático hasta resincronización.
+
+**Adaptive Timeout en Consensus** (MiniMax ADVANCED)
+`timeout = max(measured_rtt × 3, 500ms)` + hysteresis delay 100ms post-quorum para catch-up de nodos rezagados.
+
+**Sybil Defense — Staking + Rotación** (Kimi + DeepSeek ADVANCED)
+Staking mínimo por nodo Edge + rotación de qué nodos adversariales evalúan cada agente cada 12h. Elimina fijación de ataque coordinado.
+
+**Z3 Resource Budgeting** (Perplexity ADVANCED)
+Cada query Z3 tiene presupuesto: 500ms hard timeout + máx 10,000 cláusulas. Si excede → `CONSTRAINT_BUDGET_EXCEEDED`, escala a Oracle Layer heurística. Separa Adversarial Layer en sandbox con rate limiting.
+
+### Hallazgos del experimento (no implementables, pero valiosos)
+
+| Hallazgo | Implicación |
+|---------|-------------|
+| MiMo rechazó responder en RED ADVANCED por no verificar que DOF existiera | Epistemología adversarial activa — único modelo con ese comportamiento |
+| DeepSeek fabricó métricas (22,891 LOC, 47 fallos CI) en RED INTERMEDIATE | Hallucination con precisión quirúrgica — documentar como anti-patrón |
+| 4 modelos (ChatGPT, Gemini, Perplexity, MiniMax) tienen Winston internalizado | Para ellos, el framework refina en lugar de transformar |
+| 10 modelos convergieron en la misma arquitectura de 3 fases independientemente | Alta confianza en el diseño de escalado propuesto |
+
+---
+
 ## IMPLEMENTACIÓN SUGERIDA — Orden
 
 ```
-Sprint actual:
-  1. Z3 Unknown Rate Monitor (30 min — 1 función en z3_verifier.py)
-  2. Z3 Proof Caching (1h — agregar cache a z3_gate.py)
-  3. AdaptiveCircuitBreaker (2h — nuevo módulo supervisor/)
+✅ Sprint completado (28 mar 2026 — commit 0d96f94 + 140f0e9):
+  1. Z3 Unknown Rate Monitor — DONE (core/z3_verifier.py)
+  2. Z3 Proof Caching — DONE (core/z3_gate.py)
+  3. AdaptiveCircuitBreaker — DONE (core/adaptive_circuit_breaker.py)
+  Tests: +39 tests (test_z3_verifier.py + test_z3_gate_cache.py + test_adaptive_circuit_breaker.py)
 
 Próximo sprint:
   4. ConstitutionIntegrityWatcher (3h — nuevo módulo constitution/)
   5. Mutation testing en CI (1h — agregar mutmut a GitHub Actions)
   6. ByzantineNodeGuard (3h — integrar en node_mesh.py)
+  7. Context Epoch System + Golden Node (2h — extensión z3_verifier.py)
 
 Para escalado a 50 nodos:
-  7. ConstitutionUpdateCoordinator
-  8. Z3 Portfolio Solving
-  9. Attestation Batching Merkle
-  10. Node Capability Manifest
+  8. ConstitutionUpdateCoordinator (two-phase commit, quorum 67%)
+  9. Z3 Portfolio Solving (instancias paralelas)
+  10. Attestation Batching Merkle (-70% gas)
+  11. Node Capability Manifest (NCM)
+  12. Tiered Z3 Validation (Tier 1/2/3 por nodo)
+  13. Constitution Hash Beacon (on-chain cada 50 bloques)
 ```
 
 ---

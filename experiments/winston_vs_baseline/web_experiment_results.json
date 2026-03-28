@@ -1,0 +1,822 @@
+{
+  "experiment": "Winston vs Baseline — Web Models Round",
+  "scored_at": "2026-03-28T02:20:10.760417",
+  "results": [
+    {
+      "model": "ChatGPT-4o",
+      "teams": {
+        "BLUE": {
+          "BASIC": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 100.0,
+            "word_count": 137,
+            "total_score": 90.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 85,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 213,
+            "total_score": 90.0
+          },
+          "ADVANCED": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 241,
+            "total_score": 86.0
+          },
+          "avg_total": 88.7,
+          "filled": 3
+        },
+        "RED": {
+          "BASIC": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 85,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 60.0,
+            "word_count": 325,
+            "total_score": 86.0
+          },
+          "ADVANCED": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "avg_total": 86.0,
+          "filled": 1
+        }
+      },
+      "blue_avg": 88.7,
+      "red_avg": 86.0,
+      "delta": 2.7
+    },
+    {
+      "model": "ChatGPT-o3",
+      "teams": {
+        "BLUE": {
+          "BASIC": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "INTERMEDIATE": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "ADVANCED": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "avg_total": 0,
+          "filled": 0
+        },
+        "RED": {
+          "BASIC": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "INTERMEDIATE": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "ADVANCED": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "avg_total": 0,
+          "filled": 0
+        }
+      },
+      "blue_avg": 0,
+      "red_avg": 0,
+      "delta": 0
+    },
+    {
+      "model": "Gemini-2.5Pro",
+      "teams": {
+        "BLUE": {
+          "BASIC": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 60.0,
+            "word_count": 84,
+            "total_score": 82.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 164,
+            "total_score": 86.0
+          },
+          "ADVANCED": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 202,
+            "total_score": 86.0
+          },
+          "avg_total": 84.7,
+          "filled": 3
+        },
+        "RED": {
+          "BASIC": {
+            "cq_score": 70,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": false,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 347,
+            "total_score": 76.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 10,
+            "has_indicator": false,
+            "has_impact": false,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 436,
+            "total_score": 44.0
+          },
+          "ADVANCED": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "avg_total": 60.0,
+          "filled": 2
+        }
+      },
+      "blue_avg": 84.7,
+      "red_avg": 60.0,
+      "delta": 24.7
+    },
+    {
+      "model": "Gemini-2.5Flash",
+      "teams": {
+        "BLUE": {
+          "BASIC": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "INTERMEDIATE": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "ADVANCED": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "avg_total": 0,
+          "filled": 0
+        },
+        "RED": {
+          "BASIC": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "INTERMEDIATE": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "ADVANCED": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "avg_total": 0,
+          "filled": 0
+        }
+      },
+      "blue_avg": 0,
+      "red_avg": 0,
+      "delta": 0
+    },
+    {
+      "model": "Kimi-K2",
+      "teams": {
+        "BLUE": {
+          "BASIC": {
+            "cq_score": 10,
+            "has_indicator": false,
+            "has_impact": false,
+            "has_evidence": true,
+            "has_action": false,
+            "no_filler": false,
+            "kw_score": 40.0,
+            "word_count": 192,
+            "total_score": 20.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 85,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 175,
+            "total_score": 90.0
+          },
+          "ADVANCED": {
+            "cq_score": 65,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 235,
+            "total_score": 82.0
+          },
+          "avg_total": 64.0,
+          "filled": 3
+        },
+        "RED": {
+          "BASIC": {
+            "cq_score": 20,
+            "has_indicator": false,
+            "has_impact": false,
+            "has_evidence": true,
+            "has_action": false,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 129,
+            "total_score": 40.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 85,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 424,
+            "total_score": 90.0
+          },
+          "ADVANCED": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "avg_total": 65.0,
+          "filled": 2
+        }
+      },
+      "blue_avg": 64.0,
+      "red_avg": 65.0,
+      "delta": -1.0
+    },
+    {
+      "model": "GLM-4.5",
+      "teams": {
+        "BLUE": {
+          "BASIC": {
+            "cq_score": 85,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 100.0,
+            "word_count": 87,
+            "total_score": 94.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 85,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 60.0,
+            "word_count": 167,
+            "total_score": 86.0
+          },
+          "ADVANCED": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 100.0,
+            "word_count": 254,
+            "total_score": 90.0
+          },
+          "avg_total": 90.0,
+          "filled": 3
+        },
+        "RED": {
+          "BASIC": {
+            "cq_score": 20,
+            "has_indicator": false,
+            "has_impact": false,
+            "has_evidence": true,
+            "has_action": false,
+            "no_filler": true,
+            "kw_score": 100.0,
+            "word_count": 194,
+            "total_score": 44.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 20,
+            "has_indicator": false,
+            "has_impact": false,
+            "has_evidence": true,
+            "has_action": false,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 398,
+            "total_score": 40.0
+          },
+          "ADVANCED": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "avg_total": 42.0,
+          "filled": 2
+        }
+      },
+      "blue_avg": 90.0,
+      "red_avg": 42.0,
+      "delta": 48.0
+    },
+    {
+      "model": "MiniMax-M2",
+      "teams": {
+        "BLUE": {
+          "BASIC": {
+            "cq_score": 60,
+            "has_indicator": false,
+            "has_impact": true,
+            "has_evidence": false,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 0.0,
+            "word_count": 107,
+            "total_score": 48.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 100.0,
+            "word_count": 202,
+            "total_score": 90.0
+          },
+          "ADVANCED": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 100.0,
+            "word_count": 328,
+            "total_score": 90.0
+          },
+          "avg_total": 76.0,
+          "filled": 3
+        },
+        "RED": {
+          "BASIC": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 60.0,
+            "word_count": 256,
+            "total_score": 82.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 20.0,
+            "word_count": 255,
+            "total_score": 74.0
+          },
+          "ADVANCED": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "avg_total": 78.0,
+          "filled": 2
+        }
+      },
+      "blue_avg": 76.0,
+      "red_avg": 78.0,
+      "delta": -2.0
+    },
+    {
+      "model": "Perplexity-Sonar",
+      "teams": {
+        "BLUE": {
+          "BASIC": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 60.0,
+            "word_count": 73,
+            "total_score": 82.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 40.0,
+            "word_count": 205,
+            "total_score": 78.0
+          },
+          "ADVANCED": {
+            "cq_score": 65,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 100.0,
+            "word_count": 285,
+            "total_score": 86.0
+          },
+          "avg_total": 82.0,
+          "filled": 3
+        },
+        "RED": {
+          "BASIC": {
+            "cq_score": 60,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": false,
+            "no_filler": true,
+            "kw_score": 100.0,
+            "word_count": 223,
+            "total_score": 76.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 100.0,
+            "word_count": 363,
+            "total_score": 90.0
+          },
+          "ADVANCED": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "avg_total": 83.0,
+          "filled": 2
+        }
+      },
+      "blue_avg": 82.0,
+      "red_avg": 83.0,
+      "delta": -1.0
+    },
+    {
+      "model": "Claude-3.7-Sonnet",
+      "teams": {
+        "BLUE": {
+          "BASIC": {
+            "cq_score": 85,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 110,
+            "total_score": 90.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 85,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 60.0,
+            "word_count": 216,
+            "total_score": 86.0
+          },
+          "ADVANCED": {
+            "cq_score": 85,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 100.0,
+            "word_count": 243,
+            "total_score": 94.0
+          },
+          "avg_total": 90.0,
+          "filled": 3
+        },
+        "RED": {
+          "BASIC": {
+            "cq_score": 20,
+            "has_indicator": false,
+            "has_impact": false,
+            "has_evidence": true,
+            "has_action": false,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 362,
+            "total_score": 40.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 70,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 660,
+            "total_score": 84.0
+          },
+          "ADVANCED": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "avg_total": 62.0,
+          "filled": 2
+        }
+      },
+      "blue_avg": 90.0,
+      "red_avg": 62.0,
+      "delta": 28.0
+    },
+    {
+      "model": "DeepSeek-V3-web",
+      "teams": {
+        "BLUE": {
+          "BASIC": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 100.0,
+            "word_count": 85,
+            "total_score": 90.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 85,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 232,
+            "total_score": 90.0
+          },
+          "ADVANCED": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 250,
+            "total_score": 86.0
+          },
+          "avg_total": 88.7,
+          "filled": 3
+        },
+        "RED": {
+          "BASIC": {
+            "cq_score": 10,
+            "has_indicator": false,
+            "has_impact": false,
+            "has_evidence": true,
+            "has_action": false,
+            "no_filler": false,
+            "kw_score": 60.0,
+            "word_count": 199,
+            "total_score": 24.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 20,
+            "has_indicator": false,
+            "has_impact": false,
+            "has_evidence": true,
+            "has_action": false,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 283,
+            "total_score": 40.0
+          },
+          "ADVANCED": {
+            "cq_score": 20,
+            "has_indicator": false,
+            "has_impact": false,
+            "has_evidence": true,
+            "has_action": false,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 284,
+            "total_score": 40.0
+          },
+          "avg_total": 34.7,
+          "filled": 3
+        }
+      },
+      "blue_avg": 88.7,
+      "red_avg": 34.7,
+      "delta": 54.0
+    },
+    {
+      "model": "Mistral-Large",
+      "teams": {
+        "BLUE": {
+          "BASIC": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 160,
+            "total_score": 86.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 50,
+            "has_indicator": true,
+            "has_impact": false,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 187,
+            "total_score": 68.0
+          },
+          "ADVANCED": {
+            "cq_score": 65,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 232,
+            "total_score": 82.0
+          },
+          "avg_total": 78.7,
+          "filled": 3
+        },
+        "RED": {
+          "BASIC": {
+            "cq_score": 20,
+            "has_indicator": false,
+            "has_impact": false,
+            "has_evidence": true,
+            "has_action": false,
+            "no_filler": false,
+            "kw_score": 80.0,
+            "word_count": 185,
+            "total_score": 32.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 20,
+            "has_indicator": false,
+            "has_impact": false,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 357,
+            "total_score": 48.0
+          },
+          "ADVANCED": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "avg_total": 40.0,
+          "filled": 2
+        }
+      },
+      "blue_avg": 78.7,
+      "red_avg": 40.0,
+      "delta": 38.7
+    },
+    {
+      "model": "Grok-3",
+      "teams": {
+        "BLUE": {
+          "BASIC": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 100.0,
+            "word_count": 83,
+            "total_score": 90.0
+          },
+          "INTERMEDIATE": {
+            "cq_score": 65,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 60.0,
+            "word_count": 163,
+            "total_score": 78.0
+          },
+          "ADVANCED": {
+            "cq_score": 75,
+            "has_indicator": true,
+            "has_impact": true,
+            "has_evidence": true,
+            "has_action": true,
+            "no_filler": true,
+            "kw_score": 80.0,
+            "word_count": 198,
+            "total_score": 86.0
+          },
+          "avg_total": 84.7,
+          "filled": 3
+        },
+        "RED": {
+          "BASIC": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "INTERMEDIATE": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "ADVANCED": {
+            "skipped": true,
+            "total_score": 0
+          },
+          "avg_total": 0,
+          "filled": 0
+        }
+      },
+      "blue_avg": 84.7,
+      "red_avg": 0,
+      "delta": 84.7
+    }
+  ]
+}
