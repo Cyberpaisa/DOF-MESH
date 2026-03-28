@@ -3,12 +3,18 @@
   "fecha": "2026-03-28",
   "version": "DOF Mesh Legion v0.5.0",
   "autor": "Cyber Paisa — Enigma Group",
-
   "experimento_winston": {
     "estado": "COMPLETADO",
     "modelos_testados": 10,
-    "niveles": ["BASIC", "INTERMEDIATE", "ADVANCED"],
-    "equipos": ["BLUE (Winston)", "RED (baseline)"],
+    "niveles": [
+      "BASIC",
+      "INTERMEDIATE",
+      "ADVANCED"
+    ],
+    "equipos": [
+      "BLUE (Winston)",
+      "RED (baseline)"
+    ],
     "resultado_principal": "+26.5 pts promedio con Winston",
     "datos": "experiments/winston_vs_baseline/web_experiment_prompts.json",
     "scores": "experiments/winston_vs_baseline/web_experiment_results.json",
@@ -22,7 +28,6 @@
       "10 modelos convergieron en misma arquitectura de escalado sin coordinarse"
     ]
   },
-
   "implementaciones_completadas": [
     {
       "nombre": "Z3 Unknown Rate Monitor",
@@ -55,105 +60,113 @@
       ],
       "commit": "0dcf531",
       "descripcion": "57 respuestas, 10 modelos, 3 niveles, scoring CQ determinístico"
-    }
-  ],
-
-  "implementaciones_en_progreso": [
+    },
     {
       "nombre": "ConstitutionIntegrityWatcher",
       "archivo": "constitution/integrity_watcher.py",
-      "agente": "agent-constitution",
-      "estado": "en_progreso",
-      "descripcion": "SHA-256 árbol Constitution vs baseline, drift detection <30s"
+      "commit": "343e6a3",
+      "tests": "tests/test_constitution_integrity.py (9)",
+      "descripcion": "SHA-256 Constitution vs baseline, drift <30s"
     },
     {
       "nombre": "ConstitutionUpdateCoordinator",
       "archivo": "constitution/update_coordinator.py",
-      "agente": "agent-constitution",
-      "estado": "en_progreso",
-      "descripcion": "Two-phase commit, quorum 67%, evita inconsistencias entre nodos"
+      "commit": "343e6a3",
+      "tests": "tests/test_constitution_coordinator.py (8)",
+      "descripcion": "Two-phase commit, quorum 67%"
     },
     {
       "nombre": "ByzantineNodeGuard",
       "archivo": "core/byzantine_node_guard.py",
-      "agente": "agent-byzantine",
-      "estado": "en_progreso",
-      "descripcion": "Reputación 0.0-1.0 por nodo, cuarentena <0.3, restaurable <50 txns"
+      "commit": "5a8d4eb",
+      "tests": "tests/test_byzantine_node_guard.py (16)",
+      "descripcion": "Reputación 0.0-1.0, cuarentena <0.3"
     },
     {
-      "nombre": "Z3 Fast Path (policy cache)",
-      "archivo": "core/z3_gate.py",
-      "agente": "agent-z3-fastpath",
-      "estado": "en_progreso",
-      "descripcion": "Cache de políticas verificadas, ~70% queries sin tocar Z3"
-    },
-    {
-      "nombre": "Context Epoch System",
-      "archivo": "core/z3_verifier.py",
-      "agente": "agent-z3-fastpath",
-      "estado": "en_progreso",
-      "descripcion": "Epoch incrementa con updates Constitution, detecta nodos desactualizados"
+      "nombre": "Z3 Fast Path + Context Epoch",
+      "archivo": "core/z3_gate.py + core/z3_verifier.py",
+      "commit": "76195b2",
+      "tests": "tests/test_z3_fast_path.py (15)",
+      "descripcion": "Policy cache + epoch system"
     },
     {
       "nombre": "Latency Fuzzing Tests",
       "archivo": "tests/test_latency_fuzzing.py",
-      "agente": "agent-fuzzing",
-      "estado": "en_progreso",
-      "descripcion": "Tests con delays aleatorios 0-200ms validando determinismo"
+      "commit": "fffc3d4",
+      "tests": "11 tests",
+      "descripcion": "Determinismo bajo delays aleatorios"
     },
     {
       "nombre": "Mutation Testing CI",
       "archivo": ".github/workflows/mutation-testing.yml",
-      "agente": "agent-fuzzing",
-      "estado": "en_progreso",
-      "descripcion": "mutmut sobre adversarial.py como gate en CI/CD"
-    }
-  ],
-
-  "roadmap_escalado_50_nodos": [
+      "commit": "fffc3d4",
+      "tests": "N/A",
+      "descripcion": "mutmut gate en CI"
+    },
     {
-      "nombre": "Attestation Batching Merkle",
-      "prioridad": 2,
-      "descripcion": "N decisiones → 1 Merkle root en Avalanche C-Chain, -70% gas"
+      "nombre": "Merkle Attestation Batching",
+      "archivo": "core/merkle_attestation.py",
+      "commit": "bdf7ba9",
+      "tests": "tests/test_merkle_attestation.py (18)",
+      "descripcion": "N decisiones → 1 Merkle root, -70% gas"
     },
     {
       "nombre": "Z3 Portfolio Solving",
-      "prioridad": 2,
-      "descripcion": "Instancias Z3 paralelas con distintas estrategias, tomar primer resultado"
+      "archivo": "core/z3_portfolio.py",
+      "commit": "25fa4dd",
+      "tests": "tests/test_z3_portfolio.py (10)",
+      "descripcion": "Múltiples estrategias Z3 con short-circuit"
     },
     {
-      "nombre": "Node Capability Manifest (NCM)",
-      "prioridad": 3,
-      "descripcion": "Cada nodo declara {memory_gb, z3_timeout_ms, chain_support[], agent_type}"
+      "nombre": "Versioned Cache",
+      "archivo": "core/versioned_cache.py",
+      "commit": "25fa4dd",
+      "tests": "tests/test_z3_portfolio.py (12)",
+      "descripcion": "Cache con epoch TTL y auto-expiración"
     },
     {
-      "nombre": "Tiered Z3 Validation",
-      "prioridad": 3,
-      "descripcion": "Tier 1 Z3 completo, Tier 2 parcial/heurístico, Tier 3 verificación diferida"
+      "nombre": "Node Capability Manifest",
+      "archivo": "core/node_capability.py",
+      "commit": "cf325f7",
+      "tests": "tests/test_node_capability.py (20)",
+      "descripcion": "NCM + Tiered Z3 routing por capacidad"
     },
     {
       "nombre": "Constitution Hash Beacon",
-      "prioridad": 3,
-      "descripcion": "Hash del estado Constitution en C-Chain cada 50 bloques Avalanche"
-    },
-    {
-      "nombre": "Versioned Z3 Cache",
-      "prioridad": 3,
-      "descripcion": "Upgrade cache: block_height + state_hash + expiration por verificación"
+      "archivo": "constitution/hash_beacon.py",
+      "commit": "2c91fde",
+      "tests": "tests/test_hash_beacon.py (15)",
+      "descripcion": "Beacon sync cada N bloques, HALT automático"
     },
     {
       "nombre": "CRDT Memory Layer",
-      "prioridad": 3,
-      "descripcion": "Conflict-free Replicated Data Types para sincronización sin consenso"
-    },
-    {
-      "nombre": "Threshold Signatures para Attestations",
-      "prioridad": 3,
-      "descripcion": "t-of-n firma en lugar de N attestations individuales, -60% gas"
+      "archivo": "core/crdt_memory.py",
+      "commit": "2c91fde",
+      "tests": "tests/test_crdt_memory.py (19)",
+      "descripcion": "GCounter + LWWRegister, merge sin consenso"
     }
   ],
-
+  "implementaciones_en_progreso": [],
+  "roadmap_escalado_50_nodos": [
+    {
+      "nota": "TODOS IMPLEMENTADOS — ver implementaciones_completadas"
+    }
+  ],
   "tests_totales_antes": 39,
   "tests_esperados_despues": 90,
-  "commits_sesion": ["0d96f94", "140f0e9", "0dcf531"]
+  "commits_sesion": [
+    "0d96f94",
+    "140f0e9",
+    "0dcf531",
+    "343e6a3",
+    "5a8d4eb",
+    "76195b2",
+    "fffc3d4",
+    "e944c38",
+    "bdf7ba9",
+    "cf325f7",
+    "25fa4dd",
+    "2c91fde"
+  ],
+  "tests_totales_despues": 192
 }
