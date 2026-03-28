@@ -49,6 +49,36 @@ class Z3Verifier:
         # Unknown rate monitor: (timestamp, was_unknown) pairs within 5-min window
         self._check_history: deque[tuple[datetime, bool]] = deque()
         self._degraded: bool = False
+        # Context Epoch: detecta divergencia entre nodos mesh
+        self._context_epoch: int = 0
+        self._epoch_history: list[tuple[int, datetime]] = []
+
+    # ─────────────────────────────────────────────────────────────────
+    # Context Epoch System — divergence detection between mesh nodes
+    # ─────────────────────────────────────────────────────────────────
+
+    def increment_epoch(self) -> int:
+        """Incrementa el epoch cuando Constitution se actualiza. Retorna nuevo epoch."""
+        self._context_epoch += 1
+        self._epoch_history.append((self._context_epoch, datetime.now(timezone.utc)))
+        logger.info(f"[Z3Verifier] Context epoch incrementado a {self._context_epoch}")
+        return self._context_epoch
+
+    @property
+    def context_epoch(self) -> int:
+        return self._context_epoch
+
+    def verify_epoch_compatible(self, remote_epoch: int) -> bool:
+        """Verifica si un epoch remoto es compatible con el local.
+
+        Si remote_epoch < local → el nodo remoto está desactualizado → False.
+        Si remote_epoch == local → compatible → True.
+        Si remote_epoch > local → nosotros estamos desactualizados → False.
+        """
+        return remote_epoch == self._context_epoch
+
+    def epoch_history(self) -> list[tuple[int, datetime]]:
+        return list(self._epoch_history)
 
     # ─────────────────────────────────────────────────────────────────
     # Theorem 1: GCR(f) = 1.0 (Governance–Infrastructure Decoupling)
