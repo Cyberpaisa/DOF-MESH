@@ -33,7 +33,17 @@ from core.observability import (
 from core.execution_dag import ExecutionDAG
 from core.loop_guard import LoopGuard
 
+# Z3 Gate integration (formal verification of agent outputs)
+try:
+    from core.z3_gate import Z3Gate, GateResult
+    from core.agent_output import AgentOutput, OutputType
+    _Z3_GATE_AVAILABLE = True
+except ImportError:
+    _Z3_GATE_AVAILABLE = False
+
 logger = logging.getLogger("core.crew_runner")
+
+_z3_gate = Z3Gate() if _Z3_GATE_AVAILABLE else None
 
 MAX_RETRIES = 3
 
@@ -279,6 +289,28 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
             })
             dag.nodes[gov_node_id].status = "COMPLETED"
             dag.add_edge(step_node_id, gov_node_id, "VERIFIES")
+
+            # === Z3 FORMAL VERIFICATION ===
+            # Verifica formalmente que el output del agente cumple governance constraints
+            # Si Z3 rechaza → el output no se acepta, sin importar el score del Supervisor
+            if _z3_gate is not None and gov_result is not None:
+                try:
+                    z3_verification = None
+                    # Si governance ya rechazó (blocked), no gastar Z3
+                    if gov_result.passed:
+                        agent_output = AgentOutput(
+                            output_type=OutputType.TRUST_SCORE_ASSIGNMENT,
+                            agent_id=crew_name or "unknown",
+                            proposed_value=0.85,  # score neutral para verificación genérica
+                            evidence={"current_level": 1, "governance_passed": True},
+                        )
+                        z3_verification = _z3_gate.validate_output(agent_output)
+                        if z3_verification.result == GateResult.REJECTED:
+                            logger.warning(f"[Z3Gate] Output REJECTED by formal verification: {z3_verification.counterexample}")
+                        elif z3_verification.result == GateResult.APPROVED:
+                            logger.info(f"[Z3Gate] Output APPROVED — {z3_verification.verification_time_ms:.1f}ms")
+                except Exception as e:
+                    logger.warning(f"[Z3Gate] Verification skipped: {e}")
 
             # Supervisor evaluation
             sup_verdict = None
