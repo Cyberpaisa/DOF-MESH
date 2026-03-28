@@ -227,7 +227,7 @@ def apply_prompt_repetition(prompt: str, model_name: str, times: int = 2) -> str
     Returns:
         Prompt repetido si aplica, original si no.
     """
-    if not should_repeat_prompt(model_name):
+    if not prompt or not should_repeat_prompt(model_name):
         return prompt
 
     if times == 2:

@@ -76,10 +76,9 @@ class TestApplyPromptRepetition(unittest.TestCase):
         self.assertEqual(result, self.PROMPT)
 
     def test_empty_prompt(self):
-        """Prompt vacio no rompe la funcion."""
+        """Prompt vacio retorna vacio sin modificar."""
         result = apply_prompt_repetition("", "deepseek-chat", times=2)
-        self.assertEqual(result, "\n\nLet me repeat that:\n\n")
-        # Para reasoning model, devuelve vacio sin cambio
+        self.assertEqual(result, "")
         result_reasoning = apply_prompt_repetition("", "claude-opus-4", times=2)
         self.assertEqual(result_reasoning, "")
 
