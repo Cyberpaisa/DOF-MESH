@@ -29,7 +29,7 @@ class TestSupervisorVerdict(unittest.TestCase):
     def _make(self, **kw):
         defaults = dict(decision="ACCEPT", score=8.0, quality=8.0,
                         actionability=7.0, completeness=8.0, factuality=7.0,
-                        reasons=[])
+                        communication_quality=5.0, reasons=[])
         defaults.update(kw)
         return SupervisorVerdict(**defaults)
 
@@ -249,10 +249,11 @@ class TestEvaluateDecisions(unittest.TestCase):
         self.assertLess(v.score, 7.0)
 
     def test_score_formula_weights(self):
-        """Score = Q*0.40 + A*0.25 + C*0.20 + F*0.15 (spot-check)."""
+        """Score = Q*0.35 + A*0.20 + C*0.20 + F*0.10 + CQ*0.15 (spot-check)."""
         v = self.sup.evaluate(_rich_output(), "security")
-        expected = (v.quality * 0.40 + v.actionability * 0.25 +
-                    v.completeness * 0.20 + v.factuality * 0.15)
+        expected = (v.quality * 0.35 + v.actionability * 0.20 +
+                    v.completeness * 0.20 + v.factuality * 0.10 +
+                    v.communication_quality * 0.15)
         self.assertAlmostEqual(v.score, round(expected, 2), places=1)
 
     def test_escalate_after_max_retries(self):

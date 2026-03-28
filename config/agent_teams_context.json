@@ -1,0 +1,110 @@
+{
+  "agent_teams_bridge": {
+    "version": "1.0.0",
+    "date": "2026-03-27",
+    "status": "OPERATIONAL",
+    "description": "Agent Teams de Claude Code gobernados por DOF governance determinística",
+
+    "mcp_server": {
+      "file": "mcp_server.py",
+      "total_tools": 15,
+      "dof_tools": 10,
+      "mesh_tools": 5,
+      "resources": 3,
+      "tests": {
+        "test_mcp_server": 32,
+        "test_mesh_governance": 29,
+        "total": 61
+      }
+    },
+
+    "mesh_tools": {
+      "mesh_send_task": {
+        "description": "Enviar tarea a nodo específico del mesh",
+        "params": ["node_id (required)", "task (required)", "task_type"],
+        "governance": "post-check"
+      },
+      "mesh_broadcast": {
+        "description": "Broadcast a todos los nodos activos",
+        "params": ["content (required)", "task_type"],
+        "governance": "post-check"
+      },
+      "mesh_route_smart": {
+        "description": "Routing inteligente via MeshRouterV2",
+        "params": ["task_type (required)", "task (required)"],
+        "governance": "post-check",
+        "routing": "specialty + latency + load"
+      },
+      "mesh_read_inbox": {
+        "description": "Leer mensajes pendientes del inbox",
+        "params": ["node_id", "mark_read"],
+        "governance": "post-check"
+      },
+      "mesh_consensus": {
+        "description": "Consenso multi-nodo con governance dual",
+        "params": ["question (required)", "node_ids", "min_nodes"],
+        "governance": "pre-check + post-check"
+      }
+    },
+
+    "governance_pipeline": {
+      "type": "deterministic",
+      "engine": "ConstitutionEnforcer",
+      "llm_dependency": "ZERO",
+      "layers": [
+        "Constitution (regex, phrase_without_url, min/max_length)",
+        "AST Verifier (blocked imports, unsafe calls, secrets)",
+        "Z3 SMT Proofs (4 theorems, 42 hierarchy patterns)"
+      ],
+      "hard_rules": [
+        "NO_HALLUCINATION_CLAIM",
+        "LANGUAGE_COMPLIANCE",
+        "NO_EMPTY_OUTPUT",
+        "MAX_LENGTH"
+      ],
+      "soft_rules": [
+        "HAS_SOURCES",
+        "STRUCTURED_OUTPUT",
+        "CONCISENESS",
+        "ACTIONABLE",
+        "NO_PII_LEAK"
+      ],
+      "post_check_field": "_dof_governance",
+      "post_check_fields": ["checked", "passed", "score", "violations", "warnings"]
+    },
+
+    "mesh_nodes": [
+      {"id": "claude-code", "role": "orchestrator", "type": "session"},
+      {"id": "deepseek", "role": "technical", "type": "api"},
+      {"id": "sambanova", "role": "cautious", "type": "api"},
+      {"id": "q-aion-local", "role": "local", "type": "mlx"},
+      {"id": "cerebras", "role": "fast", "type": "api"},
+      {"id": "kimi", "role": "strategist", "type": "web_bridge"},
+      {"id": "mimo", "role": "architect", "type": "web_bridge"},
+      {"id": "minimax", "role": "philosopher", "type": "web_bridge"},
+      {"id": "glm", "role": "ethicist", "type": "web_bridge"},
+      {"id": "arena", "role": "analyst", "type": "web_bridge"},
+      {"id": "gemini", "role": "engineer", "type": "web_bridge"}
+    ],
+
+    "team_config": {
+      "name": "dof-governed-mesh",
+      "settings_key": "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS",
+      "settings_value": "1",
+      "members": [
+        {"name": "team-lead", "role": "mesh-commander", "type": "orchestrator"},
+        {"name": "arquitecto", "role": "architect", "type": "general-purpose"},
+        {"name": "guardian", "role": "security", "type": "general-purpose"}
+      ]
+    },
+
+    "documentation": {
+      "technical_spec": "docs/AGENT_TEAMS_DOF_BRIDGE.md",
+      "book_chapter": "docs/BOOK_CH21_AGENT_TEAMS_BAJO_GOVERNANCE.md",
+      "tests": "tests/test_mesh_governance.py",
+      "memory": "~/.claude/projects/-Users-jquiceva/memory/agent-teams-dof-bridge.md"
+    },
+
+    "key_insight": "L-71: La governance no es una restricción, es un superpoder. Los agentes gobernados son MÁS poderosos que los libres, porque pueden actuar con confianza verificable."
+  }
+}

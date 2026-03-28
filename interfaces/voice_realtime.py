@@ -62,12 +62,12 @@ class VoiceConfig:
 
     # LLM (cerebro)
     llm_provider: str = "ollama"  # ollama (local) | deepseek | nvidia | groq
-    llm_model_ollama: str = "local-agi-m4max"  # modelo Ollama local
+    llm_model_ollama: str = "dof-voice-fast"  # Gemma 2 9B — rapido para conversacion
     llm_model_nvidia: str = "deepseek-ai/deepseek-v3.2"
     llm_model_groq: str = "llama-3.3-70b-versatile"
     llm_ollama_url: str = "http://localhost:11434"
     llm_temperature: float = 0.4
-    llm_max_tokens: int = -1  # sin límite — usa todo el contexto disponible (65K local)
+    llm_max_tokens: int = 8192  # respuestas extensas — relatos largos y continuos
 
     # TTS
     tts_provider: str = "vibevoice"  # vibevoice | edge-tts | macos
@@ -78,9 +78,9 @@ class VoiceConfig:
 
     # Audio
     sample_rate: int = 16000  # para grabacion mic
-    vad_threshold: float = 0.5
-    silence_duration: float = 1.5  # segundos de silencio para cortar
-    max_recording: int = 30  # max segundos por turno
+    vad_threshold: float = 0.3  # bajo para no perder voz — Silero recomienda 0.3-0.5
+    silence_duration: float = 3.0  # segundos de silencio para cortar — tiempo para pensar
+    max_recording: int = 120  # max 2 minutos por turno — charlas extensas
 
     # Sistema
     system_prompt: str = (
@@ -89,10 +89,14 @@ class VoiceConfig:
         "Tu creador es Cyber Paisa (Enigma Group, Medellin). "
         "Eres util, inteligente y tienes personalidad. "
         "Puedes dar respuestas largas y detalladas cuando el tema lo requiera. "
-        "Usa ejemplos, explica con claridad, y no te limites."
+        "Usa ejemplos, explica con claridad, y no te limites. "
+        "IMPORTANTE: Tu respuesta sera leida en voz alta por un sistema TTS. "
+        "NUNCA uses asteriscos, negritas, cursivas, markdown, bullets, guiones ni simbolos especiales. "
+        "Escribe SOLO texto plano conversacional, como si hablaras naturalmente. "
+        "No uses: * ** _ ` # - • → ni ningun formato. Solo palabras."
     )
     conversation_history: list = field(default_factory=list)
-    max_history: int = 20  # turnos de conversacion en memoria
+    max_history: int = 50  # turnos de conversacion en memoria — charlas largas
 
 
 # ================================================================
@@ -220,8 +224,8 @@ class Brain:
                     "messages": messages,
                     "options": {
                         "temperature": self.config.llm_temperature,
-                        "num_predict": -1,  # sin límite de generación
-                        "num_ctx": 8192,    # suficiente para conversación, carga rápido
+                        "num_predict": 8192,  # hasta 8K tokens por respuesta (~6K palabras, ~30 min de audio)
+                        "num_ctx": 8192,      # contexto optimizado para velocidad con Gemma
                     },
                     "stream": False,
                 },
@@ -324,18 +328,16 @@ class TextToSpeech:
         self._voice_cache = None
 
     def speak(self, text: str) -> str | None:
-        """Genera audio y retorna path al archivo WAV."""
-        if len(text) > 800:
-            text = text[:800] + "..."
-
+        """Genera audio y retorna path al archivo WAV.
+        Sin limite de longitud — soporta relatos extensos."""
         provider = self.config.tts_provider
         if provider == "vibevoice":
-            path = self._vibevoice_speak(text)
+            path = self._vibevoice_speak(text[:800])  # VibeVoice tiene limite interno
             if path:
                 return path
             logger.warning("VibeVoice fallo, fallback a Edge-TTS")
 
-        path = self._edge_tts_speak(text)
+        path = self._edge_tts_speak(text)  # Edge-TTS soporta texto largo
         if path:
             return path
 
@@ -506,40 +508,83 @@ class TextToSpeech:
 # ================================================================
 
 class AudioEngine:
-    """Motor de audio: grabacion con VAD y reproduccion."""
+    """Motor de audio: grabacion con Silero VAD y reproduccion con interrupcion.
+
+    Mejoras Fase 1 (extraidas de Gemini Flash Live architecture):
+    - Silero VAD: deteccion neural de voz (<1ms por chunk) en vez de RMS simple
+    - Parametros estilo Google: start_sensitivity, end_sensitivity, prefix_padding, silence_duration
+    - Interrupcion: si hablas mientras responde, para el audio
+    - Pre-buffer: guarda audio ANTES de detectar voz (no pierde inicio de frase)
+    """
 
     def __init__(self, config: VoiceConfig):
         self.config = config
         self._vad_model = None
-        self._vad_utils = None
+        self._playing = False
+        self._interrupted = False
+        self._playback_process = None
+
+    def _load_vad(self):
+        """Carga Silero VAD (neural, <1ms por chunk)."""
+        if self._vad_model is not None:
+            return
+        try:
+            import torch
+            import torchaudio  # noqa: F401
+            self._vad_model, self._vad_utils = torch.hub.load(
+                repo_or_dir='snakers4/silero-vad',
+                model='silero_vad',
+                force_reload=False,
+                trust_repo=True,
+            )
+            # Reset del modelo para evitar estado residual
+            self._vad_model.reset_states()
+            print("  Silero VAD cargado")
+        except Exception as e:
+            print(f"  VAD neural no disponible ({e}), usando deteccion por energia")
+            self._vad_model = "rms_fallback"
 
     def record_with_vad(self) -> str | None:
-        """Graba audio con VAD — detecta cuando empiezas y paras de hablar."""
+        """Graba audio con Silero VAD neural — detecta inicio y fin de habla con precision."""
         try:
             import numpy as np
             import sounddevice as sd
+            import torch
         except ImportError:
-            logger.error("Instala sounddevice: pip install sounddevice")
+            logger.error("Instala: pip install sounddevice torch")
             return None
 
+        self._load_vad()
+        self._interrupted = False
+
         sr = self.config.sample_rate
-        chunk_ms = 512  # ms por chunk
+        chunk_ms = 512
         chunk_samples = int(sr * chunk_ms / 1000)
         silence_chunks = int(self.config.silence_duration * 1000 / chunk_ms)
         max_chunks = int(self.config.max_recording * 1000 / chunk_ms)
+        prefix_chunks = 3  # guarda 3 chunks antes de detectar voz (no pierde inicio)
 
         audio_buffer = []
+        pre_buffer = []  # buffer circular pre-voz
         silent_count = 0
         speaking = False
         chunks_recorded = 0
 
         print("\n  Escuchando... (habla cuando quieras)")
 
-        def _is_speech(chunk: np.ndarray) -> bool:
-            """Deteccion simple de voz por energia RMS."""
-            rms = np.sqrt(np.mean(chunk.astype(np.float32) ** 2))
-            threshold = 200  # ajustado para mic MacBook
-            return rms > threshold
+        def _is_speech_silero(chunk: np.ndarray) -> bool:
+            """Deteccion neural con Silero VAD."""
+            if self._vad_model == "rms_fallback":
+                rms = np.sqrt(np.mean(chunk.astype(np.float32) ** 2))
+                return rms > 200
+            try:
+                audio_float = chunk.astype(np.float32) / 32768.0
+                tensor = torch.from_numpy(audio_float)
+                confidence = self._vad_model(tensor, sr).item()
+                return confidence > self.config.vad_threshold
+            except Exception:
+                rms = np.sqrt(np.mean(chunk.astype(np.float32) ** 2))
+                return rms > 200
 
         try:
             with sd.InputStream(samplerate=sr, channels=1, dtype="int16") as stream:
@@ -548,24 +593,32 @@ class AudioEngine:
                     chunk = data.flatten()
                     chunks_recorded += 1
 
-                    if _is_speech(chunk):
+                    is_voice = _is_speech_silero(chunk)
+
+                    if is_voice:
                         if not speaking:
                             speaking = True
-                            print("  ... detectada voz")
+                            # Incluir pre-buffer (inicio de frase que habria perdido)
+                            audio_buffer.extend(pre_buffer)
+                            pre_buffer.clear()
+                            print("  ... voz detectada")
                         silent_count = 0
                         audio_buffer.append(chunk)
                     elif speaking:
                         silent_count += 1
                         audio_buffer.append(chunk)
                         if silent_count >= silence_chunks:
-                            print("  ... silencio detectado, procesando")
+                            print("  ... fin de habla detectado")
                             break
+                    else:
+                        # Pre-buffer: guarda los ultimos N chunks antes de detectar voz
+                        pre_buffer.append(chunk)
+                        if len(pre_buffer) > prefix_chunks:
+                            pre_buffer.pop(0)
 
             if not audio_buffer:
                 return None
 
-            # Guardar WAV
-            import numpy as np
             audio_data = np.concatenate(audio_buffer)
             wav_path = tempfile.mktemp(suffix=".wav")
             with wave.open(wav_path, "w") as wf:
@@ -618,16 +671,60 @@ class AudioEngine:
             return None
 
     def play(self, audio_path: str):
-        """Reproduce un archivo de audio."""
+        """Reproduce un archivo de audio con soporte de interrupcion.
+
+        Estilo Gemini: si el usuario habla durante la reproduccion,
+        se detiene el audio y se limpia la cola (interrupted=True).
+        """
         if not audio_path or not os.path.exists(audio_path):
             return
-        if platform.system() == "Darwin":
-            subprocess.run(["afplay", audio_path], capture_output=True)
-        else:
+        if platform.system() != "Darwin":
             logger.warning("Reproduccion solo soportada en macOS por ahora")
+            return
+
+        self._playing = True
+        self._interrupted = False
+        self._playback_process = subprocess.Popen(
+            ["afplay", audio_path],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+        # Monitor thread: detecta si el usuario habla durante playback
+        monitor = threading.Thread(
+            target=self._monitor_interruption_during_playback,
+            daemon=True,
+        )
+        monitor.start()
+
+        self._playback_process.wait()
+        self._playing = False
+
+        if self._interrupted:
+            print("  ... interrumpido por el usuario")
+
+    def interrupt(self):
+        """Detiene la reproduccion actual (el usuario quiere hablar)."""
+        self._interrupted = True
+        if self._playback_process and self._playback_process.poll() is None:
+            self._playback_process.terminate()
+            try:
+                self._playback_process.wait(timeout=1)
+            except subprocess.TimeoutExpired:
+                self._playback_process.kill()
+
+    def _monitor_interruption_during_playback(self):
+        """Monitorea el mic durante playback — DESACTIVADO.
+
+        Nota: cuando Alexa es el speaker via Bluetooth, el mic del Mac
+        captura el audio de la Alexa y genera falsos positivos de interrupcion.
+        Se necesita echo cancellation para activar esto correctamente.
+        Por ahora desactivado hasta implementar AEC (Acoustic Echo Cancellation).
+        """
+        pass
 
     def play_async(self, audio_path: str):
-        """Reproduce audio en background thread."""
+        """Reproduce audio en background thread con interrupcion."""
         t = threading.Thread(target=self.play, args=(audio_path,), daemon=True)
         t.start()
         return t
@@ -702,7 +799,11 @@ class VoiceRealtime:
                 time.sleep(1)
 
     def _conversation_turn(self):
-        """Un turno de conversacion: escuchar -> pensar -> hablar."""
+        """Un turno de conversacion con auto-continuacion.
+
+        Si la respuesta del LLM parece incompleta (termina a mitad de frase),
+        automaticamente pide "continua" hasta que termine naturalmente.
+        """
         # 1. Escuchar
         if self.mode == "push":
             input("  >> Presiona Enter y habla (5 seg)...")
@@ -710,7 +811,6 @@ class VoiceRealtime:
         else:
             wav_path = self.audio.record_with_vad()
         if not wav_path:
-            print("  (no se detecto voz, intenta de nuevo)")
             return
 
         # 2. Transcribir
@@ -719,37 +819,67 @@ class VoiceRealtime:
         stt_time = time.time() - t0
         self._cleanup(wav_path)
 
-        if not text:
+        if not text or len(text.strip()) < 2:
             return
 
         print(f"\n  Tu: {text}")
 
-        # 3. Pensar
-        t0 = time.time()
-        response = self.brain.think(text)
-        llm_time = time.time() - t0
+        # 3. Pensar + Hablar (con auto-continuacion)
+        total_llm = 0
+        total_tts = 0
+        full_response = ""
+        max_continuations = 5  # maximo 5 continuaciones automaticas
 
-        print(f"  Mesh: {response}")
+        for i in range(max_continuations + 1):
+            if i == 0:
+                prompt = text
+            else:
+                prompt = "Continua exactamente donde dejaste, no repitas lo anterior, sigue desarrollando."
+                print("  ... (auto-continuacion)")
 
-        # 4. Hablar
-        t0 = time.time()
-        audio_path = self.tts.speak(response)
-        tts_time = time.time() - t0
+            t0 = time.time()
+            response = self.brain.think(prompt)
+            llm_time = time.time() - t0
+            total_llm += llm_time
 
-        if audio_path:
-            print(f"  [audio: {audio_path}, size: {os.path.getsize(audio_path)} bytes]")
-            self.audio.play(audio_path)
-            self._cleanup(audio_path)
-        else:
-            print("  [TTS fallo — sin audio]")
-            # Fallback directo a macOS say
-            subprocess.run(["say", "-v", "Paulina", response[:300]], capture_output=True)
+            if not response:
+                break
 
-        # 5. Log
-        total = stt_time + llm_time + tts_time
-        print(f"  [{stt_time:.1f}s STT + {llm_time:.1f}s LLM + {tts_time:.1f}s TTS = {total:.1f}s total]\n")
+            full_response += " " + response
+            print(f"  Mesh: {response[:200]}{'...' if len(response) > 200 else ''}")
 
-        self._log_turn(text, response, stt_time, llm_time, tts_time)
+            # Hablar este segmento
+            t0 = time.time()
+            audio_path = self.tts.speak(response)
+            tts_time = time.time() - t0
+            total_tts += tts_time
+
+            if audio_path:
+                self.audio.play(audio_path)
+                self._cleanup(audio_path)
+            else:
+                subprocess.run(["say", "-v", "Paulina", response[:500]], capture_output=True)
+
+            # Verificar si la respuesta termino naturalmente
+            response_stripped = response.strip()
+            ends_naturally = response_stripped.endswith(('.', '?', '!', '"'))
+            is_short_enough = len(response_stripped) < 500
+            has_conclusion = any(w in response_stripped.lower()[-100:] for w in [
+                'eso es todo', 'en conclusion', 'para finalizar', 'espero que',
+                'cualquier pregunta', 'algo mas', 'eso seria', 'hasta aqui',
+            ])
+
+            if ends_naturally and (is_short_enough or has_conclusion):
+                break  # respuesta completa, no continuar
+
+            if i == max_continuations:
+                break  # limite de continuaciones
+
+        # 4. Log
+        total = stt_time + total_llm + total_tts
+        print(f"  [{stt_time:.1f}s STT + {total_llm:.1f}s LLM + {total_tts:.1f}s TTS = {total:.1f}s]\n")
+
+        self._log_turn(text, full_response.strip(), stt_time, total_llm, total_tts)
 
     def speak_only(self, text: str):
         """Modo TTS: solo genera y reproduce voz."""

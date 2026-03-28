@@ -1,5 +1,5 @@
 """
-Configuración de LLMs — 8 proveedores gratuitos + Smart Router + Retry.
+Configuración de LLMs — 9 proveedores gratuitos + Smart Router + Retry.
 
 Distribución de carga (Research Crew):
   Researcher:  Groq Llama 3.3         (tool-calling)
@@ -7,9 +7,10 @@ Distribución de carga (Research Crew):
   QA Reviewer: Cerebras GPT-OSS 120B  (tool-calling)
   Verifier:    Cerebras GPT-OSS 120B  (libera Groq TPM)
 
-Proveedores activos (8):
+Proveedores activos (9):
   GROQ:       Llama 3.3 70B, Qwen3-32B, GPT-OSS 120B, Kimi K2  (131K, 12K TPM free)
   NVIDIA:     Qwen3.5-397B, Kimi K2.5, DeepSeek V3.2           (128K, 1000 credits)
+  DEEPSEEK:   DeepSeek V3 (chat), DeepSeek R1 (reasoner)        (128K, API tier)
   CEREBRAS:   GPT-OSS 120B                                      (128K, 1M tok/día free)
   MINIMAX:    MiniMax-M2.1                                      (128K, free tier)
   GEMINI:     2.5 Flash                                (1M context, 20 req/día free)
@@ -92,6 +93,19 @@ def get_sambanova_llm(model="DeepSeek-V3.2", temperature=0.3):
     )
 
 
+def get_deepseek_llm(model="deepseek-chat", temperature=0.3):
+    """DeepSeek — V3 (chat) y R1 (reasoner), 128K context, OpenAI-compatible."""
+    api_key = os.getenv("DEEPSEEK_API_KEY")
+    if not api_key:
+        return None
+    return LLM(
+        model=f"deepseek/{model}",
+        api_key=api_key,
+        temperature=temperature,
+        max_tokens=4096,
+    )
+
+
 def get_openrouter_llm(model="nousresearch/hermes-3-llama-3.1-405b:free", temperature=0.3):
     """OpenRouter — modelos gratuitos (rate limited)."""
     api_key = os.getenv("OPENROUTER_API_KEY")
@@ -167,7 +181,7 @@ def reset_exhausted_providers():
 
 def _get_active_providers() -> list[str]:
     """List active (non-exhausted) providers."""
-    all_providers = ["groq", "nvidia", "cerebras", "minimax", "zhipu"]
+    all_providers = ["groq", "nvidia", "deepseek", "cerebras", "minimax", "zhipu"]
     return [p for p in all_providers if p not in _exhausted_providers]
 
 
@@ -196,49 +210,57 @@ _ROLE_CHAINS = {
                           ("groq", "groq/moonshotai/kimi-k2-instruct"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
                           ("zhipu", "openai/glm-4.7-flash"),
-                          ("nvidia", "nvidia_nim/moonshotai/kimi-k2.5")],
+                          ("nvidia", "nvidia_nim/moonshotai/kimi-k2.5"),
+                          ("deepseek", "deepseek/deepseek-reasoner")],
     "research_analyst":  [("zo", "vercel:minimax/minimax-m2.5"),
     ("minimax", "minimax/MiniMax-M2.1"),
                           ("groq", "groq/llama-3.3-70b-versatile"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
                           ("zhipu", "openai/glm-4.7-flash"),
-                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2")],
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
+                          ("deepseek", "deepseek/deepseek-chat")],
     "mvp_strategist":    [("zo", "vercel:minimax/minimax-m2.5"),
     ("minimax", "minimax/MiniMax-M2.1"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
                           ("groq", "groq/llama-3.3-70b-versatile"),
                           ("zhipu", "openai/glm-4.7-flash"),
-                          ("nvidia", "nvidia_nim/qwen/qwen3.5-397b-a17b")],
+                          ("nvidia", "nvidia_nim/qwen/qwen3.5-397b-a17b"),
+                          ("deepseek", "deepseek/deepseek-reasoner")],
     "qa_reviewer":       [("zo", "vercel:minimax/minimax-m2.5"),
     ("minimax", "minimax/MiniMax-M2.1"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
                           ("groq", "groq/llama-3.3-70b-versatile"),
                           ("zhipu", "openai/glm-4.7-flash"),
-                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2")],
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
+                          ("deepseek", "deepseek/deepseek-chat")],
     "data_engineer":     [("zo", "vercel:minimax/minimax-m2.5"),
     ("minimax", "minimax/MiniMax-M2.1"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
                           ("groq", "groq/llama-3.3-70b-versatile"),
                           ("zhipu", "openai/glm-4.7-flash"),
-                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2")],
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
+                          ("deepseek", "deepseek/deepseek-chat")],
     "project_organizer": [("zo", "vercel:minimax/minimax-m2.5"),
     ("minimax", "minimax/MiniMax-M2.1"),
                           ("groq", "groq/qwen/qwen3-32b"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
                           ("zhipu", "openai/glm-4.7-flash"),
-                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2")],
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
+                          ("deepseek", "deepseek/deepseek-chat")],
     "narrative_content": [("zo", "vercel:minimax/minimax-m2.5"),
     ("minimax", "minimax/MiniMax-M2.1"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
                           ("groq", "groq/llama-3.3-70b-versatile"),
                           ("zhipu", "openai/glm-4.7-flash"),
-                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2")],
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
+                          ("deepseek", "deepseek/deepseek-chat")],
     "verifier":          [("zo", "vercel:minimax/minimax-m2.5"),
     ("minimax", "minimax/MiniMax-M2.1"),
                           ("cerebras", "cerebras/gpt-oss-120b"),
                           ("groq", "groq/llama-3.3-70b-versatile"),
                           ("zhipu", "openai/glm-4.7-flash"),
-                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2")],
+                          ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
+                          ("deepseek", "deepseek/deepseek-chat")],
 }
 
 _DEFAULT_CHAIN = [
@@ -248,6 +270,7 @@ _DEFAULT_CHAIN = [
     ("groq", "groq/llama-3.3-70b-versatile"),
     ("zhipu", "openai/glm-4.7-flash"),
     ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
+    ("deepseek", "deepseek/deepseek-chat"),
 ]
 
 _ROLE_TEMPS = {
@@ -261,6 +284,7 @@ _PROVIDER_KEY_ENV = {
     "minimax": "MINIMAX_API_KEY",
     "groq": "GROQ_API_KEY",
     "nvidia": "NVIDIA_API_KEY",
+    "deepseek": "DEEPSEEK_API_KEY",
     "cerebras": "CEREBRAS_API_KEY",
     "zhipu": "ZHIPU_API_KEY",
 }
@@ -499,6 +523,14 @@ def get_llm_smart(role: str, task_text: str = "", context_size: int = 0,
                                   "task_type=fast")
             return zhipu
 
+    elif task_type == "reasoning":
+        deepseek = _try_get("deepseek", get_deepseek_llm,
+                            model="deepseek-reasoner", temperature=0.3)
+        if deepseek and not is_provider_degraded("deepseek"):
+            _log_routing_decision(role, task_type, "deepseek", "deepseek-reasoner",
+                                  "task_type=reasoning")
+            return deepseek
+
     elif task_type == "fallback":
         groq = _try_get("groq", get_groq_llm, temperature=0.3)
         if groq and not is_provider_degraded("groq"):
@@ -557,6 +589,7 @@ def validate_keys() -> dict:
         "gemini": bool(os.getenv("GEMINI_API_KEY")),
         "nvidia": bool(os.getenv("NVIDIA_API_KEY")),
         "cerebras": bool(os.getenv("CEREBRAS_API_KEY")),
+        "deepseek": bool(os.getenv("DEEPSEEK_API_KEY")),
         "sambanova": bool(os.getenv("SAMBANOVA_API_KEY")),
         "openrouter": bool(os.getenv("OPENROUTER_API_KEY")),
         "zhipu": bool(os.getenv("ZHIPU_API_KEY")),

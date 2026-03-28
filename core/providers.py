@@ -52,13 +52,16 @@ class ProviderManager:
         key = os.getenv("NVIDIA_API_KEY")
         if key:
             return LLM(model="nvidia/llama-3.1-nemotron-70b-instruct", api_key=key, temperature=0.3, max_tokens=4096)
+        key = os.getenv("DEEPSEEK_API_KEY")
+        if key:
+            return LLM(model="deepseek/deepseek-chat", api_key=key, temperature=0.3, max_tokens=4096)
         key = os.getenv("GROQ_API_KEY")
         if key:
             return LLM(model="groq/llama-3.3-70b-versatile", api_key=key, temperature=0.3, max_tokens=4096)
         key = os.getenv("CEREBRAS_API_KEY")
         if key:
             return LLM(model="cerebras/llama-3.3-70b", api_key=key, temperature=0.3, max_tokens=4096)
-        raise RuntimeError("No hay provider disponible (NVIDIA_API_KEY, GROQ_API_KEY o CEREBRAS_API_KEY requerida)")
+        raise RuntimeError("No hay provider disponible (NVIDIA_API_KEY, DEEPSEEK_API_KEY, GROQ_API_KEY o CEREBRAS_API_KEY requerida)")
 
 
 # ═══════════════════════════════════════════════════════

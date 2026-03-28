@@ -1,10 +1,26 @@
 """
 Claude Commander — DOF ordena a Claude Code directamente.
 
-3 modos de comunicación entre agentes:
+5 modos de comunicación entre agentes:
   1. SDK Mode: DOF → Claude Agent SDK → Claude Code (programático)
-  2. Peers Mode: DOF → Claude Peers MCP → Claude Code instances (P2P)
-  3. AgentMeet Mode: DOF → AgentMeet HTTP → Multiple agents (debate)
+  2. Spawn Mode: DOF → AgentDefinition → Claude workers especializados
+  3. Team Mode: DOF → Parallel/Sequential → Múltiples agentes con consensus
+  4. Peers Mode: DOF → Claude Peers MCP → Claude Code instances (P2P)
+  5. AgentMeet Mode: DOF → AgentMeet HTTP → Multiple agents (debate)
+
+Agent Teams + DOF Mesh Bridge (27 mar 2026):
+  El MCP server (mcp_server.py) expone 15 tools: 10 DOF governance + 5 mesh
+  communication. Los 5 mesh tools permiten que Agent Teams de Claude Code
+  se comuniquen con el mesh de 11+ nodos LLM bajo governance determinística.
+
+  Mesh tools: mesh_send_task, mesh_broadcast, mesh_route_smart,
+              mesh_read_inbox, mesh_consensus
+
+  Cada mesh tool recibe governance post-check automática via
+  ConstitutionEnforcer — campo _dof_governance inyectado en responses.
+
+  Docs: docs/AGENT_TEAMS_DOF_BRIDGE.md (924 líneas, enterprise-grade)
+  Tests: tests/test_mesh_governance.py (29 tests)
 
 Usage:
     from core.claude_commander import ClaudeCommander
