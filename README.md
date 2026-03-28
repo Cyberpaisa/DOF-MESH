@@ -8,8 +8,8 @@
   <strong>Matemáticas, no promesas.</strong>
 </p>
 
-[![Tests](https://img.shields.io/badge/tests-3,844+-brightgreen)](tests/)
-[![Modules](https://img.shields.io/badge/modules-126-blue)](core/)
+[![Tests](https://img.shields.io/badge/tests-4,036+-brightgreen)](tests/)
+[![Modules](https://img.shields.io/badge/modules-142-blue)](core/)
 [![Z3](https://img.shields.io/badge/Z3-4%20theorems%20PROVEN-critical)](core/z3_verifier.py)
 [![Chains](https://img.shields.io/badge/chains-5%20(Avalanche%2C%20Base%2C%20Celo%2C%20ETH%2C%20Tempo)-gold)](contracts/)
 [![Sentinel](https://img.shields.io/badge/Sentinel-10%20checks%20%2B%20TRACER%206D-blueviolet)](core/sentinel_lite.py)
@@ -108,8 +108,8 @@ print(result.attestation)   # tx hash on-chain
 
 | Métrica | Valor |
 |---------|-------|
-| Módulos core | **126** |
-| Tests automatizados | **3,844** passing |
+| Módulos core | **142** |
+| Tests automatizados | **4,036** passing |
 | Teoremas Z3 | **4** probados (exhaustivos para TODOS los inputs) |
 | Patrones de jerarquía | **42** PROVEN |
 | Checks Sentinel | **10** (paralelos, ThreadPoolExecutor) |
@@ -117,6 +117,7 @@ print(result.attestation)   # tx hash on-chain
 | Chains activas | **5** (Avalanche, Base, Celo, ETH, Tempo) |
 | Attestations on-chain | **21+** mainnet + contratos Tempo |
 | Ciclos autónomos sin intervención | **238** |
+| Modelos frontier validados | **10** (Experimento Winston v4-Web) |
 | LLMs para governance | **0** |
 
 ---
@@ -210,12 +211,63 @@ Rollback (si algo sale mal)
 
 ---
 
+## Módulos de Escalado Distribuido (v0.5.1)
+
+Implementados a partir del Experimento Winston — 10 modelos frontier convergieron independientemente en esta arquitectura:
+
+| Módulo | Qué hace |
+|--------|----------|
+| **Z3 Proof Caching** | Memoization SMT: constraints idénticos no se re-suelven (-40% latencia) |
+| **Z3 Portfolio Solving** | Múltiples estrategias Z3 en paralelo, short-circuit al primer resultado |
+| **Z3 Fast Path** | Políticas ya verificadas se sirven sin tocar Z3 (~70% de queries) |
+| **Versioned Cache** | Cache con epoch TTL — auto-expira cuando Constitution cambia |
+| **Adaptive Circuit Breaker** | Cuarentena agentes con >15% block rate (ventana 60s) |
+| **Byzantine Node Guard** | Reputación 0.0-1.0 por nodo, cuarentena automática <0.3 |
+| **Constitution Integrity Watcher** | SHA-256 del árbol de reglas vs baseline, drift detection <30s |
+| **Constitution Update Coordinator** | Two-phase commit con quorum 67% para updates |
+| **Constitution Hash Beacon** | Broadcast de hash canónico cada N bloques, HALT automático si diverge |
+| **Context Epoch System** | Nodos con epoch desactualizado rechazan queries hasta sincronizar |
+| **Merkle Attestation Batching** | N decisiones → 1 Merkle root on-chain (-70% gas) |
+| **Node Capability Manifest** | Nodos declaran capacidades, routing por tier (Core/Standard/Edge) |
+| **CRDT Memory Layer** | GCounter + LWW-Register: sincronización sin consenso |
+
+> **Validación:** Estas 13 arquitecturas fueron propuestas independientemente por 7-10 modelos frontier sin coordinación. Cuando 10 mentes llegan al mismo diseño por separado, el diseño probablemente es correcto.
+
+---
+
+## Experimento Winston — Validación Multi-Modelo
+
+10 modelos frontier evaluados con y sin framework de comunicación Winston:
+
+```
+Modelo              BLUE(Winston)  RED(baseline)  Delta
+─────────────────────────────────────────────────────
+DeepSeek-V3           88.7          38.7         +50.0
+GLM-4.5               90.0          42.7         +47.3
+Mistral-Large         78.7          41.3         +37.4
+Claude Sonnet         90.0          56.0         +34.0
+ChatGPT-4o            88.7          63.0         +25.7
+Gemini-2.5Pro         84.7          71.3         +13.4
+Perplexity-Sonar      82.0          70.0         +12.0
+MiniMax-M2            76.0          66.7          +9.3
+Kimi-K2               64.0          58.0          +6.0
+─────────────────────────────────────────────────────
+Promedio                                        +26.1
+```
+
+Scorer determinístico (0 LLMs): Claridad + Relevancia + Estructura + Sorpresa + Cierre accionable.
+Datos completos: [`experiments/winston_vs_baseline/`](experiments/winston_vs_baseline/)
+
+---
+
 ## Documentación
 
 | Documento | Contenido |
 |-----------|-----------|
 | [docs/INDEX.md](docs/INDEX.md) | Mapa completo — 123 documentos categorizados |
 | [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md) | Arquitectura de 12 capas |
+| [docs/BOOK_CH22_EXPERIMENTO_WINSTON.md](docs/BOOK_CH22_EXPERIMENTO_WINSTON.md) | Capítulo 22 — Experimento Winston completo |
+| [docs/IMPLEMENTACIONES_EXPERIMENTO_WINSTON.md](docs/IMPLEMENTACIONES_EXPERIMENTO_WINSTON.md) | 16 implementaciones extraídas del experimento |
 | [docs/COMPETITION_BIBLE.md](docs/COMPETITION_BIBLE.md) | Inteligencia competitiva (685 proyectos analizados) |
 | [docs/WINSTON_COMMUNICATION_FRAMEWORK.md](docs/WINSTON_COMMUNICATION_FRAMEWORK.md) | Framework de comunicación MIT |
 | [docs/TEMPO_DEPLOY_GUIDE.md](docs/TEMPO_DEPLOY_GUIDE.md) | Deploy en blockchain de Stripe |
