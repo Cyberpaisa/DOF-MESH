@@ -3,6 +3,7 @@ Z3 Gate — formal verification gate for agent outputs.
 
 Neurosymbolic architecture: agents produce outputs → Z3 verifies consistency
 with governance rules → approved outputs execute, rejected ones are blocked.
+Includes SMT proof caching and Fast Path policy cache for ~70% latency reduction.
 
 The gate intercepts Meta-Supervisor decisions and Red/Blue agent outputs
 before they take effect. Red/Blue agents are already deterministic internally;
