@@ -16,6 +16,7 @@ Timeout behavior:
 
 from __future__ import annotations
 
+import hashlib
 import time
 import logging
 from dataclasses import dataclass, field
@@ -71,6 +72,21 @@ class Z3Gate:
         """
         self.timeout_ms = timeout_ms
         self._last_transcript: Optional[str] = None
+        # SMT proof cache: constraint_hash → GateVerification
+        # Avoids re-solving identical constraint sets (common in governance loops).
+        self._cache: dict[str, GateVerification] = {}
+
+    def _constraint_hash(self, *parts) -> str:
+        """Stable hash of constraint inputs for SMT cache key."""
+        raw = "|".join(str(p) for p in parts)
+        return hashlib.sha256(raw.encode()).hexdigest()
+
+    @property
+    def cache_size(self) -> int:
+        return len(self._cache)
+
+    def cache_hit_rate(self, hits: int, total: int) -> float:
+        return hits / total if total > 0 else 0.0
 
     def validate_output(self, output: AgentOutput) -> GateVerification:
         """Validate an agent output against governance constraints.
@@ -130,6 +146,11 @@ class Z3Gate:
         - If agent is governor (level 3), score must be > 0.8
         - Score change is consistent with evidence
         """
+        current_level = evidence.get("current_level", 0)
+        cache_key = self._constraint_hash("trust_score", proposed_score, current_level)
+        if cache_key in self._cache:
+            return self._cache[cache_key]
+
         start = time.time()
         solver = z3.Solver()
         solver.set("timeout", self.timeout_ms)
@@ -157,7 +178,7 @@ class Z3Gate:
         if result == z3.unsat:
             # No violation possible — score is valid
             self._last_transcript = f"UNSAT: trust_score={proposed_score} valid"
-            return GateVerification(
+            verification = GateVerification(
                 result=GateResult.APPROVED,
                 decision_type="trust_score",
                 invariants_checked=invariants,
@@ -170,7 +191,7 @@ class Z3Gate:
                   "current_level": current_level,
                   "reason": "Score violates governance constraints"}
             self._last_transcript = f"SAT: counterexample found: {ce}"
-            return GateVerification(
+            verification = GateVerification(
                 result=GateResult.REJECTED,
                 decision_type="trust_score",
                 invariants_checked=invariants,
@@ -181,6 +202,9 @@ class Z3Gate:
         else:
             return self._handle_timeout("trust_score", invariants, elapsed)
 
+        self._cache[cache_key] = verification
+        return verification
+
     def validate_promotion(self, agent_id: str, current_level: int,
                            target_level: int) -> GateVerification:
         """Validate an agent promotion.
@@ -190,6 +214,10 @@ class Z3Gate:
         - Target <= 3
         - If target is 3, trust must be > 0.8
         """
+        cache_key = self._constraint_hash("promotion", current_level, target_level)
+        if cache_key in self._cache:
+            return self._cache[cache_key]
+
         start = time.time()
         solver = z3.Solver()
         solver.set("timeout", self.timeout_ms)
@@ -211,7 +239,7 @@ class Z3Gate:
 
         if result == z3.unsat:
             self._last_transcript = f"UNSAT: promotion {current_level}→{target_level} valid"
-            return GateVerification(
+            verification = GateVerification(
                 result=GateResult.APPROVED,
                 decision_type="promotion",
                 invariants_checked=invariants,
@@ -222,7 +250,7 @@ class Z3Gate:
             ce = {"current_level": current_level, "target_level": target_level,
                   "reason": "Promotion violates hierarchy constraints"}
             self._last_transcript = f"SAT: invalid promotion: {ce}"
-            return GateVerification(
+            verification = GateVerification(
                 result=GateResult.REJECTED,
                 decision_type="promotion",
                 invariants_checked=invariants,
@@ -230,6 +258,9 @@ class Z3Gate:
                 verification_time_ms=round(elapsed, 2),
                 proof_transcript=self._last_transcript,
             )
+
+        self._cache[cache_key] = verification
+        return verification
 
     def validate_threat_output(self, threat_data: dict,
                                proposed_level: str) -> GateVerification:
