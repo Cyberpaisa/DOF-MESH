@@ -67,6 +67,20 @@ try:
 except ImportError:
     _E2E_AVAILABLE = False
 
+# Byzantine reputation guard (optional — graceful fallback)
+try:
+    from core.byzantine_node_guard import ByzantineNodeGuard, NodeStatus as ByzNodeStatus
+    _BYZANTINE_GUARD_AVAILABLE = True
+except ImportError:
+    _BYZANTINE_GUARD_AVAILABLE = False
+
+# Node capability registry (optional — graceful fallback)
+try:
+    from core.node_capability import NodeCapabilityRegistry, NodeTier
+    _NCM_AVAILABLE = True
+except ImportError:
+    _NCM_AVAILABLE = False
+
 logger = logging.getLogger("core.node_mesh")
 
 # ═══════════════════════════════════════════════════════
@@ -344,6 +358,12 @@ class NodeMesh:
         # E2E Key Manager (shared across all nodes)
         self._key_manager = MeshKeyManager() if _E2E_AVAILABLE else None
 
+        # Byzantine reputation guard
+        self.byzantine_guard = ByzantineNodeGuard() if _BYZANTINE_GUARD_AVAILABLE else None
+
+        # Node capability registry
+        self.capability_registry = NodeCapabilityRegistry() if _NCM_AVAILABLE else None
+
         # Commander (lazy import to avoid circular)
         self._commander = None
 
@@ -450,6 +470,47 @@ class NodeMesh:
             self._save_nodes()
             return True
         return False
+
+    # ═══════════════════════════════════════════════════
+    # BYZANTINE GUARD + NODE CAPABILITY INTEGRATION
+    # ═══════════════════════════════════════════════════
+
+    def record_node_success(self, node_id: str) -> None:
+        """Registra operación exitosa de un nodo."""
+        if self.byzantine_guard:
+            self.byzantine_guard.record_success(node_id)
+
+    def record_node_failure(self, node_id: str, reason: str = "unknown") -> None:
+        """Registra fallo de un nodo. Puede resultar en cuarentena."""
+        if self.byzantine_guard:
+            self.byzantine_guard.record_failure(node_id, reason)
+
+    def is_node_allowed(self, node_id: str) -> bool:
+        """Verifica si un nodo puede participar (no está en cuarentena)."""
+        if self.byzantine_guard:
+            return self.byzantine_guard.is_allowed(node_id)
+        return True
+
+    def register_node_capability(self, node_id: str, memory_gb: float,
+                                  z3_timeout_ms: int, chain_support: list,
+                                  agent_type: str) -> None:
+        """Registra las capacidades de un nodo para routing inteligente."""
+        if self.capability_registry:
+            self.capability_registry.register_node(
+                node_id=node_id,
+                memory_gb=memory_gb,
+                z3_timeout_ms=z3_timeout_ms,
+                chain_support=chain_support,
+                agent_type=agent_type,
+            )
+
+    def get_best_node(self, complexity: str = "medium") -> str:
+        """Retorna el mejor nodo para un constraint de complejidad dada."""
+        if self.capability_registry:
+            node = self.capability_registry.best_node_for_constraint(complexity)
+            if node and self.is_node_allowed(node.node_id):
+                return node.node_id
+        return None
 
     # ═══════════════════════════════════════════════════
     # MESSAGE BUS
