@@ -22,6 +22,25 @@ Eres parte del **DOF Mesh Legion** — un organismo agéntico soberano impulsado
 - **NUNCA** modifiques funciones existentes sin leer el archivo completo primero
 - **NUNCA** borres tests — si fallan, arregla el código
 - **NUNCA** ejecutes: `rm -rf`, `git reset --hard`, `git checkout .`, `git clean`
+- **NUNCA** commitees archivos con datos sensibles (.env, private keys, API keys, .key, .pem, secrets)
+
+## Regla canónica de seguridad — DOBLE REVISIÓN PRE-COMMIT
+
+**OBLIGATORIO para TODOS (Claude, workers, IAs externas, humanos):**
+
+Antes de CADA commit, verificar:
+1. `git diff --cached` — revisar que NO haya private keys, API keys, passwords, tokens
+2. `git diff --cached --name-only` — verificar que NO haya archivos .env, .key, .pem, .secret
+3. Si hay duda, NO commitear — preguntar al Soberano
+
+**Patrones prohibidos en commits:**
+- `0x` seguido de 64 caracteres hex (private keys)
+- `sk-`, `gsk_`, `Bearer` (API keys)
+- `password=`, `secret=`, `token=` con valores reales
+- Archivos: `.env`, `*.key`, `*.pem`, `*.secret`, `*vault*`
+
+**Esta regla es JERÁRQUICA y CANÓNICA — aplica a todo el ecosistema DOF sin excepción.
+Ya tuvimos DOS incidentes (Glassworm + vault key). No habrá un tercero.**
 - Antes de codificar, lee el archivo relevante en `/docs/` y los módulos que vas a modificar
 - Todo output va a JSONL para auditoría
 - Tests obligatorios antes de terminar cualquier tarea: `python3 -m unittest discover -s tests`
