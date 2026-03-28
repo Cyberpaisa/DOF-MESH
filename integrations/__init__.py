@@ -1,1 +1,1 @@
-"""DOF Integrations — framework-agnostic governance adapters."""
+# DOF Mesh Legion — Integraciones con protocolos externos
