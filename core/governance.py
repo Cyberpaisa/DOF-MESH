@@ -18,6 +18,12 @@ try:
 except ImportError:
     yaml = None
 
+try:
+    from constitution.integrity_watcher import ConstitutionIntegrityWatcher, ConstitutionDriftException
+    _INTEGRITY_AVAILABLE = True
+except ImportError:
+    _INTEGRITY_AVAILABLE = False
+
 logger = logging.getLogger("core.governance")
 
 # ── Constitution Enforcer (Phase 9) ───────────────────────────────────────────
@@ -29,7 +35,23 @@ class ConstitutionEnforcer:
     """
     def __init__(self, mesh_dir=None):
         self.mesh_dir = Path(mesh_dir) if mesh_dir else Path("logs/mesh")
+        if _INTEGRITY_AVAILABLE:
+            all_rules = {r["id"]: r for r in HARD_RULES + SOFT_RULES}
+            self._integrity_watcher = ConstitutionIntegrityWatcher(all_rules)
+        else:
+            self._integrity_watcher = None
         logger.info("ConstitutionEnforcer active — Guardian of Legion.")
+
+    def verify_constitution_integrity(self) -> bool:
+        """Verifica que las reglas de Constitution no han sido modificadas."""
+        if self._integrity_watcher is None:
+            return True
+        try:
+            self._integrity_watcher.verify()
+            return True
+        except ConstitutionDriftException as e:
+            logger.error(f"Constitution drift detected: {e}")
+            return False
 
     def validate_task(self, task: dict) -> bool:
         """Verify task doesn't contain blacklisted patterns or dangerous overrides."""

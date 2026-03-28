@@ -2,7 +2,7 @@
 Meta-Supervisor Minimal — FASE 0.
 
 Evaluates FINAL output only. No intermediate intervention.
-Score: Q(0.40) + A(0.25) + C(0.20) + F(0.15)
+Score: Q(0.35) + A(0.20) + C(0.20) + F(0.10) + CQ(0.15)
 Decision: ACCEPT >= 7, RETRY 5-7 (max 2), ESCALATE < 5
 """
 
@@ -11,6 +11,8 @@ import json
 import os
 import logging
 from dataclasses import dataclass
+
+from core.adaptive_circuit_breaker import AdaptiveCircuitBreaker, CircuitState
 
 logger = logging.getLogger("core.supervisor")
 
@@ -32,6 +34,67 @@ def _load_accept_threshold() -> float:
     return float(_load_overrides().get("supervisor_accept_threshold", 6.0))
 
 
+def evaluate_communication_quality(output: str) -> int:
+    """CQ Score — Winston Communication Framework (section F.3).
+
+    Deterministic evaluation of communication quality based on the 5S:
+    Slogan (clarity), Saliente (relevance), Story+Symbol (structure),
+    Sorpresa (surprise), Contribucion (actionable close).
+
+    Returns 0-100.
+    """
+    score = 0
+
+    lines = output.strip().split('\n')
+    first_line = lines[0] if lines else ""
+    last_line = lines[-1] if lines else ""
+
+    # Claridad de conclusion (25 pts)
+    indicators = ['[PROVEN]', '[BLOCKED]', '[WARNING]', '[PASS]', '[FAIL]']
+    if any(ind in first_line for ind in indicators):
+        score += 15
+    if len(first_line) < 200 and len(first_line) > 10:
+        score += 10
+
+    # Relevancia del impacto (25 pts)
+    salience_patterns = [
+        'esto significa', 'impacto:', 'consecuencia:',
+        'this means', 'impact:', 'therefore'
+    ]
+    if any(p in output.lower() for p in salience_patterns):
+        score += 25
+
+    # Estructura narrativa (20 pts)
+    if any(ind in output for ind in indicators):
+        score += 10
+    if any(h in output for h in ['##', '**', '- ', '1.', '2.']):
+        score += 10
+
+    # Elemento diferenciador (15 pts)
+    surprise_patterns = [
+        'inesperado', 'unexpected', 'nota:', 'alerta:',
+        'resultado inesperado', 'warning:', 'anomaly'
+    ]
+    if any(p in output.lower() for p in surprise_patterns):
+        score += 15
+
+    # Cierre accionable (15 pts)
+    action_patterns = [
+        'siguiente paso', 'next step', 'accion:',
+        'action:', 'recomendacion:', 'recommendation:'
+    ]
+    filler_patterns = [
+        'espero que', 'hope this', 'si necesitas',
+        'if you need', 'let me know', 'no dudes'
+    ]
+    if any(p in last_line.lower() for p in action_patterns):
+        score += 15
+    if any(p in last_line.lower() for p in filler_patterns):
+        score -= 10
+
+    return max(0, min(100, score))
+
+
 @dataclass
 class SupervisorVerdict:
     """Result of supervisor evaluation."""
@@ -41,6 +104,7 @@ class SupervisorVerdict:
     actionability: float
     completeness: float
     factuality: float
+    communication_quality: float
     reasons: list[str]
     retry_count: int = 0
 
@@ -50,28 +114,42 @@ class MetaSupervisor:
 
     MAX_RETRIES = 2
 
+    def __init__(self):
+        self._circuit_breakers: dict[str, AdaptiveCircuitBreaker] = {}
+
+    def _get_breaker(self, agent_id: str) -> AdaptiveCircuitBreaker:
+        """Return (or lazily create) the circuit breaker for *agent_id*."""
+        if agent_id not in self._circuit_breakers:
+            self._circuit_breakers[agent_id] = AdaptiveCircuitBreaker(agent_id)
+        return self._circuit_breakers[agent_id]
+
     def evaluate(self, output: str, original_input: str = "",
                  retry_count: int = 0) -> SupervisorVerdict:
         """Evaluate final crew output and decide: ACCEPT, RETRY, or ESCALATE.
 
         Scoring (0-10):
-        - Quality (Q=0.40): Structure, clarity, depth
-        - Actionability (A=0.25): Concrete steps, recommendations
+        - Quality (Q=0.35): Structure, clarity, depth
+        - Actionability (A=0.20): Concrete steps, recommendations
         - Completeness (C=0.20): Covers the asked topic
-        - Factuality (F=0.15): Sources cited, no obvious hallucinations
+        - Factuality (F=0.10): Sources cited, no obvious hallucinations
+        - Communication Quality (CQ=0.15): Winston 5S framework
         """
         q = self._score_quality(output)
         a = self._score_actionability(output)
         c = self._score_completeness(output, original_input)
         f = self._score_factuality(output)
+        # CQ Score: 0-100 from Winston framework, normalized to 0-10
+        cq_raw = evaluate_communication_quality(output)
+        cq = cq_raw / 10.0  # normalize to 0-10 scale
 
         # Weights read from autoresearch_overrides.json — closes the tuner feedback loop
         _ov = _load_overrides()
-        wq = float(_ov.get("supervisor_weight_quality", 0.40))
-        wa = float(_ov.get("supervisor_weight_actionability", 0.25))
+        wq = float(_ov.get("supervisor_weight_quality", 0.35))
+        wa = float(_ov.get("supervisor_weight_actionability", 0.20))
         wc = float(_ov.get("supervisor_weight_completeness", 0.20))
-        wf = float(_ov.get("supervisor_weight_factuality", 0.15))
-        score = q * wq + a * wa + c * wc + f * wf
+        wf = float(_ov.get("supervisor_weight_factuality", 0.10))
+        wcq = float(_ov.get("supervisor_weight_communication_quality", 0.15))
+        score = q * wq + a * wa + c * wc + f * wf + cq * wcq
         reasons = []
 
         # Calibration phase - tighten after prompt optimization
@@ -102,13 +180,14 @@ class MetaSupervisor:
             actionability=round(a, 1),
             completeness=round(c, 1),
             factuality=round(f, 1),
+            communication_quality=round(cq, 1),
             reasons=reasons,
             retry_count=retry_count,
         )
 
         logger.info(
             f"Supervisor: {decision} (score={score:.1f}, "
-            f"Q={q:.1f} A={a:.1f} C={c:.1f} F={f:.1f})"
+            f"Q={q:.1f} A={a:.1f} C={c:.1f} F={f:.1f} CQ={cq:.1f})"
         )
         return verdict
 
@@ -269,6 +348,14 @@ class MetaSupervisor:
         # 4. Evaluate integrated output
         verdict = self.evaluate(integrated_output, original_input=objective)
 
+        # 5. Record circuit breaker result per dispatched agent
+        blocked = verdict.decision != "ACCEPT"
+        for agent_role in subtasks:
+            breaker = self._get_breaker(agent_role)
+            breaker.record(blocked=blocked)
+            if breaker.state() == CircuitState.OPEN:
+                logger.warning(f"Agent {agent_role} circuit breaker OPEN — quarantined")
+
         return {
             "objective": objective,
             "subtasks": subtasks,
@@ -280,6 +367,7 @@ class MetaSupervisor:
                 "actionability": verdict.actionability,
                 "completeness": verdict.completeness,
                 "factuality": verdict.factuality,
+                "communication_quality": verdict.communication_quality,
             },
             "integrated_output": integrated_output,
         }
