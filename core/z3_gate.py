@@ -95,10 +95,12 @@ class Z3Gate:
         return self._policy_cache.get(policy_id)
 
     def invalidate_policies(self) -> int:
-        """Invalida todo el Fast Path (llamar cuando Constitution cambia). Retorna count invalidado."""
+        """Invalida todo el Fast Path Y el cache SMT (llamar cuando Constitution cambia)."""
         count = len(self._policy_cache)
         self._policy_cache.clear()
+        self._cache.clear()
         self._policy_epoch += 1
+        logger.info(f"[Z3Gate] Policies invalidated: {count} policies + SMT cache cleared (epoch {self._policy_epoch})")
         return count
 
     @property
@@ -139,31 +141,43 @@ class Z3Gate:
                 verification_time_ms=0.0,
             )
 
+        # === FAST PATH: check si esta política ya está verificada ===
+        policy_id = f"{output.output_type.value}:{output.agent_id}"
+        cached = self.fast_path_check(policy_id)
+        if cached is not None:
+            logger.debug(f"Fast Path hit: {policy_id}")
+            return cached
+
         if output.output_type == OutputType.TRUST_SCORE_ASSIGNMENT:
-            return self.validate_trust_score(
+            result = self.validate_trust_score(
                 output.agent_id,
                 float(output.proposed_value),
                 output.evidence,
             )
         elif output.output_type == OutputType.AGENT_PROMOTION:
-            return self.validate_promotion(
+            result = self.validate_promotion(
                 output.agent_id,
                 int(output.evidence.get("current_level", 0)),
                 int(output.proposed_value),
             )
         elif output.output_type == OutputType.THREAT_CLASSIFICATION:
-            return self.validate_threat_output(
+            result = self.validate_threat_output(
                 output.evidence,
                 str(output.proposed_value),
             )
         elif output.output_type == OutputType.MITIGATION_RECOMMENDATION:
-            return self.validate_mitigation_output(
+            result = self.validate_mitigation_output(
                 str(output.proposed_value),
                 output.evidence,
             )
         else:
-            # Generic validation using output constraints
-            return self._generic_validate(output)
+            result = self._generic_validate(output)
+
+        # Registrar en Fast Path solo si APPROVED (rechazos pueden cambiar)
+        if result.result == GateResult.APPROVED:
+            self.register_policy(policy_id, result)
+
+        return result
 
     def validate_trust_score(self, agent_id: str, proposed_score: float,
                              evidence: dict) -> GateVerification:
