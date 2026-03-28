@@ -91,7 +91,18 @@ COMPROMISED_PACKAGES: dict[str, dict] = {
 # IOCs — Indicators of Compromise (from RuneAI analysis 2026-03-27)
 KNOWN_C2_SERVERS = [
     "83.142.209.203",  # TeamPCP C2 — telnyx/litellm WAV payload delivery
+    "194.33.61.36",    # CTRL Framework (Russian RAT) — Jan-Feb 2026
+    "109.107.168.18",  # CTRL Framework — active since 27 Feb 2026
 ]
+
+# CTRL Framework — Russian RAT (.NET) — Censys ARC Feb 2026
+CTRL_IOCS = {
+    "domain": "hui228.ru",
+    "ports": [7000, 7500, 82, 5267, 908],  # FRP, payload hosting, C2
+    "named_pipe": "ctrlPipe",
+    "ssh_fingerprint": "6106ea733ed6263f18d8bb63c5696f2ae6c1383cab887a02f18f1af38107f9d4",
+    "tls_cert_sha256": "5d009f6f46979fbc170ede90fca15f945d6dae5286221cca77fa26223a5fe931",
+}
 
 KNOWN_MALICIOUS_HASHES = {
     # telnyx 4.87.2 (TeamPCP, 2026-03-27)
