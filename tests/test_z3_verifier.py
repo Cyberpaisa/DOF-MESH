@@ -98,5 +98,70 @@ class TestProofResultSchema(unittest.TestCase):
         self.assertTrue(len(result.z3_version) > 0)
 
 
+class TestUnknownRateMonitor(unittest.TestCase):
+    """Z3 unknown rate monitor must detect silent failures and enter degraded mode."""
+
+    def test_handle_sat_returns_pass(self):
+        import z3
+        verifier = Z3Verifier()
+        result = verifier._handle_z3_result(z3.sat)
+        self.assertEqual(result, "PASS")
+
+    def test_handle_unsat_returns_fail(self):
+        import z3
+        verifier = Z3Verifier()
+        result = verifier._handle_z3_result(z3.unsat)
+        self.assertEqual(result, "FAIL")
+
+    def test_handle_unknown_returns_fail_not_pass(self):
+        """z3.unknown must NEVER be treated as PASS — forced to FAIL."""
+        import z3
+        verifier = Z3Verifier()
+        result = verifier._handle_z3_result(z3.unknown)
+        self.assertEqual(result, "FAIL")
+
+    def test_unknown_rate_zero_on_fresh_verifier(self):
+        verifier = Z3Verifier()
+        self.assertEqual(verifier.unknown_rate(), 0.0)
+
+    def test_unknown_rate_increases_with_unknowns(self):
+        import z3
+        verifier = Z3Verifier()
+        verifier._handle_z3_result(z3.sat)
+        verifier._handle_z3_result(z3.sat)
+        verifier._handle_z3_result(z3.unknown)
+        # 1 unknown out of 3 = 33%
+        self.assertAlmostEqual(verifier.unknown_rate(), 1/3, places=5)
+
+    def test_no_degraded_mode_below_threshold(self):
+        import z3
+        verifier = Z3Verifier()
+        # Feed 99 sat + 0 unknown → rate = 0%
+        for _ in range(99):
+            verifier._handle_z3_result(z3.sat)
+        self.assertFalse(verifier.is_degraded())
+
+    def test_degraded_mode_triggered_above_threshold(self):
+        import z3
+        verifier = Z3Verifier()
+        # Feed 2 unknowns + 1 sat → rate = 2/3 > 1%
+        verifier._handle_z3_result(z3.unknown)
+        verifier._handle_z3_result(z3.unknown)
+        verifier._handle_z3_result(z3.sat)
+        self.assertTrue(verifier.is_degraded())
+
+    def test_verify_all_skips_when_degraded(self):
+        import z3
+        verifier = Z3Verifier()
+        # Force degraded mode
+        verifier._handle_z3_result(z3.unknown)
+        verifier._handle_z3_result(z3.unknown)
+        verifier._handle_z3_result(z3.sat)
+        self.assertTrue(verifier.is_degraded())
+        results = verifier.verify_all()
+        # Should return empty (skipped proofs)
+        self.assertEqual(len(results), 0)
+
+
 if __name__ == "__main__":
     unittest.main()
