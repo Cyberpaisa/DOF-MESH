@@ -85,7 +85,7 @@
       "name": "Base Sepolia Testnet",
       "rpc_url": "https://sepolia.base.org",
       "explorer": "https://sepolia.basescan.org",
-      "contract_address": null,
+      "contract_address": "0xeB676e75092df0c924D3b552eE5b9D549c14531C",
       "status": "testnet",
       "gas_multiplier": 1,
       "native_token": "ETH",
