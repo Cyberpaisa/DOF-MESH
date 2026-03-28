@@ -79,6 +79,29 @@ jobs:
     - name: Run quickstart smoke test
       run: python examples/quickstart.py
 
+    - name: Security Audit
+      run: |
+        python3 -c "
+        import sys
+        sys.path.insert(0, '.')
+        from core.supply_chain_guard import SupplyChainGuard
+        guard = SupplyChainGuard('.')
+
+        # Auditar requirements
+        result = guard.audit_requirements('requirements.txt')
+        if result.compromised_count > 0:
+            print(f'CRITICAL: {result.compromised_count} compromised packages!')
+            sys.exit(1)
+
+        # Scan imports
+        risks = guard.scan_imports('core')
+        critical = [r for r in risks if r.severity == 'CRITICAL']
+        if len(critical) > 5:
+            print(f'WARNING: {len(critical)} critical import risks')
+
+        print(f'Security audit passed: {result.safe_count} safe, {result.unpinned_count} unpinned')
+        "
+
   lint:
     runs-on: ubuntu-latest
     steps:
