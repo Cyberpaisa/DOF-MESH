@@ -17,7 +17,7 @@
       "name": "Avalanche Fuji Testnet",
       "rpc_url": "https://api.avax-test.network/ext/bc/C/rpc",
       "explorer": "https://testnet.snowtrace.io",
-      "contract_address": null,
+      "contract_address": "0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D",
       "status": "testnet",
       "gas_multiplier": 1,
       "native_token": "AVAX"
@@ -39,7 +39,7 @@
       "name": "Conflux eSpace Testnet",
       "rpc_url": "https://evmtestnet.confluxrpc.com",
       "explorer": "https://evmtestnet.confluxscan.io",
-      "contract_address": "0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83",
+      "contract_address": "0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D",
       "status": "testnet",
       "gas_multiplier": 2,
       "native_token": "CFX",
@@ -55,7 +55,7 @@
       "status": "planned",
       "gas_multiplier": 1,
       "native_token": "ETH",
-      "notes": "High gas costs — use Merkle batching aggressively."
+      "notes": "High gas costs \u2014 use Merkle batching aggressively."
     },
     "ethereum_sepolia": {
       "chain_id": 11155111,
@@ -131,7 +131,7 @@
       "name": "Polygon Amoy Testnet",
       "rpc_url": "https://rpc-amoy.polygon.technology",
       "explorer": "https://amoy.polygonscan.com",
-      "contract_address": null,
+      "contract_address": "0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D",
       "status": "testnet",
       "gas_multiplier": 1,
       "native_token": "MATIC",
