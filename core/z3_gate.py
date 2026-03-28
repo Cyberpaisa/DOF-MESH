@@ -75,11 +75,38 @@ class Z3Gate:
         # SMT proof cache: constraint_hash → GateVerification
         # Avoids re-solving identical constraint sets (common in governance loops).
         self._cache: dict[str, GateVerification] = {}
+        # Fast Path: policy-level cache for recurring constitutional policies.
+        # ~70% of production queries are recurrent policies — served without Z3.
+        self._policy_cache: dict[str, GateVerification] = {}
+        self._policy_epoch: int = 0
 
     def _constraint_hash(self, *parts) -> str:
         """Stable hash of constraint inputs for SMT cache key."""
         raw = "|".join(str(p) for p in parts)
         return hashlib.sha256(raw.encode()).hexdigest()
+
+    def register_policy(self, policy_id: str, verification: GateVerification) -> None:
+        """Registra una política verificada en el Fast Path."""
+        self._policy_cache[policy_id] = verification
+
+    def fast_path_check(self, policy_id: str) -> Optional[GateVerification]:
+        """Retorna resultado cacheado si la política existe en Fast Path. None si no."""
+        return self._policy_cache.get(policy_id)
+
+    def invalidate_policies(self) -> int:
+        """Invalida todo el Fast Path (llamar cuando Constitution cambia). Retorna count invalidado."""
+        count = len(self._policy_cache)
+        self._policy_cache.clear()
+        self._policy_epoch += 1
+        return count
+
+    @property
+    def policy_cache_size(self) -> int:
+        return len(self._policy_cache)
+
+    @property
+    def policy_epoch(self) -> int:
+        return self._policy_epoch
 
     @property
     def cache_size(self) -> int:
