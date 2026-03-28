@@ -79,6 +79,11 @@ jobs:
     - name: Run quickstart smoke test
       run: python examples/quickstart.py
 
+    - name: Prompt Evaluation Gate
+      run: |
+        git diff HEAD~1 HEAD | python3 scripts/prompt_eval_ci.py --threshold 0.7
+      if: success()
+
     - name: Security Audit
       run: |
         python3 -c "
