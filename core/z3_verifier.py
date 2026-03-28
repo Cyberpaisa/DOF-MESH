@@ -8,6 +8,7 @@ Uses Z3 theorem prover to formally verify:
      independent provider failures.
 
 Results saved to logs/z3_proofs.json for audit.
+Includes Unknown Rate Monitor and Context Epoch System for distributed consistency.
 """
 
 import json
