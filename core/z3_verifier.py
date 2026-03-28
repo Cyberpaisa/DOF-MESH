@@ -14,7 +14,9 @@ import json
 import os
 import time
 import logging
+from collections import deque
 from dataclasses import dataclass, asdict
+from datetime import datetime, timedelta, timezone
 
 import z3
 
@@ -38,8 +40,15 @@ class ProofResult:
 class Z3Verifier:
     """Formal verification of DOF invariants using Z3 SMT solver."""
 
+    # Maximum tolerated z3.unknown rate over a 5-minute window before
+    # the verifier switches to degraded mode (refuses to run new proofs).
+    UNKNOWN_RATE_THRESHOLD = 0.01  # 1%
+
     def __init__(self):
         self._results: list[ProofResult] = []
+        # Unknown rate monitor: (timestamp, was_unknown) pairs within 5-min window
+        self._check_history: deque[tuple[datetime, bool]] = deque()
+        self._degraded: bool = False
 
     # ─────────────────────────────────────────────────────────────────
     # Theorem 1: GCR(f) = 1.0 (Governance–Infrastructure Decoupling)
@@ -362,11 +371,81 @@ class Z3Verifier:
         return result
 
     # ─────────────────────────────────────────────────────────────────
+    # Z3 Unknown Rate Monitor
+    # ─────────────────────────────────────────────────────────────────
+
+    def _handle_z3_result(self, check_result) -> str:
+        """Translate z3 check() result to PASS/FAIL, never treating unknown as PASS.
+
+        z3.unknown under time pressure is a silent failure mode — the solver
+        gave up without proving or disproving. Treating it as PASS would let
+        unverified actions through. This method forces FAIL + alert, and
+        triggers degraded mode if the unknown rate exceeds 1% in 5 minutes.
+        """
+        now = datetime.now(timezone.utc)
+        is_unknown = check_result == z3.unknown
+        self._check_history.append((now, is_unknown))
+        self._purge_old_checks(now)
+
+        if check_result == z3.sat:
+            return "PASS"
+        elif check_result == z3.unsat:
+            return "FAIL"
+        else:  # z3.unknown — NEVER treat as PASS implicitly
+            rate = self._unknown_rate_5min()
+            logger.warning(
+                "Z3 returned unknown — forcing FAIL + alert "
+                f"(5-min unknown rate: {rate:.2%})"
+            )
+            if rate > self.UNKNOWN_RATE_THRESHOLD:
+                self._trigger_degraded_mode(rate)
+            return "FAIL"
+
+    def _purge_old_checks(self, now: datetime) -> None:
+        window = timedelta(minutes=5)
+        while self._check_history and (now - self._check_history[0][0]) > window:
+            self._check_history.popleft()
+
+    def _unknown_rate_5min(self) -> float:
+        if not self._check_history:
+            return 0.0
+        unknowns = sum(1 for _, is_unknown in self._check_history if is_unknown)
+        return unknowns / len(self._check_history)
+
+    def _trigger_degraded_mode(self, rate: float) -> None:
+        if not self._degraded:
+            self._degraded = True
+            logger.error(
+                f"Z3 unknown rate {rate:.2%} exceeded threshold "
+                f"{self.UNKNOWN_RATE_THRESHOLD:.2%} over 5 minutes — "
+                "entering DEGRADED MODE. No new proofs will run until rate recovers."
+            )
+
+    def unknown_rate(self) -> float:
+        """Return current 5-minute z3.unknown rate (0.0–1.0)."""
+        self._purge_old_checks(datetime.now(timezone.utc))
+        return self._unknown_rate_5min()
+
+    def is_degraded(self) -> bool:
+        """True if unknown rate exceeded threshold and verifier is in degraded mode."""
+        # Auto-recover if rate has dropped back below threshold
+        if self._degraded and self._unknown_rate_5min() <= self.UNKNOWN_RATE_THRESHOLD:
+            self._degraded = False
+            logger.info("Z3 unknown rate recovered — exiting degraded mode.")
+        return self._degraded
+
+    # ─────────────────────────────────────────────────────────────────
     # Run all proofs
     # ─────────────────────────────────────────────────────────────────
 
     def verify_all(self) -> list[ProofResult]:
         """Run all formal verification proofs. Returns list of ProofResult."""
+        if self.is_degraded():
+            logger.error(
+                "Z3Verifier is in DEGRADED MODE — skipping proofs. "
+                f"Unknown rate: {self.unknown_rate():.2%}"
+            )
+            return self._results
         self._results = []
         self.prove_gcr_invariant()
         self.prove_ss_formula()
