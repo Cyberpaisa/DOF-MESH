@@ -18,7 +18,7 @@ Arquitectura:
 
 Compatibilidad:
     - Virtuals GAME SDK: cualquier agente GAME puede llamar check_trust() via HTTP
-    - Base Sepolia (testnet): DOFProofRegistry @ 0xeB676e75092df0c924D3b552eE5b9D549c14531C
+    - Base Sepolia (testnet): DOFProofRegistry @ 0x7e0f0D0bC09D14Fa6C1F79ab7C0EF05b5e4F1f59
     - Base mainnet (pending deploy): usar DOFChainAdapter.from_chain_name("base")
 
 Version: 0.1.0 — DOF Mesh Legion × Virtuals Protocol
