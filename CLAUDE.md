@@ -195,7 +195,7 @@ PYTHONPATH=. python3 scripts/phase11_night_orchestrator.py
 
 ## Creando módulos nuevos
 
-1. Lee `/docs/ARCHITECTURAL_REDESIGN_v1.md`
+1. Lee `/docs/01_architecture/ARCHITECTURAL_REDESIGN_v1.md`
 2. Lee el módulo más cercano en `core/` para convenciones
 3. Usa `@dataclass` para abstracciones principales
 4. Persiste datos en JSONL (un JSON por línea)
