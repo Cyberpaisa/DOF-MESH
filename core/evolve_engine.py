@@ -665,10 +665,78 @@ class EvolveController:
         if adopted:
             self._db.save_adopted(result)
 
+        # On-chain attestation of weight evolution
+        if adopted:
+            self._attest_evolution_onchain(result)
+
         if self.config.verbose:
             logger.info(f"[EvolveEngine] {result.summary}")
 
         return result
+
+    def _attest_evolution_onchain(self, result: "EvolveResult") -> dict:
+        """
+        Write immutable on-chain record when TRACER weights evolve.
+
+        Attestation payload: keccak256 of {run_id, target, old_weights,
+        new_weights, score_delta, corpus_size, timestamp}
+
+        Uses dry_run mode if DOF_PRIVATE_KEY not set — logs but doesn't tx.
+        """
+        import hashlib
+        import json as _json
+
+        # Build attestation payload
+        payload = {
+            "run_id": result.run_id,
+            "target": result.target,
+            "baseline_score": round(result.baseline_score, 6),
+            "new_score": round(result.best_score, 6),
+            "score_delta_pct": round(result.improvement_pct, 4),
+            "new_weights": result.best_params,
+            "candidates_evaluated": result.candidates_evaluated,
+            "timestamp": datetime.utcnow().isoformat(),
+            "event": "WEIGHTS_EVOLVED"
+        }
+
+        # keccak256 equivalent using sha3_256 (same Keccak family)
+        payload_bytes = _json.dumps(payload, sort_keys=True).encode()
+        proof_hash = "0x" + hashlib.sha3_256(payload_bytes).hexdigest()
+
+        # Try on-chain attestation
+        dry_run = not bool(os.environ.get("DOF_PRIVATE_KEY"))
+
+        try:
+            from core.chain_adapter import DOFChainAdapter
+            adapter = DOFChainAdapter.from_chain_name("avalanche", dry_run=dry_run)
+
+            metadata = _json.dumps({
+                "type": "evolve_attestation",
+                "run_id": result.run_id,
+                "improvement_pct": round(result.improvement_pct, 4)
+            })
+
+            attest_result = adapter.publish_attestation(
+                proof_hash=proof_hash,
+                agent_id=0,  # 0 = system-level attestation (not agent-specific)
+                metadata=metadata
+            )
+
+            # Save attestation record locally
+            attest_log = LOGS_DIR / "evolution_attestations.jsonl"
+            with open(attest_log, "a") as f:
+                record = {**payload, "proof_hash": proof_hash, "chain_result": attest_result}
+                f.write(_json.dumps(record) + "\n")
+
+            logger.info(
+                f"[EvolveEngine] Evolution attested on-chain: {proof_hash[:16]}... "
+                f"({'dry_run' if dry_run else 'LIVE tx: ' + str(attest_result.get('tx_hash', '?'))[:16]})"
+            )
+            return attest_result
+
+        except Exception as e:
+            logger.warning(f"[EvolveEngine] On-chain attestation failed (non-fatal): {e}")
+            return {"status": "error", "error": str(e), "proof_hash": proof_hash}
 
 
 # ─── Convenience function ─────────────────────────────────────────────────────
