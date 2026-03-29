@@ -77,8 +77,8 @@
       "rpc_url": "https://mainnet.base.org",
       "rpc_fallback": "https://base-rpc.publicnode.com",
       "explorer": "https://basescan.org",
-      "contract_address": null,
-      "status": "planned",
+      "contract_address": "0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D",
+      "status": "mainnet",
       "gas_multiplier": 1,
       "native_token": "ETH",
       "notes": "Coinbase L2. Strong for DeFi agents and AI agent economy."
