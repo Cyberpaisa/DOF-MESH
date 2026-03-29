@@ -358,6 +358,48 @@ Implemented after the Winston Experiment — 10 frontier models independently co
 
 ---
 
+## Integrations
+
+Your agents already live in CrewAI, LangGraph, or AgentKit. Rewiring them for governance is months of work nobody does — which is why most agents run unverified.
+
+DOF integrates in **one line**. No rewrites. No new infrastructure. The agent keeps running exactly as before — now with a Z3 formal proof on every action.
+
+| Integration | Install | What it does |
+|---|---|---|
+| **CrewAI** | `from integrations.dof_crewai import dof_verify` | `@dof_verify` decorator + `DOFCrewAI` wrapper + `DOFCallback` |
+| **Coinbase AgentKit** | `from integrations.dof_agentkit import DOFAgentKit` | `DOFWalletGuard` — blocks payments Z3 doesn't approve |
+| **Alchemy** | `from integrations.dof_alchemy import AlchemyDOF` | Reliable RPC + webhooks + gas estimation on Base/Avalanche |
+| **Virtuals Protocol** | `from integrations.dof_virtuals import VirtualsDOF` | Trust score (0–100) + badge for tokenized agents on Base |
+| **Tempo (Stripe L1)** | `from integrations.dof_tempo import TempoDOF` | Z3-verified pathUSD payments before any transfer executes |
+| **LangGraph** | `from integrations.langgraph_adapter import DOFGovernanceNode` | Governance node for LangGraph state machines |
+
+```python
+# CrewAI — one decorator
+from integrations.dof_crewai import dof_verify
+
+@dof_verify(agent_id="my-agent", action="research")
+def run_research(task: str) -> str:
+    ...
+
+# Tempo — verify before spending pathUSD
+from integrations.dof_tempo import TempoDOF
+
+dof = TempoDOF(chain="testnet")
+result = dof.verify_payment("apex-1687", "0xRecipient...", amount=100.0)
+# → verdict: "APPROVED" | "REJECTED"
+# → z3_proof: formal proof
+# → attestation: keccak256 hash on Tempo chain
+
+# Virtuals — trust score for tokenized agents
+from integrations.dof_virtuals import VirtualsDOF
+
+dof = VirtualsDOF(agent_token_address="0x...")
+score = dof.get_trust_score()
+print(score.badge)   # "🛡️ DOF VERIFIED" | "⚠️ DOF PARTIAL" | "❌ DOF UNVERIFIED"
+```
+
+---
+
 ## Key Exports
 
 `DOFVerifier` · `VerifyResult` · `verify` · `classify_error` · `register` · `run_crew` · `MerkleBatcher` · `AdversarialEvaluator` · `RedTeamAgent` · `ConstitutionEnforcer` · `Z3Gate` · `GateResult` · `TransitionVerifier` · `DOFAgentState` · `Z3ProofAttestation` · `ProofSerializer` · `ProofStorage` · `RegressionTracker` · `EntropyDetector`
