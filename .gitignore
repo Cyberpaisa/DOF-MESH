@@ -88,3 +88,10 @@ credentials.json
 data/extraction/*.jsonl
 data/extraction/coliseum_vault.jsonl
 data/extraction/due_diligence_vault.jsonl
+
+# Private strategy docs (kept in ~/DOF-MESH-PRIVATE/)
+docs/04_strategy/PUBLICATION_REPORT_2026.md
+docs/04_strategy/HACKER_NEWS_POST.md
+docs/04_strategy/HACKER_NEWS_POST_COMPLETO.md
+docs/04_strategy/WINSTON_PITCHES_EVOLVEENGINE.md
+docs/04_strategy/DOF_EVOLUTION_CLARITY.md
