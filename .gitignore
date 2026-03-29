@@ -4,6 +4,10 @@
 *.env.local
 oracle_key.json
 
+# Monitor exports — may contain API keys in raw request logs
+experiments/**/adaline_monitor_export_*.json
+experiments/**/*_monitor_export_*.json
+
 # Crypto keys & vault (NEVER commit)
 keys/
 certs/*.key
