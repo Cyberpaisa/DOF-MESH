@@ -52,7 +52,7 @@ DOF-MESH is deterministic governance infrastructure for autonomous AI agents —
 - 21 immutable on-chain attestations, Avalanche C-Chain, independently verifiable
 - EvolveEngine: TRACER weights auto-rebalance as outcome data grows — zero human intervention
 
-The addressable market for AI governance tooling moves from $1.8B today to a projected $12.4B by 2028 as regulatory pressure (EU AI Act, NIST AI RMF) forces every AI-deploying company to produce audit trails. Z3 formal verification runs in <10ms. Winner: The Synthesis hackathon (Privacy & x402 categories).
+The addressable market for AI governance tooling moves from $1.8B today to a projected $12.4B by 2028 as regulatory pressure (EU AI Act, NIST AI RMF) forces every AI-deploying company to produce audit trails. Z3 formal verification runs in <10ms. Submitted to The Synthesis hackathon (685 projects, $100K — results pending).
 
 Built solo from Medellín, without VC, in one month.
 

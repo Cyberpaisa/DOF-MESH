@@ -15,8 +15,8 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/tests-4%2C036%20passed-brightgreen" alt="tests"/>
-  <img src="https://img.shields.io/badge/modules-142-blue" alt="modules"/>
+  <img src="https://img.shields.io/badge/tests-4%2C119%20passed-brightgreen" alt="tests"/>
+  <img src="https://img.shields.io/badge/modules-138-blue" alt="modules"/>
   <img src="https://img.shields.io/badge/Z3-4%20theorems%20PROVEN-critical" alt="Z3"/>
   <img src="https://img.shields.io/badge/chains-5%20(Avalanche%2C%20Base%2C%20Celo%2C%20ETH%2C%20Tempo)-gold" alt="chains"/>
   <img src="https://img.shields.io/badge/attestations-21%2B-red" alt="attestations"/>
@@ -420,11 +420,11 @@ print(score.badge)   # "🛡️ DOF VERIFIED" | "⚠️ DOF PARTIAL" | "❌ DOF 
 
 ## The Synthesis Hackathon — External Validation
 
-**Winner — Privacy & x402 categories** · The Synthesis 2026 · $100K in prizes · 1,500 participants
+**Submitted — Privacy & x402 categories** · The Synthesis 2026 · $100K in prizes · 685 projects · 1,500 participants · *Results pending*
 
 The Synthesis was organized around the x402 + ERC-8004 stack — the exact ecosystem where DOF operates. Governance protocols for agent payments need formal verification because they handle real value.
 
-Winning in Privacy & x402 was not coincidental. The judges recognized that **DOF fills the gap ERC-8004 and x402 leave open**:
+DOF was the only project with formal verification for governance. It **fills the gap ERC-8004 and x402 leave open**:
 
 | Layer | Protocol | Solves |
 |---|---|---|
@@ -450,9 +450,9 @@ DOF v1 (main branch)          →  The Scientific Thesis
   Published on DEV.to            Irrefutable proof: constitutional governance is invariant
 
 Hackathon branch               →  Competitive Validation
-  The Synthesis 2026             Won: Privacy & x402 categories
-  x402 + ERC-8004 ecosystem      Judges confirmed: DOF fills the gap the stack leaves open
-  Demo-grade subset              External signal that the hypothesis is correct
+  The Synthesis 2026             Submitted: Privacy & x402 categories (results pending)
+  x402 + ERC-8004 ecosystem      Only project with formal verification for governance
+  Demo-grade subset              External participation validates the hypothesis
 
 DOF-MESH (this repo)           →  Experimental Platform
   340+ commits · 142 modules     12 governance layers · 4,036 tests
@@ -473,7 +473,7 @@ The v1 repo is the scientific paper — keep it stable. The hackathon branch is 
 > ERC-8004 solves your agent's identity. x402 solves how it pays. DOF solves the problem neither addresses: can I mathematically prove my agent acted correctly? Without DOF, your agent has identity and can pay — but can't prove it behaved.
 
 **Hackathon judge / VC:**
-> The AI governance market is $1.8B today → $12.4B in 2028. Every existing player does probabilistic monitoring. DOF is the only one with formal verification + on-chain proof. Winner at The Synthesis (Privacy & x402). 4,036 tests. 5 chains. New market category with real technical moat.
+> The AI governance market is $1.8B today → $12.4B in 2028. Every existing player does probabilistic monitoring. DOF is the only one with formal verification + on-chain proof. Submitted to The Synthesis (685 projects, $100K). 4,119 tests. 5 chains. New market category with real technical moat.
 
 **Regulator / auditor:**
 > When regulation requires AI agents to be auditable (EU AI Act, SEC AI disclosure), the question will be: *"Can you prove what your agent decided?"* With DOF: yes. The keccak256 hash of every decision lives on Avalanche C-Chain. Immutable. Third-party verifiable. Independent of the provider.

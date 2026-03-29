@@ -62,8 +62,8 @@ SDK:
   result = verifier.verify_action(agent_id, action, params)
   # Returns: APPROVED | REJECTED + z3_proof
 
-Built solo from Medellín in one month. Won The Synthesis hackathon (Privacy & x402
-categories). Happy to answer questions about the Z3 implementation, the EvolveEngine
+Built solo from Medellín in one month. Submitted to The Synthesis hackathon (685
+projects, $100K — results pending). Happy to answer questions about the Z3 implementation, the EvolveEngine
 design, or why I think deterministic governance is the only technically honest approach
 to this problem.
 

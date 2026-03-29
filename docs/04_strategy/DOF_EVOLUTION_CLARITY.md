@@ -119,7 +119,7 @@ ERC-8004 was developed by a heavy team — Ethereum Foundation, MetaMask, Google
 | Asset | Detail | Strategic Value |
 |---|---|---|
 | Proven mathematical thesis | SS(f)=1−(f/2) · GCR=1.0 · 52 runs | Irrefutable scientific credibility |
-| Hackathon win | Winner Privacy & x402 · The Synthesis | External concept validation |
+| Hackathon submission | Submitted Privacy & x402 · The Synthesis (results pending) | External participation in exact ecosystem |
 | ERC-8004 in production | Contracts on Avalanche + Tempo (Stripe) | Part of the most active emerging ecosystem |
 | Published SDK | dof-sdk 0.5.0 on PyPI | Installable by any developer today |
 | 4,036 tests | Full suite + automatic CI gate | Demonstrable technical solidity |
@@ -152,7 +152,7 @@ Your autonomous agent can hallucinate, be manipulated by prompt injection, or si
 ERC-8004 solves your agent's identity. x402 solves how it pays. DOF solves the problem neither addresses: can I mathematically prove my agent acted correctly? Without DOF, your agent has identity and can pay — but can't prove it behaved.
 
 ### For a Hackathon Judge or VC
-The AI governance market is $1.8B today → $12.4B in 2028. Every existing player does probabilistic monitoring. DOF is the only one with formal verification + on-chain proof. Winner at The Synthesis (Privacy & x402). 4,036 tests. 5 chains. New market category with real technical moat.
+The AI governance market is $1.8B today → $12.4B in 2028. Every existing player does probabilistic monitoring. DOF is the only one with formal verification + on-chain proof. Submitted to The Synthesis (685 projects, $100K — results pending). 4,119 tests. 5 chains. New market category with real technical moat.
 
 ### For a Regulator or Auditor
 When regulation requires AI agents to be auditable (EU AI Act, SEC AI disclosure), the question will be: *"Can you prove what your agent decided?"* With DOF: yes. The keccak256 hash of every decision lives on Avalanche C-Chain. Immutable. Third-party verifiable. Independent of the provider.

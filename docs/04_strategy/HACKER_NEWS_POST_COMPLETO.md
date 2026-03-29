@@ -12,7 +12,7 @@ producción
 ## 0.9963
 EvolveEngine
 score
-## Winner
+## Submitted
 ## Hackathon
 ## 2+
 Cadenas mainnet
@@ -71,7 +71,7 @@ ErrorLa realidad
 Número de tests: 3,632Real hoy: 4,119 pasando (verificado con pytest)
 Attestations: 21Real hoy: + datos de producción en log — mencionar 18,394 registros es más poderoso
 No mencionan el EvolveEngine score 0.9963Este número es el más convincente para técnicos y VCs — validación matemática de los pesos
-No mencionan el hackathon win en The SynthesisWinner en Privacy & x402 = validación externa en el ecosistema exacto
+No mencionan el hackathon submission en The SynthesisSubmitted to Privacy & x402 = participation in the exact ecosystem (results pending)
 Título genérico con Z3 en el nombreHN premia títulos con resultado concreto, no con nombre de tecnología
 'Pide a amigos que voten'Esto puede resultar en hellban — NO lo hagas
 
@@ -92,7 +92,7 @@ n GCR = 1.0 bajo cualquier tasa de fallo de infraestructura
 El hallazgo científico del paper original: SS(f) ≈ 1−(f/2), pero GCR(f) = 1.0 ∀f∈[0,1]. El governance
 constitucional es invariante bajo degradación de infraestructura. Esto es un resultado matemático, no
 una afirmación de marketing.
-n Winner en The Synthesis — Privacy & x402
+n Submitted to The Synthesis — Privacy & x402 (results pending)
 Validación externa en el hackathon de la stack exacta donde DOF opera: ERC-8004 + x402. Los
 jueces que evaluaron el ecosistema de agentes con pagos reconocieron que DOF llena el gap de
 governance que ningún otro protocolo cierra.
@@ -172,7 +172,7 @@ Zero LLMs in the governance path. Every decision is mathematically provable
 and independently auditable by anyone with the tx hash.
 
 DOF-MESH · Hacker News Strategy · Pág. 7Cyber Paisa / Enigma Group · Medellín · Marzo 2026
-**Recently:** Won at The Synthesis hackathon in the Privacy & x402 tracks.
+**Recently:** Submitted to The Synthesis hackathon (685 projects, $100K prize pool) in the Privacy & x402 tracks — results pending.
 x402 + ERC-8004 solve agent identity and payments. DOF solves what neither
 of them touches: proving the agent actually behaved correctly.
 **What I'm looking for:**
