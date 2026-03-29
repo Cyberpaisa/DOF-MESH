@@ -20,6 +20,9 @@ on:
 permissions:
   contents: read
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   z3-verify:
     runs-on: ubuntu-latest

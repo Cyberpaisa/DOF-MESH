@@ -8,6 +8,9 @@ on:
       - 'core/z3_gate.py'
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   mutation-test:
     runs-on: ubuntu-latest
@@ -18,6 +21,7 @@ jobs:
           python-version: '3.12'
       - name: Install dependencies
         run: |
+          pip install --upgrade pip
           pip install -r requirements.txt
           pip install mutmut
       - name: Run mutation testing on adversarial
