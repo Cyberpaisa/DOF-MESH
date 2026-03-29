@@ -183,13 +183,19 @@ class AutonomousPlanner:
     def _find_todos_in_code(self) -> List[PlanItem]:
         items = []
         for py in sorted((REPO_ROOT / "core").glob("*.py")):
-            text = py.read_text(errors="ignore")
-            if "TODO" in text or "FIXME" in text:
+            lines = py.read_text(errors="ignore").splitlines()
+            hits = [
+                f"  L{i+1}: {ln.strip()}"
+                for i, ln in enumerate(lines)
+                if "TODO" in ln or "FIXME" in ln
+            ]
+            if hits:
+                snippet = "\n".join(hits[:5])  # show up to 5 matches
                 items.append(PlanItem(
                     task_type="code",
                     subject=f"Resolve TODOs in core/{py.name}",
                     detail=(
-                        f"Find all TODO/FIXME comments in core/{py.name} and implement them. "
+                        f"Implement TODO/FIXME comments in core/{py.name}:\n{snippet}\n"
                         f"Write the completed file back."
                     ),
                     target_node=TASK_ROUTER["code"][0],

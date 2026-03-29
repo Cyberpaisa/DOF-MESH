@@ -24,6 +24,21 @@ class TestHyperionHTTP(unittest.TestCase):
         cls.srv = start_test_server(cls.PORT)
         cls.client = HyperionClient(f"http://127.0.0.1:{cls.PORT}")
 
+    def setUp(self):
+        """Drain queue before each test to ensure isolation."""
+        time.sleep(0.2)  # let any async enqueues from prior test commit first
+        for _ in range(50):
+            drained = False
+            for shard in range(5):
+                if self.client.dequeue(shard_id=shard):
+                    drained = True
+            if not drained:
+                break
+        time.sleep(0.1)  # final settle
+        # Fix v4: catch tasks that committed during the settle sleep
+        for shard in range(5):
+            self.client.dequeue(shard_id=shard)
+
     def test_health(self):
         self.assertTrue(self.client.health())
 

@@ -139,7 +139,7 @@ SOFT_RULES: list[dict] = [
     {"id": "STRUCTURED_OUTPUT", "priority": RulePriority.USER, "pattern": r"##|- |\* |1\.|•", "description": "Should have clear structure (headers, bullets)", "weight": 0.2, "match_mode": "absent"},
     {"id": "CONCISENESS", "priority": RulePriority.USER, "pattern": r"\bmeasurements were recorded\b|\bcomprehensive monitoring\b|\bsignificant delays\b", "description": "Should not have repetitive paragraphs", "weight": 0.2, "match_mode": "present"},
     {"id": "ACTIONABLE", "priority": RulePriority.USER, "pattern": r"\b(recommend|next step|action|implement|recomend|siguiente paso)\b", "description": "Should include actionable steps or recommendations", "weight": 0.3, "match_mode": "absent"},
-    {"id": "NO_PII_LEAK", "priority": RulePriority.USER, "pattern": r"\b\d{3}-\d{2}-\d{4}\b|\b4\d{3}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b", "description": "Should not contain PII (emails, phones, SSNs, credit cards)", "weight": 0.3, "match_mode": "present"},
+    {"id": "NO_PII_LEAK", "priority": RulePriority.USER, "pattern": r"\b\d{3}-\d{2}-\d{4}\b|\b4\d{3}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b|[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}|\b\+?1?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b", "description": "Should not contain PII (emails, phones, SSNs, credit cards)", "weight": 0.3, "match_mode": "present"},
 ]
 
 PII_PATTERNS: list[dict] = [

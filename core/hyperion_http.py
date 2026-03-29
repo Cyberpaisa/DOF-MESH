@@ -179,7 +179,17 @@ class HyperionHTTPServer:
                 else:
                     self._json(404, {"error": "not found"})
 
-        httpd = HTTPServer((self.host, self.port), Handler)
+        class _ReuseHTTPServer(HTTPServer):
+            allow_reuse_address = True
+
+            def server_bind(self):
+                import socket as _socket
+                self.socket.setsockopt(_socket.SOL_SOCKET, _socket.SO_REUSEADDR, 1)
+                if hasattr(_socket, "SO_REUSEPORT"):
+                    self.socket.setsockopt(_socket.SOL_SOCKET, _socket.SO_REUSEPORT, 1)
+                super().server_bind()
+
+        httpd = _ReuseHTTPServer((self.host, self.port), Handler)
         logger.info("Hyperion HTTP listening on %s:%d", self.host, self.port)
         print(f"✅ Hyperion HTTP Bridge → http://{self.host}:{self.port}")
         print(f"   /health  /status  /enqueue  /dequeue  /dequeue/{{shard}}  /broadcast")

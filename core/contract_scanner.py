@@ -159,12 +159,39 @@ class Finding:
     description: str
     recommendation: str
 
+    def __repr__(self) -> str:
+        return f"Finding({self.severity} {self.vuln_id!r} L{self.line} {self.swc})"
+
 
 @dataclass
 class ScanResult:
     """Complete scan result for a contract."""
     contract_name: str
     findings: list[Finding]
+
+    def __bool__(self) -> bool:
+        """Return True if the scan passed (no CRITICAL or HIGH findings)."""
+        return self.passed
+
+    def __len__(self) -> int:
+        """Return total number of findings."""
+        return len(self.findings)
+
+    def __iter__(self):
+        """Iterate over all Finding objects."""
+        return iter(self.findings)
+
+    def __contains__(self, vuln_id: str) -> bool:
+        """Return True if any finding matches the given vuln_id (e.g. 'REENTRANCY' in result)."""
+        return any(f.vuln_id == vuln_id for f in self.findings)
+
+    def get(self, vuln_id: str, default=None):
+        """Return the first Finding matching the given vuln_id, or default if not found."""
+        for f in self.findings:
+            if f.vuln_id == vuln_id:
+                return f
+        return default
+
     critical_count: int = 0
     high_count: int = 0
     medium_count: int = 0
@@ -173,6 +200,80 @@ class ScanResult:
     scan_time_ms: float = 0.0
     passed: bool = True  # No CRITICAL or HIGH findings
     timestamp: float = field(default_factory=time.time)
+
+    def __repr__(self) -> str:
+        status = "PASS" if self.passed else "FAIL"
+        return (
+            f"ScanResult({self.contract_name!r} {status} "
+            f"C:{self.critical_count} H:{self.high_count} "
+            f"M:{self.medium_count} L:{self.low_count} "
+            f"findings={len(self.findings)} {self.scan_time_ms:.1f}ms)"
+        )
+
+    def summary(self) -> str:
+        """One-line summary for logs and dashboards."""
+        status = "✅ PASS" if self.passed else "❌ FAIL"
+        parts = []
+        if self.critical_count: parts.append(f"CRITICAL:{self.critical_count}")
+        if self.high_count:     parts.append(f"HIGH:{self.high_count}")
+        if self.medium_count:   parts.append(f"MEDIUM:{self.medium_count}")
+        if self.low_count:      parts.append(f"LOW:{self.low_count}")
+        detail = " ".join(parts) if parts else "no issues"
+        return f"{status} {self.contract_name} | {detail} | {self.scan_time_ms:.1f}ms"
+
+    def by_severity(self, severity: str) -> list:
+        """Return all findings matching the given severity (CRITICAL/HIGH/MEDIUM/LOW/INFO)."""
+        return [f for f in self.findings if f.severity == severity.upper()]
+
+    @property
+    def critical_findings(self) -> list:
+        """Shortcut: all CRITICAL severity findings."""
+        return self.by_severity("CRITICAL")
+
+    @property
+    def high_findings(self) -> list:
+        """Shortcut: all HIGH severity findings."""
+        return self.by_severity("HIGH")
+
+    @property
+    def medium_findings(self) -> list:
+        """Shortcut: all MEDIUM severity findings."""
+        return self.by_severity("MEDIUM")
+
+    @property
+    def low_findings(self) -> list:
+        """Shortcut: all LOW severity findings."""
+        return self.by_severity("LOW")
+
+    @property
+    def vuln_ids(self) -> list:
+        """Return sorted list of unique vulnerability IDs found."""
+        return sorted({f.vuln_id for f in self.findings})
+
+    @property
+    def risk_score(self) -> int:
+        """Weighted risk score: CRITICAL=10, HIGH=5, MEDIUM=2, LOW=1, INFO=0."""
+        weights = {"CRITICAL": 10, "HIGH": 5, "MEDIUM": 2, "LOW": 1, "INFO": 0}
+        return sum(weights.get(f.severity, 0) for f in self.findings)
+
+    def get_by_line(self, line: int) -> list:
+        """Return all findings on the given source line number."""
+        return [f for f in self.findings if f.line == line]
+
+    @property
+    def affected_lines(self) -> list:
+        """Return sorted list of unique line numbers that have findings."""
+        return sorted({f.line for f in self.findings})
+
+    @property
+    def swc_ids(self) -> list:
+        """Return sorted list of unique SWC IDs referenced in findings."""
+        return sorted({f.swc for f in self.findings if f.swc and f.swc != "N/A"})
+
+    def to_dict(self) -> dict:
+        """Serialize to a plain dict for JSON transport or cross-agent sharing."""
+        import dataclasses
+        return dataclasses.asdict(self)
 
 
 # --- Scanner ---

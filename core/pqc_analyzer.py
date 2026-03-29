@@ -173,6 +173,12 @@ class PQCAssessment:
     qubits_estimated: int = 0  # Estimated logical qubits to break
     timestamp: float = field(default_factory=time.time)
 
+    def __repr__(self) -> str:
+        return (
+            f"PQCAssessment({self.algorithm!r} {self.status} "
+            f"q={self.quantum_bits}b threat={self.threat!r} → {self.migration_target!r})"
+        )
+
 
 @dataclass
 class SystemAssessment:
@@ -185,6 +191,83 @@ class SystemAssessment:
     assessments: list[PQCAssessment]
     migration_plan: list[str]
     timestamp: float = field(default_factory=time.time)
+
+    def __bool__(self) -> bool:
+        """Return True if the system is quantum-safe (QUANTUM_READY), False if VULNERABLE or AT_RISK."""
+        return self.overall_status == "QUANTUM_READY"
+
+    def __len__(self) -> int:
+        """Return total number of assessed algorithms."""
+        return len(self.assessments)
+
+    def __iter__(self):
+        """Iterate over all PQCAssessment objects."""
+        return iter(self.assessments)
+
+    def __contains__(self, algorithm: str) -> bool:
+        """Return True if the named algorithm was assessed (e.g. 'ECDSA-secp256k1' in result)."""
+        return any(a.algorithm == algorithm for a in self.assessments)
+
+    def get(self, algorithm: str, default=None):
+        """Return the PQCAssessment for the named algorithm, or default if not found."""
+        for a in self.assessments:
+            if a.algorithm == algorithm:
+                return a
+        return default
+
+    def __repr__(self) -> str:
+        return (
+            f"SystemAssessment(status={self.overall_status!r}, "
+            f"critical={self.critical_count}, high={self.high_count}, "
+            f"safe={self.safe_count}, algos={len(self.algorithms_found)})"
+        )
+
+    def summary(self) -> str:
+        """One-line human-readable summary for logs and dashboards."""
+        return (
+            f"PQC {self.overall_status} | "
+            f"CRITICAL:{self.critical_count} HIGH:{self.high_count} SAFE:{self.safe_count} | "
+            f"algorithms: {', '.join(self.algorithms_found)}"
+        )
+
+    def to_dict(self) -> dict:
+        """Serialize to a plain dict for JSON transport or cross-agent sharing."""
+        import dataclasses
+        return dataclasses.asdict(self)
+
+    def by_urgency(self, urgency: str) -> list:
+        """Return all PQCAssessments matching the given urgency level (IMMEDIATE/HIGH/LOW/NONE)."""
+        return [a for a in self.assessments if a.urgency.upper() == urgency.upper()]
+
+    @property
+    def broken_algorithms(self) -> list:
+        """Return all PQCAssessments with status BROKEN (quantum-vulnerable)."""
+        return [a for a in self.assessments if a.status == "BROKEN"]
+
+    @property
+    def safe_algorithms(self) -> list:
+        """Return all PQCAssessments with status SAFE (quantum-resistant)."""
+        return [a for a in self.assessments if a.status == "SAFE"]
+
+    @property
+    def weakened_algorithms(self) -> list:
+        """Return all PQCAssessments with status WEAKENED (Grover-vulnerable but not broken)."""
+        return [a for a in self.assessments if a.status == "WEAKENED"]
+
+    def by_threat(self, threat: str) -> list:
+        """Return all PQCAssessments matching the given threat type (shor/grover/none)."""
+        return [a for a in self.assessments if a.threat == threat.lower()]
+
+    @property
+    def risk_score(self) -> int:
+        """Weighted risk score: BROKEN=10, WEAKENED=3, SAFE=0."""
+        weights = {"BROKEN": 10, "WEAKENED": 3, "SAFE": 0}
+        return sum(weights.get(a.status, 0) for a in self.assessments)
+
+    @property
+    def migration_targets(self) -> list:
+        """Return sorted unique migration targets for all BROKEN algorithms."""
+        return sorted({a.migration_target for a in self.assessments if a.status == "BROKEN"})
 
 
 # --- Analyzer ---

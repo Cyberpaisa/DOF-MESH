@@ -54,6 +54,16 @@ class MemoryNode:
                 f"{self.content[:100]}:{self.created_at}".encode()
             ).hexdigest()[:12]
 
+    def __repr__(self) -> str:
+        from datetime import datetime
+        ts = datetime.fromtimestamp(self.created_at).strftime("%m-%d %H:%M")
+        preview = self.content[:40].replace("\n", " ")
+        return (
+            f"MemoryNode({self.id!r} [{self.memory_type}] "
+            f"imp={self.importance:.2f} acc={self.access_count} "
+            f"@{ts} {preview!r})"
+        )
+
 
 @dataclass
 class MemoryEdge:
@@ -72,6 +82,14 @@ class SearchResult:
     similarity: float
     connected_nodes: list[str]  # IDs of connected nodes
     hop_distance: int = 0
+
+    def __repr__(self) -> str:
+        preview = self.node.content[:50].replace("\n", " ")
+        return (
+            f"SearchResult(id={self.node.id!r}, sim={self.similarity:.3f}, "
+            f"hops={self.hop_distance}, links={len(self.connected_nodes)}, "
+            f"content={preview!r})"
+        )
 
 
 # --- Fisher-Rao Integration ---
@@ -129,6 +147,166 @@ class AMem:
         self._edges: list[MemoryEdge] = []
         self._adjacency: dict[str, list[str]] = {}  # node_id → [connected_ids]
         self._load()
+
+    def __repr__(self) -> str:
+        return f"AMem(nodes={len(self._nodes)}, edges={len(self._edges)}, dir={self._dir!r})"
+
+    def __len__(self) -> int:
+        """Return total number of stored memory nodes."""
+        return len(self._nodes)
+
+    def __add__(self, other: "AMem") -> "AMem":
+        """Return a new AMem containing the union of both graphs (mem_a + mem_b)."""
+        import tempfile
+        result = AMem(memory_dir=tempfile.mkdtemp())
+        result.merge(self)
+        result.merge(other)
+        return result
+
+    def __contains__(self, node_id: str) -> bool:
+        """Return True if a node with the given ID exists."""
+        return node_id in self._nodes
+
+    def clear(self) -> None:
+        """Wipe all nodes and edges from memory (in-memory only; call persist() to flush disk)."""
+        self._nodes.clear()
+        self._edges.clear()
+        self._adjacency.clear()
+
+    def __iter__(self):
+        """Iterate over all MemoryNode objects in the graph."""
+        return iter(self._nodes.values())
+
+    def copy(self) -> "AMem":
+        """Return an in-memory copy of this graph (no disk I/O)."""
+        return AMem.from_dict(self.to_dict())
+
+    def update(self, other: "AMem") -> int:
+        """Merge nodes and edges from other into self. Alias for merge(). Returns count added."""
+        return self.merge(other)
+
+    def __eq__(self, other: object) -> bool:
+        """Two AMem instances are equal if they contain the same node contents."""
+        if not isinstance(other, AMem):
+            return NotImplemented
+        return {n.content for n in self._nodes.values()} == {n.content for n in other._nodes.values()}
+
+    def __ne__(self, other: object) -> bool:
+        """Two AMem instances are not equal if they differ in node contents."""
+        result = self.__eq__(other)
+        return NotImplemented if result is NotImplemented else not result
+
+    def pop(self, node_id: str, default=None):
+        """Remove and return the MemoryNode with the given ID, or default if not found."""
+        node = self._nodes.get(node_id)
+        if node is not None:
+            self.remove(node_id)
+            return node
+        return default
+
+    def get(self, node_id: str, default=None):
+        """Return the MemoryNode with the given ID, or default if not found."""
+        return self._nodes.get(node_id, default)
+
+    def items(self):
+        """Return (node_id, MemoryNode) pairs — like dict.items()."""
+        return self._nodes.items()
+
+    def top(self, n: int = 5) -> list:
+        """Return the top-n MemoryNodes ranked by importance (descending)."""
+        return sorted(self._nodes.values(), key=lambda node: node.importance, reverse=True)[:n]
+
+    def keys(self):
+        """Return all node IDs (like dict.keys())."""
+        return self._nodes.keys()
+
+    def values(self):
+        """Return all MemoryNode objects (like dict.values())."""
+        return self._nodes.values()
+
+    def remove(self, node_id: str) -> bool:
+        """Remove a node and all its edges from the graph. Returns True if found."""
+        if node_id not in self._nodes:
+            return False
+        del self._nodes[node_id]
+        self._edges = [e for e in self._edges
+                       if e.source_id != node_id and e.target_id != node_id]
+        self._adjacency.pop(node_id, None)
+        for neighbors in self._adjacency.values():
+            if node_id in neighbors:
+                neighbors.remove(node_id)
+        return True
+
+    def merge(self, other: "AMem") -> int:
+        """Merge all nodes and edges from another AMem into this one. Returns count of new nodes added."""
+        added = 0
+        for node_id, node in other._nodes.items():
+            if node_id not in self._nodes:
+                self._nodes[node_id] = node
+                self._persist_node(node)
+                added += 1
+        for edge in other._edges:
+            key = (edge.source_id, edge.target_id, edge.relation)
+            existing = {(e.source_id, e.target_id, e.relation) for e in self._edges}
+            if key not in existing:
+                self._edges.append(edge)
+                self._adjacency.setdefault(edge.source_id, []).append(edge.target_id)
+                self._adjacency.setdefault(edge.target_id, []).append(edge.source_id)
+                self._persist_edge(edge)
+        return added
+
+    @classmethod
+    def from_dict(cls, data: dict, memory_dir: str | None = None) -> "AMem":
+        """Reconstruct an AMem instance from a to_dict() snapshot (no disk I/O)."""
+        instance = cls.__new__(cls)
+        instance._dir = memory_dir or MEMORY_DIR
+        instance._nodes_file = os.path.join(instance._dir, "nodes.jsonl")
+        instance._edges_file = os.path.join(instance._dir, "edges.jsonl")
+        instance._nodes = {nid: MemoryNode(**n) for nid, n in data.get("nodes", {}).items()}
+        instance._edges = [MemoryEdge(**e) for e in data.get("edges", [])]
+        instance._adjacency: dict[str, list[str]] = {}
+        for edge in instance._edges:
+            instance._adjacency.setdefault(edge.source_id, []).append(edge.target_id)
+            instance._adjacency.setdefault(edge.target_id, []).append(edge.source_id)
+        return instance
+
+    def persist(self) -> None:
+        """Rewrite both JSONL files from current in-memory state (full flush)."""
+        import dataclasses, json
+        with open(self._nodes_file, "w") as f:
+            for node in self._nodes.values():
+                f.write(json.dumps(dataclasses.asdict(node)) + "\n")
+        with open(self._edges_file, "w") as f:
+            for edge in self._edges:
+                f.write(json.dumps(dataclasses.asdict(edge)) + "\n")
+
+    def to_dict(self) -> dict:
+        """Serialize the full graph to a plain dict (nodes + edges) for transport or snapshot."""
+        import dataclasses
+        return {
+            "nodes": {nid: dataclasses.asdict(n) for nid, n in self._nodes.items()},
+            "edges": [dataclasses.asdict(e) for e in self._edges],
+        }
+
+    def since(self, hours: float) -> list:
+        """Return MemoryNodes created within the last N hours, newest first."""
+        cutoff = time.time() - hours * 3600
+        return sorted(
+            [n for n in self._nodes.values() if n.created_at >= cutoff],
+            key=lambda n: n.created_at, reverse=True,
+        )
+
+    def most_accessed(self, n: int = 5) -> list:
+        """Return the top-n MemoryNodes by access_count (descending)."""
+        return sorted(self._nodes.values(), key=lambda node: node.access_count, reverse=True)[:n]
+
+    def filter_by_tag(self, tag: str) -> list:
+        """Return all MemoryNodes that contain the given tag."""
+        return [n for n in self._nodes.values() if tag in n.tags]
+
+    def filter_by_type(self, memory_type: str) -> list:
+        """Return all MemoryNodes of the given memory_type (episodic/semantic/procedural)."""
+        return [n for n in self._nodes.values() if n.memory_type == memory_type]
 
     def _load(self):
         """Load nodes and edges from JSONL."""
