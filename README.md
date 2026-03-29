@@ -318,7 +318,7 @@ Full data: [`experiments/winston_vs_baseline/`](experiments/winston_vs_baseline/
 
 The agent operates with real USDC on Avalanche C-Chain. Every action passes through `DOFVerifier.verify_action()` before execution. Every decision is keccak256-hashed and recorded on-chain — verifiable by any third party without trusting Enigma Group.
 
-**→ [Full case study](docs/CASE_STUDY_APEX_1687.md)**
+**→ [Full case study](docs/02_research/CASE_STUDY_APEX_1687.md)**
 
 ---
 
@@ -362,14 +362,14 @@ Implemented after the Winston Experiment — 10 frontier models independently co
 
 | Document | Content |
 |----------|---------|
-| [docs/CASE_STUDY_APEX_1687.md](docs/CASE_STUDY_APEX_1687.md) | **238 autonomous cycles, 0 incidents, 21 verifiable attestations** |
+| [docs/02_research/CASE_STUDY_APEX_1687.md](docs/02_research/CASE_STUDY_APEX_1687.md) | **238 autonomous cycles, 0 incidents, 21 verifiable attestations** |
 | [docs/INDEX.md](docs/INDEX.md) | Full map — 123 categorized documents |
-| [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md) | 12-layer architecture |
-| [docs/BOOK_CH22_EXPERIMENTO_WINSTON.md](docs/BOOK_CH22_EXPERIMENTO_WINSTON.md) | Winston Experiment — complete chapter |
-| [docs/COMPETITION_BIBLE.md](docs/COMPETITION_BIBLE.md) | Competitive intelligence (685 projects analyzed) |
-| [docs/WINSTON_COMMUNICATION_FRAMEWORK.md](docs/WINSTON_COMMUNICATION_FRAMEWORK.md) | Winston communication framework |
-| [docs/TEMPO_DEPLOY_GUIDE.md](docs/TEMPO_DEPLOY_GUIDE.md) | Deploy on Stripe's blockchain |
-| [docs/SECURITY_REPORT_2026-03-27.md](docs/SECURITY_REPORT_2026-03-27.md) | Security audit |
+| [docs/01_architecture/SYSTEM_ARCHITECTURE.md](docs/01_architecture/SYSTEM_ARCHITECTURE.md) | 12-layer architecture |
+| [docs/03_book/BOOK_CH22_EXPERIMENTO_WINSTON.md](docs/03_book/BOOK_CH22_EXPERIMENTO_WINSTON.md) | Winston Experiment — complete chapter |
+| [docs/04_strategy/COMPETITION_BIBLE.md](docs/04_strategy/COMPETITION_BIBLE.md) | Competitive intelligence (685 projects analyzed) |
+| [docs/07_integrations/WINSTON_COMMUNICATION_FRAMEWORK.md](docs/07_integrations/WINSTON_COMMUNICATION_FRAMEWORK.md) | Winston communication framework |
+| [docs/07_integrations/TEMPO_DEPLOY_GUIDE.md](docs/07_integrations/TEMPO_DEPLOY_GUIDE.md) | Deploy on Stripe's blockchain |
+| [docs/06_security/SECURITY_REPORT_2026-03-27.md](docs/06_security/SECURITY_REPORT_2026-03-27.md) | Security audit |
 
 ---
 
