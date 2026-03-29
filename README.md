@@ -418,16 +418,70 @@ print(score.badge)   # "🛡️ DOF VERIFIED" | "⚠️ DOF PARTIAL" | "❌ DOF 
 
 ## Documentation
 
-| Document | Content |
-|----------|---------|
-| [docs/02_research/CASE_STUDY_APEX_1687.md](docs/02_research/CASE_STUDY_APEX_1687.md) | **238 autonomous cycles, 0 incidents, 21 verifiable attestations** |
-| [docs/INDEX.md](docs/INDEX.md) | Full map — 123 categorized documents |
-| [docs/01_architecture/SYSTEM_ARCHITECTURE.md](docs/01_architecture/SYSTEM_ARCHITECTURE.md) | 12-layer architecture |
-| [docs/03_book/BOOK_CH22_EXPERIMENTO_WINSTON.md](docs/03_book/BOOK_CH22_EXPERIMENTO_WINSTON.md) | Winston Experiment — complete chapter |
-| [docs/04_strategy/COMPETITION_BIBLE.md](docs/04_strategy/COMPETITION_BIBLE.md) | Competitive intelligence (685 projects analyzed) |
-| [docs/07_integrations/WINSTON_COMMUNICATION_FRAMEWORK.md](docs/07_integrations/WINSTON_COMMUNICATION_FRAMEWORK.md) | Winston communication framework |
-| [docs/07_integrations/TEMPO_DEPLOY_GUIDE.md](docs/07_integrations/TEMPO_DEPLOY_GUIDE.md) | Deploy on Stripe's blockchain |
-| [docs/06_security/SECURITY_REPORT_2026-03-27.md](docs/06_security/SECURITY_REPORT_2026-03-27.md) | Security audit |
+> **123 documents** organized in 9 categories. Full index: [docs/INDEX.md](docs/INDEX.md)
+
+### Architecture
+
+| Document | Description |
+|---|---|
+| [System Architecture](docs/01_architecture/SYSTEM_ARCHITECTURE.md) | 12-layer governance pipeline with latency per layer |
+| [Architectural Redesign v1](docs/01_architecture/ARCHITECTURAL_REDESIGN_v1.md) | Design decisions and module conventions — read before coding |
+| [Determinism Checklist](docs/01_architecture/DETERMINISM_CHECKLIST.md) | Verification checklist for zero-LLM governance |
+| [Mesh Scaling Guide](docs/01_architecture/MESH_SCALING_GUIDE.md) | Distributed mesh node configuration |
+
+### Research & Experiments
+
+| Document | Description |
+|---|---|
+| [Case Study — Apex #1687](docs/02_research/CASE_STUDY_APEX_1687.md) | **238 autonomous cycles · 0 incidents · 21 on-chain attestations** |
+| [Winston Experiment](docs/02_research/EXPERIMENT_WINSTON_VS_BASELINE.md) | Raw data: +26.1% average across 10 frontier models |
+| [Multi-Model Mesh Paper](docs/02_research/PAPER_MULTI_MODEL_MESH.md) | Academic paper draft |
+| [Degradation Curves](docs/02_research/BLOG_DEGRADATION_CURVES.md) | How agent quality degrades without governance |
+
+### Operations & Setup
+
+| Document | Description |
+|---|---|
+| [Getting Started](docs/05_operations/GETTING_STARTED.md) | Installation, first run, environment setup |
+| [Free Providers Guide](docs/05_operations/FREE_PROVIDERS_GUIDE.md) | Run DOF-MESH at $0/month with free LLM tiers |
+| [MCP Setup](docs/05_operations/MCP_SETUP.md) | Model Context Protocol server configuration |
+| [Attestations](docs/05_operations/ATTESTATIONS.md) | All 21+ on-chain attestation records |
+| [Multichain Deployment](docs/05_operations/MULTICHAIN.md) | Deploy to Avalanche, Base, Celo, ETH, Tempo |
+| [Tempo Deploy Guide](docs/07_integrations/TEMPO_DEPLOY_GUIDE.md) | Step-by-step deploy on Stripe's L1 |
+
+### Strategy & Competitive
+
+| Document | Description |
+|---|---|
+| [Competition Bible](docs/04_strategy/COMPETITION_BIBLE.md) | 685 projects analyzed — DOF's unique position |
+| [Monetization Strategy](docs/04_strategy/DOF_MONETIZATION_STRATEGY.md) | Pricing tiers, ICP, revenue model |
+| [Phase 2 Execution Plan](docs/04_strategy/DOF_PHASE2_EXECUTION_PLAN.md) | Roadmap: integrations → distribution → SaaS |
+
+### Security
+
+| Document | Description |
+|---|---|
+| [Security Report](docs/06_security/SECURITY_REPORT_2026-03-27.md) | Full security audit — March 2026 |
+| [Mesh Security Hardening](docs/06_security/SECURITY_MESH_HARDENING.md) | Node security, key management, threat model |
+
+### Logs & Runtime Outputs
+
+```
+logs/
+├── traces/          # RunTrace JSON — one file per execution
+├── experiments/     # runs.jsonl — aggregated metrics per run
+├── metrics/         # Agent steps, governance decisions, supervisor scores
+├── checkpoints/     # JSONL per step — crash recovery
+├── commander/       # commands.jsonl, sessions.json, queue/*.json
+├── daemon/          # cycles.jsonl — autonomous daemon cycles
+└── mesh/            # nodes.json, messages.jsonl, inbox/<node>/*.json
+
+output/              # Crew task results (plain text + JSON)
+experiments/         # Raw experiment data (winston_vs_baseline/, etc.)
+docs/evidence/       # Documented learnings, test results, session snapshots
+```
+
+All logs are append-only JSONL. No external observability dependencies.
 
 ---
 
