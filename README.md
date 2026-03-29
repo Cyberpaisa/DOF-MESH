@@ -28,6 +28,22 @@
 
 ---
 
+## The Problem
+
+Autonomous AI agents are managing real money — DeFi treasuries, automated payments, enterprise decisions. When something goes wrong, you get logs the agent wrote about itself.
+
+That's not proof. That's testimony.
+
+**685 projects** were analyzed at the largest autonomous agent hackathon in the world (Synthesis 2026, $100K in prizes, 1,500 participants). **Zero use formal verification for governance.** Every single one trusts another LLM to watch the first LLM.
+
+That's like hiring the thief's cousin as the security guard.
+
+> The obvious solution is using AI to watch AI. It sounds logical — until your watchdog LLM hallucinates that everything is fine while an attacker drains your treasury with a prompt injection. An LLM can't prove anything. It can only guess.
+>
+> **DOF doesn't monitor. DOF proves.** Z3 — the same formal verification engine used to certify aircraft and nuclear reactors — now certifies your agents. Not statistically. Mathematically.
+
+---
+
 ```bash
 pip install dof-sdk
 ```
@@ -414,8 +430,12 @@ Contact: [@Cyber_paisa](https://t.me/Cyber_paisa) on Telegram.
 ---
 
 <p align="center">
-  <strong>DOF-MESH</strong> · Deterministic Observability Framework<br/>
+  <strong>Before reading this, the only way to know if your agent behaved correctly was to trust logs the agent wrote about itself.</strong><br/><br/>
+  Now you have an alternative: mathematical proof, immutable, verifiable by any third party.<br/><br/>
+  <code>pip install dof-sdk</code> · 30 seconds · First verification free.<br/><br/>
+  The next time someone asks <em>"how do you know your agent did the right thing?"</em><br/>
+  you'll have an answer no other team in the world can give.<br/><br/>
   <em>Mathematics, not promises.</em><br/><br/>
   Cyber Paisa — Enigma Group — Medellín, Colombia<br/>
-  BSL-1.1 · <a href="LICENSE">License</a> · <a href="https://pypi.org/project/dof-sdk/">PyPI</a> · <a href="https://snowtrace.io/address/0x8004B663056A597Dffe9eCcC1965A193B7388713">Snowtrace</a>
+  BSL-1.1 · <a href="LICENSE">License</a> · <a href="https://pypi.org/project/dof-sdk/">PyPI</a> · <a href="https://snowtrace.io/address/0x8004B663056A597Dffe9eCcC1965A193B7388713">Snowtrace</a> · <a href="https://t.me/Cyber_paisa">@Cyber_paisa</a>
 </p>
