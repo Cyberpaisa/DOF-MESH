@@ -88,7 +88,7 @@ INITIAL_BACKLOG = [
      "description": "Túnel cifrado Phase 7. TunnelManager: create_tunnel(peer_host, peer_port), send(data), recv(). NaCl SecretBox encryption. Wraps socket. Singleton get_tunnel_manager()."},
 
     {"id": "P7-06", "priority": 7, "retries": 0, "done": False, "assigned": False,
-     "title": "Write docs/BOOK_CH15_INTERNET_FEDERATION.md",
+     "title": "Write docs/03_book/BOOK_CH15_INTERNET_FEDERATION.md",
      "description": "Cap 15 del libro DOF. 400+ líneas. Secciones: Problema NAT/firewalls, STUN/TURN, UDP hole punching, túneles cifrados, DNS-SD, topología, seguridad escala internet, roadmap, business value."},
 
     {"id": "P7-07", "priority": 7, "retries": 0, "done": False, "assigned": False,

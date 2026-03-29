@@ -44,7 +44,7 @@
 - Total: ~3,270+ tests
 
 ### Documentation
-- `docs/BOOK_CH20_SWARM_GUARDIAN_LEGION.md` — Chapter 20: Swarm Awakens
+- `docs/03_book/BOOK_CH20_SWARM_GUARDIAN_LEGION.md` — Chapter 20: Swarm Awakens
 
 ---
 

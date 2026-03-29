@@ -19,7 +19,7 @@ Agent Teams + DOF Mesh Bridge (27 mar 2026):
   Cada mesh tool recibe governance post-check automática via
   ConstitutionEnforcer — campo _dof_governance inyectado en responses.
 
-  Docs: docs/AGENT_TEAMS_DOF_BRIDGE.md (924 líneas, enterprise-grade)
+  Docs: docs/08_agents/AGENT_TEAMS_DOF_BRIDGE.md (924 líneas, enterprise-grade)
   Tests: tests/test_mesh_governance.py (29 tests)
 
 Usage:

@@ -1387,7 +1387,7 @@ def launch_mcp_server():
         console.print(f"    [green]>[/green] {name}")
 
     console.print(f"\n  [dim]Configure in Claude Desktop, Cursor, or any MCP client.[/dim]")
-    console.print(f"  [dim]See docs/MCP_SETUP.md for configuration examples.[/dim]\n")
+    console.print(f"  [dim]See docs/05_operations/MCP_SETUP.md for configuration examples.[/dim]\n")
 
     mode = Prompt.ask(
         "Start server now?",
