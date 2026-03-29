@@ -44,14 +44,10 @@ class TestHyperionHTTP(unittest.TestCase):
         self.assertIsNotNone(task)
 
     def test_dequeue_empty(self):
-        # Drain all shards first
-        for _ in range(100):
-            drained = False
-            for shard in range(5):
-                t = self.client.dequeue(shard_id=shard)
-                if t:
-                    drained = True
-            if not drained:
+        # Drain using dequeue_any (global endpoint) — covers all shards
+        # including replicas, matching the same path used in the final assert.
+        for _ in range(500):
+            if self.client.dequeue() is None:
                 break
         task = self.client.dequeue()
         self.assertIsNone(task)
