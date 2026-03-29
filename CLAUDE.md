@@ -41,6 +41,31 @@ Antes de CADA commit, verificar:
 
 **Esta regla es JERÁRQUICA y CANÓNICA — aplica a todo el ecosistema DOF sin excepción.
 Ya tuvimos DOS incidentes (Glassworm + vault key). No habrá un tercero.**
+
+## Regla canónica de evidencia — DOCUMENTA ANTES DE COMMITEAR
+
+**OBLIGATORIO para TODOS (Claude, workers, IAs externas, humanos):**
+
+Antes de commitear experimentos, resultados de tests o aprendizajes:
+1. Ejecutar `python3 scripts/save_evidence.py <tipo> "<título>" --note "<qué aprendiste>"`
+2. Hacer `git add docs/evidence/` junto con los datos
+3. Si el Soberano dice "documenta esto" → ejecutar el script de inmediato, no al final
+
+**Tipos de evidencia que SIEMPRE se documentan:**
+- Resultados de experimentos (Winston, Adaline, benchmarks) → `save_evidence.py experiment`
+- Resultados de sesiones de tests → `save_evidence.py test`
+- Aprendizajes técnicos (TurboQuant, SDPA, patrones nuevos) → `save_evidence.py learning`
+- Estado de sesión al cerrar → `save_evidence.py session --auto`
+
+**Comandos rápidos:**
+```bash
+python3 scripts/save_evidence.py experiment "Nombre experimento" --delta "+26%" --models 10 --note "Descripción"
+python3 scripts/save_evidence.py learning "TurboQuant" --note "6x KV cache" --why "Ahorra VRAM" --how "cache_type_k=q4_0"
+python3 scripts/save_evidence.py session --auto --note "Resumen de lo que se hizo"
+```
+
+**El pre-commit hook AVISA (no bloquea) cuando se commitean datos de experimento sin evidencia.**
+Esta regla existe porque perdimos resultados del Experimento Winston, datos de Adaline y aprendizajes de sesión. No se repite.
 - Antes de codificar, lee el archivo relevante en `/docs/` y los módulos que vas a modificar
 - Todo output va a JSONL para auditoría
 - Tests obligatorios antes de terminar cualquier tarea: `python3 -m unittest discover -s tests`
