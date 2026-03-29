@@ -35,7 +35,7 @@ The evaluation encompasses four crucial experiments representing the real-world 
 - **Results**: 
   - Successful: `1`
   - Replaced/Failed: `2` (Nonce Collision)
-- **Latencia Total**: `62.17` seconds (Time to process timeouts).
+- **Total Latency**: `62.17` seconds (Time to process timeouts).
 - **Analysis**: Simultaneous executions originating from the exact same private key face standard EVM local nonce collisions. A successful swarm-level implementation necessitates the introduction of a local Nonce-Queue Orchestrator (Or standard Message Queue like Redis) to sequence agent attestations robustly off-chain before pushing them to the primary adapter.
 
 ## Conclusions

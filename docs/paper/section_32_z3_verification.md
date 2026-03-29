@@ -1,5 +1,5 @@
 # Paper Section — Z3 Formal Verification Enhancement
-# Agregar después de Section 31 (existente) en el paper DOF
+# Add after Section 31 (existing) in the DOF paper
 
 ## Section 32: Neurosymbolic Formal Verification Layer
 
