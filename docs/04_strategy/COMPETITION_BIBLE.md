@@ -196,6 +196,65 @@
 
 ---
 
+## 4b. Technical Argumentation Framework
+
+### The Agentic Delivery Layer Model — DOF's Architecture in 4 Boundaries
+
+DOF-MESH implements the four-layer agentic delivery model. Use this framing when explaining the architecture to any audience.
+
+```
+Foundation → Design → Alignment → Execution
+  (rules)   (assembly)  (proof)   (artifact)
+```
+
+Think of it as a compiler pipeline:
+- **Foundation** = the language spec (primitives that never change)
+- **Design** = the program (assembles primitives for a specific use case)
+- **Alignment** = the type checker + test suite (proves correctness before build)
+- **Execution** = the binary ready to run (zero ambiguity, immediately deployable)
+
+Breaking this pipeline introduces systemic uncertainty. DOF enforces every boundary.
+
+| Layer | DOF Implementation |
+|-------|--------------------|
+| Foundation | `ConstitutionEnforcer`, Z3 primitives, ERC-8004 ontology |
+| Design | Agent archetypes, `MeshRouterV2`, 15 MCP tools |
+| Alignment | Sentinel 27 checks, `prompt_eval_gate.py`, ZK batch prover |
+| Execution | `ExecutionPack` — machine-readable artifact, OpenAPI + state machine |
+
+---
+
+### Power Phrases — Battle-tested for Judges
+
+**On governance as infrastructure:**
+> "Alignment in DOF-MESH is not an external oversight committee. It is a physical property of the system."
+
+**On the mandatory alignment gate:**
+> "If alignment is weak, runtime failure is a statistical certainty. DOF makes alignment structurally mandatory — you cannot ship without passing it."
+
+**On non-determinism at scale:**
+> "Traditional agentic pipelines allow the four architecture layers to blend together. The result: execution artifacts become non-deterministic and the system's behavior becomes impossible to govern at scale. DOF enforces strict layer boundaries by design."
+
+**On the ExecutionPack (Layer 4):**
+> "If a specification cannot be executed immediately, it is functionally incomplete and must be sent back. DOF's ExecutionPack enforces this as a hard error — not a warning."
+
+**On overall value:**
+> "DOF transforms agentic systems into consistent, scalable architectures that are predictable by design — not by luck."
+
+---
+
+### Audience-to-Phrase Quick Reference
+
+| Audience | Best phrase |
+|----------|-------------|
+| Technical judge | "Alignment is a physical property of the system" |
+| Business judge | "Runtime failure is a statistical certainty without this gate" |
+| VC / investor | "Predictable by design, not by luck" |
+| AI safety evaluator | "Governance as infrastructure, not oversight committee" |
+| Developer / builder | "Incomplete spec = hard error, not warning. Sent back automatically." |
+
+---
+
 ## 5. Ideal Hackathon Timeline (10 days)
 
 ### Day 1 -- Reconnaissance and Strategy
