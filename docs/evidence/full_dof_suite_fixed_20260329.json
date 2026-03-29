@@ -1,0 +1,69 @@
+{
+  "run_at": "2026-03-29T14:09:26.872919",
+  "agents": {
+    "apex-1687": {
+      "agent_id": "apex-1687",
+      "name": "Apex Arbitrage Agent",
+      "timestamp": "2026-03-29T14:09:25.407288",
+      "z3": {
+        "verdict": "APPROVED",
+        "z3_proof": "4/4 VERIFIED [GCR_INVARIANT:VERIFIED | SS_FORMULA:VERIFIED | SS_MONOTONICITY:VERIFIED | SS_BOUNDARIES:VERIFIED]",
+        "latency_ms": 7.9,
+        "attestation": "0x3e6661b09e3fc72a186d2daa2eb9b9ecb308be9263b7ed2b258aa70a4f49bdb1",
+        "violations": []
+      },
+      "sentinel": {
+        "overall_score": 65.33,
+        "passed_checks": null,
+        "total_checks": null,
+        "latency_ms": 473.1862545013428
+      },
+      "supervisor": {
+        "decision": "ACCEPT",
+        "score": 5.38,
+        "latency_ms": 0.8571147918701172
+      },
+      "adversarial": {
+        "verdict": "PASS",
+        "acr": 1.0,
+        "score": 1.0,
+        "latency_ms": 0.6008148193359375
+      },
+      "onchain": {
+        "error": "No module named 'dof.chain_adapter'"
+      }
+    },
+    "avabuilder-1686": {
+      "agent_id": "avabuilder-1686",
+      "name": "AvaBuilder Agent",
+      "timestamp": "2026-03-29T14:09:26.424516",
+      "z3": {
+        "verdict": "APPROVED",
+        "z3_proof": "4/4 VERIFIED [GCR_INVARIANT:VERIFIED | SS_FORMULA:VERIFIED | SS_MONOTONICITY:VERIFIED | SS_BOUNDARIES:VERIFIED]",
+        "latency_ms": 6.6,
+        "attestation": "0x036c440b080bf4c0e4bbbb78b3fddaf6da2c97523cf4ae58e64a64713a03916e",
+        "violations": []
+      },
+      "sentinel": {
+        "overall_score": 65.33,
+        "passed_checks": null,
+        "total_checks": null,
+        "latency_ms": 440.2470588684082
+      },
+      "supervisor": {
+        "decision": "ACCEPT",
+        "score": 5.38,
+        "latency_ms": 0.39196014404296875
+      },
+      "adversarial": {
+        "verdict": "PASS",
+        "acr": 1.0,
+        "score": 1.0,
+        "latency_ms": 0.3190040588378906
+      },
+      "onchain": {
+        "error": "No module named 'dof.chain_adapter'"
+      }
+    }
+  }
+}

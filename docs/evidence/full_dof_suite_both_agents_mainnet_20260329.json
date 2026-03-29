@@ -1,0 +1,74 @@
+{
+  "timestamp": "2026-03-29T14:04:29Z",
+  "test_type": "FULL DOF SUITE \u2014 Z3 + Sentinel + TRACER + Supervisor + Adversarial + Mainnet attestation",
+  "chain": "avalanche-mainnet (43114)",
+  "contract": "0x8004B663056A597Dffe9eCcC1965A193B7388713",
+  "agents": {
+    "apex-1687": {
+      "z3": {
+        "verdict": "APPROVED",
+        "z3_proof": "4/4 VERIFIED [GCR_INVARIANT:VERIFIED | SS_FORMULA:VERIFIED | SS_MONOTONICITY:VERIFIED | SS_BOUNDARIES:VERIFIED]",
+        "latency_ms": 11.8,
+        "attestation": "0x974f9a4be49e1a7dfa85525194c492c20846487014b7efa1cca16aed00bb68aa",
+        "violations": [],
+        "warnings": [
+          "[HAS_SOURCES] Should include source URLs",
+          "[STRUCTURED_OUTPUT] Should have clear structure (headers, bullets)",
+          "[ACTIONABLE] Should include actionable steps or recommendations"
+        ]
+      },
+      "sentinel": {
+        "error": "SentinelEngine.validate() got an unexpected keyword argument 'agent_id'"
+      },
+      "supervisor": {
+        "error": "MetaSupervisor.evaluate() got an unexpected keyword argument 'agent_id'"
+      },
+      "adversarial": {
+        "error": "AdversarialEvaluator.evaluate() got an unexpected keyword argument 'agent_id'"
+      },
+      "onchain": {
+        "status": "confirmed",
+        "tx_hash": "cccbf799dc728ac8b0c7787b1111888a5be8ae844eb0818ca1a6ce3f5ffbda08",
+        "chain_id": 43114,
+        "chain_name": "Avalanche C-Chain",
+        "explorer_url": "https://snowtrace.io/tx/cccbf799dc728ac8b0c7787b1111888a5be8ae844eb0818ca1a6ce3f5ffbda08",
+        "proof_hash": "0x974f9a4be49e1a7dfa85525194c492c20846487014b7efa1cca16aed00bb68aa",
+        "agent_id": 1687,
+        "gas_used": 213541
+      }
+    },
+    "avabuilder-1686": {
+      "z3": {
+        "verdict": "APPROVED",
+        "z3_proof": "4/4 VERIFIED [GCR_INVARIANT:VERIFIED | SS_FORMULA:VERIFIED | SS_MONOTONICITY:VERIFIED | SS_BOUNDARIES:VERIFIED]",
+        "latency_ms": 1.6,
+        "attestation": "0x93643dfe284c315be0f58eba9d9e5f1065bf42ccc7ef0f6ee144fbd0b767c6dc",
+        "violations": [],
+        "warnings": [
+          "[HAS_SOURCES] Should include source URLs",
+          "[STRUCTURED_OUTPUT] Should have clear structure (headers, bullets)",
+          "[ACTIONABLE] Should include actionable steps or recommendations"
+        ]
+      },
+      "sentinel": {
+        "error": "SentinelEngine.validate() got an unexpected keyword argument 'agent_id'"
+      },
+      "supervisor": {
+        "error": "MetaSupervisor.evaluate() got an unexpected keyword argument 'agent_id'"
+      },
+      "adversarial": {
+        "error": "AdversarialEvaluator.evaluate() got an unexpected keyword argument 'agent_id'"
+      },
+      "onchain": {
+        "status": "confirmed",
+        "tx_hash": "8d53bd4cd06e07046ba027fc5dcb3ad8ceaf521cfb94da02ae5e49914645576d",
+        "chain_id": 43114,
+        "chain_name": "Avalanche C-Chain",
+        "explorer_url": "https://snowtrace.io/tx/8d53bd4cd06e07046ba027fc5dcb3ad8ceaf521cfb94da02ae5e49914645576d",
+        "proof_hash": "0x93643dfe284c315be0f58eba9d9e5f1065bf42ccc7ef0f6ee144fbd0b767c6dc",
+        "agent_id": 1686,
+        "gas_used": 213529
+      }
+    }
+  }
+}
