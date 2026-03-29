@@ -71,6 +71,21 @@ Esta regla existe porque perdimos resultados del Experimento Winston, datos de A
 - Tests obligatorios antes de terminar cualquier tarea: `python3 -m unittest discover -s tests`
 - Singletons (`ProviderManager`) deben tener `reset()` y llamarse al inicio de `run_experiment()`
 
+## Regla canónica de scope — SCOPE-001
+
+**OBLIGATORIO antes de lanzar cualquier worker o agente:**
+
+1. Repo autorizado = solo el que el Soberano mencionó explícitamente en esa instrucción
+2. Si no se especificó repo: **default = solo lectura, sin commit, sin push**
+3. "ayúdame", "activa agentes", "haz lo que falta" → **NO son autorización de scope** → PREGUNTAR primero
+4. Inyectar siempre este CLAUDE.md en el prompt del worker, aunque trabaje en otro directorio
+5. Workers NUNCA pueden hacer push — constraint formal, no sugerencia
+
+**Incidente que originó esta regla (2026-03-29):**
+Worker commiteó y pusheó 77 archivos al repo del hackathon Synthesis 2026 sin autorización.
+El Soberano dijo "activa el team agent" y el commander lo interpretó como scope abierto.
+Casi causa expulsión de la competencia. Ver `docs/03_book/BOOK_CH23_SCOPE_BREACH.md`.
+
 ## Reglas de seguridad para workers e IAs
 
 **Aplica a TODOS los agentes, workers, IAs externas (Gemini, DeepSeek, GPT, etc.):**
