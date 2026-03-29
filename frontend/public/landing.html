@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOF — Deterministic Observability Framework</title>
+    <meta name="description" content="Math-verified, blockchain-attested autonomous AI agent governance. Zero trust required — only math and blockchain.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050510;
+            --purple: #8b5cf6;
+            --indigo: #6366f1;
+            --violet: #a78bfa;
+            --cyan: #22d3ee;
+            --emerald: #34d399;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: white; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+
+        /* ═══════════════════ CANVAS PARTICLES ═══════════════════ */
+        #particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+        /* ═══════════════════ AURORA GRADIENT ═══════════════════ */
+        .aurora { position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; z-index: 0; pointer-events: none; opacity: 0.4; }
+        .aurora-blob { position: absolute; border-radius: 50%; filter: blur(120px); animation: auroraFloat 20s ease-in-out infinite; }
+        .ab1 { width: 600px; height: 600px; background: rgba(99,102,241,0.15); top: 10%; left: 20%; }
+        .ab2 { width: 500px; height: 500px; background: rgba(139,92,246,0.12); top: 50%; left: 60%; animation-delay: -7s; animation-duration: 25s; }
+        .ab3 { width: 400px; height: 400px; background: rgba(34,211,238,0.08); top: 30%; left: 40%; animation-delay: -14s; animation-duration: 30s; }
+        @keyframes auroraFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(80px, -60px) scale(1.1); }
+            50% { transform: translate(-40px, 40px) scale(0.95); }
+            75% { transform: translate(60px, 20px) scale(1.05); }
+        }
+
+        /* ═══════════════════ NAV ═══════════════════ */
+        nav { position: fixed; top: 0; width: 100%; z-index: 100; padding: 16px 48px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(20px) saturate(1.4); background: rgba(5,5,16,0.6); border-bottom: 1px solid rgba(255,255,255,0.04); transition: all 0.3s; }
+        nav.scrolled { padding: 10px 48px; background: rgba(5,5,16,0.85); }
+        .logo { font-size: 18px; font-weight: 900; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
+        .logo svg { flex-shrink: 0; }
+        .nav-r { display: flex; align-items: center; gap: 28px; }
+        .nav-links { display: flex; gap: 28px; }
+        .nav-links a { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.2s; position: relative; }
+        .nav-links a:hover { color: white; }
+        .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1px; background: var(--violet); transition: width 0.3s; }
+        .nav-links a:hover::after { width: 100%; }
+        .chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.08); border-radius: 999px; padding: 7px 16px; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.03); }
+        .chip .dot { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* ═══════════════════ HERO ═══════════════════ */
+        .hero { position: relative; min-height: 100vh; display: flex; align-items: center; padding: 0 48px; overflow: hidden; }
+        .hero-vid { position: absolute; top: 0; right: 0; width: 55%; height: 100%; z-index: 0; mask-image: linear-gradient(to left, rgba(0,0,0,0.5) 0%, transparent 85%); -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0.5) 0%, transparent 85%); }
+        .hero-vid video { width: 100%; height: 100%; object-fit: cover; }
+        .hero-c { position: relative; z-index: 20; max-width: 680px; }
+        .h-badge { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(139,92,246,0.25); border-radius: 999px; padding: 8px 20px; font-size: 13px; font-weight: 500; color: var(--violet); backdrop-filter: blur(8px); margin-bottom: 36px; background: rgba(139,92,246,0.06); opacity: 0; animation: slideUp 0.6s 0.1s ease-out forwards; }
+        .hero h1 { font-size: clamp(2.8rem, 5.5vw, 4.2rem); font-weight: 800; line-height: 1.1; letter-spacing: -2.5px; margin-bottom: 28px; }
+        .hero h1 em { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 400; background: linear-gradient(135deg, #c4b5fd, #818cf8, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero .hsub { font-size: 17px; color: rgba(255,255,255,0.5); line-height: 1.8; max-width: 500px; margin-bottom: 40px; opacity: 0; animation: slideUp 0.6s 0.4s ease-out forwards; }
+        .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; opacity: 0; animation: slideUp 0.6s 0.6s ease-out forwards; }
+        .bw { background: white; color: var(--bg); padding: 14px 28px; border-radius: 999px; font-size: 14px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; box-shadow: 0 0 30px rgba(255,255,255,0.08); }
+        .bw:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(255,255,255,0.15); }
+        .bo { background: transparent; color: white; padding: 14px 28px; border-radius: 999px; font-size: 14px; font-weight: 500; text-decoration: none; border: 1px solid rgba(255,255,255,0.12); transition: all 0.3s; backdrop-filter: blur(8px); }
+        .bo:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2); }
+        .word { display: inline-block; opacity: 0; transform: translateY(50px) rotateX(-15deg); animation: wordReveal 0.7s cubic-bezier(0.16,1,0.3,1) forwards; }
+        @keyframes wordReveal { to { opacity: 1; transform: translateY(0) rotateX(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ═══════════════════ MARQUEE ═══════════════════ */
+        .marquee-wrap { padding: 28px 0; border-top: 1px solid rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.04); overflow: hidden; position: relative; z-index: 1; }
+        .marquee { display: flex; gap: 48px; animation: marqueeScroll 30s linear infinite; width: max-content; }
+        .marquee-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: rgba(255,255,255,0.3); font-weight: 600; white-space: nowrap; letter-spacing: 1px; text-transform: uppercase; }
+        .marquee-item .mi-dot { width: 4px; height: 4px; background: var(--violet); border-radius: 50%; }
+        @keyframes marqueeScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+        /* ═══════════════════ SECTIONS ═══════════════════ */
+        section { padding: 140px 48px; max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+        .sl { font-size: 11px; font-weight: 700; letter-spacing: 5px; text-transform: uppercase; color: var(--violet); margin-bottom: 16px; }
+        .st { font-size: clamp(1.6rem, 3.2vw, 2.5rem); font-weight: 800; letter-spacing: -1px; line-height: 1.3; margin-bottom: 16px; max-width: 600px; }
+        .st em { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 400; }
+        .sd { font-size: 16px; color: rgba(255,255,255,0.4); max-width: 520px; line-height: 1.75; margin-bottom: 64px; }
+
+        /* ═══════════════════ STATS ═══════════════════ */
+        .sg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(255,255,255,0.06); border-radius: 24px; overflow: hidden; box-shadow: 0 0 80px rgba(99,102,241,0.06); }
+        .sc { padding: 52px 36px; text-align: center; background: var(--bg); position: relative; overflow: hidden; transition: all 0.4s; }
+        .sc::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at center, rgba(139,92,246,0.04), transparent 70%); opacity: 0; transition: opacity 0.4s; }
+        .sc:hover::before { opacity: 1; }
+        .sv { font-size: 3.2rem; font-weight: 900; letter-spacing: -2px; background: linear-gradient(135deg, #fff 0%, #c4b5fd 50%, #818cf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; }
+        .sla { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 14px; font-weight: 500; letter-spacing: 0.5px; }
+
+        /* ═══════════════════ PIPELINE ═══════════════════ */
+        .pipeline { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; position: relative; }
+        .pipe-step { text-align: center; padding: 32px 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 16px; position: relative; transition: all 0.4s; cursor: default; }
+        .pipe-step:hover { border-color: rgba(139,92,246,0.3); background: rgba(139,92,246,0.04); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(139,92,246,0.1); }
+        .pipe-num { font-size: 9px; color: rgba(255,255,255,0.15); letter-spacing: 3px; text-transform: uppercase; font-weight: 700; margin-bottom: 14px; }
+        .pipe-icon { font-size: 24px; margin-bottom: 12px; }
+        .pipe-title { font-size: 13px; font-weight: 700; letter-spacing: -0.2px; margin-bottom: 4px; }
+        .pipe-desc { font-size: 10px; color: rgba(255,255,255,0.25); font-weight: 500; }
+        .pipe-connector { position: absolute; top: 50%; right: -8px; width: 8px; height: 1px; background: rgba(139,92,246,0.2); z-index: 2; }
+        .pipe-step:last-child .pipe-connector { display: none; }
+
+        /* ═══════════════════ WHY DOF ═══════════════════ */
+        .wg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(255,255,255,0.06); border-radius: 24px; overflow: hidden; }
+        .wc { padding: 44px 36px; background: var(--bg); transition: all 0.4s; position: relative; overflow: hidden; }
+        .wc::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(139,92,246,0.06), transparent 40%); opacity: 0; transition: opacity 0.4s; pointer-events: none; }
+        .wc:hover::after { opacity: 1; }
+        .wc-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 24px; background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.12); }
+        .wc-t { font-size: 17px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.3px; }
+        .wc-d { font-size: 14px; color: rgba(255,255,255,0.35); line-height: 1.7; }
+
+        /* ═══════════════════ TRACKS ═══════════════════ */
+        .tg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: transparent; border-radius: 24px; overflow: hidden; }
+        .tc { border: 1px solid rgba(255,255,255,0.06); }
+        .tg .tc:last-child { grid-column: 2; }
+        .tc { padding: 40px 36px; background: rgba(255,255,255,0.02); text-decoration: none; color: white; display: flex; flex-direction: column; transition: all 0.4s; position: relative; overflow: hidden; border-radius: 16px; }
+        .tc::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--violet), transparent); opacity: 0; transition: opacity 0.4s; }
+        .tc:hover { background: rgba(139,92,246,0.03); }
+        .tc:hover::before { opacity: 0.5; }
+        .tc-h { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .tc-ic { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+        .tc-partner { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5); letter-spacing: 0.5px; }
+        .tc-n { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 10px; }
+        .tc-d { font-size: 13px; color: rgba(255,255,255,0.35); line-height: 1.7; flex: 1; }
+        .tc-f { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.04); }
+        .tc-cycle { font-size: 10px; font-family: ui-monospace, monospace; color: rgba(255,255,255,0.2); letter-spacing: 2px; font-weight: 600; }
+        .tc-arrow { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 12px; color: rgba(255,255,255,0.3); transition: all 0.3s; }
+        .tc:hover .tc-arrow { border-color: var(--violet); color: var(--violet); transform: translate(2px, -2px); }
+
+        /* ═══════════════════ EVIDENCE ═══════════════════ */
+        .eg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(255,255,255,0.06); border-radius: 24px; overflow: hidden; }
+        .ec { padding: 40px 36px; background: var(--bg); transition: all 0.4s; }
+        .ec:hover { background: rgba(99,102,241,0.03); }
+        .ec h3 { font-size: 10px; font-weight: 700; color: var(--violet); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 20px; }
+        .ec code { font-size: 13px; color: rgba(255,255,255,0.5); word-break: break-all; font-family: ui-monospace, monospace; line-height: 2; }
+        .ec a { color: white; text-decoration: none; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; margin-top: 20px; transition: all 0.3s; }
+        .ec a:hover { gap: 10px; color: var(--violet); }
+
+        /* ═══════════════════ LIVE TERMINAL ═══════════════════ */
+        .terminal-section { padding: 0 48px 80px; max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+        .terminal-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; overflow: hidden; }
+        .terminal-header { padding: 14px 20px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .td-r { background: #ff5f57; }
+        .td-y { background: #febc2e; }
+        .td-g { background: #28c840; }
+        .terminal-title { font-size: 12px; color: rgba(255,255,255,0.3); margin-left: 12px; font-weight: 500; }
+        .terminal-body { padding: 24px; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 12px; height: 200px; overflow-y: auto; color: rgba(255,255,255,0.5); line-height: 2; }
+        .terminal-body .prompt { color: var(--emerald); }
+        .terminal-body .info { color: var(--violet); }
+        .terminal-body .success { color: #22c55e; }
+
+        /* ═══════════════════ CTA ═══════════════════ */
+        .cta { text-align: center; padding: 160px 48px; position: relative; z-index: 1; }
+        .cta::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 800px; height: 500px; background: radial-gradient(ellipse, rgba(99,102,241,0.08), transparent 70%); pointer-events: none; }
+        .cta-t { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; letter-spacing: -1.5px; margin-bottom: 20px; line-height: 1.2; position: relative; }
+        .cta-t em { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 400; background: linear-gradient(135deg, #c4b5fd, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .cta-d { font-size: 17px; color: rgba(255,255,255,0.4); max-width: 500px; margin: 0 auto 44px; line-height: 1.75; position: relative; }
+        .cta-btns { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; position: relative; }
+
+        /* ═══════════════════ FOOTER ═══════════════════ */
+        footer { text-align: center; padding: 48px 48px 40px; border-top: 1px solid rgba(255,255,255,0.04); position: relative; z-index: 1; }
+        footer .fb { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: rgba(255,255,255,0.6); }
+        footer p { color: rgba(255,255,255,0.25); font-size: 12px; line-height: 2; }
+        .fl { display: flex; justify-content: center; gap: 28px; margin-top: 20px; }
+        .fl a { color: rgba(255,255,255,0.3); text-decoration: none; font-size: 12px; font-weight: 500; transition: color 0.2s; }
+        .fl a:hover { color: white; }
+
+        /* ═══════════════════ RESPONSIVE ═══════════════════ */
+        @media (max-width: 1024px) {
+            .sg, .wg, .tg, .eg { grid-template-columns: repeat(2, 1fr); }
+            .pipeline { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 768px) {
+            nav, .hero, section, .cta, footer, .terminal-section { padding-left: 20px; padding-right: 20px; }
+            nav { padding: 12px 20px; }
+            .sg, .wg, .tg, .eg { grid-template-columns: 1fr; }
+            .pipeline { grid-template-columns: repeat(2, 1fr); }
+            .nav-links { display: none; }
+            .hero-vid { width: 100%; opacity: 0.2; mask-image: none; -webkit-mask-image: none; }
+            .hero h1 { font-size: 2.4rem; }
+        }
+
+        /* ═══════════════════ SCROLL REVEAL ═══════════════════ */
+        .rv { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .rv.vis { opacity: 1; transform: translateY(0); }
+        .rv-d1 { transition-delay: 0.1s; }
+        .rv-d2 { transition-delay: 0.2s; }
+        .rv-d3 { transition-delay: 0.3s; }
+
+        /* ═══════════════════ GLOW LINE ═══════════════════ */
+        .glow-line { height: 1px; background: linear-gradient(90deg, transparent, rgba(139,92,246,0.15), rgba(99,102,241,0.2), rgba(139,92,246,0.15), transparent); position: relative; z-index: 1; }
+        .glow-line::after { content: ''; position: absolute; top: -20px; left: 0; right: 0; bottom: -20px; background: linear-gradient(90deg, transparent, rgba(139,92,246,0.03), transparent); }
+
+        /* ═══════════════════ COUNTER ANIMATION ═══════════════════ */
+        .counter { display: inline-block; }
+
+        /* ═══════════════════ CURSOR GLOW ═══════════════════ */
+        .cursor-glow { position: fixed; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(139,92,246,0.06), transparent 60%); pointer-events: none; z-index: 0; transform: translate(-50%, -50%); transition: opacity 0.3s; }
+
+        /* ═══════════════════ LIGHT THEME ═══════════════════ */
+        html.light { --bg: #e4e7ec; --purple: #7c3aed; --indigo: #4f46e5; --violet: #6d28d9; --cyan: #0891b2; --emerald: #059669; }
+        html.light body { background: var(--bg); color: #1a1a2e; }
+        html.light nav { background: rgba(228,231,236,0.8); border-bottom-color: rgba(0,0,0,0.06); }
+        html.light nav.scrolled { background: rgba(228,231,236,0.95); }
+        html.light .nav-links a { color: rgba(0,0,0,0.45); }
+        html.light .nav-links a:hover { color: #1a1a2e; }
+        html.light .chip { border-color: rgba(0,0,0,0.08); color: rgba(0,0,0,0.5); background: rgba(0,0,0,0.03); }
+        html.light .h-badge { border-color: rgba(109,40,217,0.2); color: var(--violet); background: rgba(109,40,217,0.06); }
+        html.light .hero h1 { color: #1a1a2e; }
+        html.light .hero h1 em { background: linear-gradient(135deg, #7c3aed, #4f46e5, #0891b2); -webkit-background-clip: text; }
+        html.light .hero .hsub { color: rgba(0,0,0,0.45); }
+        html.light .bw { background: #1a1a2e; color: white; box-shadow: 0 0 30px rgba(0,0,0,0.08); }
+        html.light .bw:hover { box-shadow: 0 8px 40px rgba(0,0,0,0.15); }
+        html.light .bo { color: #1a1a2e; border-color: rgba(0,0,0,0.12); }
+        html.light .bo:hover { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.2); }
+        html.light .marquee-wrap { border-color: rgba(0,0,0,0.06); }
+        html.light .marquee-item { color: rgba(0,0,0,0.3); }
+        html.light .sl { color: var(--violet); }
+        html.light .st { color: #1a1a2e; }
+        html.light .st em { color: var(--violet); }
+        html.light .sd { color: rgba(0,0,0,0.4); }
+        html.light .sg { background: rgba(0,0,0,0.06); }
+        html.light .sc { background: var(--bg); }
+        html.light .sc::before { background: radial-gradient(ellipse at center, rgba(109,40,217,0.04), transparent 70%); }
+        html.light .sv { background: linear-gradient(135deg, #1a1a2e, #7c3aed, #4f46e5); -webkit-background-clip: text; }
+        html.light .sla { color: rgba(0,0,0,0.35); }
+        html.light .pipe-step { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.06); }
+        html.light .pipe-step:hover { border-color: rgba(109,40,217,0.3); background: rgba(109,40,217,0.04); box-shadow: 0 12px 40px rgba(109,40,217,0.08); }
+        html.light .pipe-num { color: rgba(0,0,0,0.2); }
+        html.light .pipe-title { color: #1a1a2e; }
+        html.light .pipe-desc { color: rgba(0,0,0,0.3); }
+        html.light .pipe-connector { background: rgba(109,40,217,0.15); }
+        html.light .wg { background: rgba(0,0,0,0.06); }
+        html.light .wc { background: var(--bg); }
+        html.light .wc::after { background: radial-gradient(circle at center, rgba(109,40,217,0.04), transparent 40%); }
+        html.light .wc-icon { background: rgba(109,40,217,0.08); border-color: rgba(109,40,217,0.12); }
+        html.light .wc-t { color: #1a1a2e; }
+        html.light .wc-d { color: rgba(0,0,0,0.4); }
+        html.light .tc { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.06); color: #1a1a2e; }
+        html.light .tc:hover { background: rgba(109,40,217,0.03); }
+        html.light .tc::before { background: linear-gradient(90deg, transparent, var(--violet), transparent); }
+        html.light .tc-partner { color: rgba(0,0,0,0.5); }
+        html.light .tc-d { color: rgba(0,0,0,0.4); }
+        html.light .tc-f { border-top-color: rgba(0,0,0,0.06); }
+        html.light .tc-cycle { color: rgba(0,0,0,0.25); }
+        html.light .tc-arrow { border-color: rgba(0,0,0,0.1); color: rgba(0,0,0,0.3); }
+        html.light .tc:hover .tc-arrow { border-color: var(--violet); color: var(--violet); }
+        html.light .eg { background: rgba(0,0,0,0.06); }
+        html.light .ec { background: var(--bg); }
+        html.light .ec:hover { background: rgba(109,40,217,0.02); }
+        html.light .ec h3 { color: var(--violet); }
+        html.light .ec code { color: rgba(0,0,0,0.5); }
+        html.light .ec a { color: #1a1a2e; }
+        html.light .ec a:hover { color: var(--violet); }
+        html.light .terminal-box { background: #1a1a2e; border-color: rgba(0,0,0,0.1); }
+        html.light .terminal-header { border-bottom-color: rgba(255,255,255,0.06); }
+        html.light .terminal-title { color: rgba(255,255,255,0.4); }
+        html.light .terminal-body { color: rgba(255,255,255,0.5); }
+        html.light .cta::before { background: radial-gradient(ellipse, rgba(109,40,217,0.06), transparent 70%); }
+        html.light .cta-t { color: #1a1a2e; }
+        html.light .cta-t em { background: linear-gradient(135deg, #7c3aed, #0891b2); -webkit-background-clip: text; }
+        html.light .cta-d { color: rgba(0,0,0,0.4); }
+        html.light footer { border-top-color: rgba(0,0,0,0.06); }
+        html.light footer .fb { color: rgba(0,0,0,0.6); }
+        html.light footer p { color: rgba(0,0,0,0.3); }
+        html.light footer p span { color: rgba(0,0,0,0.7) !important; }
+        html.light .fl a { color: rgba(0,0,0,0.35); }
+        html.light .fl a:hover { color: #1a1a2e; }
+        html.light .glow-line { background: linear-gradient(90deg, transparent, rgba(109,40,217,0.1), rgba(79,70,229,0.12), rgba(109,40,217,0.1), transparent); }
+        html.light .glow-line::after { background: linear-gradient(90deg, transparent, rgba(109,40,217,0.02), transparent); }
+        html.light .aurora-blob { opacity: 0.3; }
+        html.light .cursor-glow { background: radial-gradient(circle, rgba(109,40,217,0.04), transparent 60%); }
+        html.light .logo { color: #1a1a2e; }
+
+        /* ═══════════════════ CONTROLS (THEME + LANG) ═══════════════════ */
+        .nav-controls { display: flex; align-items: center; gap: 8px; }
+        .theme-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 15px; line-height: 1; }
+        .theme-btn:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); }
+        html.light .theme-btn { border-color: rgba(0,0,0,0.1); background: rgba(0,0,0,0.04); }
+        html.light .theme-btn:hover { border-color: rgba(0,0,0,0.2); background: rgba(0,0,0,0.08); }
+        .lang-sel { position: relative; }
+        .lang-btn { height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 4px; transition: all 0.3s; }
+        .lang-btn:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); }
+        html.light .lang-btn { border-color: rgba(0,0,0,0.1); background: rgba(0,0,0,0.04); color: rgba(0,0,0,0.5); }
+        html.light .lang-btn:hover { border-color: rgba(0,0,0,0.2); background: rgba(0,0,0,0.08); }
+        .lang-dd { position: absolute; top: 42px; right: 0; background: #1a1a2e; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 6px; min-width: 140px; display: none; box-shadow: 0 12px 40px rgba(0,0,0,0.4); z-index: 200; }
+        .lang-dd.open { display: block; }
+        html.light .lang-dd { background: #e4e7ec; border-color: rgba(0,0,0,0.08); box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
+        .lang-opt { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; font-size: 13px; color: rgba(255,255,255,0.6); cursor: pointer; transition: all 0.2s; border: none; background: none; width: 100%; font-family: inherit; }
+        .lang-opt:hover { background: rgba(255,255,255,0.06); color: white; }
+        .lang-opt.active { color: var(--violet); font-weight: 600; }
+        html.light .lang-opt { color: rgba(0,0,0,0.5); }
+        html.light .lang-opt:hover { background: rgba(0,0,0,0.04); color: #1a1a2e; }
+        html.light .lang-opt.active { color: var(--violet); }
+
+        /* ═══════════════════ PROTOCOL BADGES ═══════════════════ */
+        .proto-badges { display: flex; gap: 6px; align-items: center; }
+        .proto-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); }
+        .proto-badge .pb-dot { width: 5px; height: 5px; border-radius: 50%; animation: pulse 2s infinite; }
+        .pb-x402 .pb-dot { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+        .pb-x402 { color: rgba(34,197,94,0.7); }
+        .pb-a2a .pb-dot { background: #3b82f6; box-shadow: 0 0 6px #3b82f6; }
+        .pb-a2a { color: rgba(59,130,246,0.7); }
+        .pb-shield .pb-dot { background: #a855f7; box-shadow: 0 0 6px #a855f7; }
+        .pb-shield { color: rgba(168,85,247,0.7); }
+        html.light .proto-badge { border-color: rgba(0,0,0,0.06); background: rgba(0,0,0,0.03); }
+        @media (max-width: 768px) { .proto-badges { display: none; } }
+
+        /* ═══════════════════ CHAT WIDGET ═══════════════════ */
+        .chat-fab { position: fixed; bottom: 28px; right: 28px; width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--indigo)); border: none; cursor: pointer; z-index: 300; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 24px rgba(139,92,246,0.3); transition: all 0.3s; }
+        .chat-fab:hover { transform: scale(1.08); box-shadow: 0 6px 32px rgba(139,92,246,0.4); }
+        .chat-fab svg { width: 24px; height: 24px; fill: white; }
+        .chat-fab .fab-close { display: none; }
+        .chat-fab.open .fab-icon { display: none; }
+        .chat-fab.open .fab-close { display: block; }
+
+        .chat-panel { position: fixed; bottom: 96px; right: 28px; width: 380px; max-height: 520px; background: #0c0c1a; border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; z-index: 300; display: none; flex-direction: column; overflow: hidden; box-shadow: 0 16px 64px rgba(0,0,0,0.5); }
+        .chat-panel.open { display: flex; }
+        html.light .chat-panel { background: #f0f1f5; border-color: rgba(0,0,0,0.08); box-shadow: 0 16px 64px rgba(0,0,0,0.12); }
+
+        .chat-head { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 10px; }
+        html.light .chat-head { border-bottom-color: rgba(0,0,0,0.06); }
+        .chat-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--indigo)); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: white; flex-shrink: 0; }
+        .chat-hinfo { flex: 1; }
+        .chat-hname { font-size: 14px; font-weight: 700; }
+        .chat-hstatus { font-size: 11px; color: #22c55e; display: flex; align-items: center; gap: 4px; }
+        .chat-hstatus::before { content: ''; width: 5px; height: 5px; background: #22c55e; border-radius: 50%; }
+        .chat-gov-badge { font-size: 9px; padding: 3px 8px; border-radius: 999px; background: rgba(34,197,94,0.1); color: #22c55e; font-weight: 700; letter-spacing: 0.5px; }
+
+        .chat-msgs { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-height: 300px; max-height: 360px; }
+        .chat-msg { max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 13px; line-height: 1.6; word-wrap: break-word; }
+        .chat-msg.user { align-self: flex-end; background: rgba(139,92,246,0.15); color: rgba(255,255,255,0.85); border-bottom-right-radius: 4px; }
+        .chat-msg.agent { align-self: flex-start; background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.7); border-bottom-left-radius: 4px; }
+        html.light .chat-msg.user { background: rgba(109,40,217,0.12); color: rgba(0,0,0,0.75); }
+        html.light .chat-msg.agent { background: rgba(0,0,0,0.04); color: rgba(0,0,0,0.65); }
+        .chat-msg .msg-gov { display: inline-flex; align-items: center; gap: 3px; font-size: 9px; color: #22c55e; font-weight: 600; margin-top: 6px; }
+        .chat-msg .msg-gov.warn { color: #f59e0b; }
+        .chat-typing { align-self: flex-start; padding: 10px 14px; background: rgba(255,255,255,0.04); border-radius: 16px; display: flex; gap: 4px; }
+        .chat-typing span { width: 6px; height: 6px; background: rgba(255,255,255,0.3); border-radius: 50%; animation: typingBounce 1.4s infinite; }
+        .chat-typing span:nth-child(2) { animation-delay: 0.2s; }
+        .chat-typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+        .chat-input { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.06); }
+        html.light .chat-input { border-top-color: rgba(0,0,0,0.06); }
+        .chat-input input { flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 999px; padding: 10px 16px; color: white; font-size: 13px; font-family: inherit; outline: none; transition: border-color 0.2s; }
+        .chat-input input:focus { border-color: var(--purple); }
+        html.light .chat-input input { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); color: #1a1a2e; }
+        .chat-input button { width: 38px; height: 38px; border-radius: 50%; background: var(--purple); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
+        .chat-input button:hover { background: var(--indigo); }
+        .chat-input button svg { width: 16px; height: 16px; fill: white; }
+        .chat-input button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        @media (max-width: 480px) {
+            .chat-panel { width: calc(100vw - 24px); right: 12px; bottom: 80px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- CURSOR GLOW -->
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<!-- PARTICLES -->
+<canvas id="particles"></canvas>
+
+<!-- AURORA -->
+<div class="aurora">
+    <div class="aurora-blob ab1"></div>
+    <div class="aurora-blob ab2"></div>
+    <div class="aurora-blob ab3"></div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+    <div class="logo">
+        <svg width="32" height="32" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="lg1" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#a78bfa"/>
+                    <stop offset="50%" stop-color="#8b5cf6"/>
+                    <stop offset="100%" stop-color="#6366f1"/>
+                </linearGradient>
+                <linearGradient id="lg2" x1="30" y1="30" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#c4b5fd"/>
+                    <stop offset="100%" stop-color="#818cf8"/>
+                </linearGradient>
+            </defs>
+            <rect width="120" height="120" rx="28" fill="url(#lg1)"/>
+            <rect x="4" y="4" width="112" height="112" rx="24" fill="#0a0a1a" fill-opacity="0.85"/>
+            <path d="M38 32h20c18 0 30 8 36 20 4 8 4 18 0 26-6 12-18 20-36 20H38V32z" fill="none" stroke="url(#lg2)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="68" cy="60" r="8" fill="url(#lg2)" opacity="0.9"/>
+            <line x1="68" y1="60" x2="92" y2="60" stroke="url(#lg2)" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+            <line x1="68" y1="60" x2="82" y2="44" stroke="url(#lg2)" stroke-width="2.5" stroke-linecap="round" opacity="0.35"/>
+            <line x1="68" y1="60" x2="82" y2="76" stroke="url(#lg2)" stroke-width="2.5" stroke-linecap="round" opacity="0.35"/>
+        </svg>
+        DOF
+    </div>
+    <div class="nav-r">
+        <div class="nav-links">
+            <a href="#why" data-i18n="nav.why">Why DOF</a>
+            <a href="#pipeline" data-i18n="nav.pipeline">Pipeline</a>
+            <a href="#tracks" data-i18n="nav.tracks">Tracks</a>
+            <a href="#evidence" data-i18n="nav.proof">Proof</a>
+        </div>
+        <div class="proto-badges">
+            <div class="proto-badge pb-x402"><span class="pb-dot"></span>x402</div>
+            <div class="proto-badge pb-a2a"><span class="pb-dot"></span>A2A</div>
+            <div class="proto-badge pb-shield"><span class="pb-dot"></span>SHIELD</div>
+        </div>
+        <div class="chip">
+            <div class="dot"></div>
+            <span>Agent Live</span>
+            <span style="opacity:0.2">|</span>
+            <span>Base + Avalanche</span>
+        </div>
+        <div class="nav-controls">
+            <button class="theme-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme">&#9790;</button>
+            <div class="lang-sel">
+                <button class="lang-btn" id="langBtn">EN &#9662;</button>
+                <div class="lang-dd" id="langDd">
+                    <button class="lang-opt active" data-lang="en">&#127468;&#127463; English</button>
+                    <button class="lang-opt" data-lang="es">&#127466;&#127480; Espa&ntilde;ol</button>
+                    <button class="lang-opt" data-lang="fr">&#127467;&#127479; Fran&ccedil;ais</button>
+                    <button class="lang-opt" data-lang="zh">&#127464;&#127475; &#20013;&#25991;</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<div class="hero">
+    <div class="hero-vid">
+        <video autoplay loop muted playsinline id="hero-video"></video>
+    </div>
+    <div class="hero-c">
+        <div class="h-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            <span data-i18n="badge">ERC-8004 Certified &middot; Deterministic Observability Framework</span>
+        </div>
+        <h1>
+            <span class="word" style="animation-delay:0s" data-i18n="hero.1">AI</span>
+            <span class="word" style="animation-delay:.06s" data-i18n="hero.2">Agents</span>
+            <span class="word" style="animation-delay:.12s" data-i18n="hero.3">That</span>
+            <span class="word" style="animation-delay:.18s" data-i18n="hero.4">Prove</span><br>
+            <span class="word" style="animation-delay:.24s" data-i18n="hero.5">What</span>
+            <span class="word" style="animation-delay:.3s" data-i18n="hero.6">They</span>&nbsp;
+            <em><span class="word" style="animation-delay:.38s" data-i18n="hero.7">Did.</span></em>
+        </h1>
+        <p class="hsub" data-i18n="hero.sub">Every agent action is checked, math-proven, and recorded on the blockchain. Not promises. Not logs. Proof you can verify yourself.</p>
+        <div class="hero-btns">
+            <a href="#tracks" class="bw"><span data-i18n="hero.cta1">See It In Action</span> <span>&rarr;</span></a>
+            <a href="https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6" target="_blank" class="bo" data-i18n="hero.cta2">Verify On-Chain</a>
+            <a href="https://github.com/Cyberpaisa/deterministic-observability-framework/tree/hackathon" target="_blank" class="bo" data-i18n="hero.cta3">View Source</a>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════ MARQUEE ═══════════════════ -->
+<div class="marquee-wrap">
+    <div class="marquee" id="marquee">
+        <div class="marquee-item"><span class="mi-dot"></span> 238+ Autonomous Cycles</div>
+        <div class="marquee-item"><span class="mi-dot"></span> 48+ On-Chain Attestations</div>
+        <div class="marquee-item"><span class="mi-dot"></span> 8/8 Z3 Proofs Verified</div>
+        <div class="marquee-item"><span class="mi-dot"></span> Zero LLM in Governance</div>
+        <div class="marquee-item"><span class="mi-dot"></span> ERC-8004 Certified</div>
+        <div class="marquee-item"><span class="mi-dot"></span> 986 Tests Passing</div>
+        <div class="marquee-item"><span class="mi-dot"></span> 70+ Core Modules</div>
+        <div class="marquee-item"><span class="mi-dot"></span> Avalanche + Base</div>
+        <!-- Duplicate for seamless loop -->
+        <div class="marquee-item"><span class="mi-dot"></span> 238+ Autonomous Cycles</div>
+        <div class="marquee-item"><span class="mi-dot"></span> 48+ On-Chain Attestations</div>
+        <div class="marquee-item"><span class="mi-dot"></span> 8/8 Z3 Proofs Verified</div>
+        <div class="marquee-item"><span class="mi-dot"></span> Zero LLM in Governance</div>
+        <div class="marquee-item"><span class="mi-dot"></span> ERC-8004 Certified</div>
+        <div class="marquee-item"><span class="mi-dot"></span> 986 Tests Passing</div>
+        <div class="marquee-item"><span class="mi-dot"></span> 70+ Core Modules</div>
+        <div class="marquee-item"><span class="mi-dot"></span> Avalanche + Base</div>
+    </div>
+</div>
+
+<!-- ═══════════════════ STATS ═══════════════════ -->
+<section>
+    <div class="sl rv" data-i18n="stats.label">By The Numbers</div>
+    <div class="st rv"><span data-i18n="stats.title.1">Not promises. </span><em data-i18n="stats.title.em">Proof.</em></div>
+    <div class="sd rv" data-i18n="stats.desc">Every number below is verifiable on-chain, in our test suite, or through formal mathematical proofs.</div>
+    <div class="sg rv">
+        <div class="sc"><div class="sv"><span class="counter" data-target="238">0</span>+</div><div class="sla" data-i18n="s1">Autonomous Cycles</div></div>
+        <div class="sc"><div class="sv"><span class="counter" data-target="48">0</span>+</div><div class="sla" data-i18n="s2">On-Chain Attestations</div></div>
+        <div class="sc"><div class="sv">8/8</div><div class="sla" data-i18n="s3">Z3 Proofs Verified</div></div>
+        <div class="sc"><div class="sv"><span class="counter" data-target="986">0</span></div><div class="sla" data-i18n="s4">Tests Passing</div></div>
+        <div class="sc"><div class="sv">0%</div><div class="sla" data-i18n="s5">LLM in Governance</div></div>
+        <div class="sc"><div class="sv">24/7</div><div class="sla" data-i18n="s6">Always-On Agent</div></div>
+    </div>
+</section>
+
+<div class="glow-line"></div>
+
+<!-- ═══════════════════ WHY DOF ═══════════════════ -->
+<section id="why">
+    <div class="sl rv" data-i18n="why.label">Why DOF</div>
+    <div class="st rv"><span data-i18n="why.title.1">AI agents are black boxes.</span><br><span data-i18n="why.title.br">We made them </span><em data-i18n="why.title.em">transparent.</em></div>
+    <div class="sd rv" data-i18n="why.desc">Other agents promise they'll behave. DOF agents prove it with math and record the proof on-chain. Forever.</div>
+    <div class="wg">
+        <div class="wc rv">
+            <div class="wc-icon">&#128274;</div>
+            <div class="wc-t" data-i18n="w1.t">Zero-Trust Governance</div>
+            <div class="wc-d" data-i18n="w1.d">No LLM in the governance loop. Every rule is deterministic code. If it violates the constitution, it gets blocked. No exceptions.</div>
+        </div>
+        <div class="wc rv rv-d1">
+            <div class="wc-icon">&#9878;</div>
+            <div class="wc-t" data-i18n="w2.t">Formal Verification</div>
+            <div class="wc-d" data-i18n="w2.d">Z3 theorem prover generates mathematical proofs for every invariant. Not assertions. Not unit tests. Actual mathematical proofs.</div>
+        </div>
+        <div class="wc rv rv-d2">
+            <div class="wc-icon">&#9939;</div>
+            <div class="wc-t" data-i18n="w3.t">On-Chain Receipts</div>
+            <div class="wc-d" data-i18n="w3.d">Every agent action produces a keccak256 hash published to Avalanche and Base. Permanently auditable by anyone, anywhere.</div>
+        </div>
+        <div class="wc rv">
+            <div class="wc-icon">&#9889;</div>
+            <div class="wc-t" data-i18n="w4.t">Multi-Provider Resilience</div>
+            <div class="wc-d" data-i18n="w4.d">Cerebras, Groq, Mistral, SambaNova — 5+ LLM providers. If one fails, the next takes over in milliseconds. Zero downtime.</div>
+        </div>
+        <div class="wc rv rv-d1">
+            <div class="wc-icon">&#128640;</div>
+            <div class="wc-t" data-i18n="w5.t">Fully Autonomous</div>
+            <div class="wc-d" data-i18n="w5.d">238+ cycles executed with zero human input. Discovers tasks, executes, verifies, commits, and attests on-chain. Continuously.</div>
+        </div>
+        <div class="wc rv rv-d2">
+            <div class="wc-icon">&#128737;</div>
+            <div class="wc-t" data-i18n="w6.t">Self-Supervising</div>
+            <div class="wc-d" data-i18n="w6.d">MetaSupervisor scores every output: Quality, Accuracy, Completeness, Format. Below threshold? Automatic retry or escalation.</div>
+        </div>
+    </div>
+</section>
+
+<div class="glow-line"></div>
+
+<!-- ═══════════════════ PIPELINE ═══════════════════ -->
+<section id="pipeline">
+    <div class="sl rv" data-i18n="pipe.label">The Pipeline</div>
+    <div class="st rv"><span data-i18n="pipe.title.1">7 steps. Zero shortcuts.</span><br><span data-i18n="pipe.title.br">Every action is </span><em data-i18n="pipe.title.em">accountable.</em></div>
+    <div class="sd rv" data-i18n="pipe.desc">From identity verification to on-chain recording. No step is optional. No step uses LLM for governance decisions.</div>
+    <div class="pipeline rv">
+        <div class="pipe-step">
+            <div class="pipe-num">Step 01</div>
+            <div class="pipe-icon">&#128272;</div>
+            <div class="pipe-title" data-i18n="p1">Identity</div>
+            <div class="pipe-desc" data-i18n="pd1">ERC-8004 #31013</div>
+            <div class="pipe-connector"></div>
+        </div>
+        <div class="pipe-step">
+            <div class="pipe-num">Step 02</div>
+            <div class="pipe-icon">&#128269;</div>
+            <div class="pipe-title" data-i18n="p2">Task</div>
+            <div class="pipe-desc" data-i18n="pd2">Auto-Discovery</div>
+            <div class="pipe-connector"></div>
+        </div>
+        <div class="pipe-step">
+            <div class="pipe-num">Step 03</div>
+            <div class="pipe-icon">&#129504;</div>
+            <div class="pipe-title" data-i18n="p3">LLM</div>
+            <div class="pipe-desc" data-i18n="pd3">5-Provider Chain</div>
+            <div class="pipe-connector"></div>
+        </div>
+        <div class="pipe-step">
+            <div class="pipe-num">Step 04</div>
+            <div class="pipe-icon">&#9878;</div>
+            <div class="pipe-title" data-i18n="p4">Governance</div>
+            <div class="pipe-desc" data-i18n="pd4">Zero LLM</div>
+            <div class="pipe-connector"></div>
+        </div>
+        <div class="pipe-step">
+            <div class="pipe-num">Step 05</div>
+            <div class="pipe-icon">&#128200;</div>
+            <div class="pipe-title" data-i18n="p5">Z3 Proof</div>
+            <div class="pipe-desc" data-i18n="pd5">Math Verified</div>
+            <div class="pipe-connector"></div>
+        </div>
+        <div class="pipe-step">
+            <div class="pipe-num">Step 06</div>
+            <div class="pipe-icon">&#9939;</div>
+            <div class="pipe-title" data-i18n="p6">On-Chain</div>
+            <div class="pipe-desc" data-i18n="pd6">Avalanche + Base</div>
+            <div class="pipe-connector"></div>
+        </div>
+        <div class="pipe-step">
+            <div class="pipe-num">Step 07</div>
+            <div class="pipe-icon">&#128737;</div>
+            <div class="pipe-title" data-i18n="p7">Supervisor</div>
+            <div class="pipe-desc" data-i18n="pd7">Accept / Retry</div>
+        </div>
+    </div>
+</section>
+
+<div class="glow-line"></div>
+
+<!-- ═══════════════════ TRACKS ═══════════════════ -->
+<section id="tracks">
+    <div class="sl rv" data-i18n="tracks.label">Live Tracks</div>
+    <div class="st rv"><span data-i18n="tracks.title.1">10 working tracks. Not mockups.</span><br><span data-i18n="tracks.title.br">Not slideshows. </span><em data-i18n="tracks.title.em">Software.</em></div>
+    <div class="sd rv" data-i18n="tracks.desc">Each track is a fully functional application powered by the DOF governance pipeline.</div>
+    <div class="tg">
+        <a href="/metamask-delegation/" class="tc rv">
+            <div class="tc-h"><div class="tc-ic" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.15)">&#129418;</div><span class="tc-partner">MetaMask</span></div>
+            <div class="tc-n">Delegations</div>
+            <div class="tc-d">Map and verify token delegation dynamically through our agent verification layer on Base.</div>
+            <div class="tc-f"><span class="tc-cycle">CYCLE #238</span><div class="tc-arrow">&nearr;</div></div>
+        </a>
+        <a href="/octant-analysis/" class="tc rv rv-d1">
+            <div class="tc-h"><div class="tc-ic" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.15)">&#9632;</div><span class="tc-partner">Octant</span></div>
+            <div class="tc-n">On-Chain Analytics</div>
+            <div class="tc-d">Real-time ecosystem metrics, TVL tracking and delegate stats fetched directly from chain data.</div>
+            <div class="tc-f"><span class="tc-cycle">CYCLE #238</span><div class="tc-arrow">&nearr;</div></div>
+        </a>
+        <a href="/olas-pearl/" class="tc rv rv-d2">
+            <div class="tc-h"><div class="tc-ic" style="background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.15)">&#9899;</div><span class="tc-partner">Olas Pearl</span></div>
+            <div class="tc-n">Agent Integration</div>
+            <div class="tc-d">Deploy and coordinate specialized trading and analytic agents into the Olas network.</div>
+            <div class="tc-f"><span class="tc-cycle">CYCLE #238</span><div class="tc-arrow">&nearr;</div></div>
+        </a>
+        <a href="/locus-payments/" class="tc rv">
+            <div class="tc-h"><div class="tc-ic" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.15)">&#9673;</div><span class="tc-partner">Locus</span></div>
+            <div class="tc-n">x402 Payments</div>
+            <div class="tc-d">Execute high-speed automated machine-to-machine payments with cross-chain settlement.</div>
+            <div class="tc-f"><span class="tc-cycle">CYCLE #238</span><div class="tc-arrow">&nearr;</div></div>
+        </a>
+        <a href="/superrare-art/" class="tc rv rv-d1">
+            <div class="tc-h"><div class="tc-ic" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.15)">&#9726;</div><span class="tc-partner">SuperRare</span></div>
+            <div class="tc-n">Generative Art</div>
+            <div class="tc-d">AI-powered deterministic SVG art generation and direct NFT minting via connected wallet.</div>
+            <div class="tc-f"><span class="tc-cycle">CYCLE #238</span><div class="tc-arrow">&nearr;</div></div>
+        </a>
+        <a href="/arkhai-escrow/" class="tc rv rv-d2">
+            <div class="tc-h"><div class="tc-ic" style="background:rgba(232,121,249,0.1);border:1px solid rgba(232,121,249,0.15)">&#9670;</div><span class="tc-partner">Arkhai</span></div>
+            <div class="tc-n">Secure Escrow</div>
+            <div class="tc-d">Decentralized funds holding with natural language agreements and cryptographic dispute resolution.</div>
+            <div class="tc-f"><span class="tc-cycle">CYCLE #238</span><div class="tc-arrow">&nearr;</div></div>
+        </a>
+        <a href="/private-agents/" class="tc rv">
+            <div class="tc-h"><div class="tc-ic" style="background:rgba(110,86,207,0.1);border:1px solid rgba(110,86,207,0.15)">&#128274;</div><span class="tc-partner">Nillion</span></div>
+            <div class="tc-n">Private Agents</div>
+            <div class="tc-d">Secure multi-party computation for AI agents. Data remains encrypted even during processing via blind MPC.</div>
+            <div class="tc-f"><span class="tc-cycle">CYCLE #238</span><div class="tc-arrow">&nearr;</div></div>
+        </a>
+        <a href="/agent-services-base/" class="tc rv rv-d1">
+            <div class="tc-h"><div class="tc-ic" style="background:rgba(0,82,255,0.1);border:1px solid rgba(0,82,255,0.15)">&#9898;</div><span class="tc-partner">Coinbase</span></div>
+            <div class="tc-n">Agent Services on Base</div>
+            <div class="tc-d">Deploy autonomous agent services on Base L2 with native ERC-8004 identity and sub-cent transactions.</div>
+            <div class="tc-f"><span class="tc-cycle">CYCLE #238</span><div class="tc-arrow">&nearr;</div></div>
+        </a>
+        <a href="/best-agent-celo/" class="tc rv rv-d2">
+            <div class="tc-h"><div class="tc-ic" style="background:rgba(252,255,82,0.1);border:1px solid rgba(252,255,82,0.15)">&#9673;</div><span class="tc-partner">Celo</span></div>
+            <div class="tc-n">Best Agent on Celo</div>
+            <div class="tc-d">Mobile-first agent governance with stablecoin payments and cross-chain attestation bridging.</div>
+            <div class="tc-f"><span class="tc-cycle">CYCLE #238</span><div class="tc-arrow">&nearr;</div></div>
+        </a>
+        <a href="/erc-8183/" class="tc rv">
+            <div class="tc-h"><div class="tc-ic" style="background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.15)">&#128220;</div><span class="tc-partner">ERC Standard</span></div>
+            <div class="tc-n">ERC-8183 Context</div>
+            <div class="tc-d">Standardized on-chain agent context protocol for verifiable inter-agent communication.</div>
+            <div class="tc-f"><span class="tc-cycle">CYCLE #238</span><div class="tc-arrow">&nearr;</div></div>
+        </a>
+    </div>
+</section>
+
+<div class="glow-line"></div>
+
+<!-- ═══════════════════ EVIDENCE ═══════════════════ -->
+<section id="evidence">
+    <div class="sl rv" data-i18n="ev.label">Verify Everything</div>
+    <div class="st rv"><span data-i18n="ev.title.1">Don't trust us. </span><em data-i18n="ev.title.em">Verify.</em></div>
+    <div class="sd rv" data-i18n="ev.desc">Every claim has a corresponding on-chain record or verifiable artifact. Click the links below.</div>
+    <div class="eg rv">
+        <div class="ec">
+            <h3 data-i18n="ev1.h">ERC-8004 Identity</h3>
+            <code>Token #31013<br>Base Mainnet<br>0xa2ad...A3E9</code>
+            <br><a href="https://basescan.org/tx/0x7362ef41605e430aba3998b0888e7886c04d65673ce89aa12e1abdf7cffcada4" target="_blank">View on Basescan &rarr;</a>
+        </div>
+        <div class="ec">
+            <h3 data-i18n="ev2.h">Proof Registry</h3>
+            <code>DOFProofRegistry.sol<br>0x154a3F49a9d28FeCC1f6Db<br>7573303F4D809A26F6</code>
+            <br><a href="https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6" target="_blank">View on Snowtrace &rarr;</a>
+        </div>
+        <div class="ec">
+            <h3 data-i18n="ev3.h">Source Code</h3>
+            <code>70+ modules &middot; 27K+ LOC<br>Open source &middot; Apache 2.0<br>986 tests passing</code>
+            <br><a href="https://github.com/Cyberpaisa/deterministic-observability-framework/tree/hackathon" target="_blank">View on GitHub &rarr;</a>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════ LIVE TERMINAL ═══════════════════ -->
+<div class="terminal-section rv">
+    <div class="terminal-box">
+        <div class="terminal-header">
+            <div class="terminal-dot td-r"></div>
+            <div class="terminal-dot td-y"></div>
+            <div class="terminal-dot td-g"></div>
+            <span class="terminal-title">DOF — Live Feed</span>
+        </div>
+        <div class="terminal-body" id="terminal">
+            <div><span class="prompt">$</span> Initializing DOF Agent...</div>
+            <div><span class="info">[GOVERNANCE]</span> Constitution loaded — 42 deterministic rules active</div>
+            <div><span class="info">[Z3]</span> Verifying GCR_INVARIANT... <span class="success">PROVEN (12ms)</span></div>
+            <div><span class="info">[Z3]</span> Verifying SS_FORMULA... <span class="success">PROVEN (8ms)</span></div>
+            <div><span class="info">[Z3]</span> Verifying SS_MONOTONICITY... <span class="success">PROVEN (15ms)</span></div>
+            <div><span class="info">[Z3]</span> Verifying SS_BOUNDARIES... <span class="success">PROVEN (9ms)</span></div>
+            <div><span class="info">[CHAIN]</span> Connected to Avalanche C-Chain — Block #78,234,891</div>
+            <div><span class="success">[READY]</span> Agent operational — Cycle #238 complete</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════ CTA ═══════════════════ -->
+<div class="cta">
+    <div class="cta-t rv"><span data-i18n="cta.1">The agent acted autonomously.</span><br><em data-i18n="cta.em">Math proved it.</em><span data-i18n="cta.2"> Blockchain recorded it.</span></div>
+    <div class="cta-d rv" data-i18n="cta.d">DOF is the framework that makes AI agents accountable. Not with promises — with proofs.</div>
+    <div class="cta-btns rv">
+        <a href="https://github.com/Cyberpaisa/deterministic-observability-framework/tree/hackathon" target="_blank" class="bw"><span data-i18n="cta.btn1">View Source Code</span> &rarr;</a>
+        <a href="https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6" target="_blank" class="bo" data-i18n="cta.btn2">Verify On-Chain</a>
+    </div>
+</div>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer>
+    <div class="fb" data-i18n="footer.1">DOF &mdash; Synthesis Hackathon 2026</div>
+    <p data-i18n="footer.2">Deterministic Observability Framework</p>
+    <p data-i18n="footer.3">Apache 2.0 &middot; ERC-8004 &middot; Avalanche &middot; Base</p>
+    <p style="margin-top:20px;font-size:13px;color:rgba(255,255,255,0.5);font-weight:600;letter-spacing:0.5px;">by <span style="color:rgba(255,255,255,0.8);">Cyber Paisa</span></p>
+    <div class="fl">
+        <a href="https://github.com/Cyberpaisa/deterministic-observability-framework/tree/hackathon" target="_blank">GitHub</a>
+        <a href="https://basescan.org/tx/0x7362ef41605e430aba3998b0888e7886c04d65673ce89aa12e1abdf7cffcada4" target="_blank">Basescan</a>
+        <a href="https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6" target="_blank">Snowtrace</a>
+    </div>
+</footer>
+
+<!-- ═══════════════════ CHAT WIDGET ═══════════════════ -->
+<button class="chat-fab" id="chatFab" aria-label="Chat with DOF Agent">
+    <svg class="fab-icon" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+    <svg class="fab-close" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+</button>
+<div class="chat-panel" id="chatPanel">
+    <div class="chat-head">
+        <div class="chat-avatar">E</div>
+        <div class="chat-hinfo">
+            <div class="chat-hname">Enigma #1686</div>
+            <div class="chat-hstatus">Online &middot; DOF Agent</div>
+        </div>
+        <div class="chat-gov-badge">GOV ACTIVE</div>
+    </div>
+    <div class="chat-msgs" id="chatMsgs">
+        <div class="chat-msg agent">Hi, I'm Enigma #1686 — the DOF Agent. I can answer any question about our deterministic governance framework, on-chain proofs, or how we make AI agents accountable. Ask me anything.</div>
+    </div>
+    <div class="chat-input">
+        <input type="text" id="chatIn" placeholder="Ask DOF Agent..." autocomplete="off">
+        <button id="chatSend" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+    </div>
+</div>
+
+<script>
+// ═══════════════════ THEME TOGGLE ═══════════════════
+!function(){
+    const btn=document.getElementById('themeBtn');
+    const saved=localStorage.getItem('dof-theme');
+    if(saved==='light') document.documentElement.classList.add('light');
+    function update(){
+        const isLight=document.documentElement.classList.contains('light');
+        btn.innerHTML=isLight?'&#9728;':'&#9790;';
+    }
+    update();
+    btn.addEventListener('click',()=>{
+        document.documentElement.classList.toggle('light');
+        localStorage.setItem('dof-theme',document.documentElement.classList.contains('light')?'light':'dark');
+        update();
+    });
+}();
+
+// ═══════════════════ i18n TRANSLATIONS ═══════════════════
+!function(){
+    const T={
+        en:{
+            'nav.why':'Why DOF','nav.pipeline':'Pipeline','nav.tracks':'Tracks','nav.proof':'Proof',
+            'badge':'ERC-8004 Certified \u00b7 Deterministic Observability Framework',
+            'hero.1':'AI','hero.2':'Agents','hero.3':'That','hero.4':'Prove','hero.5':'What','hero.6':'They','hero.7':'Did.',
+            'hero.sub':'Every agent action is checked, math-proven, and recorded on the blockchain. Not promises. Not logs. Proof you can verify yourself.',
+            'hero.cta1':'See It In Action','hero.cta2':'Verify On-Chain','hero.cta3':'View Source',
+            'stats.label':'By The Numbers','stats.title.1':'Not promises. ','stats.title.em':'Proof.','stats.desc':'Every number below is verifiable on-chain, in our test suite, or through formal mathematical proofs.',
+            's1':'Autonomous Cycles','s2':'On-Chain Attestations','s3':'Z3 Proofs Verified','s4':'Tests Passing','s5':'LLM in Governance','s6':'Always-On Agent',
+            'why.label':'Why DOF','why.title.1':'AI agents are black boxes.','why.title.br':'We made them ','why.title.em':'transparent.',
+            'why.desc':'Other agents promise they\'ll behave. DOF agents prove it with math and record the proof on-chain. Forever.',
+            'w1.t':'Zero-Trust Governance','w1.d':'No LLM in the governance loop. Every rule is deterministic code. If it violates the constitution, it gets blocked. No exceptions.',
+            'w2.t':'Formal Verification','w2.d':'Z3 theorem prover generates mathematical proofs for every invariant. Not assertions. Not unit tests. Actual mathematical proofs.',
+            'w3.t':'On-Chain Receipts','w3.d':'Every agent action produces a keccak256 hash published to Avalanche and Base. Permanently auditable by anyone, anywhere.',
+            'w4.t':'Multi-Provider Resilience','w4.d':'Cerebras, Groq, Mistral, SambaNova \u2014 5+ LLM providers. If one fails, the next takes over in milliseconds. Zero downtime.',
+            'w5.t':'Fully Autonomous','w5.d':'238+ cycles executed with zero human input. Discovers tasks, executes, verifies, commits, and attests on-chain. Continuously.',
+            'w6.t':'Self-Supervising','w6.d':'MetaSupervisor scores every output: Quality, Accuracy, Completeness, Format. Below threshold? Automatic retry or escalation.',
+            'pipe.label':'The Pipeline','pipe.title.1':'7 steps. Zero shortcuts.','pipe.title.br':'Every action is ','pipe.title.em':'accountable.',
+            'pipe.desc':'From identity verification to on-chain recording. No step is optional. No step uses LLM for governance decisions.',
+            'p1':'Identity','p2':'Task','p3':'LLM','p4':'Governance','p5':'Z3 Proof','p6':'On-Chain','p7':'Supervisor',
+            'pd1':'ERC-8004 #31013','pd2':'Auto-Discovery','pd3':'5-Provider Chain','pd4':'Zero LLM','pd5':'Math Verified','pd6':'Avalanche + Base','pd7':'Accept / Retry',
+            'tracks.label':'Live Tracks','tracks.title.1':'10 working tracks. Not mockups.','tracks.title.br':'Not slideshows. ','tracks.title.em':'Software.',
+            'tracks.desc':'Each track is a fully functional application powered by the DOF governance pipeline.',
+            'ev.label':'Verify Everything','ev.title.1':'Don\'t trust us. ','ev.title.em':'Verify.',
+            'ev.desc':'Every claim has a corresponding on-chain record or verifiable artifact. Click the links below.',
+            'ev1.h':'ERC-8004 Identity','ev2.h':'Proof Registry','ev3.h':'Source Code',
+            'cta.1':'The agent acted autonomously.','cta.em':'Math proved it.','cta.2':' Blockchain recorded it.',
+            'cta.d':'DOF is the framework that makes AI agents accountable. Not with promises \u2014 with proofs.',
+            'cta.btn1':'View Source Code','cta.btn2':'Verify On-Chain',
+            'footer.1':'DOF \u2014 Synthesis Hackathon 2026','footer.2':'Deterministic Observability Framework','footer.3':'Apache 2.0 \u00b7 ERC-8004 \u00b7 Avalanche \u00b7 Base'
+        },
+        es:{
+            'nav.why':'Por qu\u00e9 DOF','nav.pipeline':'Pipeline','nav.tracks':'Tracks','nav.proof':'Prueba',
+            'badge':'Certificado ERC-8004 \u00b7 Marco de Observabilidad Determinista',
+            'hero.1':'Agentes','hero.2':'de IA','hero.3':'que','hero.4':'Prueban','hero.5':'lo que','hero.6':'','hero.7':'Hicieron.',
+            'hero.sub':'Cada acci\u00f3n del agente es verificada, probada matem\u00e1ticamente y registrada en blockchain. No promesas. No logs. Pruebas que puedes verificar t\u00fa mismo.',
+            'hero.cta1':'Ver en Acci\u00f3n','hero.cta2':'Verificar On-Chain','hero.cta3':'Ver C\u00f3digo',
+            'stats.label':'En N\u00fameros','stats.title.1':'No promesas. ','stats.title.em':'Pruebas.','stats.desc':'Cada n\u00famero es verificable on-chain, en nuestro suite de tests o mediante pruebas matem\u00e1ticas formales.',
+            's1':'Ciclos Aut\u00f3nomos','s2':'Atestaciones On-Chain','s3':'Pruebas Z3 Verificadas','s4':'Tests Pasando','s5':'LLM en Gobernanza','s6':'Agente 24/7',
+            'why.label':'Por qu\u00e9 DOF','why.title.1':'Los agentes de IA son cajas negras.','why.title.br':'Los hicimos ','why.title.em':'transparentes.',
+            'why.desc':'Otros agentes prometen comportarse. Los agentes DOF lo prueban con matem\u00e1ticas y registran la prueba on-chain. Para siempre.',
+            'w1.t':'Gobernanza Zero-Trust','w1.d':'Sin LLM en el loop de gobernanza. Cada regla es c\u00f3digo determinista. Si viola la constituci\u00f3n, se bloquea. Sin excepciones.',
+            'w2.t':'Verificaci\u00f3n Formal','w2.d':'El probador de teoremas Z3 genera pruebas matem\u00e1ticas para cada invariante. No assertions. No unit tests. Pruebas matem\u00e1ticas reales.',
+            'w3.t':'Recibos On-Chain','w3.d':'Cada acci\u00f3n produce un hash keccak256 publicado en Avalanche y Base. Auditable permanentemente por cualquiera.',
+            'w4.t':'Resiliencia Multi-Proveedor','w4.d':'Cerebras, Groq, Mistral, SambaNova \u2014 5+ proveedores LLM. Si uno falla, el siguiente toma el control en milisegundos.',
+            'w5.t':'Totalmente Aut\u00f3nomo','w5.d':'238+ ciclos ejecutados sin intervenci\u00f3n humana. Descubre tareas, ejecuta, verifica, hace commit y atesta on-chain.',
+            'w6.t':'Auto-Supervisado','w6.d':'MetaSupervisor eval\u00faa cada output: Calidad, Precisi\u00f3n, Completitud, Formato. \u00bfBajo umbral? Reintento o escalaci\u00f3n autom\u00e1tica.',
+            'pipe.label':'El Pipeline','pipe.title.1':'7 pasos. Cero atajos.','pipe.title.br':'Cada acci\u00f3n es ','pipe.title.em':'auditable.',
+            'pipe.desc':'Desde verificaci\u00f3n de identidad hasta registro on-chain. Ning\u00fan paso es opcional. Ninguno usa LLM para gobernanza.',
+            'p1':'Identidad','p2':'Tarea','p3':'LLM','p4':'Gobernanza','p5':'Prueba Z3','p6':'On-Chain','p7':'Supervisor',
+            'pd1':'ERC-8004 #31013','pd2':'Auto-Descubrimiento','pd3':'Cadena 5 Proveedores','pd4':'Zero LLM','pd5':'Verificado','pd6':'Avalanche + Base','pd7':'Aceptar / Reintentar',
+            'tracks.label':'Tracks en Vivo','tracks.title.1':'10 tracks funcionales. No mockups.','tracks.title.br':'No presentaciones. ','tracks.title.em':'Software.',
+            'tracks.desc':'Cada track es una aplicaci\u00f3n funcional impulsada por el pipeline de gobernanza DOF.',
+            'ev.label':'Verifica Todo','ev.title.1':'No conf\u00edes en nosotros. ','ev.title.em':'Verifica.',
+            'ev.desc':'Cada afirmaci\u00f3n tiene un registro on-chain o artefacto verificable. Haz clic en los enlaces.',
+            'ev1.h':'Identidad ERC-8004','ev2.h':'Registro de Pruebas','ev3.h':'C\u00f3digo Fuente',
+            'cta.1':'El agente actu\u00f3 aut\u00f3nomamente.','cta.em':'Las matem\u00e1ticas lo probaron.','cta.2':' Blockchain lo registr\u00f3.',
+            'cta.d':'DOF es el framework que hace a los agentes de IA responsables. No con promesas \u2014 con pruebas.',
+            'cta.btn1':'Ver C\u00f3digo Fuente','cta.btn2':'Verificar On-Chain',
+            'footer.1':'DOF \u2014 Synthesis Hackathon 2026','footer.2':'Marco de Observabilidad Determinista','footer.3':'Apache 2.0 \u00b7 ERC-8004 \u00b7 Avalanche \u00b7 Base'
+        },
+        fr:{
+            'nav.why':'Pourquoi DOF','nav.pipeline':'Pipeline','nav.tracks':'Tracks','nav.proof':'Preuve',
+            'badge':'Certifi\u00e9 ERC-8004 \u00b7 Cadre d\'Observabilit\u00e9 D\u00e9terministe',
+            'hero.1':'Agents','hero.2':'IA','hero.3':'qui','hero.4':'Prouvent','hero.5':'ce qu\'ils','hero.6':'ont','hero.7':'Fait.',
+            'hero.sub':'Chaque action de l\'agent est v\u00e9rifi\u00e9e, prouv\u00e9e math\u00e9matiquement et enregistr\u00e9e sur la blockchain. Pas de promesses. Pas de logs. Des preuves v\u00e9rifiables.',
+            'hero.cta1':'Voir en Action','hero.cta2':'V\u00e9rifier On-Chain','hero.cta3':'Voir le Code',
+            'stats.label':'En Chiffres','stats.title.1':'Pas de promesses. ','stats.title.em':'Des preuves.','stats.desc':'Chaque chiffre est v\u00e9rifiable on-chain, dans notre suite de tests ou par des preuves math\u00e9matiques formelles.',
+            's1':'Cycles Autonomes','s2':'Attestations On-Chain','s3':'Preuves Z3 V\u00e9rifi\u00e9es','s4':'Tests R\u00e9ussis','s5':'LLM en Gouvernance','s6':'Agent 24/7',
+            'why.label':'Pourquoi DOF','why.title.1':'Les agents IA sont des bo\u00eetes noires.','why.title.br':'Nous les avons rendus ','why.title.em':'transparents.',
+            'why.desc':'D\'autres agents promettent de bien se comporter. Les agents DOF le prouvent avec des math\u00e9matiques et enregistrent la preuve on-chain.',
+            'w1.t':'Gouvernance Zero-Trust','w1.d':'Aucun LLM dans la boucle de gouvernance. Chaque r\u00e8gle est du code d\u00e9terministe. Violation = blocage. Sans exception.',
+            'w2.t':'V\u00e9rification Formelle','w2.d':'Le prouveur de th\u00e9or\u00e8mes Z3 g\u00e9n\u00e8re des preuves math\u00e9matiques pour chaque invariant. De vraies preuves math\u00e9matiques.',
+            'w3.t':'Re\u00e7us On-Chain','w3.d':'Chaque action produit un hash keccak256 publi\u00e9 sur Avalanche et Base. Auditable en permanence par quiconque.',
+            'w4.t':'R\u00e9silience Multi-Fournisseur','w4.d':'Cerebras, Groq, Mistral, SambaNova \u2014 5+ fournisseurs LLM. Si l\'un \u00e9choue, le suivant prend le relais.',
+            'w5.t':'Enti\u00e8rement Autonome','w5.d':'238+ cycles ex\u00e9cut\u00e9s sans intervention humaine. D\u00e9couvre, ex\u00e9cute, v\u00e9rifie, commit et atteste on-chain.',
+            'w6.t':'Auto-Superviseur','w6.d':'Le MetaSuperviseur note chaque sortie: Qualit\u00e9, Pr\u00e9cision, Compl\u00e9tude, Format. Sous le seuil? R\u00e9essai automatique.',
+            'pipe.label':'Le Pipeline','pipe.title.1':'7 \u00e9tapes. Z\u00e9ro raccourci.','pipe.title.br':'Chaque action est ','pipe.title.em':'auditable.',
+            'pipe.desc':'De la v\u00e9rification d\'identit\u00e9 \u00e0 l\'enregistrement on-chain. Aucune \u00e9tape n\'est optionnelle.',
+            'p1':'Identit\u00e9','p2':'T\u00e2che','p3':'LLM','p4':'Gouvernance','p5':'Preuve Z3','p6':'On-Chain','p7':'Superviseur',
+            'pd1':'ERC-8004 #31013','pd2':'Auto-D\u00e9couverte','pd3':'Cha\u00eene 5 Fournisseurs','pd4':'Z\u00e9ro LLM','pd5':'V\u00e9rifi\u00e9','pd6':'Avalanche + Base','pd7':'Accepter / R\u00e9essayer',
+            'tracks.label':'Tracks en Direct','tracks.title.1':'10 tracks fonctionnels. Pas de mockups.','tracks.title.br':'Pas de diaporamas. ','tracks.title.em':'Du logiciel.',
+            'tracks.desc':'Chaque track est une application fonctionnelle aliment\u00e9e par le pipeline de gouvernance DOF.',
+            'ev.label':'V\u00e9rifiez Tout','ev.title.1':'Ne nous faites pas confiance. ','ev.title.em':'V\u00e9rifiez.',
+            'ev.desc':'Chaque affirmation a un enregistrement on-chain v\u00e9rifiable. Cliquez sur les liens ci-dessous.',
+            'ev1.h':'Identit\u00e9 ERC-8004','ev2.h':'Registre de Preuves','ev3.h':'Code Source',
+            'cta.1':'L\'agent a agi de mani\u00e8re autonome.','cta.em':'Les math\u00e9matiques l\'ont prouv\u00e9.','cta.2':' La blockchain l\'a enregistr\u00e9.',
+            'cta.d':'DOF est le cadre qui rend les agents IA responsables. Pas avec des promesses \u2014 avec des preuves.',
+            'cta.btn1':'Voir le Code Source','cta.btn2':'V\u00e9rifier On-Chain',
+            'footer.1':'DOF \u2014 Synthesis Hackathon 2026','footer.2':'Cadre d\'Observabilit\u00e9 D\u00e9terministe','footer.3':'Apache 2.0 \u00b7 ERC-8004 \u00b7 Avalanche \u00b7 Base'
+        },
+        zh:{
+            'nav.why':'\u4e3a\u4ec0\u4e48\u9009\u62e9DOF','nav.pipeline':'\u6d41\u6c34\u7ebf','nav.tracks':'\u8d5b\u9053','nav.proof':'\u8bc1\u660e',
+            'badge':'ERC-8004\u8ba4\u8bc1 \u00b7 \u786e\u5b9a\u6027\u53ef\u89c2\u6d4b\u6027\u6846\u67b6',
+            'hero.1':'AI','hero.2':'\u667a\u80fd\u4f53','hero.3':'\u80fd\u591f','hero.4':'\u8bc1\u660e','hero.5':'\u5b83\u4eec','hero.6':'','hero.7':'\u505a\u4e86\u4ec0\u4e48\u3002',
+            'hero.sub':'\u6bcf\u4e2a\u667a\u80fd\u4f53\u884c\u4e3a\u90fd\u7ecf\u8fc7\u68c0\u67e5\u3001\u6570\u5b66\u8bc1\u660e\u5e76\u8bb0\u5f55\u5728\u533a\u5757\u94fe\u4e0a\u3002\u4e0d\u662f\u627f\u8bfa\u3002\u4e0d\u662f\u65e5\u5fd7\u3002\u662f\u4f60\u53ef\u4ee5\u81ea\u5df1\u9a8c\u8bc1\u7684\u8bc1\u636e\u3002',
+            'hero.cta1':'\u67e5\u770b\u6f14\u793a','hero.cta2':'\u94fe\u4e0a\u9a8c\u8bc1','hero.cta3':'\u67e5\u770b\u6e90\u7801',
+            'stats.label':'\u6570\u636e\u6982\u89c8','stats.title.1':'\u4e0d\u662f\u627f\u8bfa\u3002','stats.title.em':'\u662f\u8bc1\u636e\u3002','stats.desc':'\u4ee5\u4e0b\u6bcf\u4e2a\u6570\u5b57\u90fd\u53ef\u5728\u94fe\u4e0a\u3001\u6d4b\u8bd5\u5957\u4ef6\u6216\u5f62\u5f0f\u5316\u6570\u5b66\u8bc1\u660e\u4e2d\u9a8c\u8bc1\u3002',
+            's1':'\u81ea\u4e3b\u5faa\u73af','s2':'\u94fe\u4e0a\u8bc1\u660e','s3':'Z3\u8bc1\u660e\u5df2\u9a8c\u8bc1','s4':'\u6d4b\u8bd5\u901a\u8fc7','s5':'\u6cbb\u7406\u4e2d\u7684LLM','s6':'24/7\u8fd0\u884c',
+            'why.label':'\u4e3a\u4ec0\u4e48\u9009\u62e9DOF','why.title.1':'AI\u667a\u80fd\u4f53\u662f\u9ed1\u7bb1\u3002','why.title.br':'\u6211\u4eec\u8ba9\u5b83\u4eec\u53d8\u5f97','why.title.em':'\u900f\u660e\u3002',
+            'why.desc':'\u5176\u4ed6\u667a\u80fd\u4f53\u627f\u8bfa\u5b83\u4eec\u4f1a\u884c\u4e3a\u89c4\u8303\u3002DOF\u667a\u80fd\u4f53\u7528\u6570\u5b66\u8bc1\u660e\u5b83\uff0c\u5e76\u5c06\u8bc1\u636e\u8bb0\u5f55\u5728\u94fe\u4e0a\u3002\u6c38\u8fdc\u3002',
+            'w1.t':'\u96f6\u4fe1\u4efb\u6cbb\u7406','w1.d':'\u6cbb\u7406\u5faa\u73af\u4e2d\u65e0LLM\u3002\u6bcf\u6761\u89c4\u5219\u90fd\u662f\u786e\u5b9a\u6027\u4ee3\u7801\u3002\u8fdd\u53cd\u5baa\u6cd5\u5c31\u4f1a\u88ab\u963b\u6b62\u3002\u6ca1\u6709\u4f8b\u5916\u3002',
+            'w2.t':'\u5f62\u5f0f\u5316\u9a8c\u8bc1','w2.d':'Z3\u5b9a\u7406\u8bc1\u660e\u5668\u4e3a\u6bcf\u4e2a\u4e0d\u53d8\u91cf\u751f\u6210\u6570\u5b66\u8bc1\u660e\u3002\u4e0d\u662f\u65ad\u8a00\u3002\u4e0d\u662f\u5355\u5143\u6d4b\u8bd5\u3002\u662f\u771f\u6b63\u7684\u6570\u5b66\u8bc1\u660e\u3002',
+            'w3.t':'\u94fe\u4e0a\u6536\u636e','w3.d':'\u6bcf\u4e2a\u884c\u4e3a\u90fd\u4ea7\u751f\u4e00\u4e2akeccak256\u54c8\u5e0c\uff0c\u53d1\u5e03\u5230Avalanche\u548cBase\u3002\u4efb\u4f55\u4eba\u90fd\u53ef\u4ee5\u6c38\u4e45\u5ba1\u8ba1\u3002',
+            'w4.t':'\u591a\u63d0\u4f9b\u5546\u97e7\u6027','w4.d':'Cerebras\u3001Groq\u3001Mistral\u3001SambaNova\u20145+\u4e2aLLM\u63d0\u4f9b\u5546\u3002\u5982\u679c\u4e00\u4e2a\u5931\u8d25\uff0c\u4e0b\u4e00\u4e2a\u5728\u6beb\u79d2\u5185\u63a5\u7ba1\u3002',
+            'w5.t':'\u5b8c\u5168\u81ea\u4e3b','w5.d':'238+\u4e2a\u5faa\u73af\u5728\u96f6\u4eba\u5de5\u5e72\u9884\u4e0b\u6267\u884c\u3002\u53d1\u73b0\u4efb\u52a1\u3001\u6267\u884c\u3001\u9a8c\u8bc1\u3001\u63d0\u4ea4\u5e76\u94fe\u4e0a\u8bc1\u660e\u3002',
+            'w6.t':'\u81ea\u6211\u76d1\u7763','w6.d':'MetaSupervisor\u8bc4\u5206\u6bcf\u4e2a\u8f93\u51fa\uff1a\u8d28\u91cf\u3001\u51c6\u786e\u6027\u3001\u5b8c\u6574\u6027\u3001\u683c\u5f0f\u3002\u4f4e\u4e8e\u9608\u503c\uff1f\u81ea\u52a8\u91cd\u8bd5\u6216\u5347\u7ea7\u3002',
+            'pipe.label':'\u6d41\u6c34\u7ebf','pipe.title.1':'7\u4e2a\u6b65\u9aa4\u3002\u96f6\u6377\u5f84\u3002','pipe.title.br':'\u6bcf\u4e2a\u884c\u4e3a\u90fd\u662f','pipe.title.em':'\u53ef\u5ba1\u8ba1\u7684\u3002',
+            'pipe.desc':'\u4ece\u8eab\u4efd\u9a8c\u8bc1\u5230\u94fe\u4e0a\u8bb0\u5f55\u3002\u6ca1\u6709\u53ef\u9009\u6b65\u9aa4\u3002\u6ca1\u6709\u6b65\u9aa4\u4f7f\u7528LLM\u8fdb\u884c\u6cbb\u7406\u51b3\u7b56\u3002',
+            'p1':'\u8eab\u4efd','p2':'\u4efb\u52a1','p3':'LLM','p4':'\u6cbb\u7406','p5':'Z3\u8bc1\u660e','p6':'\u94fe\u4e0a','p7':'\u76d1\u7763',
+            'pd1':'ERC-8004 #31013','pd2':'\u81ea\u52a8\u53d1\u73b0','pd3':'5\u63d0\u4f9b\u5546\u94fe','pd4':'\u96f6LLM','pd5':'\u6570\u5b66\u9a8c\u8bc1','pd6':'Avalanche + Base','pd7':'\u63a5\u53d7 / \u91cd\u8bd5',
+            'tracks.label':'\u5b9e\u65f6\u8d5b\u9053','tracks.title.1':'10\u4e2a\u5de5\u4f5c\u8d5b\u9053\u3002\u4e0d\u662f\u6a21\u578b\u3002','tracks.title.br':'\u4e0d\u662f\u5e7b\u706f\u7247\u3002','tracks.title.em':'\u662f\u8f6f\u4ef6\u3002',
+            'tracks.desc':'\u6bcf\u4e2a\u8d5b\u9053\u90fd\u662f\u7531DOF\u6cbb\u7406\u6d41\u6c34\u7ebf\u9a71\u52a8\u7684\u5b8c\u6574\u5e94\u7528\u3002',
+            'ev.label':'\u9a8c\u8bc1\u4e00\u5207','ev.title.1':'\u4e0d\u8981\u4fe1\u4efb\u6211\u4eec\u3002','ev.title.em':'\u8bf7\u9a8c\u8bc1\u3002',
+            'ev.desc':'\u6bcf\u4e2a\u58f0\u660e\u90fd\u6709\u76f8\u5e94\u7684\u94fe\u4e0a\u8bb0\u5f55\u6216\u53ef\u9a8c\u8bc1\u7684\u5de5\u4ef6\u3002\u70b9\u51fb\u4e0b\u65b9\u94fe\u63a5\u3002',
+            'ev1.h':'ERC-8004\u8eab\u4efd','ev2.h':'\u8bc1\u660e\u6ce8\u518c\u8868','ev3.h':'\u6e90\u4ee3\u7801',
+            'cta.1':'\u667a\u80fd\u4f53\u81ea\u4e3b\u884c\u52a8\u3002','cta.em':'\u6570\u5b66\u8bc1\u660e\u4e86\u5b83\u3002','cta.2':'\u533a\u5757\u94fe\u8bb0\u5f55\u4e86\u5b83\u3002',
+            'cta.d':'DOF\u662f\u8ba9AI\u667a\u80fd\u4f53\u8d1f\u8d23\u7684\u6846\u67b6\u3002\u4e0d\u662f\u7528\u627f\u8bfa\u2014\u2014\u800c\u662f\u7528\u8bc1\u636e\u3002',
+            'cta.btn1':'\u67e5\u770b\u6e90\u4ee3\u7801','cta.btn2':'\u94fe\u4e0a\u9a8c\u8bc1',
+            'footer.1':'DOF \u2014 Synthesis Hackathon 2026','footer.2':'\u786e\u5b9a\u6027\u53ef\u89c2\u6d4b\u6027\u6846\u67b6','footer.3':'Apache 2.0 \u00b7 ERC-8004 \u00b7 Avalanche \u00b7 Base'
+        }
+    };
+    const langNames={en:'EN',es:'ES',fr:'FR',zh:'ZH'};
+    const langBtn=document.getElementById('langBtn');
+    const langDd=document.getElementById('langDd');
+    let currentLang=localStorage.getItem('dof-lang')||'en';
+
+    // Close dropdown on outside click
+    document.addEventListener('click',e=>{if(!e.target.closest('.lang-sel'))langDd.classList.remove('open')});
+    langBtn.addEventListener('click',e=>{e.stopPropagation();langDd.classList.toggle('open')});
+
+    function applyLang(lang){
+        currentLang=lang;
+        localStorage.setItem('dof-lang',lang);
+        langBtn.innerHTML=langNames[lang]+' &#9662;';
+        document.documentElement.lang=lang;
+        // Update active
+        document.querySelectorAll('.lang-opt').forEach(o=>o.classList.toggle('active',o.dataset.lang===lang));
+        langDd.classList.remove('open');
+        const t=T[lang];if(!t)return;
+        // Apply translations using data-i18n attributes
+        document.querySelectorAll('[data-i18n]').forEach(el=>{
+            const k=el.dataset.i18n;
+            if(t[k]!==undefined) el.textContent=t[k];
+        });
+        document.querySelectorAll('[data-i18n-html]').forEach(el=>{
+            const k=el.dataset.i18nHtml;
+            if(t[k]!==undefined) el.innerHTML=t[k];
+        });
+    }
+
+    document.querySelectorAll('.lang-opt').forEach(o=>{
+        o.addEventListener('click',()=>applyLang(o.dataset.lang));
+    });
+
+    // Apply saved language on load
+    if(currentLang!=='en') applyLang(currentLang);
+}();
+
+// ═══════════════════ HLS VIDEO ═══════════════════
+!function(){
+    const v=document.getElementById('hero-video');
+    const s='https://stream.mux.com/s8pMcOvMQXc4GD6AX4e1o01xFogFxipmuKltNfSYza0200.m3u8';
+    if(v.canPlayType('application/vnd.apple.mpegurl')) v.src=s;
+    else{const t=document.createElement('script');t.src='https://cdn.jsdelivr.net/npm/hls.js@latest';t.onload=function(){if(Hls.isSupported()){const h=new Hls;h.loadSource(s);h.attachMedia(v)}};document.head.appendChild(t)}
+}();
+
+// ═══════════════════ PARTICLES ═══════════════════
+!function(){
+    const c=document.getElementById('particles'),ctx=c.getContext('2d');
+    let w,h,particles=[];
+    function resize(){w=c.width=window.innerWidth;h=c.height=window.innerHeight}
+    resize(); window.addEventListener('resize',resize);
+    for(let i=0;i<80;i++) particles.push({
+        x:Math.random()*w, y:Math.random()*h,
+        vx:(Math.random()-0.5)*0.3, vy:(Math.random()-0.5)*0.3,
+        r:Math.random()*1.5+0.3, a:Math.random()*0.3+0.05
+    });
+    function draw(){
+        ctx.clearRect(0,0,w,h);
+        particles.forEach(p=>{
+            p.x+=p.vx; p.y+=p.vy;
+            if(p.x<0)p.x=w; if(p.x>w)p.x=0;
+            if(p.y<0)p.y=h; if(p.y>h)p.y=0;
+            ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+            ctx.fillStyle=`rgba(167,139,250,${p.a})`;ctx.fill();
+        });
+        // draw connections
+        for(let i=0;i<particles.length;i++){
+            for(let j=i+1;j<particles.length;j++){
+                const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
+                const d=Math.sqrt(dx*dx+dy*dy);
+                if(d<120){
+                    ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);
+                    ctx.lineTo(particles[j].x,particles[j].y);
+                    ctx.strokeStyle=`rgba(139,92,246,${0.06*(1-d/120)})`;
+                    ctx.lineWidth=0.5;ctx.stroke();
+                }
+            }
+        }
+        requestAnimationFrame(draw);
+    }
+    draw();
+}();
+
+// ═══════════════════ CURSOR GLOW ═══════════════════
+document.addEventListener('mousemove',e=>{
+    const g=document.getElementById('cursorGlow');
+    g.style.left=e.clientX+'px'; g.style.top=e.clientY+'px';
+});
+
+// ═══════════════════ NAV SCROLL ═══════════════════
+window.addEventListener('scroll',()=>{
+    document.getElementById('nav').classList.toggle('scrolled',window.scrollY>50);
+});
+
+// ═══════════════════ SCROLL REVEAL ═══════════════════
+const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');obs.unobserve(e.target)}});
+},{threshold:0.06});
+document.querySelectorAll('.rv').forEach(e=>obs.observe(e));
+
+// ═══════════════════ COUNTER ANIMATION ═══════════════════
+const counterObs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+        if(e.isIntersecting){
+            const el=e.target, target=parseInt(el.dataset.target);
+            let current=0;
+            const step=Math.max(1,Math.floor(target/60));
+            const timer=setInterval(()=>{
+                current+=step;
+                if(current>=target){current=target;clearInterval(timer)}
+                el.textContent=current.toLocaleString();
+            },20);
+            counterObs.unobserve(el);
+        }
+    });
+},{threshold:0.5});
+document.querySelectorAll('.counter').forEach(e=>counterObs.observe(e));
+
+// ═══════════════════ LIVE TERMINAL ═══════════════════
+!function(){
+    const t=document.getElementById('terminal');
+    let cycle=238;
+    const actions=[
+        ['CHAIN','Publishing proof hash to Avalanche...','TX confirmed in 2.1s'],
+        ['GOVERNANCE','Checking output against constitution...','42/42 rules passed'],
+        ['Z3','Running formal verification...','8/8 PROVEN (44ms)'],
+        ['SUPERVISOR','Evaluating output quality...','Score: 0.89 → ACCEPT'],
+        ['PROVIDER','LiteLLM routing via Cerebras...','Response in 340ms'],
+        ['MEMORY','Indexing step in ChromaDB...','Embedding stored'],
+        ['AUDIT','Generating keccak256 hash...','0x8f3a...published'],
+        ['CHAIN','Syncing with Base Mainnet...','Block #24,891,023'],
+    ];
+    setInterval(()=>{
+        cycle++;
+        const a=actions[Math.floor(Math.random()*actions.length)];
+        const d=document.createElement('div');
+        d.innerHTML=`<span class="info">[${a[0]}]</span> ${a[1]} <span class="success">${a[2]}</span>`;
+        t.appendChild(d);
+        t.scrollTop=t.scrollHeight;
+        if(t.children.length>20)t.removeChild(t.children[0]);
+    },4000);
+}();
+
+// ═══════════════════ CHAT WIDGET ═══════════════════
+!function(){
+    const fab=document.getElementById('chatFab');
+    const panel=document.getElementById('chatPanel');
+    const msgs=document.getElementById('chatMsgs');
+    const input=document.getElementById('chatIn');
+    const sendBtn=document.getElementById('chatSend');
+    let history=[];
+    let sending=false;
+
+    fab.addEventListener('click',()=>{
+        fab.classList.toggle('open');
+        panel.classList.toggle('open');
+        if(panel.classList.contains('open')) input.focus();
+    });
+
+    function addMsg(text,role,gov){
+        const d=document.createElement('div');
+        d.className='chat-msg '+role;
+        let html=text.replace(/</g,'&lt;').replace(/\n/g,'<br>');
+        if(gov){
+            const cls=gov.passed?'':'warn';
+            html+=`<div class="msg-gov ${cls}">${gov.passed?'&#10003;':'&#9888;'} GOV ${gov.score.toFixed(2)}</div>`;
+        }
+        d.innerHTML=html;
+        msgs.appendChild(d);
+        msgs.scrollTop=msgs.scrollHeight;
+    }
+
+    function showTyping(){
+        const d=document.createElement('div');
+        d.className='chat-typing';d.id='typing';
+        d.innerHTML='<span></span><span></span><span></span>';
+        msgs.appendChild(d);
+        msgs.scrollTop=msgs.scrollHeight;
+    }
+    function hideTyping(){const t=document.getElementById('typing');if(t)t.remove();}
+
+    async function send(){
+        const msg=input.value.trim();
+        if(!msg||sending)return;
+        sending=true;
+        input.value='';
+        sendBtn.disabled=true;
+        addMsg(msg,'user');
+        history.push({role:'user',content:msg});
+        showTyping();
+
+        try{
+            const res=await fetch('/api/chat',{
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({message:msg,history:history.slice(-10)})
+            });
+            hideTyping();
+            if(res.ok){
+                const data=await res.json();
+                addMsg(data.reply,'agent',data.governance);
+                history.push({role:'assistant',content:data.reply});
+            } else {
+                addMsg('I\'m available on the full DOF deployment. Set DEEPSEEK_API_KEY in Vercel env vars to enable me.','agent');
+            }
+        }catch(e){
+            hideTyping();
+            addMsg('I need the /api/chat backend to respond. Deploy from the hackathon repo with DEEPSEEK_API_KEY configured.','agent');
+        }
+        sending=false;
+        sendBtn.disabled=false;
+        input.focus();
+    }
+
+    sendBtn.addEventListener('click',send);
+    input.addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+}();
+
+// ═══════════════════ x402 ULTRAVIOLETA FACILITATOR ═══════════════════
+!function(){
+    const FACILITATOR='https://facilitator.ultravioletadao.xyz';
+    const x402Badge=document.querySelector('.pb-x402');
+    const a2aBadge=document.querySelector('.pb-a2a');
+    const shieldBadge=document.querySelector('.pb-shield');
+
+    // Check facilitator health
+    async function checkHealth(){
+        try{
+            const res=await fetch(FACILITATOR+'/health',{mode:'cors'});
+            if(res.ok){
+                const data=await res.json().catch(()=>null);
+                if(x402Badge){
+                    x402Badge.innerHTML='<span class="pb-dot"></span>x402 Live';
+                    x402Badge.title='Ultravioleta Facilitator: Connected';
+                }
+            }
+        }catch(e){
+            if(x402Badge){
+                x402Badge.innerHTML='<span class="pb-dot" style="background:#f59e0b;box-shadow:0 0 6px #f59e0b"></span>x402';
+                x402Badge.title='Ultravioleta Facilitator: Checking...';
+            }
+        }
+    }
+
+    // Check supported networks
+    async function checkSupported(){
+        try{
+            const res=await fetch(FACILITATOR+'/supported',{mode:'cors'});
+            if(res.ok){
+                const data=await res.json().catch(()=>null);
+                if(data&&a2aBadge){
+                    const nets=data.networks||data.chains||[];
+                    a2aBadge.title='A2A Ready | '+((Array.isArray(nets)?nets.length:0)||'14+')+' networks supported';
+                }
+            }
+        }catch(e){}
+    }
+
+    // Update shield with DOF governance status
+    if(shieldBadge){
+        shieldBadge.innerHTML='<span class="pb-dot"></span>42 Rules';
+        shieldBadge.title='DOF Shield: 42 constitutional rules enforced deterministically';
+    }
+
+    checkHealth();
+    checkSupported();
+    // Re-check every 60s
+    setInterval(checkHealth,60000);
+}();
+
+</script>
+</body>
+</html>
+

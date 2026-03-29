@@ -431,6 +431,15 @@ except ImportError:
     HIGH, NORMAL, LOW = 1, 2, 3
 
 # ─────────────────────────────────────────────────────────────────────
+# DOFVerifier — Public entry point (README Quick Start)
+# ─────────────────────────────────────────────────────────────────────
+
+try:
+    from dof.verifier import DOFVerifier, VerifyResult
+except ImportError:
+    DOFVerifier = VerifyResult = None
+
+# ─────────────────────────────────────────────────────────────────────
 # x402 Trust Gateway (optional)
 # ─────────────────────────────────────────────────────────────────────
 
@@ -633,6 +642,9 @@ __all__ = [
     "RegressionTracker",
     "RegressionReport",
     "ChangeType",
+    # DOFVerifier — Public entry point
+    "DOFVerifier",
+    "VerifyResult",
     # x402 Trust Gateway
     "TrustGateway",
     "GatewayVerdict",

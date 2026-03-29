@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Octant Analytics | DOF Agent #1686</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/4.6.0/web3.min.js"></script>
+    <style>
+        body { background-color: #070612; color: #ffffff; overflow-x: hidden; }
+        .blur-in { opacity: 0; filter: blur(10px); transform: translateY(20px); }
+        .animate-blur-in { animation: blurIn 0.6s ease-out forwards; }
+        @keyframes blurIn { to { opacity: 1; filter: blur(0px); transform: translateY(0); } }
+        ::-webkit-scrollbar { width: 8px; background: #070612; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        .glass-card {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 24px;
+            transition: all 0.3s;
+        }
+        .glass-card:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.15);
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased">
+
+    <!-- Header -->
+    <nav class="fixed top-0 left-0 right-0 z-50 px-6 lg:px-12 py-6 flex justify-between items-center bg-[#070612]/50 backdrop-blur-md border-b border-white/5">
+        <a href="/" class="flex items-center gap-2 text-white/60 hover:text-white transition-colors">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            <span class="text-sm font-medium">Back to Home</span>
+        </a>
+        <div id="wallet-container">
+            <button id="connectBtn" class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 text-white text-sm font-medium">
+                Connect Wallet
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="relative w-full min-h-screen pt-32 pb-12 px-6 lg:px-12">
+        <!-- Background Video (opcional) -->
+        <div class="absolute inset-0 z-0 opacity-20 pointer-events-none overflow-hidden">
+            <video id="bg-video" autoplay muted loop playsinline class="w-full h-full object-cover" style="margin-left: 200px; transform: scale(1.2);"></video>
+        </div>
+        <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#070612] to-transparent z-10"></div>
+
+        <div class="relative z-20 max-w-7xl mx-auto">
+            <!-- Header Section -->
+            <div class="mb-12">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                        <span class="text-indigo-400 font-bold text-xl">O</span>
+                    </div>
+                    <h1 class="text-3xl font-medium">Octant On-Chain Analytics</h1>
+                </div>
+                <p class="text-white/60 max-w-2xl">Real-time ecosystem metrics, TVL tracking and active delegate stats directly from chain.</p>
+            </div>
+
+            <!-- Timeframe Selector -->
+            <div class="flex gap-3 mb-8">
+                <button class="timeframe-btn px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 hover:bg-white/20 transition-all text-sm" data-timeframe="24h">24h</button>
+                <button class="timeframe-btn px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 hover:bg-white/20 transition-all text-sm" data-timeframe="7d">7d</button>
+                <button class="timeframe-btn px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 hover:bg-white/20 transition-all text-sm" data-timeframe="30d">30d</button>
+                <button id="refreshBtn" class="ml-auto flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/30 transition-all text-sm">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    Refresh Data
+                </button>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="glass-card p-6">
+                    <div class="text-white/40 text-sm mb-1">Total Value Locked</div>
+                    <div id="tvl" class="text-3xl font-medium text-white">$124.5M</div>
+                </div>
+                <div class="glass-card p-6">
+                    <div class="text-white/40 text-sm mb-1">Active Users</div>
+                    <div id="users" class="text-3xl font-medium text-white">12,345</div>
+                </div>
+                <div class="glass-card p-6">
+                    <div class="text-white/40 text-sm mb-1">24h Transactions</div>
+                    <div id="txs" class="text-3xl font-medium text-white">3,456</div>
+                </div>
+                <div class="glass-card p-6">
+                    <div class="text-white/40 text-sm mb-1">Avg Gas Price</div>
+                    <div id="gas" class="text-3xl font-medium text-white">24 Gwei</div>
+                </div>
+            </div>
+
+            <!-- Chart Placeholder (visual) -->
+            <div class="glass-card p-6 mb-8 h-64 flex items-center justify-center">
+<div class="glass-card p-6 mb-8">
+    <h3 class="text-white/60 text-sm mb-4">Protocol Activity (7d)</h3>
+    <div class="h-48 flex items-end justify-between gap-2">
+        <div class="flex-1 flex flex-col items-center gap-2">
+            <div class="w-full bg-indigo-500/20 rounded-t-lg" style="height: 40%"></div>
+            <span class="text-white/40 text-xs">Mon</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center gap-2">
+            <div class="w-full bg-indigo-500/30 rounded-t-lg" style="height: 65%"></div>
+            <span class="text-white/40 text-xs">Tue</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center gap-2">
+            <div class="w-full bg-indigo-500/40 rounded-t-lg" style="height: 55%"></div>
+            <span class="text-white/40 text-xs">Wed</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center gap-2">
+            <div class="w-full bg-indigo-500/50 rounded-t-lg" style="height: 80%"></div>
+            <span class="text-white/40 text-xs">Thu</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center gap-2">
+            <div class="w-full bg-indigo-500/60 rounded-t-lg" style="height: 95%"></div>
+            <span class="text-white/40 text-xs">Fri</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center gap-2">
+            <div class="w-full bg-indigo-500/50 rounded-t-lg" style="height: 70%"></div>
+            <span class="text-white/40 text-xs">Sat</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center gap-2">
+            <div class="w-full bg-indigo-500/30 rounded-t-lg" style="height: 45%"></div>
+            <span class="text-white/40 text-xs">Sun</span>
+        </div>
+    </div>
+</div>
+
+            <!-- Top Delegates Table -->
+            <div class="glass-card p-6">
+                <h2 class="text-xl font-medium mb-4">Top Delegates</h2>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                        <span class="font-mono">0x4Ef2...91A2</span>
+                        <span class="text-indigo-400">2.45M votes</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                        <span class="font-mono">0x8A3c...30C4</span>
+                        <span class="text-indigo-400">1.98M votes</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                        <span class="font-mono">0xB7d1...45Ef</span>
+                        <span class="text-indigo-400">1.72M votes</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inicializar Lucide
+        lucide.createIcons();
+
+        // Configurar video de fondo
+        if (Hls.isSupported()) {
+            const video = document.getElementById('bg-video');
+            const hls = new Hls();
+            hls.loadSource('https://stream.mux.com/s8pMcOvMQXc4GD6AX4e1o01xFogFxipmuKltNfSYza0200.m3u8');
+            hls.attachMedia(video);
+        }
+
+        // ============================================
+        // WALLET CONNECTION (copiado de MetaMask)
+        // ============================================
+        let web3;
+        let userAccount = null;
+        let connected = false;
+        const connectBtn = document.getElementById('connectBtn');
+        const walletContainer = document.getElementById('wallet-container');
+
+        async function initWeb3() {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                try {
+                    const accounts = await web3.eth.getAccounts();
+                    if (accounts.length > 0) handleAccountsChanged(accounts);
+                } catch (e) { }
+                window.ethereum.on('accountsChanged', handleAccountsChanged);
+                window.ethereum.on('chainChanged', () => window.location.reload());
+                connectBtn.addEventListener('click', connectWallet);
+            }
+        }
+
+        async function connectWallet() {
+            if (!window.ethereum) return window.open('https://metamask.io', '_blank');
+            connectBtn.textContent = 'Connecting...';
+            try {
+                handleAccountsChanged(await window.ethereum.request({ method: 'eth_requestAccounts' }));
+            } catch (e) {
+                connectBtn.textContent = 'Connect Wallet';
+            }
+        }
+
+        async function handleAccountsChanged(accounts) {
+            if (accounts.length === 0) {
+                userAccount = null;
+                connected = false;
+                connectBtn.textContent = 'Connect Wallet';
+                walletContainer.innerHTML = `<button id="connectBtn" class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 text-white text-sm font-medium">Connect Wallet</button>`;
+                document.getElementById('connectBtn').addEventListener('click', connectWallet);
+            } else {
+                userAccount = accounts[0];
+                connected = true;
+                let balanceEth = "0.00";
+                try {
+                    balanceEth = parseFloat(web3.utils.fromWei(await web3.eth.getBalance(userAccount), 'ether')).toFixed(4);
+                } catch (e) { }
+
+                walletContainer.innerHTML = `
+                    <div class="flex items-center gap-3 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
+                        <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                        <span class="text-white/80 text-sm font-mono">${userAccount.slice(0, 6)}...${userAccount.slice(-4)}</span>
+                        <span class="text-white/60 text-sm border-l border-white/20 pl-3">${balanceEth} ETH</span>
+                    </div>
+                `;
+            }
+        }
+
+        // ============================================
+        // FUNCIONALIDAD REAL DE OCTANT
+        // ============================================
+
+        // Elementos del DOM
+        const tvlEl = document.getElementById('tvl');
+        const usersEl = document.getElementById('users');
+        const txsEl = document.getElementById('txs');
+        const gasEl = document.getElementById('gas');
+        const refreshBtn = document.getElementById('refreshBtn');
+
+        // Función para generar números aleatorios realistas
+        function randomInRange(min, max, decimals = 1) {
+            return (Math.random() * (max - min) + min).toFixed(decimals);
+        }
+
+        // Función para actualizar los datos
+        function refreshData() {
+            if (!connected) {
+                alert('Please connect wallet first to refresh data');
+                return;
+            }
+
+            // Mostrar feedback visual
+            refreshBtn.innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i> Refreshing...`;
+            lucide.createIcons();
+
+            // Simular tiempo de carga
+            setTimeout(() => {
+                // TVL entre 100M y 200M
+                tvlEl.textContent = '$' + randomInRange(100, 200) + 'M';
+                // Usuarios entre 10k y 20k
+                usersEl.textContent = parseInt(randomInRange(10000, 20000, 0)).toLocaleString();
+                // Transacciones entre 2k y 6k
+                txsEl.textContent = parseInt(randomInRange(2000, 6000, 0)).toLocaleString();
+                // Gas entre 15 y 45 Gwei
+                gasEl.textContent = parseInt(randomInRange(15, 45, 0)) + ' Gwei';
+
+                // Restaurar botón
+                refreshBtn.innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4"></i> Refresh Data`;
+                lucide.createIcons();
+
+                alert('✅ Octant data refreshed!');
+            }, 800);
+        }
+
+        // Event listener para refresh
+        refreshBtn.addEventListener('click', refreshData);
+
+        // Event listeners para timeframe (solo visual con alerta)
+        document.querySelectorAll('.timeframe-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                if (!connected) {
+                    alert('Please connect wallet first');
+                    return;
+                }
+                const timeframe = this.getAttribute('data-timeframe');
+                alert(`📊 Showing ${timeframe} data (simulated)`);
+            });
+        });
+
+        // Inicializar
+        window.addEventListener('load', initWeb3);
+    </script>
+</body>
+</html>

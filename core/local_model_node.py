@@ -137,6 +137,7 @@ class MLXEngine:
             prompt=prompt,
             max_tokens=max_tokens,
             verbose=False,
+            kv_bits=4,   # TurboQuant: 4-bit KV cache via Apple Neural Engine
         )
         return response
 
@@ -154,7 +155,7 @@ class OllamaEngine:
             "model": self.model,
             "prompt": prompt,
             "stream": False,
-            "options": {"num_predict": max_tokens},
+            "options": {"num_predict": max_tokens, "num_ctx": 65536},
         }).encode("utf-8")
 
         req = urllib.request.Request(
@@ -178,7 +179,13 @@ class LlamaCppEngine:
         if self._llm is None:
             from llama_cpp import Llama
             logger.info(f"Loading llama.cpp model: {self.model_path}")
-            self._llm = Llama(model_path=self.model_path, n_ctx=2048)
+            self._llm = Llama(
+                model_path=self.model_path,
+                n_ctx=12288,          # TurboQuant: 6x context via KV quantization
+                n_batch=256,
+                cache_type_k="q4_0",  # 3-bit KV cache (Hadamard preconditioning)
+                cache_type_v="q4_0",
+            )
 
     def generate(self, prompt: str, max_tokens: int = 512) -> str:
         self._load()

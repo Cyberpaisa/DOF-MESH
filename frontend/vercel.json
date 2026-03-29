@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/landing.html" }
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
+}

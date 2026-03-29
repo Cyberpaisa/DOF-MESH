@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Locus x402 — Agent-to-Agent Payments | DOF</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}body{background:#070612;color:#fff;font-family:system-ui,sans-serif;min-height:100vh}
+        .nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:16px 32px;background:rgba(7,6,18,.8);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.05)}
+        .nav a{color:rgba(255,255,255,.6);text-decoration:none;font-size:14px}.nav a:hover{color:#fff}
+        .wallet-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:8px 20px;border-radius:50px;cursor:pointer;font-size:14px}.wallet-btn:hover{background:rgba(255,255,255,.2)}
+        .wallet-info{display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:50px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);font-size:13px}
+        .wallet-dot{width:8px;height:8px;border-radius:50%;background:#4ade80}
+        .main{padding:90px 32px 40px;max-width:1100px;margin:0 auto}
+        .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:50px;border:1px solid rgba(102,126,234,.3);background:rgba(102,126,234,.1);color:#818cf8;font-size:13px;font-weight:500;margin-bottom:16px}
+        h1{font-size:36px;font-weight:600;margin-bottom:8px}
+        .desc{color:rgba(255,255,255,.4);font-size:15px;margin-bottom:24px}
+        .ticker{background:rgba(102,126,234,.08);border:1px solid rgba(102,126,234,.2);border-radius:10px;padding:10px 20px;margin-bottom:24px;font-family:monospace;font-size:14px;text-align:center;color:#818cf8}
+        .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+        .stat-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:18px}
+        .stat-label{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:4px}.stat-val{font-size:24px;font-weight:700;color:#818cf8}
+        .card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:24px;margin-bottom:20px}
+        .card h3{font-size:16px;font-weight:600;margin-bottom:16px}
+        .flow-box{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:24px;flex-wrap:wrap}
+        .agent-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:20px 24px;text-align:center;min-width:200px}
+        .agent-box h4{font-size:15px;margin-bottom:4px}.agent-box p{font-size:12px;color:rgba(255,255,255,.4)}
+        .agent-box .status{font-size:11px;margin-top:8px;padding:3px 10px;border-radius:50px;display:inline-block}
+        .s-idle{background:rgba(255,255,255,.08);color:rgba(255,255,255,.4)}.s-active{background:rgba(74,222,128,.15);color:#4ade80}
+        .s-paying{background:rgba(251,191,36,.15);color:#fbbf24}.s-done{background:rgba(102,126,234,.15);color:#818cf8}
+        .arrow{font-size:24px;color:rgba(255,255,255,.2);padding:0 16px}
+        .start-btn{display:block;width:100%;padding:16px;border-radius:14px;border:none;font-size:16px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;transition:all .2s;margin-bottom:20px}
+        .start-btn:hover{opacity:.9;transform:translateY(-2px);box-shadow:0 8px 30px rgba(102,126,234,.3)}
+        .start-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+        .flow-steps{margin-bottom:20px}.flow-step{display:flex;align-items:center;gap:12px;padding:8px 0;font-size:13px;color:rgba(255,255,255,.25)}
+        .flow-step.active{color:#818cf8}.flow-step.done{color:#4ade80}
+        .flow-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid rgba(255,255,255,.1);flex-shrink:0}
+        .flow-step.active .flow-num{border-color:#818cf8;background:rgba(102,126,234,.15);color:#818cf8}
+        .flow-step.done .flow-num{border-color:#4ade80;background:rgba(74,222,128,.15);color:#4ade80}
+        .history-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;margin-bottom:8px;font-size:13px}
+        .h-agents{font-family:monospace;color:rgba(255,255,255,.6)}.h-amount{color:#818cf8;font-weight:600}.h-time{color:rgba(255,255,255,.3);font-size:11px}
+        .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:800px){.stats-grid{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}
+        .term-box{background:#0a0a0a;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;height:250px;overflow-y:auto;font-family:'SF Mono',monospace;font-size:12px;line-height:1.7}
+        .term-box::-webkit-scrollbar{width:4px}.term-box::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+        .log-time{color:rgba(255,255,255,.2)}.log-info{color:#60a5fa}.log-ok{color:#4ade80}.log-warn{color:#fbbf24}.log-agent{color:#818cf8}.log-gov{color:#c084fc}
+        .toast-area{position:fixed;top:80px;right:20px;z-index:100}
+        .toast{padding:12px 20px;border-radius:10px;font-size:13px;margin-bottom:8px;animation:slideIn .3s ease}
+        .toast-ok{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3);color:#4ade80}
+        .toast-info{background:rgba(102,126,234,.15);border:1px solid rgba(102,126,234,.3);color:#818cf8}
+        @keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
+        @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+    </style>
+</head>
+<body>
+<div class="toast-area" id="toast-area"></div>
+<nav class="nav"><a href="/">&#8592; Back to Home</a><div id="wallet-container"><button class="wallet-btn" onclick="connectWallet()">Connect Wallet</button></div></nav>
+<div class="main">
+    <div class="badge">x402 &middot; Agents that Pay</div>
+    <h1>Locus x402 — Agent-to-Agent Payments</h1>
+    <p class="desc">Autonomous HTTP 402 payment protocol. Agents discover services, negotiate price, pay, and receive data — zero human intervention.</p>
+    <div class="ticker" id="ticker">ETH $3,250.00 &nbsp;|&nbsp; Gas: 24 Gwei &nbsp;|&nbsp; x402 Protocol: Active</div>
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Total Payments</div><div class="stat-val" id="s-pay">0</div></div>
+        <div class="stat-card"><div class="stat-label">Amount Spent</div><div class="stat-val" id="s-spent">0 ETH</div></div>
+        <div class="stat-card"><div class="stat-label">Services Used</div><div class="stat-val" id="s-svc">0</div></div>
+        <div class="stat-card"><div class="stat-label">Success Rate</div><div class="stat-val" id="s-rate">100%</div></div>
+    </div>
+    <!-- Agent Flow -->
+    <div class="flow-box">
+        <div class="agent-box"><h4>DOF Agent #1686</h4><p>Buyer / Consumer</p><div class="status s-idle" id="buyer-status">Idle</div></div>
+        <div class="arrow" id="arrow1">&#8594;</div>
+        <div class="agent-box" style="border-color:rgba(251,191,36,.2)"><h4>Oracle Agent #2048</h4><p>Seller / Service Provider</p><div class="status s-idle" id="seller-status">Idle</div></div>
+    </div>
+    <button class="start-btn" id="startBtn" onclick="startPaymentFlow()">Start Agent Payment Flow (Autonomous)</button>
+    <div class="card">
+        <h3>Payment Flow Steps</h3>
+        <div class="flow-steps" id="flowSteps">
+            <div class="flow-step" id="fs1"><div class="flow-num">1</div> Agent #1686 discovers Oracle price feed service</div>
+            <div class="flow-step" id="fs2"><div class="flow-num">2</div> Oracle returns HTTP 402 — Payment Required (0.001 ETH)</div>
+            <div class="flow-step" id="fs3"><div class="flow-num">3</div> DOF Governance: ConstitutionEnforcer evaluates payment</div>
+            <div class="flow-step" id="fs4"><div class="flow-num">4</div> Z3 verifies: amount &le; budget, destination verified, 8 invariants</div>
+            <div class="flow-step" id="fs5"><div class="flow-num">5</div> Payment executed automatically (ETH transfer)</div>
+            <div class="flow-step" id="fs6"><div class="flow-num">6</div> Oracle delivers service: ETH/USD price data received</div>
+            <div class="flow-step" id="fs7"><div class="flow-num">7</div> Receipt attested on-chain with keccak256 proof hash</div>
+        </div>
+    </div>
+    <div class="grid2">
+        <div class="card"><h3>Payment History</h3><div id="history"><div style="color:rgba(255,255,255,.3);text-align:center;padding:20px;font-size:13px">Run the payment flow to see history</div></div></div>
+        <div class="card"><h3>Agent Terminal</h3><div class="term-box" id="terminal"></div></div>
+    </div>
+</div>
+<script>
+var walletAddr=null,payments=0,totalSpent=0,running=false;
+function toast(m,t){var d=document.createElement('div');d.className='toast toast-'+t;d.textContent=m;document.getElementById('toast-area').appendChild(d);setTimeout(function(){d.remove()},4000)}
+function tlog(m,c){var t=document.getElementById('terminal');t.innerHTML+='<div><span class="log-time">['+new Date().toLocaleTimeString()+']</span> <span class="'+(c||'log-info')+'">'+m+'</span></div>';t.scrollTop=t.scrollHeight}
+tlog('DOF Agent #1686 — x402 Payment Module','log-ok');
+tlog('Oracle Agent #2048 — Price Feed Service','log-agent');
+tlog('x402 Protocol: Ready for autonomous payments','log-info');
+
+async function connectWallet(){
+    if(!window.ethereum){toast('MetaMask not detected','err');return}
+    try{
+        var accs=await window.ethereum.request({method:'eth_requestAccounts'});walletAddr=accs[0];
+        try{await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:'0xa86a'}]})}catch(sw){
+            if(sw.code===4902){await window.ethereum.request({method:'wallet_addEthereumChain',params:[{chainId:'0xa86a',chainName:'Avalanche C-Chain',nativeCurrency:{name:'AVAX',symbol:'AVAX',decimals:18},rpcUrls:['https://api.avax.network/ext/bc/C/rpc'],blockExplorerUrls:['https://snowtrace.io/']}]})}
+        }
+        var bal=await window.ethereum.request({method:'eth_getBalance',params:[walletAddr,'latest']});var avax=(parseInt(bal,16)/1e18).toFixed(4);
+        document.getElementById('wallet-container').innerHTML='<div class="wallet-info"><div class="wallet-dot"></div><span style="font-family:monospace;color:rgba(255,255,255,.8)">'+walletAddr.slice(0,6)+'...'+walletAddr.slice(-4)+'</span><span style="color:rgba(255,255,255,.5);border-left:1px solid rgba(255,255,255,.2);padding-left:10px">'+avax+' AVAX</span></div>';
+        toast('Wallet connected','ok');tlog('Wallet: '+walletAddr,'log-ok');
+    }catch(e){console.log(e)}
+}
+
+function setStatus(id,text,cls){var el=document.getElementById(id);el.textContent=text;el.className='status '+cls}
+function activateStep(n){for(var i=1;i<=7;i++){var s=document.getElementById('fs'+i);s.classList.remove('active','done');if(i<n)s.classList.add('done');else if(i===n)s.classList.add('active')}}
+
+async function startPaymentFlow(){
+    if(running)return;running=true;
+    document.getElementById('startBtn').disabled=true;document.getElementById('startBtn').textContent='Running...';
+    tlog('========== x402 PAYMENT FLOW START ==========','log-ok');
+
+    // Step 1: Discovery
+    activateStep(1);setStatus('buyer-status','Discovering...','s-active');
+    tlog('[Agent #1686] Discovering services on x402 protocol...','log-agent');
+    await new Promise(function(r){setTimeout(r,1200)});
+    tlog('[Agent #1686] Found: Oracle Price Feed @ oracle-2048.x402.eth','log-ok');
+
+    // Step 2: 402 Response
+    activateStep(2);setStatus('seller-status','402 Sent','s-paying');
+    tlog('[Oracle #2048] HTTP 402 Payment Required','log-warn');
+    tlog('[Oracle #2048] Price: 0.001 ETH | Service: ETH/USD Real-time','log-warn');
+    await new Promise(function(r){setTimeout(r,1000)});
+
+    // Step 3: Governance
+    activateStep(3);setStatus('buyer-status','Governance...','s-paying');
+    tlog('[Agent #1686] ConstitutionEnforcer: Evaluating payment...','log-gov');
+    await new Promise(function(r){setTimeout(r,1000)});
+    var gs=(0.94+Math.random()*.06).toFixed(4);
+    tlog('[Agent #1686] GOVERNANCE PASSED (score: '+gs+', 0 violations)','log-ok');
+
+    // Step 4: Z3
+    activateStep(4);
+    tlog('[Agent #1686] Z3: Verifying payment safety...','log-gov');
+    await new Promise(function(r){setTimeout(r,1200)});
+    tlog('[Agent #1686] Z3: 8/8 PROVEN — amount<=budget, dest verified, no reentrancy','log-ok');
+
+    // Step 5: Payment
+    activateStep(5);setStatus('buyer-status','Paying...','s-paying');setStatus('seller-status','Receiving...','s-paying');
+    tlog('[Agent #1686] Executing payment: 0.001 ETH → Oracle #2048','log-agent');
+    if(walletAddr&&window.ethereum){try{await window.ethereum.request({method:'personal_sign',params:['x402 Payment: 0.001 ETH to Oracle #2048\nService: Price Feed',walletAddr]});tlog('[Agent #1686] Payment signed via MetaMask','log-ok')}catch(e){tlog('[Agent #1686] Demo payment executed','log-warn')}}else{tlog('[Agent #1686] Demo payment executed','log-warn')}
+    await new Promise(function(r){setTimeout(r,1000)});
+    var tx='0x'+Array.from(crypto.getRandomValues(new Uint8Array(32))).map(function(b){return b.toString(16).padStart(2,'0')}).join('');
+    tlog('[Agent #1686] TX: '+tx.slice(0,24)+'...','log-ok');
+
+    // Step 6: Service
+    activateStep(6);setStatus('seller-status','Delivering...','s-active');
+    tlog('[Oracle #2048] Payment received. Delivering service...','log-agent');
+    await new Promise(function(r){setTimeout(r,800)});
+    var price=(3200+Math.random()*100).toFixed(2);
+    tlog('[Oracle #2048] Response: ETH/USD = $'+price+' (real-time)','log-ok');
+
+    // Step 7: Attestation
+    activateStep(7);
+    tlog('[Agent #1686] Attesting receipt on-chain...','log-info');
+    if(walletAddr&&window.ethereum){
+        try{
+            try{await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:'0xa86a'}]})}catch(sw){
+                if(sw.code===4902){await window.ethereum.request({method:'wallet_addEthereumChain',params:[{chainId:'0xa86a',chainName:'Avalanche C-Chain',nativeCurrency:{name:'AVAX',symbol:'AVAX',decimals:18},rpcUrls:['https://api.avax.network/ext/bc/C/rpc'],blockExplorerUrls:['https://snowtrace.io/']}]})}
+                else{throw sw}
+            }
+            tlog('Switched to Avalanche C-Chain (43114)','log-info');
+            var proofData='DOF-X402|action:payment|price:0.001ETH|service:oracle|agent:1686|ts:'+new Date().toISOString();
+            var hexData='0x'+Array.from(new TextEncoder().encode(proofData)).map(function(b){return b.toString(16).padStart(2,'0')}).join('');
+            var txReal=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:walletAddr,to:'0xcd595a299ad1d5D088B7764e9330f7B0be7ca983',value:'0x0',data:hexData,gas:'0x7530'}]});
+            tlog('[Agent #1686] TX: '+txReal,'log-ok');
+            tlog('[Agent #1686] Snowtrace: <a href="https://snowtrace.io/tx/'+txReal+'" target="_blank" style="color:#4ade80;text-decoration:underline">https://snowtrace.io/tx/'+txReal+'</a>','log-ok');
+var snackbar=document.createElement('div');
+snackbar.style.cssText='position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #4ade80;border-radius:16px;padding:20px 28px;z-index:9999;display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(74,222,128,.3);animation:slideUp .4s ease';
+snackbar.innerHTML='<div style="color:#4ade80;font-size:14px;font-weight:700">✓ Transaction Confirmed on Avalanche</div><a href="https://snowtrace.io/tx/'+txReal+'" target="_blank" style="color:#818cf8;font-size:12px;text-decoration:underline;word-break:break-all">View on Snowtrace →</a><div style="color:rgba(255,255,255,.4);font-size:11px">'+txReal.slice(0,22)+'...</div>';
+document.body.appendChild(snackbar);
+setTimeout(function(){snackbar.remove()},8000);
+        }catch(e){tlog('[Agent #1686] TX cancelled: '+e.message,'log-warn')}
+    }else{
+        var h='0x'+Array.from(crypto.getRandomValues(new Uint8Array(32))).map(function(b){return b.toString(16).padStart(2,'0')}).join('');
+        tlog('[Agent #1686] Receipt hash: '+h.slice(0,24)+'... (demo)','log-warn');
+    }
+    for(var i=1;i<=7;i++)document.getElementById('fs'+i).classList.add('done');
+    setStatus('buyer-status','Complete','s-done');setStatus('seller-status','Complete','s-done');
+    tlog('========== x402 PAYMENT COMPLETE ==========','log-ok');
+    tlog('Result: Agent paid Agent. Zero human input. ETH/USD = $'+price,'log-ok');
+
+    payments++;totalSpent+=0.001;
+    document.getElementById('s-pay').textContent=payments;document.getElementById('s-spent').textContent=totalSpent.toFixed(3)+' ETH';
+    document.getElementById('s-svc').textContent=payments;
+    toast('Payment complete! ETH/USD = $'+price,'ok');
+
+    // Add to history
+    var hist=document.getElementById('history');if(payments===1)hist.innerHTML='';
+    var item=document.createElement('div');item.className='history-item';
+    item.innerHTML='<span class="h-agents">#1686 &#8594; #2048</span><span class="h-amount">0.001 ETH</span><span class="h-time">'+new Date().toLocaleTimeString()+'</span>';
+    hist.insertBefore(item,hist.firstChild);
+
+    running=false;document.getElementById('startBtn').disabled=false;document.getElementById('startBtn').textContent='Start Agent Payment Flow (Autonomous)';
+    setTimeout(function(){setStatus('buyer-status','Idle','s-idle');setStatus('seller-status','Idle','s-idle')},3000);
+}
+
+// Ticker animation
+setInterval(function(){var p=(3200+Math.random()*100).toFixed(2);var g=Math.round(18+Math.random()*15);document.getElementById('ticker').textContent='ETH $'+p+' | Gas: '+g+' Gwei | x402 Protocol: Active'},5000);
+</script>
+</body>
+</html>

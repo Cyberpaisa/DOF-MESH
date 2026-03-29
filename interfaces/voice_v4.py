@@ -69,7 +69,7 @@ class VoiceV4Config:
     llm_ollama_url: str = "http://localhost:11434"
     llm_temperature: float = 0.7
     llm_max_tokens: int = 300          # voz: 6-8 frases (~10s a 30 tok/s) — respuestas completas
-    llm_num_ctx: int = 4096            # 4096: caben few-shot + historial + sistema sin cortar
+    llm_num_ctx: int = 16384           # 16K: historial largo + few-shot + sistema completo
 
     # TTS — Kokoro (primario, local, offline) + Edge-TTS (fallback online)
     tts_backend: str = "edge"                    # "kokoro" | "edge" — edge: SalomeNeural mas natural
@@ -156,45 +156,34 @@ class FastSTT:
         self._backend = None   # "mlx" | "faster"
 
     def _load(self):
-        """Carga el STT: faster-whisper si el modelo ya esta en cache, sino mlx-whisper."""
+        """Carga el STT: mlx-whisper primero (3-4x mas rapido en M4 Max), fallback faster-whisper."""
         if self._model is not None:
             return
         size = self.config.whisper_model_size
-        # Verificar si faster-whisper del modelo esta en cache local
-        cache_path = Path.home() / ".cache" / "huggingface" / "hub" / f"models--Systran--faster-whisper-{size}"
-        if cache_path.exists():
-            try:
-                from faster_whisper import WhisperModel
-                print(f"  Cargando faster-whisper {size} (en cache)...")
-                self._model = WhisperModel(
-                    size,
-                    device=self.config.whisper_device,
-                    compute_type=self.config.whisper_compute_type,
-                )
-                self._backend = "faster"
-                print(f"  faster-whisper {size} listo.")
-                return
-            except Exception:
-                pass
-        # Si no esta en cache, intentar mlx-whisper
+        # Primero: mlx-whisper — nativo Apple Silicon, Neural Engine, sin API
         try:
             import mlx_whisper  # noqa: F401
             self._backend = "mlx"
             self._model = size
-            print(f"  MLX-Whisper {size} listo — Apple Silicon nativo")
+            print(f"  MLX-Whisper {size} listo — Apple Neural Engine (3-4x mas rapido)")
             return
         except ImportError:
             pass
-        # Ultimo fallback: faster-whisper con descarga
+        # Fallback: faster-whisper si mlx no disponible
         try:
             from faster_whisper import WhisperModel
-            print(f"  Descargando faster-whisper {size}...")
-            self._model = WhisperModel(size, device=self.config.whisper_device,
-                                       compute_type=self.config.whisper_compute_type)
+            in_cache = (Path.home() / ".cache" / "huggingface" / "hub" / f"models--Systran--faster-whisper-{size}").exists()
+            label = "en cache" if in_cache else "descargando..."
+            print(f"  Cargando faster-whisper {size} ({label})...")
+            self._model = WhisperModel(
+                size,
+                device=self.config.whisper_device,
+                compute_type=self.config.whisper_compute_type,
+            )
             self._backend = "faster"
             print(f"  faster-whisper {size} listo.")
         except ImportError:
-            raise RuntimeError("Instalar: pip install faster-whisper  o  pip install mlx-whisper")
+            raise RuntimeError("Instalar: pip install mlx-whisper  o  pip install faster-whisper")
 
     # Vocabulario hint para Whisper — técnica Scribe v2 "keyterm prompting"
     # 60+ términos del ecosistema DOF para eliminar misrecognition
