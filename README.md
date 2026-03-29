@@ -308,6 +308,18 @@ python3 demo_dof_capabilities.py   # reproduces all latency measurements
 
 10 frontier models evaluated with and without the Winston communication framework. Deterministic scorer (0 LLMs): Clarity + Relevance + Structure + Surprise + Actionable close.
 
+**Externally validated on Adaline** — 67 independent traces across 3 sessions (March 28-29, 2026). Adaline is a professional AI monitoring platform (200M+ API calls/day, 5B tokens/day, 99.998% uptime) with no connection to Enigma Group.
+
+<p align="center">
+  <img src="experiments/winston_vs_baseline/adaline_monitor_dashboard_24h.png" alt="Adaline Monitor — DOF Winston Experiment · 24h dashboard" width="700"/>
+  <br/><em>Adaline monitor dashboard — 19 live runs · P95 latency 25s · cost $0.0004/run · March 28, 2026</em>
+</p>
+
+<p align="center">
+  <img src="experiments/winston_vs_baseline/adaline_prompt_setup_gemini_20260328.png" alt="Adaline — DOF Mesh Legion prompt with gemini-2.0-flash" width="700"/>
+  <br/><em>DOF Mesh Legion prompt configured on Adaline with gemini-2.0-flash · Winston + Governance rules active</em>
+</p>
+
 ```
 Model               BLUE(Winston)  RED(baseline)  Delta
 ────────────────────────────────────────────────────────
@@ -403,6 +415,68 @@ print(score.badge)   # "🛡️ DOF VERIFIED" | "⚠️ DOF PARTIAL" | "❌ DOF 
 ## Key Exports
 
 `DOFVerifier` · `VerifyResult` · `verify` · `classify_error` · `register` · `run_crew` · `MerkleBatcher` · `AdversarialEvaluator` · `RedTeamAgent` · `ConstitutionEnforcer` · `Z3Gate` · `GateResult` · `TransitionVerifier` · `DOFAgentState` · `Z3ProofAttestation` · `ProofSerializer` · `ProofStorage` · `RegressionTracker` · `EntropyDetector`
+
+---
+
+## The Synthesis Hackathon — External Validation
+
+**Winner — Privacy & x402 categories** · The Synthesis 2026 · $100K in prizes · 1,500 participants
+
+The Synthesis was organized around the x402 + ERC-8004 stack — the exact ecosystem where DOF operates. Governance protocols for agent payments need formal verification because they handle real value.
+
+Winning in Privacy & x402 was not coincidental. The judges recognized that **DOF fills the gap ERC-8004 and x402 leave open**:
+
+| Layer | Protocol | Solves |
+|---|---|---|
+| Identity | ERC-8004 | Who is the agent? |
+| Payments | x402 | How does the agent pay? |
+| Communication | A2A | How do agents coordinate? |
+| Models | MCP | How does it access tools? |
+| **Governance** | **DOF** | **Did the agent act correctly?** |
+
+ERC-8004 defines *where* to store reputation. It doesn't define *how to prove the agent deserves it*. DOF generates that proof.
+
+---
+
+## Evolution — Three Layers, One Argument
+
+DOF is not one project. It's an evolving argument built in three visible iterations:
+
+```
+DOF v1 (main branch)          →  The Scientific Thesis
+  4 commits · 9 core modules     Formal metrics: SS, PFI, RP, GCR, SSR
+  SS(f) = 1 − f³ (Z3 proven)    Real problem: LLM agents on free-tier providers
+  GCR(f) = 1.0 ∀f∈[0,1]        52 documented production runs
+  Published on DEV.to            Irrefutable proof: constitutional governance is invariant
+
+Hackathon branch               →  Competitive Validation
+  The Synthesis 2026             Won: Privacy & x402 categories
+  x402 + ERC-8004 ecosystem      Judges confirmed: DOF fills the gap the stack leaves open
+  Demo-grade subset              External signal that the hypothesis is correct
+
+DOF-MESH (this repo)           →  Experimental Platform
+  340+ commits · 142 modules     12 governance layers · 4,036 tests
+  5 chains mainnet               29 mesh nodes · SDK on PyPI
+  Active evolution               The laboratory where production DOF is born
+```
+
+The v1 repo is the scientific paper — keep it stable. The hackathon branch is the competitive credential. DOF-MESH is the production laboratory.
+
+---
+
+## Who DOF Is For
+
+**AI startup CTO:**
+> Your autonomous agent can hallucinate, be manipulated by prompt injection, or simply do the wrong thing — with no way to prove it afterward. DOF adds a layer of mathematical verification before each decision. If Z3 passes: it executes. If not: blocked, with a cryptographic proof of why. `pip install dof-sdk` — in production in 24 hours.
+
+**Developer building on ERC-8004/x402:**
+> ERC-8004 solves your agent's identity. x402 solves how it pays. DOF solves the problem neither addresses: can I mathematically prove my agent acted correctly? Without DOF, your agent has identity and can pay — but can't prove it behaved.
+
+**Hackathon judge / VC:**
+> The AI governance market is $1.8B today → $12.4B in 2028. Every existing player does probabilistic monitoring. DOF is the only one with formal verification + on-chain proof. Winner at The Synthesis (Privacy & x402). 4,036 tests. 5 chains. New market category with real technical moat.
+
+**Regulator / auditor:**
+> When regulation requires AI agents to be auditable (EU AI Act, SEC AI disclosure), the question will be: *"Can you prove what your agent decided?"* With DOF: yes. The keccak256 hash of every decision lives on Avalanche C-Chain. Immutable. Third-party verifiable. Independent of the provider.
 
 ---
 

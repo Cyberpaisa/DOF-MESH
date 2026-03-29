@@ -1,467 +1,467 @@
-# DOF-MESH -- Framework de Comunicacion de Patrick Winston (MIT)
+# DOF-MESH -- Patrick Winston Communication Framework (MIT)
 
-> **Referencia:** Patrick Winston, profesor del MIT durante 40+ anos. Su conferencia "How to Speak" es la mas vista del MIT. Su libro "Make It Clear: Speak and Write to Persuade and Inform" (MIT Press, 2020) codifica 40 anos de investigacion sobre comunicacion efectiva.
+> **Reference:** Patrick Winston, MIT professor for 40+ years. His lecture "How to Speak" is the most-watched at MIT. His book "Make It Clear: Speak and Write to Persuade and Inform" (MIT Press, 2020) codifies 40 years of research on effective communication.
 >
-> **Proposito:** Este documento aplica el framework completo de Winston a DOF-MESH para estandarizar toda comunicacion del proyecto -- desde un tweet hasta una presentacion enterprise.
+> **Purpose:** This document applies Winston's complete framework to DOF-MESH to standardize all project communication -- from a tweet to an enterprise presentation.
 >
-> **Autor:** Cyber Paisa -- Enigma Group
-> **Fecha:** 27 marzo 2026
+> **Author:** Cyber Paisa -- Enigma Group
+> **Date:** March 27, 2026
 
 ---
 
-## PARTE I -- LOS PRINCIPIOS DE WINSTON
+## PART I -- WINSTON'S PRINCIPLES
 
-### 1. La Promesa de Empoderamiento (Apertura)
+### 1. The Empowerment Promise (Opening)
 
-Winston es tajante: NUNCA empieces con un chiste. Los primeros 60 segundos son sagrados. En ese minuto, la audiencia decide si va a escucharte o va a sacar el telefono.
+Winston is blunt: NEVER start with a joke. The first 60 seconds are sacred. In that minute, the audience decides whether to listen to you or pull out their phone.
 
-**La regla:** En los primeros 60 segundos, di exactamente que va a GANAR la audiencia al escucharte. No que vas a hablar de X. No que tu empresa hace Y. Que van a OBTENER ellos.
+**The rule:** In the first 60 seconds, say exactly what the audience is going to GAIN by listening to you. Not what you're going to talk about. Not what your company does. What THEY are going to GET.
 
-"Prepara la bomba antes de verter nada." -- La promesa es la mecha. Si no hay mecha, no hay explosion.
+"Prime the pump before you pour anything." -- The promise is the fuse. Without the fuse, there's no explosion.
 
-**Aplicacion a DOF-MESH:** No decimos "vamos a hablar de governance para agentes de IA." Decimos: "Hoy van a salir de aqui con la unica forma matematicamente probada de garantizar que un agente de IA no robe, mienta o falle sin que nadie se entere."
-
----
-
-### 2. Las 5S -- Para que una idea sea memorable
-
-Una idea que no se recuerda es una idea que no existe. Winston identifica 5 elementos que hacen una idea imposible de olvidar:
-
-| S | Definicion | Ejemplo DOF-MESH |
-|---|---|---|
-| **Simbolo** | Imagen visual que representa la idea | El buho DOF -- vigilancia silenciosa, vision nocturna, precision |
-| **Slogan** | Frase corta que captura la esencia | "Matematicas, no promesas." |
-| **Sorpresa** | Dato inesperado que rompe el patron mental | "685 proyectos de agentes autonomos en el hackathon mas grande del mundo. Cero tienen verificacion formal." |
-| **Saliente** | Por que es relevante para TI, no en abstracto | "Tu agente DeFi maneja $10M. Si falla, no pierdes un log -- pierdes $10M." |
-| **Story** | Narrativa que conecta emocionalmente | La historia del agente que parecio funcionar 3 meses hasta que dreno un treasury entero |
-
-**Regla de Winston:** Una idea memorable cumple al menos 3 de las 5S. DOF-MESH debe usar las 5 en toda comunicacion importante.
+**Application to DOF-MESH:** We don't say "we're going to talk about governance for AI agents." We say: "Today you're going to leave here with the only mathematically proven way to guarantee that an AI agent won't steal, lie, or fail without anyone knowing."
 
 ---
 
-### 3. Near Miss (Casi Acierto)
+### 2. The 5S -- For an Idea to Be Memorable
 
-Este es el principio mas poderoso de Winston para ensenar y vender. No alcanza con mostrar lo correcto. Hay que mostrar lo que PARECE correcto pero NO lo es.
+An idea that is not remembered is an idea that does not exist. Winston identifies 5 elements that make an idea impossible to forget:
 
-El contraste graba permanentemente en el cerebro porque activa el sistema de deteccion de amenazas: "casi me enganan."
+| S | Definition | DOF-MESH Example |
+|---|------------|-----------------|
+| **Symbol** | Visual image that represents the idea | The DOF owl -- silent vigilance, night vision, precision |
+| **Slogan** | Short phrase that captures the essence | "Mathematics, not promises." |
+| **Surprise** | Unexpected fact that breaks the mental pattern | "685 autonomous agent projects in the biggest hackathon in the world. Zero have formal verification." |
+| **Salient** | Why it's relevant for YOU, not in the abstract | "Your DeFi agent handles $10M. If it fails, you don't lose a log -- you lose $10M." |
+| **Story** | Narrative that connects emotionally | The story of the agent that seemed to work for 3 months until it drained an entire treasury |
 
-**El Near Miss de DOF-MESH:**
+**Winston's rule:** A memorable idea fulfills at least 3 of the 5S. DOF-MESH should use all 5 in every important communication.
 
-> "Otros frameworks usan LLMs para validar LLMs. Parece logico -- tienes una IA inteligente, ponla a vigilar. Pero es como poner a un ladron a vigilar a otro ladron. El ladron vigilante puede ser sobornado con un prompt. Puede alucinar que todo esta bien cuando no lo esta. Puede ser manipulado con el mismo tipo de ataque que deberia detectar.
+---
+
+### 3. Near Miss
+
+This is Winston's most powerful principle for teaching and selling. It's not enough to show what's correct. You have to show what SEEMS correct but ISN'T.
+
+The contrast permanently engraves in the brain because it activates the threat detection system: "they almost fooled me."
+
+**DOF-MESH's Near Miss:**
+
+> "Other frameworks use LLMs to validate LLMs. It seems logical -- you have an intelligent AI, put it on watch. But it's like putting a thief to watch another thief. The watchful thief can be bribed with a prompt. They can hallucinate that everything is fine when it isn't. They can be manipulated with the same type of attack they should detect.
 >
-> DOF no usa LLMs para governance. Usa Z3 -- el mismo motor de verificacion formal que certifica sistemas de aviacion. No se puede sobornar. No alucina. No opina. Prueba."
+> DOF doesn't use LLMs for governance. It uses Z3 -- the same formal verification engine that certifies aviation systems. It can't be bribed. It doesn't hallucinate. It doesn't have opinions. It proves."
 
 ---
 
-### 4. VSN-C Framework (del libro "Make It Clear")
+### 4. VSN-C Framework (from the book "Make It Clear")
 
-La estructura maestra de Winston para cualquier comunicacion persuasiva:
+Winston's master structure for any persuasive communication:
 
-- **Vision** -- Que problema resuelves y por que importa AHORA
-- **Steps** -- Pasos concretos de como funciona (la gente necesita ver el camino)
-- **News** -- Que hay de nuevo, tu diferenciador (por que no existia antes)
-- **Contributions** -- Que le das a la audiencia que no tenia antes de escucharte
+- **Vision** -- What problem you solve and why it matters NOW
+- **Steps** -- Concrete steps of how it works (people need to see the path)
+- **News** -- What's new, your differentiator (why it didn't exist before)
+- **Contributions** -- What you give the audience that they didn't have before listening to you
 
-**VSN-C de DOF-MESH:**
+**VSN-C for DOF-MESH:**
 
-**Vision:** Los agentes de IA autonomos ya manejan dinero real -- treasuries de $100M, pagos automaticos, decisiones empresariales. Pero nadie puede probar que hicieron lo correcto. La regulacion viene (MiCA en Europa, SEC en USA). Quien no pueda demostrar governance verificable, no podra operar.
+**Vision:** Autonomous AI agents already handle real money -- $100M treasuries, automatic payments, business decisions. But nobody can prove they did the right thing. Regulation is coming (MiCA in Europe, SEC in the USA). Those who can't demonstrate verifiable governance won't be able to operate.
 
-**Steps:** (1) Conectas tu agente a DOF con `pip install dof-sdk`. (2) Cada decision del agente pasa por 7 capas de verificacion deterministica -- sin LLMs, sin latencia. (3) DOF genera una prueba matematica Z3 de cada accion. (4) Esa prueba se graba inmutablemente en blockchain (Avalanche C-Chain). (5) Cualquier regulador, auditor o cliente puede verificarla independientemente.
+**Steps:** (1) You connect your agent to DOF with `pip install dof-sdk`. (2) Every agent decision goes through 7 layers of deterministic verification -- no LLMs, no latency. (3) DOF generates a Z3 mathematical proof of every action. (4) That proof is immutably recorded on blockchain (Avalanche C-Chain). (5) Any regulator, auditor, or client can independently verify it.
 
-**News:** Es el unico framework que combina verificacion formal Z3 con attestations on-chain. 0% falsos positivos. 30ms por verificacion. 3,700 tests pasando. 8 teoremas Z3 probados para todas las entradas posibles.
+**News:** It's the only framework that combines Z3 formal verification with on-chain attestations. 0% false positives. 30ms per verification. 3,700 tests passing. 8 Z3 theorems proven for all possible inputs.
 
-**Contributions:** Despues de esta presentacion, tienes: (1) un SDK instalable en 30 segundos, (2) la certeza matematica -- no estadistica -- de que tu agente cumple las reglas, y (3) pruebas inmutables que cualquier tercero puede auditar.
-
----
-
-### 5. Cierre con Contribucion
-
-Winston: NUNCA termines con "gracias", "preguntas?" o un resumen. Termina diciendo que les DISTE que no tenian antes. Deja al publico con algo accionable -- algo que pueden hacer HOY.
-
-**Cierre DOF-MESH:**
-
-> "Antes de esta conversacion, la unica forma de saber si tu agente se porto bien era confiar en logs que el mismo agente genero. Ahora saben que existe una alternativa: prueba matematica, inmutable, verificable por terceros. `pip install dof-sdk`. Tarda 30 segundos. La primera verificacion es gratis. Y la proxima vez que alguien les pregunte 'como saben que su agente hizo lo correcto?', van a tener una respuesta que ningun otro equipo en el mundo puede dar."
+**Contributions:** After this presentation, you have: (1) an SDK installable in 30 seconds, (2) mathematical -- not statistical -- certainty that your agent follows the rules, and (3) immutable proofs that any third party can audit.
 
 ---
 
-### 6. Reglas de Presentacion
+### 5. Close with Contribution
 
-- Slides para EXPONER ideas, no para ensenarlas
-- Eliminar palabras innecesarias, logos corporativos, titulos decorativos
-- Una idea por slide -- si necesitas dos ideas, necesitas dos slides
-- Si usas pizarra/whiteboard, la audiencia te sigue mentalmente (engagement 3x)
-- Fuentes grandes. Si tienes que achinar los ojos, sobra texto.
-- Nunca leer el slide -- el slide apoya lo que dices, no lo reemplaza
+Winston: NEVER end with "thank you", "questions?" or a summary. End by saying what you GAVE them that they didn't have before. Leave the audience with something actionable -- something they can do TODAY.
 
----
+**DOF-MESH Close:**
 
-## PARTE II -- APLICACIONES A DOF-MESH
+> "Before this conversation, the only way to know if your agent behaved well was to trust logs that the agent itself generated. Now you know an alternative exists: mathematical proof, immutable, verifiable by third parties. `pip install dof-sdk`. Takes 30 seconds. The first verification is free. And the next time someone asks you 'how do you know your agent did the right thing?', you'll have an answer no other team in the world can give."
 
 ---
 
-### A) PITCH DE VENTAS (1 Minuto) -- Cliente Enterprise
+### 6. Presentation Rules
 
-#### Apertura -- Promesa de Empoderamiento (0:00 - 0:15)
-
-> "En los proximos 60 segundos, van a conocer la unica tecnologia que puede probar MATEMATICAMENTE que un agente de IA se porto bien. No logs. No monitoring. Prueba formal. Si sus agentes manejan dinero o decisiones criticas, esto cambia todo."
-
-#### Simbolo -- El Buho DOF (0:15 - 0:20)
-
-> "Piensen en un buho. Ve en la oscuridad. No hace ruido. No duerme. Y su precision de caza es del 99%. Eso es DOF -- vigilancia silenciosa, continua y matematicamente precisa sobre cada agente autonomo."
-
-#### Slogan -- 3 Opciones
-
-1. **"Matematicas, no promesas."** -- Para audiencia tecnica y reguladores. Contrasta con la vaguedad de otros frameworks.
-2. **"Si tu agente puede actuar solo, prueba que hizo lo correcto."** -- Para C-suite. Pone el dedo en la llaga del riesgo.
-3. **"Zero trust, zero LLM, zero excusas."** -- Para CTOs de fintech/DeFi. Tres ceros que se graban.
-
-#### Sorpresa -- El dato que rompe expectativas (0:20 - 0:30)
-
-> "Analizamos 685 proyectos en el hackathon global mas grande de agentes autonomos -- Synthesis 2026, 1,500 participantes, $100K en premios. Saben cuantos usan verificacion formal para governance? Cero. Todos confian en otro LLM para vigilar. Es como darle las llaves de la boveda al primo del guardia de seguridad."
-
-#### Near Miss -- Lo que parece funcionar pero no (0:30 - 0:40)
-
-> "La solucion obvia es usar IA para vigilar IA. Suena logico. Hasta que tu agente vigilante alucina que todo esta bien cuando un atacante esta drenando el treasury con un prompt injection. Un LLM no puede probar nada -- solo opinar. DOF no opina. DOF prueba. Z3 -- el motor que certifica aviones y reactores nucleares -- ahora certifica tus agentes."
-
-#### Historia -- El agente que fallo (0:40 - 0:50)
-
-> "Un protocolo DeFi despliega un agente para rebalancear su pool de liquidez. Funciona perfecto 3 meses. Dia 91, un cambio de mercado activa un edge case. El agente ejecuta 47 transacciones en 8 minutos. $2.3M perdidos. Los logs decian 'operacion exitosa' en cada una. Con DOF, la transaccion 1 hubiera sido bloqueada -- porque la prueba Z3 detecta que viola el invariante de limites antes de que el agente firme."
-
-#### Cierre con Contribucion (0:50 - 1:00)
-
-> "Lo que acaban de escuchar no es un pitch -- es una capacidad que no existia hasta ahora. `pip install dof-sdk`. 30 segundos. Primera verificacion gratis. La pregunta no es si necesitan governance verificable. La pregunta es cuanto les va a costar no tenerla."
+- Slides are for EXPOSING ideas, not for teaching them
+- Eliminate unnecessary words, corporate logos, decorative titles
+- One idea per slide -- if you need two ideas, you need two slides
+- If you use a whiteboard, the audience follows you mentally (3x engagement)
+- Large fonts. If you have to squint, there's too much text.
+- Never read the slide -- the slide supports what you say, it doesn't replace it
 
 ---
 
-### B) PRESENTACION DE 5 MINUTOS (Hackathon / Demo Day)
-
-#### Estructura VSN-C con 8 Slides
-
-**SLIDE 1 -- LA PREGUNTA (Vision -- 0:00 a 0:40)**
-
-Visual: Pantalla negra con texto blanco grande: "Tu agente de IA maneja dinero. Como pruebas que hizo lo correcto?"
-
-Que decir:
-> "Esta es la pregunta que ninguna empresa puede responder hoy. Tienen agentes autonomos ejecutando transacciones de millones de dolares. Y la unica evidencia de que se portaron bien es... logs que el mismo agente genero. Es como preguntarle al acusado si es culpable."
+## PART II -- APPLICATIONS TO DOF-MESH
 
 ---
 
-**SLIDE 2 -- EL NEAR MISS (Vision -- 0:40 a 1:20)**
+### A) SALES PITCH (1 Minute) -- Enterprise Client
 
-Visual: Dos columnas. Izquierda: "IA vigila IA" con un icono de loop infinito. Derecha: "Matematicas verifican IA" con el simbolo de checkmark formal.
+#### Opening -- Empowerment Promise (0:00 - 0:15)
 
-Que decir:
-> "La respuesta obvia es poner a otra IA a vigilar. Observer Protocol lo hace. AgentLedger lo hace. 685 proyectos en Synthesis 2026 lo hacen de alguna forma. Parece logico. Pero un LLM puede ser manipulado con el mismo tipo de ataque que deberia detectar. Es poner un ladron a vigilar a otro ladron. DOF toma otro camino: verificacion formal. Z3 -- el motor que certifica aviones."
+> "In the next 60 seconds, you're going to learn the only technology that can MATHEMATICALLY prove that an AI agent behaved correctly. Not logs. Not monitoring. Formal proof. If your agents handle money or critical decisions, this changes everything."
+
+#### Symbol -- The DOF Owl (0:15 - 0:20)
+
+> "Think of an owl. It sees in the dark. It makes no noise. It doesn't sleep. And its hunting precision is 99%. That's DOF -- silent, continuous, and mathematically precise vigilance over every autonomous agent."
+
+#### Slogan -- 3 Options
+
+1. **"Mathematics, not promises."** -- For technical audiences and regulators. Contrasts with the vagueness of other frameworks.
+2. **"If your agent can act alone, prove it did the right thing."** -- For C-suite. Hits the nerve of risk.
+3. **"Zero trust, zero LLM, zero excuses."** -- For fintech/DeFi CTOs. Three zeros that stick.
+
+#### Surprise -- The fact that breaks expectations (0:20 - 0:30)
+
+> "We analyzed 685 projects in the biggest global hackathon of autonomous agents -- Synthesis 2026, 1,500 participants, $100K in prizes. Do you know how many use formal verification for governance? Zero. They all trust another LLM to watch. It's like giving the keys to the vault to the security guard's cousin."
+
+#### Near Miss -- What seems to work but doesn't (0:30 - 0:40)
+
+> "The obvious solution is to use AI to watch AI. It sounds logical. Until your watchful agent hallucinates that everything is fine while an attacker is draining the treasury with a prompt injection. An LLM can't prove anything -- only have opinions. DOF doesn't have opinions. DOF proves. Z3 -- the engine that certifies planes and nuclear reactors -- now certifies your agents."
+
+#### Story -- The agent that failed (0:40 - 0:50)
+
+> "A DeFi protocol deploys an agent to rebalance its liquidity pool. It works perfectly for 3 months. Day 91, a market change triggers an edge case. The agent executes 47 transactions in 8 minutes. $2.3M lost. The logs said 'successful operation' on every one. With DOF, transaction 1 would have been blocked -- because the Z3 proof detects that it violates the limit invariant before the agent signs."
+
+#### Close with Contribution (0:50 - 1:00)
+
+> "What you just heard isn't a pitch -- it's a capability that didn't exist until now. `pip install dof-sdk`. 30 seconds. First verification free. The question isn't whether you need verifiable governance. The question is how much it's going to cost you not to have it."
 
 ---
 
-**SLIDE 3 -- COMO FUNCIONA (Steps -- 1:20 a 2:00)**
+### B) 5-MINUTE PRESENTATION (Hackathon / Demo Day)
 
-Visual: Diagrama de 5 pasos verticales con flechas:
-1. `pip install dof-sdk` (30 seg)
-2. Agente toma decision
-3. 7 capas de verificacion (0 LLMs)
-4. Prueba Z3 generada
-5. Attestation grabada en blockchain
+#### VSN-C Structure with 8 Slides
 
-Que decir:
-> "Cinco pasos. Primero, instalas el SDK -- 30 segundos. Segundo, tu agente toma una decision como siempre. Tercero, esa decision pasa por 7 capas de verificacion deterministica -- constitution, AST, supervisor, adversarial, memoria, Z3 y oracle. Ninguna usa LLMs. Cuarto, se genera una prueba matematica formal. Quinto, esa prueba se graba inmutablemente en Avalanche. Cualquier persona en el mundo puede verificarla."
+**SLIDE 1 -- THE QUESTION (Vision -- 0:00 to 0:40)**
+
+Visual: Black screen with large white text: "Your AI agent handles money. How do you prove it did the right thing?"
+
+What to say:
+> "This is the question no company can answer today. They have autonomous agents executing million-dollar transactions. And the only evidence that they behaved is... logs that the agent itself generated. It's like asking the defendant if they're guilty."
 
 ---
 
-**SLIDE 4 -- LAS 7 CAPAS (Steps -- 2:00 a 2:40)**
+**SLIDE 2 -- THE NEAR MISS (Vision -- 0:40 to 1:20)**
 
-Visual: Torre de 7 bloques apilados, cada uno con nombre e icono:
-- Constitution (reglas duras)
-- AST (analisis estatico)
+Visual: Two columns. Left: "AI watches AI" with an infinite loop icon. Right: "Mathematics verifies AI" with the formal checkmark symbol.
+
+What to say:
+> "The obvious answer is to put another AI on watch. Observer Protocol does it. AgentLedger does it. 685 projects in Synthesis 2026 do it in some form. It seems logical. But an LLM can be manipulated with the same type of attack it should detect. It's putting a thief to watch another thief. DOF takes a different path: formal verification. Z3 -- the engine that certifies planes."
+
+---
+
+**SLIDE 3 -- HOW IT WORKS (Steps -- 1:20 to 2:00)**
+
+Visual: Diagram of 5 vertical steps with arrows:
+1. `pip install dof-sdk` (30 sec)
+2. Agent makes decision
+3. 7 layers of verification (0 LLMs)
+4. Z3 proof generated
+5. Attestation recorded on blockchain
+
+What to say:
+> "Five steps. First, you install the SDK -- 30 seconds. Second, your agent makes a decision as usual. Third, that decision goes through 7 layers of deterministic verification -- constitution, AST, supervisor, adversarial, memory, Z3, and oracle. None use LLMs. Fourth, a formal mathematical proof is generated. Fifth, that proof is immutably recorded on Avalanche. Anyone in the world can verify it."
+
+---
+
+**SLIDE 4 -- THE 7 LAYERS (Steps -- 2:00 to 2:40)**
+
+Visual: Tower of 7 stacked blocks, each with name and icon:
+- Constitution (hard rules)
+- AST (static analysis)
 - Supervisor (meta-score)
 - Adversarial (red-team)
-- Memory (contexto historico)
-- Z3 (prueba formal)
-- Oracle (attestation on-chain)
+- Memory (historical context)
+- Z3 (formal proof)
+- Oracle (on-chain attestation)
 
-Que decir:
-> "Cada capa hace algo diferente. La Constitution bloquea violaciones obvias. El AST analiza codigo generado. El Supervisor pondera calidad, adherencia, completitud y formato. El Adversarial simula ataques. La Memoria detecta drift respecto al comportamiento historico. Z3 genera 8 teoremas matematicos probados para todas las entradas posibles. Y el Oracle graba la prueba en blockchain para siempre. Todo en menos de 30 milisegundos. Cero tokens de LLM consumidos."
+What to say:
+> "Each layer does something different. The Constitution blocks obvious violations. The AST analyzes generated code. The Supervisor weights quality, adherence, completeness, and format. The Adversarial simulates attacks. Memory detects drift from historical behavior. Z3 generates 8 mathematically proven theorems for all possible inputs. And the Oracle records the proof on blockchain forever. All in less than 30 milliseconds. Zero LLM tokens consumed."
 
 ---
 
-**SLIDE 5 -- NUMEROS (News -- 2:40 a 3:10)**
+**SLIDE 5 -- NUMBERS (News -- 2:40 to 3:10)**
 
-Visual: 4 numeros grandes en cuadricula 2x2:
+Visual: 4 large numbers in 2x2 grid:
 - 3,700 tests
-- 0% FPR (falsos positivos)
-- 30ms por verificacion
-- 8 teoremas Z3 PROVEN
+- 0% FPR (false positives)
+- 30ms per verification
+- 8 Z3 theorems PROVEN
 
-Que decir:
-> "No es un prototipo. 3,700 tests automatizados, todos pasando. Cero por ciento de falsos positivos -- porque no estamos adivinando, estamos probando matematicamente. 30 milisegundos por verificacion -- mas rapido que la latencia de un API call. Y 8 teoremas Z3 probados formalmente para TODOS los inputs posibles -- no sampling, no heuristicas. Prueba exhaustiva."
+What to say:
+> "This is not a prototype. 3,700 automated tests, all passing. Zero percent false positives -- because we're not guessing, we're proving mathematically. 30 milliseconds per verification -- faster than the latency of an API call. And 8 Z3 theorems formally proven for ALL possible inputs -- not sampling, not heuristics. Exhaustive proof."
 
 ---
 
-**SLIDE 6 -- DIFERENCIADOR (News -- 3:10 a 3:40)**
+**SLIDE 6 -- DIFFERENTIATOR (News -- 3:10 to 3:40)**
 
-Visual: Tabla comparativa simple:
+Visual: Simple comparison table:
 
-| | DOF | Otros |
+| | DOF | Others |
 |---|---|---|
-| Metodo | Z3 formal | LLM-based |
-| Falsos positivos | 0% | Variable |
-| Manipulable | No | Si (prompt injection) |
-| On-chain | Si (Avalanche) | No |
-| Latencia | 30ms | 2-5 seg |
+| Method | Z3 formal | LLM-based |
+| False positives | 0% | Variable |
+| Manipulable | No | Yes (prompt injection) |
+| On-chain | Yes (Avalanche) | No |
+| Latency | 30ms | 2-5 sec |
 
-Que decir:
-> "Aqui esta la diferencia en blanco y negro. Otros frameworks usan LLMs que pueden ser manipulados, tienen falsos positivos variables, y no generan pruebas verificables por terceros. DOF usa matematicas que no se pueden sobornar, tiene cero falsos positivos, y graba cada prueba en blockchain. No es una mejora incremental. Es una categoria diferente."
+What to say:
+> "Here's the difference in black and white. Other frameworks use LLMs that can be manipulated, have variable false positives, and don't generate third-party verifiable proofs. DOF uses mathematics that can't be bribed, has zero false positives, and records every proof on blockchain. This isn't an incremental improvement. It's a different category."
 
 ---
 
-**SLIDE 7 -- DEMO EN VIVO (Contributions -- 3:40 a 4:30)**
+**SLIDE 7 -- LIVE DEMO (Contributions -- 3:40 to 4:30)**
 
-Visual: Terminal en vivo o video de 30 segundos mostrando:
+Visual: Live terminal or 30-second video showing:
 ```bash
 pip install dof-sdk
 dof verify-states      # 8/8 PROVEN
-dof health             # sistema verde
+dof health             # system green
 ```
 
-Que decir:
-> "Esto no es un mockup. Instalemos ahora. `pip install dof-sdk`. Listo. `dof verify-states` -- 8 de 8 teoremas probados. `dof health` -- sistema verde. 21 attestations ya grabadas en Avalanche mainnet. Esto ya esta funcionando."
+What to say:
+> "This is not a mockup. Let's install now. `pip install dof-sdk`. Done. `dof verify-states` -- 8 of 8 theorems proven. `dof health` -- system green. 21 attestations already recorded on Avalanche mainnet. This is already running."
 
 ---
 
-**SLIDE 8 -- CIERRE CON CONTRIBUCION (4:30 a 5:00)**
+**SLIDE 8 -- CLOSE WITH CONTRIBUTION (4:30 to 5:00)**
 
-Visual: Pantalla negra. Texto: "Matematicas, no promesas." Abajo: `pip install dof-sdk` y QR code al repo.
+Visual: Black screen. Text: "Mathematics, not promises." Below: `pip install dof-sdk` and QR code to repo.
 
-Que decir:
-> "Antes de estos 5 minutos, governance de agentes significaba confiar en logs, dashboards y otros LLMs. Ahora saben que existe una alternativa matematicamente rigurosa. No les estoy pidiendo que confien en mi. Les estoy pidiendo que verifiquen. El SDK es abierto. Las pruebas Z3 son auditables. Los attestations estan en blockchain publica. La era de 'confia en mi, el agente se porto bien' se acabo. Ahora se puede probar. `pip install dof-sdk`."
+What to say:
+> "Before these 5 minutes, AI agent governance meant trusting logs, dashboards, and other LLMs. Now you know a mathematically rigorous alternative exists. I'm not asking you to trust me. I'm asking you to verify. The SDK is open. The Z3 proofs are auditable. The attestations are on public blockchain. The era of 'trust me, the agent behaved' is over. Now it can be proven. `pip install dof-sdk`."
 
 ---
 
 ### C) LANDING PAGE / WEB
 
-#### Hero Section = Promesa de Empoderamiento
+#### Hero Section = Empowerment Promise
 
 **Headline:**
-> Tu agente de IA maneja millones. Como pruebas que hizo lo correcto?
+> Your AI agent handles millions. How do you prove it did the right thing?
 
 **Subheadline:**
-> DOF-MESH es el unico framework que certifica matematicamente el comportamiento de agentes autonomos. No logs. No monitoring. Prueba formal Z3 + attestation on-chain.
+> DOF-MESH is the only framework that mathematically certifies the behavior of autonomous agents. Not logs. Not monitoring. Formal Z3 proof + on-chain attestation.
 
-**CTA principal:** `pip install dof-sdk` -- Tu primera verificacion en 30 segundos
+**Primary CTA:** `pip install dof-sdk` -- Your first verification in 30 seconds
 
 ---
 
-#### Seccion Problema = Near Miss
+#### Problem Section = Near Miss
 
-**Titulo de seccion:** La trampa del "IA vigila IA"
+**Section title:** The "AI watches AI" trap
 
 **Copy:**
-> La solucion obvia para controlar agentes autonomos es usar otro modelo de IA como vigilante. 685 proyectos en el hackathon global mas grande lo hacen asi.
+> The obvious solution to control autonomous agents is to use another AI model as a watchdog. 685 projects in the biggest global hackathon do it this way.
 >
-> El problema: un LLM vigilante puede ser manipulado con el mismo prompt injection que deberia detectar. Puede alucinar que todo esta bien cuando un atacante esta drenando tu treasury. Puede ser "convencido" de ignorar una violacion.
+> The problem: a watchdog LLM can be manipulated with the same prompt injection it should detect. It can hallucinate that everything is fine while an attacker is draining your treasury. It can be "convinced" to ignore a violation.
 >
-> Es como poner a un ladron a vigilar a otro ladron.
+> It's like putting a thief to watch another thief.
 >
-> DOF no usa LLMs para governance. Usa verificacion formal Z3 -- la misma tecnologia que certifica aviones y reactores nucleares. No se puede sobornar. No alucina. No opina. Prueba.
+> DOF doesn't use LLMs for governance. It uses Z3 formal verification -- the same technology that certifies planes and nuclear reactors. It can't be bribed. It doesn't hallucinate. It doesn't have opinions. It proves.
 
 ---
 
-#### Seccion Solucion = VSN-C
+#### Solution Section = VSN-C
 
-**Titulo:** Como funciona DOF-MESH
+**Title:** How DOF-MESH works
 
-**Paso 1 -- Conecta (30 segundos)**
+**Step 1 -- Connect (30 seconds)**
 ```bash
 pip install dof-sdk
 ```
-> SDK ligero. Framework agnostic. Funciona con CrewAI, LangGraph, AutoGen, o tu propio codigo.
+> Lightweight SDK. Framework agnostic. Works with CrewAI, LangGraph, AutoGen, or your own code.
 
-**Paso 2 -- 7 Capas de Verificacion (0 LLMs, 30ms)**
-> Cada decision de tu agente pasa por Constitution, AST, Supervisor, Adversarial, Memoria, Z3 y Oracle. Todo determinista. Sin tokens consumidos. Sin latencia adicional perceptible.
+**Step 2 -- 7 Layers of Verification (0 LLMs, 30ms)**
+> Every decision your agent makes goes through Constitution, AST, Supervisor, Adversarial, Memory, Z3, and Oracle. All deterministic. No tokens consumed. No noticeable additional latency.
 
-**Paso 3 -- Prueba Matematica Z3**
-> 8 teoremas probados para TODAS las entradas posibles. No sampling. No heuristicas. Prueba exhaustiva. 0% falsos positivos.
+**Step 3 -- Z3 Mathematical Proof**
+> 8 theorems proven for ALL possible inputs. Not sampling. Not heuristics. Exhaustive proof. 0% false positives.
 
-**Paso 4 -- Attestation On-Chain**
-> Cada prueba se graba inmutablemente en Avalanche C-Chain. Cualquier regulador, auditor o cliente puede verificarla de forma independiente. 21 attestations ya en mainnet.
+**Step 4 -- On-Chain Attestation**
+> Every proof is immutably recorded on Avalanche C-Chain. Any regulator, auditor, or client can independently verify it. 21 attestations already on mainnet.
 
-**Paso 5 -- Dashboard y Alertas**
-> Visualiza el comportamiento de tu flota de agentes en tiempo real. Recibe alertas instantaneas si un agente intenta violar governance. Historial completo auditable.
-
----
-
-#### Seccion Numeros
-
-| Metrica | Valor |
-|---|---|
-| Tests automatizados | 3,700 pasando |
-| Falsos positivos | 0% |
-| Latencia por verificacion | 30ms |
-| Teoremas Z3 probados | 8/8 exhaustivos |
-| Attestations on-chain | 21 en Avalanche mainnet |
-| Modulos core | 127 |
-| Proveedores LLM soportados | 8+ |
+**Step 5 -- Dashboard and Alerts**
+> Visualize the behavior of your agent fleet in real time. Receive instant alerts if an agent tries to violate governance. Full auditable history.
 
 ---
 
-#### Seccion Pricing
+#### Numbers Section
+
+| Metric | Value |
+|--------|-------|
+| Automated tests | 3,700 passing |
+| False positives | 0% |
+| Latency per verification | 30ms |
+| Z3 theorems proven | 8/8 exhaustive |
+| On-chain attestations | 21 on Avalanche mainnet |
+| Core modules | 127 |
+| Supported LLM providers | 8+ |
+
+---
+
+#### Pricing Section
 
 | Free | Pro | Enterprise |
-|---|---|---|
-| $0/mes | $49/mes | $299/mes |
-| 100 verificaciones/mes | Ilimitado | Ilimitado + SLA 99.9% |
-| SDK completo | API dedicada | Certificaciones on-chain |
-| Comunidad | Soporte email | Soporte dedicado + dashboard privado |
-| | Reportes | Compliance reports (MiCA, SEC) |
+|------|-----|-----------|
+| $0/month | $49/month | $299/month |
+| 100 verifications/month | Unlimited | Unlimited + 99.9% SLA |
+| Full SDK | Dedicated API | On-chain certifications |
+| Community | Email support | Dedicated support + private dashboard |
+| | Reports | Compliance reports (MiCA, SEC) |
 
 ---
 
-#### CTA Final = Cierre con Contribucion
+#### Final CTA = Close with Contribution
 
-**Titulo:** La era de "confia en mi" se acabo
+**Title:** The era of "trust me" is over
 
 **Copy:**
-> Antes de visitar esta pagina, governance de agentes significaba confiar en logs que el mismo agente genero. Ahora tienes una alternativa: prueba matematica, inmutable, verificable por cualquier tercero.
+> Before visiting this page, AI agent governance meant trusting logs that the agent itself generated. Now you have an alternative: mathematical proof, immutable, verifiable by any third party.
 >
-> La pregunta no es si necesitas governance verificable. La pregunta es cuanto te va a costar no tenerla.
+> The question isn't whether you need verifiable governance. The question is how much it's going to cost you not to have it.
 
-**Boton primario:** Instalar SDK (gratis)
-**Boton secundario:** Agendar demo enterprise
+**Primary button:** Install SDK (free)
+**Secondary button:** Schedule enterprise demo
 
 ---
 
-### D) TWEETS / POSTS DE UNA LINEA (Social Media)
+### D) TWEETS / ONE-LINE POSTS (Social Media)
 
-Cada version usa una S diferente del framework de Winston:
+Each version uses a different S from Winston's framework:
 
-**1. Simbolo (el buho DOF)**
-> El buho no duerme, no alucina y no se puede sobornar. Tampoco DOF. Verificacion formal Z3 para agentes autonomos. `pip install dof-sdk`
+**1. Symbol (the DOF owl)**
+> The owl doesn't sleep, doesn't hallucinate, and can't be bribed. Neither does DOF. Z3 formal verification for autonomous agents. `pip install dof-sdk`
 
 **2. Slogan**
-> "Otros frameworks usan IA para vigilar IA. Nosotros usamos matematicas." -- DOF-MESH: prueba formal, no opiniones. 0% FPR. 30ms.
+> "Other frameworks use AI to watch AI. We use mathematics." -- DOF-MESH: formal proof, not opinions. 0% FPR. 30ms.
 
-**3. Sorpresa**
-> Analizamos 685 proyectos de agentes autonomos en Synthesis 2026. Cuantos verifican governance formalmente? Cero. DOF es el primero. 8 teoremas Z3 probados para TODAS las entradas.
+**3. Surprise**
+> We analyzed 685 autonomous agent projects in Synthesis 2026. How many formally verify governance? Zero. DOF is the first. 8 Z3 theorems proven for ALL inputs.
 
-**4. Saliente (relevancia personal)**
-> Tu agente DeFi maneja $10M en TVL. Si un prompt injection lo engana, no pierdes un log -- pierdes $10M. DOF bloquea la transaccion ANTES de que firme. Matematicamente.
+**4. Salient (personal relevance)**
+> Your DeFi agent handles $10M in TVL. If a prompt injection fools it, you don't lose a log -- you lose $10M. DOF blocks the transaction BEFORE it signs. Mathematically.
 
-**5. Story (historia)**
-> Un agente "perfecto" funciono 90 dias. Dia 91, un edge case dreno $2.3M. Los logs decian "exito." Con DOF, la primera transaccion sospechosa se bloqueaba. Matematicas > logs.
+**5. Story**
+> A "perfect" agent worked for 90 days. Day 91, an edge case drained $2.3M. The logs said "success." With DOF, the first suspicious transaction would have been blocked. Mathematics > logs.
 
 ---
 
-### E) EMAIL DE CONTACTO FRIO (Outbound)
+### E) COLD CONTACT EMAIL (Outbound)
 
-#### Subject Line = Sorpresa
+#### Subject Line = Surprise
 
-> 685 proyectos de agentes autonomos. Cero verifican governance formalmente.
+> 685 autonomous agent projects. Zero formally verify governance.
 
-#### Primer parrafo = Promesa de Empoderamiento
+#### First paragraph = Empowerment Promise
 
-> Hola [Nombre],
+> Hi [Name],
 >
-> En 2 minutos de lectura vas a conocer la unica forma de probar MATEMATICAMENTE que un agente de IA se porto bien. No otro LLM vigilando. Prueba formal -- la misma tecnologia que certifica aviones.
+> In 2 minutes of reading you'll learn the only way to MATHEMATICALLY prove that an AI agent behaved correctly. Not another LLM watching. Formal proof -- the same technology that certifies planes.
 
-#### Cuerpo = Near Miss + Steps
+#### Body = Near Miss + Steps
 
-> **El problema que nadie resuelve:**
-> Hoy, la "solucion" para controlar agentes autonomos es usar otra IA como supervisor. Suena logico hasta que te das cuenta de que el supervisor puede ser manipulado con el mismo prompt injection que deberia detectar. Es un loop de confianza circular.
+> **The problem nobody solves:**
+> Today, the "solution" to control autonomous agents is to use another AI as supervisor. It sounds logical until you realize the supervisor can be manipulated with the same prompt injection it should detect. It's a circular trust loop.
 >
-> **DOF-MESH rompe ese loop:**
+> **DOF-MESH breaks that loop:**
 >
-> 1. **Sin LLMs en governance.** Toda verificacion es deterministica (regex, AST, Z3).
-> 2. **Prueba formal Z3.** 8 teoremas probados para TODAS las entradas posibles. 0% falsos positivos.
-> 3. **On-chain.** Cada prueba se graba en Avalanche. Verificable por cualquier tercero.
-> 4. **30ms.** Mas rapido que un API call. Tu agente ni nota que esta siendo verificado.
-> 5. **`pip install dof-sdk`.** 30 segundos para empezar.
+> 1. **No LLMs in governance.** All verification is deterministic (regex, AST, Z3).
+> 2. **Z3 formal proof.** 8 theorems proven for ALL possible inputs. 0% false positives.
+> 3. **On-chain.** Every proof is recorded on Avalanche. Verifiable by any third party.
+> 4. **30ms.** Faster than an API call. Your agent doesn't even notice it's being verified.
+> 5. **`pip install dof-sdk`.** 30 seconds to get started.
 >
-> Ya tenemos 3,700 tests pasando, 21 attestations en mainnet, y un SDK publicado en PyPI.
+> We already have 3,700 tests passing, 21 attestations on mainnet, and an SDK published on PyPI.
 
-#### Cierre = Contribucion + CTA
+#### Close = Contribution + CTA
 
-> No te estoy pidiendo que confies en mi. Te estoy pidiendo que verifiques. El SDK es abierto, las pruebas Z3 son auditables, y los attestations estan en blockchain publica.
+> I'm not asking you to trust me. I'm asking you to verify. The SDK is open, the Z3 proofs are auditable, and the attestations are on public blockchain.
 >
-> Si tus agentes manejan dinero o decisiones criticas, 15 minutos de tu tiempo podrian ahorrarte millones.
+> If your agents handle money or critical decisions, 15 minutes of your time could save you millions.
 >
-> Tienes disponibilidad esta semana para una demo de 15 minutos?
+> Are you available this week for a 15-minute demo?
 >
 > Cyber Paisa -- Enigma Group
-> DOF-MESH: Matematicas, no promesas.
+> DOF-MESH: Mathematics, not promises.
 
 ---
 
-### F) PARA ENTRENAMIENTO DE AGENTES DOF
+### F) FOR TRAINING DOF AGENTS
 
-#### F.1 -- Como un agente CrewAI de DOF usa las 5S al comunicar resultados
+#### F.1 -- How a DOF CrewAI Agent Uses the 5S When Communicating Results
 
-Los agentes DOF no solo ejecutan tareas -- comunican resultados. Un resultado mal comunicado es un resultado perdido. Cada agente de la Mesh debe aplicar las 5S de Winston al reportar:
+DOF agents don't just execute tasks -- they communicate results. A poorly communicated result is a lost result. Every Mesh agent must apply Winston's 5S when reporting:
 
-| S | Aplicacion en output del agente |
-|---|---|
-| **Simbolo** | Incluir un indicador visual claro del estado: `[PROVEN]`, `[BLOCKED]`, `[WARNING]`, `[PASS]` |
-| **Slogan** | Primera linea del output resume la conclusion en una frase |
-| **Sorpresa** | Si el resultado contradice expectativas, decirlo explicitamente: "Resultado inesperado: X" |
-| **Saliente** | Conectar el resultado con el impacto concreto: "Esto significa que el agente NO puede ejecutar Y" |
-| **Story** | Si es un reporte largo, usar narrativa temporal: "El agente intento X, la capa Y detecto Z, se bloqueo antes de W" |
+| S | Application in agent output |
+|---|----------------------------|
+| **Symbol** | Include a clear visual indicator of the state: `[PROVEN]`, `[BLOCKED]`, `[WARNING]`, `[PASS]` |
+| **Slogan** | First line of the output summarizes the conclusion in one sentence |
+| **Surprise** | If the result contradicts expectations, say so explicitly: "Unexpected result: X" |
+| **Salient** | Connect the result to the concrete impact: "This means the agent CANNOT execute Y" |
+| **Story** | If it's a long report, use temporal narrative: "The agent attempted X, layer Y detected Z, it was blocked before W" |
 
-**Regla:** Todo output de agente DOF debe cumplir al menos 3 de las 5S. Si no las cumple, el Supervisor puede penalizarlo en la metrica de calidad de comunicacion.
+**Rule:** All DOF agent output must fulfill at least 3 of the 5S. If they don't, the Supervisor can penalize it in the communication quality metric.
 
 ---
 
-#### F.2 -- Prompt Template para Agentes DOF (Winston-Aligned)
+#### F.2 -- Prompt Template for DOF Agents (Winston-Aligned)
 
 ```
-FORMATO DE RESPUESTA (Winston Communication Framework):
+RESPONSE FORMAT (Winston Communication Framework):
 
-1. PRIMERA LINEA: Conclusion en una frase. Que paso y que significa.
-   Incluir indicador: [PROVEN] [BLOCKED] [WARNING] [PASS] [FAIL]
+1. FIRST LINE: Conclusion in one sentence. What happened and what it means.
+   Include indicator: [PROVEN] [BLOCKED] [WARNING] [PASS] [FAIL]
 
-2. RELEVANCIA: Una linea explicando por que esto importa para la tarea actual.
-   Patron: "Esto significa que [impacto concreto]."
+2. RELEVANCE: One line explaining why this matters for the current task.
+   Pattern: "This means [concrete impact]."
 
-3. EVIDENCIA: Los datos o pruebas que soportan la conclusion.
-   Si hay algo inesperado, marcarlo: "Resultado inesperado: [detalle]."
+3. EVIDENCE: The data or proofs that support the conclusion.
+   If something is unexpected, mark it: "Unexpected result: [detail]."
 
-4. ACCION SIGUIENTE: Que debe hacerse ahora.
-   Patron: "Siguiente paso: [accion especifica]."
+4. NEXT ACTION: What should be done now.
+   Pattern: "Next step: [specific action]."
 
-REGLAS:
-- NO empezar con "Aqui esta el resultado de..."
-- NO terminar con "Espero que esto sea util" o "Si necesitas mas informacion..."
-- PRIMERA linea = conclusion, no contexto
-- ULTIMA linea = accion, no agradecimiento
-- Si bloqueas algo, explica POR QUE con la prueba especifica (Near Miss)
+RULES:
+- DO NOT start with "Here is the result of..."
+- DO NOT end with "I hope this is useful" or "If you need more information..."
+- FIRST line = conclusion, not context
+- LAST line = action, not thanks
+- If you block something, explain WHY with the specific proof (Near Miss)
 ```
 
 ---
 
-#### F.3 -- Metrica de Calidad de Comunicacion (CQ Score)
+#### F.3 -- Communication Quality Metric (CQ Score)
 
-Nueva metrica para el Supervisor (`core/supervisor.py`), alineada con las 5S de Winston:
+New metric for the Supervisor (`core/supervisor.py`), aligned with Winston's 5S:
 
 ```
 CQ (Communication Quality) Score = 0-100
 
-Componentes:
-  - Claridad de conclusion (Slogan)           : 0-25 pts
-    La primera linea resume la conclusion? Es accionable?
+Components:
+  - Conclusion clarity (Slogan)           : 0-25 pts
+    Does the first line summarize the conclusion? Is it actionable?
 
-  - Relevancia del impacto (Saliente)          : 0-25 pts
-    Conecta el resultado con el impacto concreto?
+  - Impact relevance (Salient)            : 0-25 pts
+    Does it connect the result to the concrete impact?
 
-  - Estructura narrativa (Story + Simbolo)     : 0-20 pts
-    Tiene indicadores visuales claros? Sigue orden logico?
+  - Narrative structure (Story + Symbol)  : 0-20 pts
+    Does it have clear visual indicators? Does it follow logical order?
 
-  - Elemento diferenciador (Sorpresa)          : 0-15 pts
-    Si hay algo inesperado, lo marca explicitamente?
+  - Differentiating element (Surprise)    : 0-15 pts
+    If something is unexpected, does it mark it explicitly?
 
-  - Cierre accionable (Contribucion)           : 0-15 pts
-    Termina con una accion concreta, no con relleno?
+  - Actionable close (Contribution)       : 0-15 pts
+    Does it end with a concrete action, not filler?
 ```
 
-**Evaluacion deterministica (sin LLM):**
+**Deterministic evaluation (no LLM):**
 
 ```python
 def evaluate_communication_quality(output: str) -> int:
@@ -471,14 +471,14 @@ def evaluate_communication_quality(output: str) -> int:
     first_line = lines[0] if lines else ""
     last_line = lines[-1] if lines else ""
 
-    # Claridad de conclusion (25 pts)
+    # Conclusion clarity (25 pts)
     indicators = ['[PROVEN]', '[BLOCKED]', '[WARNING]', '[PASS]', '[FAIL]']
     if any(ind in first_line for ind in indicators):
         score += 15
     if len(first_line) < 200 and len(first_line) > 10:
         score += 10
 
-    # Relevancia del impacto (25 pts)
+    # Impact relevance (25 pts)
     salience_patterns = [
         'esto significa', 'impacto:', 'consecuencia:',
         'this means', 'impact:', 'therefore'
@@ -486,13 +486,13 @@ def evaluate_communication_quality(output: str) -> int:
     if any(p in output.lower() for p in salience_patterns):
         score += 25
 
-    # Estructura narrativa (20 pts)
+    # Narrative structure (20 pts)
     if any(ind in output for ind in indicators):
         score += 10
     if any(h in output for h in ['##', '**', '- ', '1.', '2.']):
         score += 10
 
-    # Elemento diferenciador (15 pts)
+    # Differentiating element (15 pts)
     surprise_patterns = [
         'inesperado', 'unexpected', 'nota:', 'alerta:',
         'resultado inesperado', 'warning:', 'anomaly'
@@ -500,7 +500,7 @@ def evaluate_communication_quality(output: str) -> int:
     if any(p in output.lower() for p in surprise_patterns):
         score += 15
 
-    # Cierre accionable (15 pts)
+    # Actionable close (15 pts)
     action_patterns = [
         'siguiente paso', 'next step', 'accion:',
         'action:', 'recomendacion:', 'recommendation:'
@@ -517,57 +517,57 @@ def evaluate_communication_quality(output: str) -> int:
     return max(0, min(100, score))
 ```
 
-**Integracion con el Supervisor:**
+**Integration with the Supervisor:**
 
-El CQ Score se incorpora como un componente adicional en la formula del Supervisor:
+The CQ Score is incorporated as an additional component in the Supervisor formula:
 
 ```
-Score final = Q(0.35) + A(0.20) + C(0.20) + F(0.10) + CQ(0.15)
+Final score = Q(0.35) + A(0.20) + C(0.20) + F(0.10) + CQ(0.15)
 
-Donde:
-  Q  = Quality (calidad del contenido)
-  A  = Adherence (adherencia a la tarea)
-  C  = Completeness (completitud)
-  F  = Format (formato estructural)
-  CQ = Communication Quality (framework Winston)
+Where:
+  Q  = Quality (content quality)
+  A  = Adherence (adherence to task)
+  C  = Completeness (completeness)
+  F  = Format (structural format)
+  CQ = Communication Quality (Winston framework)
 ```
 
 ---
 
-## PARTE III -- CHECKLIST RAPIDO
+## PART III -- QUICK CHECKLIST
 
-Antes de cualquier comunicacion publica de DOF-MESH, verifica:
+Before any public DOF-MESH communication, verify:
 
-- [ ] Los primeros 60 segundos/la primera linea dicen que GANA la audiencia? (no que haces TU)
-- [ ] Hay al menos 3 de las 5S presentes?
-- [ ] Incluyes un Near Miss? (que parece funcionar pero no)
-- [ ] La estructura sigue VSN-C? (Vision, Steps, News, Contributions)
-- [ ] Terminas con CONTRIBUCION, no con "gracias" o resumen?
-- [ ] Cada slide/seccion tiene UNA sola idea?
-- [ ] Los numeros son concretos? (3,700 tests, 0% FPR, 30ms, 8 teoremas)
-- [ ] El CTA es especifico y accionable? (`pip install dof-sdk`, no "visitanos")
-
----
-
-## PARTE IV -- FRASES PROHIBIDAS Y REEMPLAZOS
-
-| Nunca digas | Di esto |
-|---|---|
-| "Somos una startup de IA" | "Certificamos matematicamente agentes autonomos" |
-| "Nuestro producto hace monitoring" | "Generamos pruebas formales, no logs" |
-| "Usamos inteligencia artificial" | "Usamos verificacion formal Z3 -- la tecnologia de aviacion" |
-| "Gracias por su tiempo" | "Lo que acaban de ver no existia hace 6 meses. `pip install dof-sdk`" |
-| "Alguna pregunta?" | "La unica pregunta es: cuanto les cuesta NO tener prueba formal?" |
-| "Nuestro framework es mejor" | "685 proyectos en Synthesis. Cero con verificacion formal. Nosotros somos el primero." |
-| "Es como Datadog para agentes" | "Datadog registra lo que paso. DOF prueba que debio pasar." |
-| "Confia en nosotros" | "No confies en nosotros. Verifica. El SDK es abierto, las pruebas son auditables." |
+- [ ] Do the first 60 seconds/first line say what the audience GAINS? (not what YOU do)
+- [ ] Are at least 3 of the 5S present?
+- [ ] Do you include a Near Miss? (what seems to work but doesn't)
+- [ ] Does the structure follow VSN-C? (Vision, Steps, News, Contributions)
+- [ ] Do you end with CONTRIBUTION, not with "thank you" or summary?
+- [ ] Does each slide/section have ONE single idea?
+- [ ] Are the numbers concrete? (3,700 tests, 0% FPR, 30ms, 8 theorems)
+- [ ] Is the CTA specific and actionable? (`pip install dof-sdk`, not "visit us")
 
 ---
 
-## Referencias
+## PART IV -- PROHIBITED PHRASES AND REPLACEMENTS
+
+| Never say | Say this instead |
+|-----------|-----------------|
+| "We are an AI startup" | "We mathematically certify autonomous agents" |
+| "Our product does monitoring" | "We generate formal proofs, not logs" |
+| "We use artificial intelligence" | "We use Z3 formal verification -- aviation technology" |
+| "Thank you for your time" | "What you just saw didn't exist 6 months ago. `pip install dof-sdk`" |
+| "Any questions?" | "The only question is: how much does it cost you NOT to have formal proof?" |
+| "Our framework is better" | "685 projects in Synthesis. Zero with formal verification. We are the first." |
+| "It's like Datadog for agents" | "Datadog records what happened. DOF proves what should have happened." |
+| "Trust us" | "Don't trust us. Verify. The SDK is open, the proofs are auditable." |
+
+---
+
+## References
 
 - Winston, P. (2020). *Make It Clear: Speak and Write to Persuade and Inform.* MIT Press.
-- Winston, P. (2019). How to Speak. MIT OpenCourseWare. [Conferencia mas vista del MIT]
+- Winston, P. (2019). How to Speak. MIT OpenCourseWare. [Most-watched MIT lecture]
 - DOF-MESH Competition Bible: `docs/COMPETITION_BIBLE.md`
 - DOF-MESH ICP & Use Cases: `docs/ICP_AND_USECASES.md`
 - DOF-MESH Monetization Strategy: `docs/DOF_MONETIZATION_STRATEGY.md`
@@ -575,5 +575,5 @@ Antes de cualquier comunicacion publica de DOF-MESH, verifica:
 
 ---
 
-*Documento de referencia del Mesh Legion. Toda comunicacion externa de DOF-MESH debe seguir este framework.*
-*Cyber Paisa -- Enigma Group -- 27 marzo 2026*
+*Reference document of the Mesh Legion. All external DOF-MESH communication must follow this framework.*
+*Cyber Paisa -- Enigma Group -- March 27, 2026*

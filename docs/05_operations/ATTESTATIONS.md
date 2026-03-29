@@ -1,13 +1,13 @@
 # DOF Live Attestations — v0.4.1
 
-Total: **35 attestations** en 2 chains, 4 wallets distintas.
+Total: **35 attestations** on 2 chains, 4 different wallets.
 
 ---
 
 ## Avalanche C-Chain (43114)
 Contract: [`0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6`](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6)
 
-### Batch inicial — agent 1686
+### Initial Batch — agent 1686
 | TX Hash | Gas |
 |---------|-----|
 | [638ee3ac6447d747...](https://snowtrace.io/tx/638ee3ac6447d747) | 168,505 |
@@ -21,7 +21,7 @@ Contract: [`0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6`](https://snowtrace.io/ad
 | [4757d66bae333244...](https://snowtrace.io/tx/4757d66bae333244) | 168,505 |
 | [d1a296fe3cf11f80...](https://snowtrace.io/tx/d1a296fe3cf11f80) | 168,505 |
 
-### E2E Multi-Agent Test — 4 wallets distintas
+### E2E Multi-Agent Test — 4 different wallets
 | Agent | Wallet | TX Hash | Gas |
 |-------|--------|---------|-----|
 | APEX | 0xcd595a299a... | [939bec0fd44d9acdb4...](https://snowtrace.io/tx/939bec0fd44d9acdb4) | 168,637 |
@@ -36,7 +36,7 @@ Contract: [`0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6`](https://snowtrace.io/ad
 ## Conflux eSpace Testnet (71)
 Contract: [`0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83`](https://evmtestnet.confluxscan.io/address/0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83)
 
-### Batch inicial — agent 1686
+### Initial Batch — agent 1686
 | TX Hash | Gas |
 |---------|-----|
 | [9bd729e3f864baad...](https://evmtestnet.confluxscan.io/tx/9bd729e3f864baad4fc7) | 288,505 |
@@ -68,15 +68,15 @@ Contract: [`0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83`](https://evmtestnet.conf
 
 ---
 
-## Primera TX histórica (sesión anterior)
-| Chain | TX | Nota |
+## First Historical TX (previous session)
+| Chain | TX | Note |
 |-------|----|------|
-| Conflux | c6e77c1c25d310a3... | Primera attestation DOF en Conflux |
-| Avalanche | 2e8ca5c8a687e5cd... | Primera attestation DOF en Avalanche v0.4.1 |
+| Conflux | c6e77c1c25d310a3... | First DOF attestation on Conflux |
+| Avalanche | 2e8ca5c8a687e5cd... | First DOF attestation on Avalanche v0.4.1 |
 
 ---
 
-## Resumen
+## Summary
 | Chain | Attestations | Wallets | Status |
 |-------|-------------|---------|--------|
 | Avalanche C-Chain (mainnet) | 14 | 4 | ✅ live |

@@ -1,76 +1,76 @@
-# DOF-MESH — Reporte de Seguridad (27 marzo 2026)
+# DOF-MESH — Security Report (March 27, 2026)
 
-## Auditoría Ejecutada por Supply Chain Guard
+## Audit Executed by Supply Chain Guard
 
-| Severidad | Cantidad | Acción |
+| Severity | Count | Action |
 |---|---|---|
-| CRITICAL | 7 | Revisar litellm imports + pickle patterns |
-| HIGH | 112 | eval/exec/os.system en codebase |
-| MEDIUM | 247 | Dependencias sin pinnear + patrones menores |
-| LOW | 16 | Informativos |
+| CRITICAL | 7 | Review litellm imports + pickle patterns |
+| HIGH | 112 | eval/exec/os.system in codebase |
+| MEDIUM | 247 | Unpinned dependencies + minor patterns |
+| LOW | 16 | Informational |
 | **Total** | **382** | |
 
-## Hallazgos Críticos
+## Critical Findings
 
-### 1. Secret en historial git
-- `.q_aion_vault.key` fue committeado en `c01652c`, removido después
-- **Sigue en historial** — accesible con `git log --all`
-- Acción: rotar key si tiene valor real
+### 1. Secret in git history
+- `.q_aion_vault.key` was committed in `c01652c`, removed afterwards
+- **Still in history** — accessible with `git log --all`
+- Action: rotate key if it has real value
 
-### 2. Requirements sin pinnear (16 dependencias)
+### 2. Unpinned requirements (16 dependencies)
 - crewai, litellm, python-dotenv, pandas, openpyxl, sqlalchemy, psycopg2-binary, rich, pyyaml, z3-solver, blake3, pyTelegramBotAPI, streamlit, groq, gTTS, sounddevice
-- Acción: `pip freeze > requirements.txt` con versiones exactas
+- Action: `pip freeze > requirements.txt` with exact versions
 
-### 3. litellm en blacklist (TeamPCP)
-- 3 imports de litellm en código (dispatch_hackathon.py, adversarial.py)
-- litellm NO está instalado actualmente — riesgo bajo
-- Si se instala: verificar versión segura primero
+### 3. litellm on blacklist (TeamPCP)
+- 3 litellm imports in code (dispatch_hackathon.py, adversarial.py)
+- litellm is NOT currently installed — low risk
+- If installed: verify safe version first
 
-### 4. Archivo WAV en config/
-- `config/voice_reference.wav` — legítimo (referencia de voz para TTS)
-- Verificado: no es steganography
+### 4. WAV file in config/
+- `config/voice_reference.wav` — legitimate (voice reference for TTS)
+- Verified: not steganography
 
-## Amenazas Activas Monitoreadas
+## Active Monitored Threats
 
 ### TeamPCP (PyPI Supply Chain)
-- Comprometió: telnyx 4.87.1/4.87.2, LiteLLM, Trivy
-- Técnica: WAV steganography + XOR decryption in-memory
+- Compromised: telnyx 4.87.1/4.87.2, LiteLLM, Trivy
+- Technique: WAV steganography + XOR decryption in-memory
 - C2: 83.142.209.203
-- **Nuestro estado: SEGURO** — no usamos estos paquetes
+- **Our status: SAFE** — we do not use these packages
 
 ### CTRL Framework (Russian RAT)
-- Descubierto: Censys ARC, Feb 2026
-- Target: Windows VPS con RDP
-- Técnica: LNK → PowerShell → .NET RAT → FRP tunnel → RDP hijack
+- Discovered: Censys ARC, Feb 2026
+- Target: Windows VPS with RDP
+- Technique: LNK → PowerShell → .NET RAT → FRP tunnel → RDP hijack
 - C2: 194.33.61.36, 109.107.168.18
-- **Nuestro estado: SEGURO** — somos macOS/Linux, no Windows
+- **Our status: SAFE** — we are macOS/Linux, not Windows
 
 ### CVE-2025-53521 (F5 BIG-IP)
-- Scanning activo de /mgmt/shared/identified-devices/config/device-info
+- Active scanning of /mgmt/shared/identified-devices/config/device-info
 - User-Agent: "CVE-2025-53521-Scanner/1.0"
-- **Nuestro estado: N/A** — no usamos F5
+- **Our status: N/A** — we do not use F5
 
-## Estado de Protecciones DOF
+## DOF Protection Status
 
-| Protección | Estado |
+| Protection | Status |
 |---|---|
-| Supply Chain Guard | ACTIVO — blacklist, import scan, steganography |
-| .gitignore | OK — cubre .env, *.key, secrets |
-| .dof-keys permisos | OK — chmod 600 |
-| Private keys en código | LIMPIO — solo env vars |
-| Governance determinística | ACTIVO — zero-LLM |
-| Z3 verification | ACTIVO — 4 teoremas |
-| Sentinel Engine | ACTIVO — 10 checks |
-| IOCs actualizados | TeamPCP + CTRL + F5 |
+| Supply Chain Guard | ACTIVE — blacklist, import scan, steganography |
+| .gitignore | OK — covers .env, *.key, secrets |
+| .dof-keys permissions | OK — chmod 600 |
+| Private keys in code | CLEAN — env vars only |
+| Deterministic governance | ACTIVE — zero-LLM |
+| Z3 verification | ACTIVE — 4 theorems |
+| Sentinel Engine | ACTIVE — 10 checks |
+| Updated IOCs | TeamPCP + CTRL + F5 |
 
-## Recomendaciones Pendientes
+## Pending Recommendations
 
-1. Pinnear todas las dependencias en requirements.txt
-2. Considerar purgar historial git (.q_aion_vault.key)
-3. Agregar `pip-audit` o `safety check` al CI
-4. MFA en todos los servicios (GitHub, Railway, Vercel, Supabase)
-5. Rotar tokens de Railway (servicios ya muertos pero tokens podrían estar vivos)
+1. Pin all dependencies in requirements.txt
+2. Consider purging git history (.q_aion_vault.key)
+3. Add `pip-audit` or `safety check` to CI
+4. MFA on all services (GitHub, Railway, Vercel, Supabase)
+5. Rotate Railway tokens (services already dead but tokens might still be active)
 
 ---
 
-*Generado por Supply Chain Guard + Team Agents — 27 marzo 2026*
+*Generated by Supply Chain Guard + Team Agents — March 27, 2026*

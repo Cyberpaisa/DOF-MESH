@@ -1,11 +1,11 @@
-# Analisis Completo de Adaline para DOF-MESH
+# Complete Adaline Analysis for DOF-MESH
 
-> Investigacion tecnica exhaustiva de la plataforma Adaline (adaline.ai) y su aplicabilidad al framework DOF-MESH.
-> Fecha: 2026-03-27 | Autor: Cyber Paisa - Enigma Group
+> Exhaustive technical research of the Adaline platform (adaline.ai) and its applicability to the DOF-MESH framework.
+> Date: 2026-03-27 | Author: Cyber Paisa - Enigma Group
 
 ---
 
-## Tabla de Contenidos
+## Table of Contents
 
 1. [The Adaline Method (ADLC)](#1-the-adaline-method-adlc)
 2. [Instrument](#2-instrument)
@@ -13,71 +13,71 @@
 4. [Iterate](#4-iterate)
 5. [Evaluate](#5-evaluate)
 6. [Deploy](#6-deploy)
-7. [Admin y Security](#7-admin-y-security)
+7. [Admin and Security](#7-admin-and-security)
 8. [Prompt Library (Templates)](#8-prompt-library-templates)
-9. [Ideas y Brainstorming](#9-ideas-y-brainstorming)
+9. [Ideas and Brainstorming](#9-ideas-and-brainstorming)
 
 ---
 
 ## 1. The Adaline Method (ADLC)
 
-### Concepto Clave
+### Key Concept
 
-Adaline introduce el **AI Development Lifecycle (ADLC)** como alternativa al SDLC tradicional. La premisa fundamental: el desarrollo de IA requiere un ciclo cerrado y continuo porque los modelos son **no-deterministas**, propensos a alucinaciones, costosos de ejecutar, y requieren iteracion intensiva.
+Adaline introduces the **AI Development Lifecycle (ADLC)** as an alternative to the traditional SDLC. The fundamental premise: AI development requires a closed and continuous cycle because models are **non-deterministic**, prone to hallucinations, expensive to run, and require intensive iteration.
 
-El motto central es: **"Monitoreo intensivo con desarrollo y testing iterativo."**
+The central motto is: **"Intensive monitoring with iterative development and testing."**
 
-### Los 5 Pilares del ADLC
+### The 5 Pillars of ADLC
 
-| Pilar | Funcion | Herramienta Principal |
-|-------|---------|----------------------|
-| **Instrument** | Capturar telemetria completa de cada operacion | Proxy, SDK, API REST |
-| **Monitor** | Analizar calidad y rendimiento en tiempo real | Dashboards, Charts, Alerts |
-| **Iterate** | Refinar prompts con versionado y playground | Editor colaborativo, MCP |
-| **Evaluate** | Testing cuantificado contra miles de test cases | Datasets, Evaluators, Reports |
-| **Deploy** | Despliegue con ambientes aislados y versionados | Environments, Webhooks, CI/CD |
+| Pillar | Function | Primary Tool |
+|--------|----------|--------------|
+| **Instrument** | Capture complete telemetry of every operation | Proxy, SDK, REST API |
+| **Monitor** | Analyze quality and performance in real time | Dashboards, Charts, Alerts |
+| **Iterate** | Refine prompts with versioning and playground | Collaborative editor, MCP |
+| **Evaluate** | Quantified testing against thousands of test cases | Datasets, Evaluators, Reports |
+| **Deploy** | Deployment with isolated and versioned environments | Environments, Webhooks, CI/CD |
 
-### Flujo Cerrado
+### Closed Loop
 
-Cada pilar alimenta al siguiente en un ciclo continuo:
+Each pillar feeds the next in a continuous cycle:
 
 ```
 Instrument -> Monitor -> Iterate -> Evaluate -> Deploy -> Instrument (loop)
 ```
 
-Los logs de produccion (Monitor) se convierten en datasets (Evaluate), los resultados de evaluacion guian la iteracion (Iterate), y los prompts mejorados se despliegan (Deploy) con instrumentacion automatica (Instrument).
+Production logs (Monitor) become datasets (Evaluate), evaluation results guide iteration (Iterate), and improved prompts are deployed (Deploy) with automatic instrumentation (Instrument).
 
-### Mapping a DOF-MESH
+### Mapping to DOF-MESH
 
-| ADLC Pilar | DOF-MESH Equivalente | Estado Actual | Gap |
-|------------|---------------------|---------------|-----|
-| Instrument | `mesh_monitor.py` + JSONL logs | Parcial | Sin traces/spans estructurados |
-| Monitor | `mesh_metrics_collector.py` | Basico | Sin continuous eval, sin charts |
-| Iterate | `prompt_registry.py` | Basico | Sin playground, sin versionado |
-| Evaluate | `continuous_eval.py` | Parcial | Sin datasets formales, sin multi-turn |
-| Deploy | Manual / Railway | Manual | Sin environments, sin webhooks |
+| ADLC Pillar | DOF-MESH Equivalent | Current Status | Gap |
+|-------------|---------------------|----------------|-----|
+| Instrument | `mesh_monitor.py` + JSONL logs | Partial | No structured traces/spans |
+| Monitor | `mesh_metrics_collector.py` | Basic | No continuous eval, no charts |
+| Iterate | `prompt_registry.py` | Basic | No playground, no versioning |
+| Evaluate | `continuous_eval.py` | Partial | No formal datasets, no multi-turn |
+| Deploy | Manual / Railway | Manual | No environments, no webhooks |
 
-**Insight critico**: DOF-MESH tiene los componentes pero NO el ciclo cerrado. Adaline demuestra que el valor esta en la **retroalimentacion automatica** entre pilares, no en cada pilar individual.
+**Critical insight**: DOF-MESH has the components but NOT the closed loop. Adaline demonstrates that the value lies in the **automatic feedback** between pillars, not in each individual pillar.
 
 ---
 
 ## 2. Instrument
 
-### Concepto Clave
+### Key Concept
 
-La instrumentacion convierte cada llamada LLM, ejecucion de herramienta y paso de workflow en datos trazables. Captura: inputs, outputs, latencia, tokens, costos, parametros del modelo, errores, y metadatos custom.
+Instrumentation turns every LLM call, tool execution, and workflow step into traceable data. It captures: inputs, outputs, latency, tokens, costs, model parameters, errors, and custom metadata.
 
-### Tres Metodos de Instrumentacion
+### Three Instrumentation Methods
 
 #### 2.1 Proxy (Zero-Code)
 
-La opcion mas rapida. Se modifica unicamente la `baseUrl` del proveedor de IA.
+The fastest option. Only the AI provider's `baseUrl` is modified.
 
 **Base URL**: `https://gateway.adaline.ai/v1/{provider}/`
 
-**Proveedores soportados**:
-| Proveedor | Endpoint |
-|-----------|----------|
+**Supported providers**:
+| Provider | Endpoint |
+|----------|----------|
 | OpenAI | `/v1/openai/` |
 | Anthropic | `/v1/anthropic/` |
 | Google | `/v1/google` |
@@ -89,31 +89,31 @@ La opcion mas rapida. Se modifica unicamente la `baseUrl` del proveedor de IA.
 | xAI | `/v1/xai/` |
 | Vertex AI | `/v1/vertex` |
 
-**Headers obligatorios**:
-- `adaline-api-key`: Credenciales del workspace
-- `adaline-project-id`: Proyecto destino para logs
-- `adaline-prompt-id`: Vincula spans a prompts especificos
+**Required headers**:
+- `adaline-api-key`: Workspace credentials
+- `adaline-project-id`: Destination project for logs
+- `adaline-prompt-id`: Links spans to specific prompts
 
-**Headers opcionales de Trace**:
-- `adaline-trace-name`: Nombre descriptivo
-- `adaline-trace-status`: Estado del trace
-- `adaline-trace-reference-id`: ID externo (para agrupar multiples requests en un trace)
-- `adaline-trace-session-id`: Sesion del usuario
-- Atributos y tags custom
+**Optional Trace headers**:
+- `adaline-trace-name`: Descriptive name
+- `adaline-trace-status`: Trace status
+- `adaline-trace-reference-id`: External ID (to group multiple requests in one trace)
+- `adaline-trace-session-id`: User session
+- Custom attributes and tags
 
-**Headers opcionales de Span**:
-- `adaline-span-name`: Nombre del span
-- `adaline-span-variables`: JSON con variables para eval continua
-- `adaline-span-run-evaluation`: Activar eval en este span
-- `adaline-deployment-id`: Vincular a deployment especifico
+**Optional Span headers**:
+- `adaline-span-name`: Span name
+- `adaline-span-variables`: JSON with variables for continuous eval
+- `adaline-span-run-evaluation`: Activate eval on this span
+- `adaline-deployment-id`: Link to specific deployment
 
-**Captura automatica**: Request/response payloads, token usage (input/output) + costo, latencia, modelo/proveedor, errores y status codes.
+**Automatic capture**: Request/response payloads, token usage (input/output) + cost, latency, model/provider, errors and status codes.
 
 #### 2.2 SDK (TypeScript/Python)
 
-Control granular sobre traces y spans.
+Granular control over traces and spans.
 
-**Instalacion**:
+**Installation**:
 ```bash
 # TypeScript
 npm install @adaline/client
@@ -122,7 +122,7 @@ npm install @adaline/client
 pip install adaline-client
 ```
 
-**Inicializacion**:
+**Initialization**:
 ```typescript
 // TypeScript
 import { Adaline } from "@adaline/client";
@@ -137,7 +137,7 @@ adaline = Adaline(api_key="your-api-key")
 monitor = adaline.init_monitor(project_id="your-project-id")
 ```
 
-**Crear trace y spans**:
+**Creating trace and spans**:
 ```typescript
 const trace = monitor.logTrace({
   name: "user-query",
@@ -154,13 +154,13 @@ const span = trace.logSpan({
   runEvaluation: true
 });
 
-// Spans anidados
+// Nested spans
 const childSpan = span.logSpan({ name: "tool-execution" });
 ```
 
-**Tipos de contenido de Span**: `Model`, `ModelStream`, `Tool`, `Retrieval`, `Embeddings`, `Function`, `Guardrail`, `Other`.
+**Span content types**: `Model`, `ModelStream`, `Tool`, `Retrieval`, `Embeddings`, `Function`, `Guardrail`, `Other`.
 
-**Ciclo de vida**:
+**Lifecycle**:
 ```typescript
 span.update({ status: "success", content: { type: "Model", input: "...", output: "..." } });
 span.end();
@@ -169,337 +169,337 @@ trace.end();
 await monitor.flush();
 ```
 
-**Configuracion avanzada**:
-- `flushInterval`: Intervalo de envio de buffer
-- `maxBufferSize`: Tamano maximo del buffer
-- Retry con backoff exponencial (5xx/network), fallo inmediato (4xx)
+**Advanced configuration**:
+- `flushInterval`: Buffer send interval
+- `maxBufferSize`: Maximum buffer size
+- Retry with exponential backoff (5xx/network), immediate failure (4xx)
 - Health: `monitor.sentCount`, `monitor.droppedCount`, `monitor.buffer.length`
 
-#### 2.3 REST API (Agnositco de lenguaje)
+#### 2.3 REST API (Language-agnostic)
 
 **Base URL**: `https://api.adaline.ai/v2` (staging: `https://api.staging.adaline.ai/v2`)
 
-**Auth**: Bearer token en header Authorization
+**Auth**: Bearer token in Authorization header
 
 **Rate Limits**:
-| Operacion | Limite |
-|-----------|--------|
+| Operation | Limit |
+|-----------|-------|
 | Trace logging | 60,000 req/min |
 | Span logging | 150,000 req/min |
 | Deployments | 60,000 req/min |
-| Otros endpoints | 6,000 req/min |
+| Other endpoints | 6,000 req/min |
 
-**Endpoints principales**:
-- `POST /logs/trace` - Crear trace con spans en una sola request
-- `POST /logs/span` - Agregar span a trace existente
-- `PATCH /logs/trace` - Actualizar metadata del trace (feedback, correcciones)
-- `GET /deployments` - Obtener configuracion de prompts desplegados
+**Main endpoints**:
+- `POST /logs/trace` - Create trace with spans in a single request
+- `POST /logs/span` - Add span to existing trace
+- `PATCH /logs/trace` - Update trace metadata (feedback, corrections)
+- `GET /deployments` - Get deployed prompt configuration
 
-**Recursos totales**: 9 tipos de recursos, 30+ endpoints (Logs, Deployments, Prompts, Datasets, Evaluators, Evaluations, Projects, Providers, Models).
+**Total resources**: 9 resource types, 30+ endpoints (Logs, Deployments, Prompts, Datasets, Evaluators, Evaluations, Projects, Providers, Models).
 
-### Aplicacion a DOF-MESH
+### Application to DOF-MESH
 
-Actualmente DOF usa logs JSONL planos sin estructura de traces/spans. La arquitectura de Adaline nos ensena:
+Currently DOF uses flat JSONL logs without trace/span structure. Adaline's architecture teaches us:
 
-1. **Traces = Request completa end-to-end** (desde que el usuario envia mensaje hasta respuesta final)
-2. **Spans = Operaciones individuales anidadas** (LLM call, tool exec, retrieval, guardrail)
-3. **Metadata enriquecida** automaticamente: tokens, costo, latencia por span
+1. **Traces = Complete end-to-end request** (from user sending message to final response)
+2. **Spans = Individual nested operations** (LLM call, tool exec, retrieval, guardrail)
+3. **Automatically enriched metadata**: tokens, cost, latency per span
 
-### Ideas para nuestro JSONL
+### Ideas for our JSONL
 
-- Adoptar estructura `trace > span` en nuestros logs JSONL
-- Agregar `session_id` y `reference_id` para agrupar conversaciones
-- Calcular y loguear costo por modelo automaticamente
-- Agregar span types: `Model`, `Tool`, `Guardrail`, `Function`
-- Implementar buffering con flush configurable como el SDK
+- Adopt `trace > span` structure in our JSONL logs
+- Add `session_id` and `reference_id` to group conversations
+- Calculate and log cost per model automatically
+- Add span types: `Model`, `Tool`, `Guardrail`, `Function`
+- Implement buffering with configurable flush like the SDK
 
 ---
 
 ## 3. Monitor
 
-### Concepto Clave
+### Key Concept
 
-El pilar Monitor analiza calidad y rendimiento en tiempo real. Enriquece automaticamente los logs con token usage, costos, y scores de evaluacion. Permite filtrar, buscar, e identificar patrones para construir datasets de mejora.
+The Monitor pillar analyzes quality and performance in real time. It automatically enriches logs with token usage, costs, and evaluation scores. It allows filtering, searching, and identifying patterns to build improvement datasets.
 
-### Traces y Spans (Modelo de Datos)
+### Traces and Spans (Data Model)
 
-- **Trace**: Flujo completo end-to-end de un request (mensaje usuario -> respuesta final)
-- **Span**: Operacion individual dentro de un trace (LLM call, tool exec, embedding, retrieval, guardrail)
+- **Trace**: Complete end-to-end flow of a request (user message -> final response)
+- **Span**: Individual operation within a trace (LLM call, tool exec, embedding, retrieval, guardrail)
 
-**Tipos de Span**:
-| Tipo | Descripcion |
+**Span Types**:
+| Type | Description |
 |------|-------------|
-| Model | Inferencia LLM |
+| Model | LLM inference |
 | Tool | Function calls |
-| Embedding | Generacion de embeddings |
-| Retrieval | RAG y busqueda vectorial |
-| Function | Logica custom |
-| Guardrail | Checks de seguridad |
-| Other | Operaciones genericas |
+| Embedding | Embedding generation |
+| Retrieval | RAG and vector search |
+| Function | Custom logic |
+| Guardrail | Security checks |
+| Other | Generic operations |
 
-Cada tipo captura metricas especificas: input/output, tokens, costo, latencia.
+Each type captures specific metrics: input/output, tokens, cost, latency.
 
-### Visualizacion
+### Visualization
 
-Dos modos:
-- **Tree view**: Relacion jerarquica padre-hijo entre spans
-- **Waterfall view**: Timeline que revela concurrencia y dependencias secuenciales
+Two modes:
+- **Tree view**: Hierarchical parent-child relationship between spans
+- **Waterfall view**: Timeline revealing concurrency and sequential dependencies
 
-Inspeccion detallada muestra: mensajes input, respuesta del modelo, token counts, costo, latencia, variables, metadata, y scores de evaluacion continua.
+Detailed inspection shows: input messages, model response, token counts, cost, latency, variables, metadata, and continuous evaluation scores.
 
-### Filtrado y Busqueda
+### Filtering and Search
 
-Queries soportadas:
+Supported queries:
 - Time range
-- Status y duracion
-- Umbrales de costo
-- Tags y atributos
+- Status and duration
+- Cost thresholds
+- Tags and attributes
 - Session ID
 - User ID
 
-Workflows habilitados: debugging por usuario, reconstruccion de conversaciones multi-turn, aislamiento de requests problematicos, tracking de regresiones de calidad.
+Enabled workflows: debugging by user, multi-turn conversation reconstruction, isolation of problematic requests, tracking of quality regressions.
 
-### Charts y Analytics
+### Charts and Analytics
 
-6 metricas clave con dashboards time-series:
+6 key metrics with time-series dashboards:
 
-| Metrica | Agregaciones |
-|---------|-------------|
-| Volumen de logs | Avg, P50, P95, P99 |
-| Latencia | Avg, P50, P95, P99 |
+| Metric | Aggregations |
+|--------|-------------|
+| Log volume | Avg, P50, P95, P99 |
+| Latency | Avg, P50, P95, P99 |
 | Input tokens | Avg, P50, P95, P99 |
 | Output tokens | Avg, P50, P95, P99 |
-| Costo | Avg, P50, P95, P99 |
+| Cost | Avg, P50, P95, P99 |
 | Evaluation score | Avg, P50, P95, P99 |
 
 ### Continuous Evaluations
 
-Evaluacion automatica sobre trafico en vivo con sample rate configurable (0-1).
+Automatic evaluation on live traffic with configurable sample rate (0-1).
 
-**Sample rates recomendados**:
-- `0`: Deshabilitado
-- `0.1-0.2`: Inicio recomendado (bajo costo)
-- `0.5`: 50% de spans evaluados
-- `1.0`: Cobertura completa (alto costo)
+**Recommended sample rates**:
+- `0`: Disabled
+- `0.1-0.2`: Recommended start (low cost)
+- `0.5`: 50% of spans evaluated
+- `1.0`: Full coverage (high cost)
 
-**Tipos de evaluador disponibles**:
-1. **LLM-as-a-Judge**: Evaluacion cualitativa con rubrica custom
-2. **JavaScript**: Validacion de formato y reglas de negocio
-3. **Text Matcher**: Deteccion de patrones requeridos/prohibidos
-4. **Metricas operacionales**: Costo, latencia, longitud de respuesta
+**Available evaluator types**:
+1. **LLM-as-a-Judge**: Qualitative evaluation with custom rubric using LLM
+2. **JavaScript**: Format validation and business rules
+3. **Text Matcher**: Detection of required/prohibited patterns
+4. **Operational metrics**: Cost, latency, response length
 
-**Activacion por metodo**:
-| Metodo | Parametro |
+**Activation by method**:
+| Method | Parameter |
 |--------|-----------|
 | TypeScript SDK | `runEvaluation: true` |
 | Python SDK | `run_evaluation=True` |
-| REST API | `runEvaluation` en span |
+| REST API | `runEvaluation` in span |
 | Proxy | `adaline-span-run-evaluation` header |
 
-### Alertas (Beta)
+### Alerts (Beta)
 
-**Condiciones semanticas**:
-- Frustracion del usuario
-- Abandono de conversacion
-- Intentos de manipulacion
-- Alucinaciones
-- Violaciones de guardrails
+**Semantic conditions**:
+- User frustration
+- Conversation abandonment
+- Manipulation attempts
+- Hallucinations
+- Guardrail violations
 
-**Filtros estructurados**:
-- Scores de evaluacion continua (threshold-based)
-- Tasas de error (volumen y porcentaje)
-- Umbrales de latencia por prompt/modelo
-- Monitoreo de costo (por request y agregado)
-- Patrones de token usage
-- Metadata custom, tags, metricas operacionales
+**Structured filters**:
+- Continuous evaluation scores (threshold-based)
+- Error rates (volume and percentage)
+- Latency thresholds per prompt/model
+- Cost monitoring (per request and aggregated)
+- Token usage patterns
+- Custom metadata, tags, operational metrics
 
-**Canales de notificacion**: Slack, Webhooks, Email, AWS SNS (multiples canales simultaneos).
+**Notification channels**: Slack, Webhooks, Email, AWS SNS (multiple simultaneous channels).
 
-**Frecuencia de analisis**: Configurable de 1 minuto a 24 horas.
+**Analysis frequency**: Configurable from 1 minute to 24 hours.
 
-### Feedback Loop (Ciclo de Mejora)
+### Feedback Loop (Improvement Cycle)
 
-Dos workflows clave:
-1. **Dataset building**: Filtrar logs -> Extraer spans -> Dataset automatico con columnas input/output
-2. **Prompt improvement**: Abrir request de produccion en Playground con mismos mensajes, modelo, variables y tools
+Two key workflows:
+1. **Dataset building**: Filter logs -> Extract spans -> Automatic dataset with input/output columns
+2. **Prompt improvement**: Open production request in Playground with same messages, model, variables and tools
 
-### Ideas para DOF Self-Improvement
+### Ideas for DOF Self-Improvement
 
-- Implementar continuous eval con LLM-as-a-Judge sobre outputs del Mesh
-- Crear alertas semanticas para detectar cuando agentes DOF alucinan o fallan
-- Auto-construir datasets desde logs de produccion del Mesh
-- Dashboard time-series para P50/P95/P99 de latencia y costo por agente
-- Waterfall view para visualizar pipeline completo del Commander
-- Feedback loop: logs problematicos -> dataset -> re-evaluacion -> mejora de prompts
+- Implement continuous eval with LLM-as-a-Judge on Mesh outputs
+- Create semantic alerts to detect when DOF agents hallucinate or fail
+- Auto-build datasets from production Mesh logs
+- Time-series dashboard for P50/P95/P99 latency and cost per agent
+- Waterfall view to visualize complete Commander pipeline
+- Feedback loop: problematic logs -> dataset -> re-evaluation -> prompt improvement
 
 ---
 
 ## 4. Iterate
 
-### Concepto Clave
+### Key Concept
 
-Playground colaborativo para diseno y refinamiento de prompts con versionado, testing en tiempo real, y soporte para tools/MCP.
+Collaborative playground for prompt design and refinement with versioning, real-time testing, and tools/MCP support.
 
-### Parametros del Modelo
+### Model Parameters
 
-- **Proveedores soportados**: OpenAI, Anthropic, Google, Groq, Open Router, Together AI, xAI, Azure, Bedrock, Vertex AI
-- **Configuracion**: Temperature, max tokens, top-p, frequency/presence penalties
-- **Formatos de respuesta**: Texto libre, JSON objects, JSON schemas estrictos
+- **Supported providers**: OpenAI, Anthropic, Google, Groq, Open Router, Together AI, xAI, Azure, Bedrock, Vertex AI
+- **Configuration**: Temperature, max tokens, top-p, frequency/presence penalties
+- **Response formats**: Free text, JSON objects, strict JSON schemas
 
-### Composicion de Prompts
+### Prompt Composition
 
-**Roles de mensajes**: `system`, `user`, `assistant`, `tool`
+**Message roles**: `system`, `user`, `assistant`, `tool`
 
-**Tipos de contenido**:
-| Tipo | Descripcion |
+**Content types**:
+| Type | Description |
 |------|-------------|
-| Text | Instrucciones con `/* comentarios */` (stripped antes de enviar) y `{{variables}}` |
-| Images | Upload, URL, o variables de imagen para modelos con vision |
-| PDFs | Documentos para analisis, resumen, extraccion |
+| Text | Instructions with `/* comments */` (stripped before sending) and `{{variables}}` |
+| Images | Upload, URL, or image variables for vision-capable models |
+| PDFs | Documents for analysis, summary, extraction |
 
-### Sistema de Variables
+### Variable System
 
-**Variables basicas**: Sintaxis `{{variable_name}}` con integracion automatica en el editor.
+**Basic variables**: Syntax `{{variable_name}}` with automatic editor integration.
 
-**Variables avanzadas**:
-| Tipo | Funcion |
+**Advanced variables**:
+| Type | Function |
 |------|---------|
-| **API Variables** | Fetch de datos en vivo desde endpoints HTTP externos en runtime. Configura URL, metodo, headers, body |
-| **Prompt Variables** | Encadenar prompts: output de un prompt como input de otro. Habilita workflows modulares tipo agente |
+| **API Variables** | Fetch live data from external HTTP endpoints at runtime. Configure URL, method, headers, body |
+| **Prompt Variables** | Chain prompts: output of one prompt as input of another. Enables agent-like modular workflows |
 
-### Tools y MCP
+### Tools and MCP
 
-**Tools**: Los modelos generan requests estructurados de tool calls para interactuar con servicios externos, databases, APIs. Usan JSON schemas con configuracion HTTP backend opcional.
+**Tools**: Models generate structured tool call requests to interact with external services, databases, APIs. They use JSON schemas with optional HTTP backend configuration.
 
-**MCP (Model Context Protocol)**: Conectar a servidores MCP remotos y sus tools se hacen disponibles al modelo junto con tools custom. Sin codigo backend adicional.
+**MCP (Model Context Protocol)**: Connect to remote MCP servers and their tools become available to the model alongside custom tools. No additional backend code.
 
 ### Multi-Shot Prompting
 
-Ensenar formatos de output especificos usando pares de ejemplo input/output via roles user y assistant.
+Teach specific output formats using example input/output pairs via user and assistant roles.
 
 ### Playground
 
-**Capacidades**:
-- Ejecutar prompts con inputs especificos; ver respuestas en tiempo real
-- Agregar mensajes follow-up interactivos
-- **Comparacion side-by-side**: Cambiar entre modelos para comparar outputs
-- **Historial de versiones**: Acceder a historial versionado de cada ejecucion. Restaurar cualquier estado previo
-- **Testing de tool calls**: Manejo manual o automatizado (auto tool calls) para conversaciones multi-turn
-- **Datasets vinculados**: Conectar datasets estructurados para ciclar por variable samples a escala
+**Capabilities**:
+- Run prompts with specific inputs; see responses in real time
+- Add interactive follow-up messages
+- **Side-by-side comparison**: Switch between models to compare outputs
+- **Version history**: Access versioned history of every execution. Restore any previous state
+- **Tool call testing**: Manual or automated handling (auto tool calls) for multi-turn conversations
+- **Linked datasets**: Connect structured datasets to cycle through variable samples at scale
 
-### Ideas para prompt_registry.py
+### Ideas for prompt_registry.py
 
-- Implementar versionado de prompts con historial completo (no solo el actual)
-- Agregar soporte para `{{variables}}` con sustitucion en runtime
-- Variables API que fetch de endpoints externos (ej: precio AVAX en tiempo real)
-- Prompt chaining: output de un prompt como variable de otro
-- Playground CLI: probar prompts contra multiples modelos con comparacion
-- Guardar y restaurar snapshots de configuraciones exitosas
-- Comentarios `/* */` en prompts que se eliminan antes de enviar al modelo
-- MCP integration nativa en prompt definitions
+- Implement prompt versioning with full history (not just current)
+- Add support for `{{variables}}` with runtime substitution
+- API variables that fetch from external endpoints (e.g., AVAX price in real time)
+- Prompt chaining: output of one prompt as variable of another
+- CLI Playground: test prompts against multiple models with comparison
+- Save and restore snapshots of successful configurations
+- `/* */` comments in prompts that are removed before sending to the model
+- Native MCP integration in prompt definitions
 
 ---
 
 ## 5. Evaluate
 
-### Concepto Clave
+### Key Concept
 
-Framework de QA que ejecuta prompts contra miles de test cases usando evaluadores cuantificables. Mide calidad, identifica regresiones, y detecta drift de rendimiento.
+QA framework that runs prompts against thousands of test cases using quantifiable evaluators. Measures quality, identifies regressions, and detects performance drift.
 
-### Estructura de Datasets
+### Dataset Structure
 
-Tablas estructuradas donde:
-- **Columnas** = Variables del prompt (`{{user_question}}`, `{{context}}`)
-- **Filas** = Test cases individuales con valores especificos
-- **Columna `expected`** = Output de referencia para comparacion (NO se sustituye en prompt)
+Structured tables where:
+- **Columns** = Prompt variables (`{{user_question}}`, `{{context}}`)
+- **Rows** = Individual test cases with specific values
+- **`expected` column** = Reference output for comparison (NOT substituted in prompt)
 
-**Metodos de poblacion**:
-| Metodo | Descripcion |
+**Population methods**:
+| Method | Description |
 |--------|-------------|
-| Manual | Entrada de valores uno por uno |
-| CSV import | Importacion bulk desde archivos CSV |
-| Logs de produccion | Via pilar Monitor (feedback loop) |
-| Columnas dinamicas | Fetch de API o prompt variables en runtime |
+| Manual | One-by-one value entry |
+| CSV import | Bulk import from CSV files |
+| Production logs | Via Monitor pillar (feedback loop) |
+| Dynamic columns | API or prompt variable fetch at runtime |
 
-### 6 Tipos de Evaluadores
+### 6 Evaluator Types
 
-| Evaluador | Funcion | Caso de uso |
-|-----------|---------|-------------|
-| **LLM-as-a-Judge** | Evaluacion cualitativa con rubrica custom usando LLM | Calidad narrativa, coherencia, utilidad |
-| **JavaScript** | Validacion code-based para outputs estructurados | JSON schema validation, reglas de negocio |
-| **Text Matcher** | Deteccion de patrones (equals, regex, contains-any/all, negacion) | Keywords requeridos/prohibidos |
-| **Cost** | Calculo de gasto por tokens con enforcement de umbrales | Budget control |
-| **Latency** | Medicion de tiempo de respuesta contra SLA | Performance monitoring |
-| **Response Length** | Metricas de tamano en tokens, palabras, o caracteres | Formato compliance |
+| Evaluator | Function | Use case |
+|-----------|---------|---------|
+| **LLM-as-a-Judge** | Qualitative evaluation with custom rubric using LLM | Narrative quality, coherence, usefulness |
+| **JavaScript** | Code-based validation for structured outputs | JSON schema validation, business rules |
+| **Text Matcher** | Pattern detection (equals, regex, contains-any/all, negation) | Required/prohibited keywords |
+| **Cost** | Spend calculation per token with threshold enforcement | Budget control |
+| **Latency** | Response time measurement against SLA | Performance monitoring |
+| **Response Length** | Size metrics in tokens, words, or characters | Format compliance |
 
-### Modos de Evaluacion
+### Evaluation Modes
 
-1. **Single prompt**: Evaluacion batch estandar contra filas del dataset
-2. **Chained prompts**: Workflows multi-paso con tracking acumulativo de costo/latencia
-3. **Multi-turn chat**: En desarrollo. Evaluara: mantenimiento de contexto entre turnos, manejo de referencias a mensajes previos, consistencia de persona e instrucciones
+1. **Single prompt**: Standard batch evaluation against dataset rows
+2. **Chained prompts**: Multi-step workflows with cumulative cost/latency tracking
+3. **Multi-turn chat**: In development. Will evaluate: context maintenance between turns, handling of references to previous messages, consistency of persona and instructions
 
-### Scoring y Reportes
+### Scoring and Reports
 
-Cada evaluador produce 3 outputs por test case:
-- **Pass/Fail** (grado)
-- **Score numerico**
-- **Reasoning** (explicacion)
+Each evaluator produces 3 outputs per test case:
+- **Pass/Fail** (grade)
+- **Numeric score**
+- **Reasoning** (explanation)
 
-**Capacidades de reporte**:
-- Hasta 5 evaluaciones paralelas concurrentes
-- Comparacion de versiones entre evaluaciones
-- Inspeccion per-case con filtrado pass/fail
-- Comparacion de scores entre hasta 20 iteraciones de evaluacion
+**Reporting capabilities**:
+- Up to 5 concurrent parallel evaluations
+- Version comparison between evaluations
+- Per-case inspection with pass/fail filtering
+- Score comparison across up to 20 evaluation iterations
 
-### Ideas para continuous_eval.py
+### Ideas for continuous_eval.py
 
-- Crear datasets formales desde logs JSONL del Mesh (auto-extraccion de input/output)
-- Implementar LLM-as-a-Judge con rubrica DOF-especifica (gobernanza, determinismo, seguridad)
-- Evaluador JavaScript para validar outputs JSON de agentes DOF
-- Text Matcher para detectar alucinaciones (patrones prohibidos conocidos)
-- Cost evaluator para enforcement de budget por agente
-- Latency evaluator con SLA por tipo de operacion (consensus vs query vs tool)
-- Report comparison: v1 vs v2 de prompts del Commander
-- Auto-poblacion de datasets desde logs de produccion con sample rate configurable
-- Expected outputs basados en Z3-verified ground truth
+- Create formal datasets from Mesh JSONL logs (auto-extraction of input/output)
+- Implement LLM-as-a-Judge with DOF-specific rubric (governance, determinism, security)
+- JavaScript evaluator to validate JSON outputs from DOF agents
+- Text Matcher to detect hallucinations (known prohibited patterns)
+- Cost evaluator for budget enforcement per agent
+- Latency evaluator with SLA per operation type (consensus vs query vs tool)
+- Report comparison: v1 vs v2 of Commander prompts
+- Auto-population of datasets from production logs with configurable sample rate
+- Expected outputs based on Z3-verified ground truth
 
 ---
 
 ## 6. Deploy
 
-### Concepto Clave
+### Key Concept
 
-Despliegue de prompts en tiempo real con ambientes aislados, versionado completo, rollback instantaneo, y automatizacion via webhooks/CI/CD.
+Real-time prompt deployment with isolated environments, full versioning, instant rollback, and automation via webhooks/CI/CD.
 
-### Environments (Ambientes)
+### Environments
 
-- **Concepto**: Contenedores aislados para versiones especificas de prompts
-- **Creacion automatica**: Produccion se crea en el primer deploy
-- **Ambientes adicionales**: staging, QA, multi-region
-- **Aislamiento**: Cada ambiente tiene API keys y SDK keys separadas
-- **Propiedad**: Todos los prompts de un proyecto comparten los mismos ambientes
-- **Filosofia**: "Cada proyecto es un agente AI, cada ambiente es una instancia aislada de ese agente"
+- **Concept**: Isolated containers for specific versions of prompts
+- **Automatic creation**: Production is created on first deploy
+- **Additional environments**: staging, QA, multi-region
+- **Isolation**: Each environment has separate API keys and SDK keys
+- **Ownership**: All prompts in a project share the same environments
+- **Philosophy**: "Every project is an AI agent, every environment is an isolated instance of that agent"
 
-**Advertencia critica**: Eliminar un ambiente elimina TODOS los deployments dentro de ese ambiente en todos los prompts del proyecto. Irreversible.
+**Critical warning**: Deleting an environment deletes ALL deployments within that environment across all prompts in the project. Irreversible.
 
 ### Deployments (Snapshots)
 
-Cada deployment captura un snapshot completo:
-- Configuracion (modelo y parametros)
-- Templates de mensajes (system, user, assistant, tool)
-- Definiciones de variables y fuentes
-- Definiciones de tools y schemas
-- Configuraciones de servidores MCP
+Each deployment captures a complete snapshot:
+- Configuration (model and parameters)
+- Message templates (system, user, assistant, tool)
+- Variable definitions and sources
+- Tool definitions and schemas
+- MCP server configurations
 
-### Metodos de Deploy
+### Deploy Methods
 
-1. **Desde Editor**: Boton Deploy -> vista de ambiente para review y confirmacion
-2. **Desde Environment**: Gestion central con 3 zonas (historial, diff view, selector)
-3. **Cross-Environment Promotion**: "Deploy to..." para mover entre ambientes (staging -> production)
+1. **From Editor**: Deploy button -> environment view for review and confirmation
+2. **From Environment**: Central management with 3 zones (history, diff view, selector)
+3. **Cross-Environment Promotion**: "Deploy to..." to move between environments (staging -> production)
 
 ### Webhooks
 
-**Evento soportado**: `create-deployment` (se dispara en deploy o rollback)
+**Supported event**: `create-deployment` (fires on deploy or rollback)
 
 **Payload**:
 ```json
@@ -516,218 +516,218 @@ Cada deployment captura un snapshot completo:
 }
 ```
 
-**Seguridad HMAC-SHA256**:
-- Header: `X-Webhook-Signature` con formato `t={timestamp}&v1={sig1},{sig2}`
-- Firma: HMAC-SHA256 sobre `"{timestamp}.{json_string}"`
-- Rotacion de secretos: 12 horas de overlap para zero-downtime
+**HMAC-SHA256 Security**:
+- Header: `X-Webhook-Signature` with format `t={timestamp}&v1={sig1},{sig2}`
+- Signature: HMAC-SHA256 over `"{timestamp}.{json_string}"`
+- Secret rotation: 12-hour overlap for zero-downtime
 
 ### Rollback
 
-Reversion instantanea a cualquier deployment previo con preservacion completa del historial de versiones.
+Instant reversion to any previous deployment with full version history preservation.
 
 ### Diff Comparison
 
-Review pre-promocion mostrando cambios exactos entre ambientes: config, messages, role, modality, tools.
+Pre-promotion review showing exact changes between environments: config, messages, role, modality, tools.
 
 ### Runtime Integration
 
-Acceso a prompts desplegados via:
+Access to deployed prompts via:
 - REST API: `GET /deployments`
-- TypeScript SDK: `adaline.getDeployment()`, `adaline.getLatestDeployment()`, `adaline.initLatestDeployment()` (con auto-refresh y caching)
+- TypeScript SDK: `adaline.getDeployment()`, `adaline.getLatestDeployment()`, `adaline.initLatestDeployment()` (with auto-refresh and caching)
 - Python SDK: `adaline.get_deployment()`, `adaline.get_latest_deployment()`, `adaline.init_latest_deployment()`
-- `injectVariables` / `inject_variables` para sustituir placeholders antes de enviar a proveedores
+- `injectVariables` / `inject_variables` to substitute placeholders before sending to providers
 
-### Ideas para prompt_deployer.py
+### Ideas for prompt_deployer.py
 
-- Implementar ambientes `dev` / `staging` / `prod` para prompts del Mesh
-- Cada deploy captura snapshot completo (prompt + config + tools + MCP)
-- Rollback instantaneo a version anterior del prompt
-- Diff view entre versiones de prompts antes de promover
-- Webhooks en deploy para notificar al Mesh cuando un prompt cambia
-- HMAC-SHA256 para firma de webhooks (misma seguridad que Adaline)
-- Auto-refresh de prompts en agentes DOF cuando se detecta nuevo deployment
-- CI/CD: GitHub Action que ejecuta evaluacion antes de promover staging -> prod
-- API endpoint `GET /deployments/latest` para que agentes DOF obtengan su prompt actual
+- Implement `dev` / `staging` / `prod` environments for Mesh prompts
+- Each deploy captures complete snapshot (prompt + config + tools + MCP)
+- Instant rollback to previous prompt version
+- Diff view between prompt versions before promoting
+- Webhooks on deploy to notify DOF mesh when a prompt changes
+- HMAC-SHA256 for webhook signing (same security as Adaline)
+- Auto-refresh of prompts in DOF agents when a new deployment is detected
+- CI/CD: GitHub Action that runs evaluation before promoting staging -> prod
+- API endpoint `GET /deployments/latest` for DOF agents to get their current prompt
 
 ---
 
-## 7. Admin y Security
+## 7. Admin and Security
 
 ### Access Control
 
-**Modelo de permisos en capas**:
-1. **Workspace Level**: Defaults base para miembros, settings, CRUD en teamspaces y proyectos
-2. **Teamspace Level**: Boundaries de acceso aislados que override workspace defaults
-3. **Project Level**: Overrides independientes para grupos dentro de proyectos individuales
-4. **Object Level**: Controles granulares sobre prompts, datasets, tools, y folders (create, read, update, delete, manage)
+**Layered permission model**:
+1. **Workspace Level**: Base defaults for members, settings, CRUD on teamspaces and projects
+2. **Teamspace Level**: Isolated access boundaries that override workspace defaults
+3. **Project Level**: Independent overrides for groups within individual projects
+4. **Object Level**: Granular controls over prompts, datasets, tools, and folders (create, read, update, delete, manage)
 
-**Grupos y Usuarios**:
-- Grupos de permisos custom combinando capabilities seleccionadas
-- Usuarios pueden tener multiples grupos (union, el permiso mas permisivo gana)
-- Service accounts con grupos de permisos dedicados
+**Groups and Users**:
+- Custom permission groups combining selected capabilities
+- Users can have multiple groups (union, most permissive wins)
+- Service accounts with dedicated permission groups
 
-**API Keys**: Heredan permisos del creador pero pueden ser scoped a un subconjunto.
+**API Keys**: Inherit creator's permissions but can be scoped to a subset.
 
-**Disponibilidad**: Plan Enterprise.
+**Availability**: Enterprise plan.
 
-### Providers Soportados
+### Supported Providers
 
-11 proveedores AI configurables:
+11 configurable AI providers:
 Anthropic, Azure, AWS Bedrock, Custom, Google, Groq, Open Router, OpenAI, Together AI, Vertex AI, xAI
 
 ### Security
 
-**Autenticacion**:
+**Authentication**:
 - Email/password via dashboard
-- SSO: Google Suite (todos los planes), SAML 2.0 (Okta, Microsoft Entra ID, Google Workspace, custom), OIDC
-- API keys almacenadas como hashes criptograficos one-way (no recuperables)
-- Service accounts (beta) para sistemas automatizados
+- SSO: Google Suite (all plans), SAML 2.0 (Okta, Microsoft Entra ID, Google Workspace, custom), OIDC
+- API keys stored as one-way cryptographic hashes (not recoverable)
+- Service accounts (beta) for automated systems
 
-**Proteccion de datos**: Encriptacion en cada capa de la plataforma.
+**Data protection**: Encryption at every layer of the platform.
 
-**Audit logging**: Registro completo de acciones del workspace con capacidad tamper-resistant. Retencion por plan, enterprise puede exportar.
+**Audit logging**: Complete record of workspace actions with tamper-resistant capability. Retention by plan, enterprise can export.
 
-### Aplicacion a DOF-MESH
+### Application to DOF-MESH
 
-- DOF necesita un modelo de permisos granular similar para controlar que agentes acceden a que prompts
-- API keys por agente/ambiente en lugar de una sola key global
-- Audit log de todas las operaciones del Mesh (gobernanza deterministica)
-- SSO no aplica directamente pero HMAC signing de requests si
+- DOF needs a similar granular permission model to control which agents access which prompts
+- API keys per agent/environment instead of a single global key
+- Audit log of all Mesh operations (deterministic governance)
+- SSO doesn't apply directly but HMAC signing of requests does
 
 ---
 
 ## 8. Prompt Library (Templates)
 
-### Templates Disponibles
+### Available Templates
 
-| Template | Descripcion | Categoria |
-|----------|-------------|-----------|
-| **Drafting Product Specifications** | Generar specs de producto comprensivas desde inputs clave | Product Development |
-| **Customer Review Analysis** | Transformar feedback de clientes en insights accionables | Market Research |
-| **Product Strategy Consultant** | Acelerar planificacion estrategica con roadmaps AI-powered | Strategy |
-| **Competitive Intelligence Analysis** | Analizar datos de inteligencia de mercado y generar insights | Competitive Analysis |
-| **Generating User Research Questions** | Crear preguntas de user research insightful con LLM | User Research |
-| **Refining Internal Communications** | Transformar mensajes tecnicos en comunicacion clara | Internal Communications |
+| Template | Description | Category |
+|----------|-------------|----------|
+| **Drafting Product Specifications** | Generate comprehensive product specs from key inputs | Product Development |
+| **Customer Review Analysis** | Transform customer feedback into actionable insights | Market Research |
+| **Product Strategy Consultant** | Accelerate strategic planning with AI-powered roadmaps | Strategy |
+| **Competitive Intelligence Analysis** | Analyze market intelligence data and generate insights | Competitive Analysis |
+| **Generating User Research Questions** | Create insightful user research questions with LLM | User Research |
+| **Refining Internal Communications** | Transform technical messages into clear communication | Internal Communications |
 
-### Ideas de Prompts para DOF
+### Prompt Ideas for DOF
 
-Basado en los patrones de Adaline, prompts que DOF deberia tener en su registry:
+Based on Adaline patterns, prompts DOF should have in its registry:
 
-| Prompt DOF | Funcion | Inspirado en |
-|------------|---------|-------------|
-| **Governance Audit** | Auditar decisiones del Mesh contra reglas Z3 | Product Specs |
-| **Agent Performance Review** | Analizar rendimiento de agentes individuales | Customer Review Analysis |
-| **Mesh Strategy Planner** | Planificar escalamiento y optimizacion del Mesh | Product Strategy |
-| **Threat Intelligence** | Analizar amenazas y vulnerabilidades detectadas | Competitive Intelligence |
-| **Agent Onboarding Questions** | Generar preguntas de validacion para nuevos agentes | User Research |
-| **Incident Communication** | Redactar reportes de incidentes del Mesh | Internal Communications |
-| **Consensus Validator** | Verificar que decisiones de consensus son correctas | Custom DOF |
-| **Cost Optimizer** | Analizar y optimizar gastos por agente/modelo | Custom DOF |
-| **Degradation Detector** | Detectar degradacion de calidad en respuestas | Custom DOF |
-| **Federation Negotiator** | Negociar terminos entre Meshes federados | Custom DOF |
-
----
-
-## 9. Ideas y Brainstorming
-
-### 20+ Ideas para mejorar DOF-MESH usando conceptos de Adaline
-
-#### Instrumentacion y Telemetria
-
-1. **Traces/Spans JSONL**: Migrar logs planos a estructura `trace > span` con tipos (Model, Tool, Guardrail, Function). Cada request del Commander genera un trace con spans anidados por cada operacion.
-
-2. **Adaline como monitor externo**: Enviar logs DOF a Adaline via su REST API (150K spans/min gratis). Usar dashboards de Adaline mientras construimos los propios.
-
-3. **Proxy DOF**: Crear un proxy local similar al de Adaline que intercepta todas las llamadas LLM del Mesh, agrega headers de tracing, y loguea automaticamente sin modificar codigo de agentes.
-
-4. **Cost tracking automatico**: Calcular costo por modelo automaticamente en cada span (como Adaline). DOF tiene multi-model (Claude, Gemini, Ollama) - cada uno con pricing diferente.
-
-5. **Session/Reference IDs**: Agregar `session_id` para agrupar conversaciones y `reference_id` para vincular requests relacionados entre agentes del Mesh.
-
-#### Monitoreo y Alertas
-
-6. **Continuous Eval DOF**: Implementar evaluacion continua con sample rate (0.1-0.2 para empezar). LLM-as-a-Judge evalua cada N-esimo output del Commander contra rubrica de gobernanza.
-
-7. **Alertas semanticas**: Detectar automaticamente alucinaciones, respuestas inconsistentes con Z3 constraints, y agentes que degradan. Notificar via Telegram bot.
-
-8. **Dashboard P50/P95/P99**: Charts time-series para latencia, costo, tokens, y eval score por agente del Mesh. Inspirado en las 6 metricas de Adaline.
-
-9. **Waterfall view**: Visualizar pipeline completo del Commander como waterfall timeline - ver donde se gasta el tiempo (consensus, tool exec, LLM call, guardrail).
-
-10. **Feedback loop automatico**: Logs problematicos (baja eval score o error) -> auto-extraccion a dataset -> re-evaluacion -> flag para revision humana.
-
-#### Iteracion de Prompts
-
-11. **Prompt versioning DOF**: Cada cambio de prompt genera una nueva version con diff. Historial completo consultable. Similar a `initLatestDeployment()` con auto-refresh.
-
-12. **Variables API en prompts**: Prompts que fetch datos en vivo (precio AVAX, estado del Mesh, metricas recientes) antes de enviar al modelo. Como las API Variables de Adaline.
-
-13. **Prompt chaining nativo**: Output de prompt A como `{{variable}}` de prompt B. El Commander ya encadena pero sin la formalizacion de Adaline.
-
-14. **MCP en prompt definitions**: Registrar servidores MCP directamente en la definicion del prompt. Cuando se carga el prompt, los tools del MCP se hacen disponibles automaticamente.
-
-15. **Multi-model comparison**: Ejecutar el mismo prompt contra Claude, Gemini, y Ollama. Comparar outputs side-by-side. Escoger el mejor automaticamente por eval score.
-
-#### Evaluacion
-
-16. **Datasets desde logs**: Auto-construir datasets de evaluacion extrayendo input/output de logs JSONL de produccion. Como el boton "Build datasets from logs" de Adaline.
-
-17. **DOF Rubrica Z3**: Crear evaluador LLM-as-a-Judge con rubrica basada en Z3 constraints. "El output cumple con determinismo? Respeta gobernanza? Es verificable?"
-
-18. **Evaluacion pre-deploy**: Antes de promover un prompt de staging a prod, ejecutar evaluacion automatica contra dataset. Si score < threshold, bloquear promocion.
-
-19. **Multi-turn eval para agentes**: Cuando este disponible en Adaline, implementar eval de conversaciones completas del Commander (multiples turnos, mantenimiento de contexto).
-
-20. **Regression detection**: Comparar eval scores entre versiones de prompts. Si v2 < v1 en alguna dimension, alertar antes de deploy.
-
-#### Deployment y Operaciones
-
-21. **Ambientes DOF**: `dev` (local, modelos baratos), `staging` (pre-produccion, modelos reales), `prod` (Railway, full monitoring). Prompts migran entre ambientes con diff review.
-
-22. **Webhooks de deployment**: Cuando un prompt se despliega en prod, webhook notifica a todos los agentes DOF que usan ese prompt para que refresquen su cache.
-
-23. **HMAC-SHA256 para inter-agente**: Firmar requests entre agentes del Mesh con HMAC-SHA256 (mismo patron que webhooks de Adaline). Verificar autenticidad.
-
-24. **Rollback instantaneo**: Si un prompt nuevo causa degradacion, rollback a version anterior con un comando. Historial completo preservado.
-
-25. **CI/CD Pipeline**: GitHub Action que ejecuta: build -> evaluacion -> diff review -> deploy staging -> evaluacion en staging -> promote a prod (si score >= threshold).
-
-#### Integraciones Avanzadas
-
-26. **CrewAI + Adaline**: Cuando la integracion CrewAI este disponible, conectar equipo-de-agentes directamente a Adaline para monitoring de produccion de los crews.
-
-27. **Gateway unificado**: Un gateway DOF (como el de Adaline) que rutea a multiples proveedores, agrega tracing, y permite switching de modelo transparente.
-
-28. **Prompt Library compartida**: Biblioteca de prompts verificados y versionados compartida entre todos los proyectos del ecosistema (Enigma, SnowRail, Agents, DOF).
-
-29. **Evaluacion de gobernanza**: Evaluador custom que verifica que cada decision del Mesh se puede trazar hasta una regla Z3. Si no es trazable, flag como anomalia.
-
-30. **Auto-scaling informado por metricas**: Usar datos de latencia P95 y costo por agente para decidir auto-scaling. Si P95 > SLA, escalar. Si costo > budget, degradar modelo.
+| DOF Prompt | Function | Inspired by |
+|------------|---------|------------|
+| **Governance Audit** | Audit Mesh decisions against Z3 rules | Product Specs |
+| **Agent Performance Review** | Analyze individual agent performance | Customer Review Analysis |
+| **Mesh Strategy Planner** | Plan Mesh scaling and optimization | Product Strategy |
+| **Threat Intelligence** | Analyze detected threats and vulnerabilities | Competitive Intelligence |
+| **Agent Onboarding Questions** | Generate validation questions for new agents | User Research |
+| **Incident Communication** | Draft Mesh incident reports | Internal Communications |
+| **Consensus Validator** | Verify that consensus decisions are correct | Custom DOF |
+| **Cost Optimizer** | Analyze and optimize costs per agent/model | Custom DOF |
+| **Degradation Detector** | Detect quality degradation in responses | Custom DOF |
+| **Federation Negotiator** | Negotiate terms between federated Meshes | Custom DOF |
 
 ---
 
-## Resumen Ejecutivo
+## 9. Ideas and Brainstorming
 
-Adaline es una plataforma madura de **AI Development Lifecycle** que resuelve el problema central de DOF-MESH: como mantener calidad en sistemas AI no-deterministicos a escala.
+### 20+ Ideas to Improve DOF-MESH Using Adaline Concepts
 
-**Lo que DOF ya tiene** que Adaline valida:
-- Logging (JSONL) -> equivale a Instrument
-- Metricas (mesh_metrics_collector) -> equivale a Monitor basico
-- Registry de prompts -> equivale a Iterate basico
-- Evaluacion continua -> equivale a Evaluate basico
+#### Instrumentation and Telemetry
 
-**Lo que DOF necesita adoptar de Adaline**:
-1. **Ciclo cerrado** (el valor real no son los pilares individuales, es el loop)
-2. **Traces/Spans estructurados** (no logs planos)
-3. **Continuous eval en produccion** (sample rate, LLM-as-a-Judge)
-4. **Ambientes de deployment** (dev/staging/prod para prompts)
-5. **Webhooks con HMAC signing** (seguridad inter-agente)
-6. **Dashboard con percentiles** (P50/P95/P99, no solo promedios)
+1. **Traces/Spans JSONL**: Migrate flat logs to `trace > span` structure with types (Model, Tool, Guardrail, Function). Each Commander request generates a trace with nested spans per operation.
 
-**Accion inmediata recomendada**: Integrar Adaline como monitor externo via REST API mientras construimos las capacidades nativas en DOF. Costo: $0 para empezar (rate limits generosos), riesgo: minimo (read-only telemetria).
+2. **Adaline as external monitor**: Send DOF logs to Adaline via its REST API (150K spans/min free). Use Adaline dashboards while we build our own.
+
+3. **DOF Proxy**: Create a local proxy similar to Adaline's that intercepts all LLM calls from the Mesh, adds tracing headers, and logs automatically without modifying agent code.
+
+4. **Automatic cost tracking**: Calculate cost per model automatically in each span (like Adaline). DOF has multi-model (Claude, Gemini, Ollama) - each with different pricing.
+
+5. **Session/Reference IDs**: Add `session_id` to group conversations and `reference_id` to link related requests between Mesh agents.
+
+#### Monitoring and Alerts
+
+6. **DOF Continuous Eval**: Implement continuous evaluation with sample rate (0.1-0.2 to start). LLM-as-a-Judge evaluates every Nth Commander output against a governance rubric.
+
+7. **Semantic alerts**: Automatically detect hallucinations, responses inconsistent with Z3 constraints, and degrading agents. Notify via Telegram bot.
+
+8. **P50/P95/P99 Dashboard**: Time-series charts for latency, cost, tokens, and eval score per Mesh agent. Inspired by Adaline's 6 metrics.
+
+9. **Waterfall view**: Visualize the complete Commander pipeline as a waterfall timeline - see where time is spent (consensus, tool exec, LLM call, guardrail).
+
+10. **Automatic feedback loop**: Problematic logs (low eval score or error) -> auto-extraction to dataset -> re-evaluation -> flag for human review.
+
+#### Prompt Iteration
+
+11. **DOF prompt versioning**: Each prompt change generates a new version with diff. Full queryable history. Similar to `initLatestDeployment()` with auto-refresh.
+
+12. **API variables in prompts**: Prompts that fetch live data (AVAX price, Mesh state, recent metrics) before sending to the model. Like Adaline's API Variables.
+
+13. **Native prompt chaining**: Output of prompt A as `{{variable}}` of prompt B. The Commander already chains but without Adaline's formalization.
+
+14. **MCP in prompt definitions**: Register MCP servers directly in the prompt definition. When the prompt loads, MCP tools become automatically available.
+
+15. **Multi-model comparison**: Run the same prompt against Claude, Gemini, and Ollama. Compare outputs side-by-side. Automatically pick the best by eval score.
+
+#### Evaluation
+
+16. **Datasets from logs**: Auto-build evaluation datasets by extracting input/output from production JSONL logs. Like Adaline's "Build datasets from logs" button.
+
+17. **DOF Z3 Rubric**: Create LLM-as-a-Judge evaluator with rubric based on Z3 constraints. "Does the output meet determinism requirements? Does it respect governance? Is it verifiable?"
+
+18. **Pre-deploy evaluation**: Before promoting a prompt from staging to prod, run automatic evaluation against a dataset. If score < threshold, block promotion.
+
+19. **Multi-turn eval for agents**: When available in Adaline, implement evaluation of complete Commander conversations (multiple turns, context maintenance).
+
+20. **Regression detection**: Compare eval scores between prompt versions. If v2 < v1 on any dimension, alert before deploy.
+
+#### Deployment and Operations
+
+21. **DOF environments**: `dev` (local, cheap models), `staging` (pre-production, real models), `prod` (Railway, full monitoring). Prompts migrate between environments with diff review.
+
+22. **Deployment webhooks**: When a prompt is deployed to prod, webhook notifies all DOF agents using that prompt to refresh their cache.
+
+23. **HMAC-SHA256 for inter-agent**: Sign requests between Mesh agents with HMAC-SHA256 (same pattern as Adaline webhooks). Verify authenticity.
+
+24. **Instant rollback**: If a new prompt causes degradation, roll back to the previous version with one command. Full history preserved.
+
+25. **CI/CD Pipeline**: GitHub Action that runs: build -> evaluation -> diff review -> deploy staging -> evaluation in staging -> promote to prod (if score >= threshold).
+
+#### Advanced Integrations
+
+26. **CrewAI + Adaline**: When the CrewAI integration is available, connect equipo-de-agentes directly to Adaline for production monitoring of the crews.
+
+27. **Unified gateway**: A DOF gateway (like Adaline's) that routes to multiple providers, adds tracing, and allows transparent model switching.
+
+28. **Shared Prompt Library**: Library of verified and versioned prompts shared across all ecosystem projects (Enigma, SnowRail, Agents, DOF).
+
+29. **Governance evaluation**: Custom evaluator that verifies every Mesh decision can be traced back to a Z3 rule. If not traceable, flag as anomaly.
+
+30. **Metrics-informed auto-scaling**: Use P95 latency and cost-per-agent data to decide auto-scaling. If P95 > SLA, scale up. If cost > budget, degrade model.
 
 ---
 
-> Documento generado por el DOF-MESH Research Team
-> Fuente: adaline.ai/docs (8 secciones principales + 15 sub-paginas analizadas)
-> Aplicacion: Framework DOF-MESH - Gobernanza deterministica de agentes AI
+## Executive Summary
+
+Adaline is a mature **AI Development Lifecycle** platform that solves the central problem of DOF-MESH: how to maintain quality in non-deterministic AI systems at scale.
+
+**What DOF already has** that Adaline validates:
+- Logging (JSONL) -> equivalent to Instrument
+- Metrics (mesh_metrics_collector) -> equivalent to basic Monitor
+- Prompt registry -> equivalent to basic Iterate
+- Continuous evaluation -> equivalent to basic Evaluate
+
+**What DOF needs to adopt from Adaline**:
+1. **Closed loop** (the real value is not the individual pillars, it's the loop)
+2. **Structured Traces/Spans** (not flat logs)
+3. **Continuous eval in production** (sample rate, LLM-as-a-Judge)
+4. **Deployment environments** (dev/staging/prod for prompts)
+5. **Webhooks with HMAC signing** (inter-agent security)
+6. **Dashboard with percentiles** (P50/P95/P99, not just averages)
+
+**Recommended immediate action**: Integrate Adaline as external monitor via REST API while we build the native capabilities in DOF. Cost: $0 to start (generous rate limits), risk: minimal (read-only telemetry).
+
+---
+
+> Document generated by the DOF-MESH Research Team
+> Source: adaline.ai/docs (8 main sections + 15 sub-pages analyzed)
+> Application: DOF-MESH Framework - Deterministic AI agent governance

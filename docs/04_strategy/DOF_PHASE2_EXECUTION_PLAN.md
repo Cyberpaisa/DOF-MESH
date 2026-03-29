@@ -384,7 +384,7 @@ Crea core/oags_bridge.py:
      * Calcula BLAKE3 hash de: model + constitution_hash + sorted(tools)
      * Este es el identificador determinístico del agente según OAGS
      * El mismo agente con la misma configuración SIEMPRE produce el mismo identity hash
-   
+
    - Método compute_constitution_hash(constitution_path: str) -> str:
      * Lee dof.constitution.yml
      * Calcula BLAKE3 hash del contenido

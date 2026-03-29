@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-03-29T09:40:37Z",
+  "test_type": "LIVE onchain \u2014 Avalanche Fuji testnet (chain_id=43113)",
+  "agent_id": "apex-1687",
+  "action": "arbitrage:execute",
+  "params": {
+    "pair": "AVAX/USDC",
+    "amount": 50.0,
+    "dex": "TraderJoe"
+  },
+  "verdict": "APPROVED",
+  "z3_proof": "4/4 VERIFIED [GCR_INVARIANT:VERIFIED | SS_FORMULA:VERIFIED | SS_MONOTONICITY:VERIFIED | SS_BOUNDARIES:VERIFIED]",
+  "attestation_hash": "0x974f9a4be49e1a7dfa85525194c492c20846487014b7efa1cca16aed00bb68aa",
+  "latency_ms": 8.2,
+  "onchain": {
+    "status": "confirmed",
+    "tx_hash": "704069a6e64167087c53d39eb014ac8862746d94d679dddae31e9398f230a865",
+    "chain_id": 43113,
+    "chain_name": "Avalanche Fuji Testnet",
+    "explorer_url": "https://testnet.snowtrace.io/tx/704069a6e64167087c53d39eb014ac8862746d94d679dddae31e9398f230a865",
+    "proof_hash": "0x974f9a4be49e1a7dfa85525194c492c20846487014b7efa1cca16aed00bb68aa",
+    "agent_id": 1687,
+    "gas_used": 253575
+  },
+  "chain": "avalanche-fuji",
+  "chain_id": 43113,
+  "contract": "0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c",
+  "wallet": "0x43a9Fd328909c659e60d9f8E589bE846c3c0E14e",
+  "explorer_url": "https://testnet.snowtrace.io/tx/704069a6e64167087c53d39eb014ac8862746d94d679dddae31e9398f230a865"
+}

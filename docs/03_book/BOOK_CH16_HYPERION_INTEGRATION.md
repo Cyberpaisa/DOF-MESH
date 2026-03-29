@@ -1,125 +1,125 @@
-# Capítulo 16 — Hyperion Completo: Integración, HTTP Bridge y Carga Real
+# Chapter 16 — Hyperion Complete: Integration, HTTP Bridge, and Real Load
 
-> *"El arquitecto construye el puente. El ingeniero lo carga con trenes."*
-> — DOF Mesh, Sesión 25 de Marzo 2026
+> *"The architect builds the bridge. The engineer loads it with trains."*
+> — DOF Mesh, Session March 25, 2026
 
 ---
 
-## El Estado al Despertar
+## The State upon Waking
 
-El usuario se fue a trabajar. El mesh siguió construyendo.
+The user went to work. The mesh kept building.
 
-Al regresar, Hyperion tenía:
+Upon returning, Hyperion had:
 
 ```
 ✅ ConsistentHashRing     — 397K lookups/sec, rack-aware, 300 vnodes
-✅ VectorClock + Gossip   — convergencia 17ms, 5 nodos in-process
+✅ VectorClock + Gossip   — 17ms convergence, 5 in-process nodes
 ✅ WriteAheadLog          — crash recovery, SHA256, 6.8K entries/sec
 ✅ DistributedMeshQueue   — 107K tasks/sec, 10 shards, WAL-backed
 ✅ HyperionBridge         — drop-in NodeMesh, 0 breaking changes
-✅ HyperionHTTPServer     — stdlib puro, 5 endpoints REST
-✅ supervisor.py          — migrado a HyperionBridge en 1 línea
+✅ HyperionHTTPServer     — pure stdlib, 5 REST endpoints
+✅ supervisor.py          — migrated to HyperionBridge in 1 line
 ```
 
-**Hyperion al 80%.**
+**Hyperion at 80%.**
 
 ---
 
-## La Integración de Una Línea
+## The One-Line Integration
 
-La promesa de HyperionBridge era cero cambios al código existente.
+The promise of HyperionBridge was zero changes to existing code.
 
-`core/supervisor.py` antes:
+`core/supervisor.py` before:
 ```python
 from core.node_mesh import NodeMesh
 mesh = NodeMesh()
 ```
 
-`core/supervisor.py` después:
+`core/supervisor.py` after:
 ```python
 from core.hyperion_bridge import HyperionBridge as NodeMesh
 mesh = NodeMesh()
 ```
 
-Una línea. El swarm completo ahora rutea via DistributedMeshQueue:
-- 10 shards con rack-awareness
-- WAL activo — ninguna tarea se pierde en crash
-- ConsistentHashRing decide qué nodo procesa qué agente
-- GossipProtocol replica el estado del shard_map
+One line. The complete swarm now routes via DistributedMeshQueue:
+- 10 shards with rack-awareness
+- WAL active — no task is lost on crash
+- ConsistentHashRing decides which node processes which agent
+- GossipProtocol replicates the shard_map state
 
 ---
 
-## HTTP Bridge — Multi-Máquina Sin Dependencias
+## HTTP Bridge — Multi-Machine Without Dependencies
 
-`core/hyperion_http.py` expone DistributedMeshQueue via REST usando solo stdlib Python.
+`core/hyperion_http.py` exposes DistributedMeshQueue via REST using only Python stdlib.
 
-Sin FastAPI. Sin uvicorn. Sin pip install.
+No FastAPI. No uvicorn. No pip install.
 
 ```
-POST /enqueue          → encolar tarea
-GET  /dequeue          → desencolar (any shard)
-GET  /dequeue/{shard}  → desencolar del shard N
-GET  /status           → estado completo del sistema
+POST /enqueue          → enqueue task
+GET  /dequeue          → dequeue (any shard)
+GET  /dequeue/{shard}  → dequeue from shard N
+GET  /status           → complete system status
 GET  /health           → healthcheck
-POST /broadcast        → enviar a todos los agentes
-POST /task_done        → confirmar procesamiento
+POST /broadcast        → send to all agents
+POST /task_done        → confirm processing
 ```
 
-### Caso de Uso Real: 2 Máquinas
+### Real Use Case: 2 Machines
 
 ```python
-# Máquina A (servidor)
+# Machine A (server)
 srv = HyperionHTTPServer(host="0.0.0.0", port=8765)
 srv.run()
 
-# Máquina B (cliente)
+# Machine B (client)
 client = HyperionClient("http://machine-a:8765")
-client.enqueue("t1", "agent-gemini", "analiza el DOF Mesh")
+client.enqueue("t1", "agent-gemini", "analyze DOF Mesh")
 task = client.dequeue()
 ```
 
-### Benchmark HTTP
+### HTTP Benchmark
 
 ```
-14 tests — 100% verde — 6.7s
+14 tests — 100% green — 6.7s
 GET /health  → <1ms
-POST /enqueue → <5ms (incluye WAL write)
+POST /enqueue → <5ms (includes WAL write)
 GET /dequeue  → <2ms (timeout=0.5s worst case)
-POST /broadcast (3 agentes) → <10ms
+POST /broadcast (3 agents) → <10ms
 ```
 
 ---
 
-## Tests de Carga Multi-Agente
+## Multi-Agent Load Tests
 
-`tests/test_hyperion_load.py` valida el stack completo bajo carga real.
+`tests/test_hyperion_load.py` validates the complete stack under real load.
 
-### Resultados
+### Results
 
 ```
 ✅ test_enqueue_1000_tasks
    Enqueue: ~100K+ tasks/sec
 
 ✅ test_dequeue_all_no_loss
-   Recovery: 1000/1000 tasks — cero pérdida
+   Recovery: 1000/1000 tasks — zero loss
 
 ✅ test_6_agents_parallel
-   6 threads concurrentes — sin deadlocks
-   ≥ 95% de tareas procesadas en 5s
+   6 concurrent threads — no deadlocks
+   ≥ 95% of tasks processed in 5s
 
 ✅ test_latency_percentiles
    P50 < 100µs | P95 < 5ms | P99 < 50ms
 
 ✅ test_shard_distribution
-   Imbalance < 50% con 50 agentes distintos
+   Imbalance < 50% with 50 distinct agents
 
 ✅ test_concurrent_enqueue_no_corruption
-   8 threads simultáneos — 1000/1000 sin corrupción
+   8 simultaneous threads — 1000/1000 without corruption
 ```
 
 ---
 
-## Arquitectura Final Hyperion (80%)
+## Final Hyperion Architecture (80%)
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -135,10 +135,10 @@ POST /broadcast (3 agentes) → <10ms
 │                   └── GossipProtocol (replication)  │
 │                                                     │
 │  HyperionHTTPServer                                 │
-│    └── Expone todo via REST (stdlib, 0 deps)        │
+│    └── Exposes everything via REST (stdlib, 0 deps) │
 │         └── HyperionClient (cross-machine)          │
 │                                                     │
-│  Pendiente (20%):                                   │
+│  Pending (20%):                                     │
 │    └── Raft consensus (leader election)             │
 │                                                     │
 └─────────────────────────────────────────────────────┘
@@ -146,22 +146,22 @@ POST /broadcast (3 agentes) → <10ms
 
 ---
 
-## Pending: Raft Consensus (El 20% Final)
+## Pending: Raft Consensus (The Final 20%)
 
-Raft es el componente más complejo. Garantiza que si el líder cae,
-el cluster elige un nuevo líder sin pérdida de estado.
+Raft is the most complex component. It guarantees that if the leader falls,
+the cluster elects a new leader without state loss.
 
-Componentes:
+Components:
 1. **Leader Election** — term numbers, RequestVote RPC
-2. **Log Replication** — AppendEntries RPC, commit cuando quorum
-3. **Heartbeat** — líder envía latido cada 150ms
+2. **Log Replication** — AppendEntries RPC, commit when quorum
+3. **Heartbeat** — leader sends heartbeat every 150ms
 
-Sin Raft: si el nodo primario del shard cae, las tareas en su queue se pierden.
-Con Raft: otro nodo asume, WAL se replay, cero pérdida.
+Without Raft: if the shard's primary node falls, tasks in its queue are lost.
+With Raft: another node takes over, WAL is replayed, zero loss.
 
 ---
 
-## Tests Acumulados
+## Accumulated Tests
 
 ```
 tests/test_dof_sharding.py         — 18 tests ✅
@@ -169,29 +169,29 @@ tests/test_dof_consensus.py        — 21 tests ✅
 tests/test_dof_wal.py              — 12 tests ✅
 tests/test_dof_distributed_queue.py — 15 tests ✅
 tests/test_hyperion_http.py        — 14 tests ✅
-tests/test_hyperion_load.py        —  6 tests ✅ (nuevo)
+tests/test_hyperion_load.py        —  6 tests ✅ (new)
 
-Total: 86 tests — 100% verde
+Total: 86 tests — 100% green
 ```
 
 ---
 
-## Lección de Esta Sesión
+## Lesson from This Session
 
-El usuario fue al trabajo.
-El mesh integró supervisor.py con Hyperion.
-El mesh construyó los tests de carga.
-El mesh documentó el capítulo.
+The user went to work.
+The mesh integrated supervisor.py with Hyperion.
+The mesh built the load tests.
+The mesh documented the chapter.
 
-No hubo internet rápido. No hubo APIs externas.
-Solo código local, tests locales, M4 Max.
+No fast internet. No external APIs.
+Just local code, local tests, M4 Max.
 
-> "La inteligencia distribuida no necesita nube para existir."
+> "Distributed intelligence does not need the cloud to exist."
 
 ---
 
-*Capítulo 16 — DOF Mesh: El Libro*
-*Sesión: 25 de Marzo 2026, mañana*
-*Máquina: MacBook Pro M4 Max, 36GB, datos móviles*
-*Construcción: Claude Sonnet 4.6 — autónomo*
-*Usuario: Juan Carlos Quiceno Vasquez — en el trabajo*
+*Chapter 16 — DOF Mesh: The Book*
+*Session: March 25, 2026, morning*
+*Machine: MacBook Pro M4 Max, 36GB, mobile data*
+*Construction: Claude Sonnet 4.6 — autonomous*
+*User: Juan Carlos Quiceno Vasquez — at work*

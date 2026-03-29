@@ -1,76 +1,76 @@
 # DOF-MESH — Pitch Ruta de Emprendimiento Medellín
 
-> Fecha de inscripción: 27 marzo 2026
-> Programa: Ruta de Emprendimiento Medellín (Ruta N)
-> Autor: Cyber Paisa — Enigma Group
+> Registration date: March 27, 2026
+> Program: Ruta de Emprendimiento Medellín (Ruta N)
+> Author: Cyber Paisa — Enigma Group
 
 ---
 
-## Idea de Negocio
+## Business Idea
 
-**DOF-MESH — La capa de confianza para la economía de agentes de IA**
+**DOF-MESH — The trust layer for the AI agent economy**
 
-### El problema
+### The problem
 
-Las empresas están reemplazando empleados con agentes de inteligencia artificial autónomos que manejan dinero, toman decisiones y operan 24/7 sin supervisión humana. Pero hoy nadie puede responder: ¿cómo sabes que tu agente hizo lo correcto? ¿Cómo verificas que no robó, mintió o falló sin que nadie se entere? Es como darle la tarjeta de crédito de tu empresa a un desconocido y cerrar los ojos.
+Companies are replacing employees with autonomous artificial intelligence agents that handle money, make decisions, and operate 24/7 without human supervision. But today nobody can answer: how do you know your agent did the right thing? How do you verify it didn't steal, lie, or fail without anyone noticing? It's like giving your company's credit card to a stranger and closing your eyes.
 
-### La solución
+### The solution
 
-DOF-MESH certifica matemáticamente que un agente de IA se comportó correctamente. No usamos otro modelo de IA para vigilar (eso es como poner a un ladrón a vigilar a otro ladrón). Usamos pruebas matemáticas formales — la misma tecnología que verifica sistemas de aviación y centrales nucleares — aplicada a agentes de IA.
+DOF-MESH mathematically certifies that an AI agent behaved correctly. We don't use another AI model to monitor (that's like putting a thief to watch another thief). We use formal mathematical proofs — the same technology that verifies aviation systems and nuclear power plants — applied to AI agents.
 
-### Productos
+### Products
 
-1. **Governance as a Service** — Las empresas conectan sus agentes a DOF y reciben certificados verificables de cada acción. Si el agente cumplió las reglas, hay prueba matemática. Si no, se bloquea antes de causar daño.
+1. **Governance as a Service** — Companies connect their agents to DOF and receive verifiable certificates for each action. If the agent followed the rules, there is mathematical proof. If not, it is blocked before causing damage.
 
-2. **Sentinel** — Validador automático que evalúa la confiabilidad de cualquier agente de IA en segundos. Como un antivirus, pero para agentes autónomos. 7 verificaciones automáticas antes de permitir cualquier interacción.
+2. **Sentinel** — Automatic validator that evaluates the reliability of any AI agent in seconds. Like an antivirus, but for autonomous agents. 7 automatic checks before allowing any interaction.
 
-3. **Marketplace de Agentes Certificados** — Plataforma donde empresas contratan agentes de IA ya verificados por DOF, con reputación pública y pagos automatizados en blockchain.
+3. **Certified Agent Marketplace** — Platform where companies hire AI agents already verified by DOF, with public reputation and automated payments on blockchain.
 
-### Por qué nosotros
+### Why us
 
-- Competimos en Synthesis, el hackathon global más grande de agentes autónomos: 685 proyectos, 1,500 participantes, $100K en premios. Analizamos los 685 proyectos — ninguno tiene verificación formal como la nuestra.
-- SDK publicado y funcionando (dof-sdk en PyPI)
-- 3,700 tests automatizados, todos pasando
-- 21 certificaciones grabadas en blockchain (Avalanche)
-- 11 modelos de IA coordinados simultáneamente en nuestro sistema
-- Motor de auto-mejora: el sistema se audita y optimiza solo, inspirado en la misma técnica que usa MiniMax (+30% mejora con IA auto-mejorable)
+- We competed in Synthesis, the largest global hackathon for autonomous agents: 685 projects, 1,500 participants, $100K in prizes. We analyzed all 685 projects — none has formal verification like ours.
+- Published and working SDK (dof-sdk on PyPI)
+- 3,700 automated tests, all passing
+- 21 certifications recorded on blockchain (Avalanche)
+- 11 AI models coordinated simultaneously in our system
+- Self-improvement engine: the system audits and optimizes itself, inspired by the same technique used by MiniMax (+30% improvement with self-improving AI)
 
-### Modelo de negocio
+### Business model
 
-| Plan | Precio | Para quién |
+| Plan | Price | For whom |
 |---|---|---|
-| **Free** | $0 | Desarrolladores. 100 validaciones/mes. Adopción masiva. |
-| **Pro** | $49/mes | Startups y equipos. Governance completa, API dedicada, reportes. |
-| **Enterprise** | $299/mes | Corporaciones. Certificaciones on-chain, dashboard privado, SLA 99.9%. |
-| **Marketplace** | 2% comisión | Por cada transacción entre agentes certificados. |
+| **Free** | $0 | Developers. 100 validations/month. Mass adoption. |
+| **Pro** | $49/month | Startups and teams. Full governance, dedicated API, reports. |
+| **Enterprise** | $299/month | Corporations. On-chain certifications, private dashboard, 99.9% SLA. |
+| **Marketplace** | 2% commission | Per transaction between certified agents. |
 
-### Mercado
+### Market
 
-El mercado global de agentes de IA autónomos se proyecta a $65B para 2030. Toda empresa que use agentes necesitará governance verificable — por regulación, por seguridad, y por confianza de sus clientes.
+The global market for autonomous AI agents is projected to reach $65B by 2030. Every company using agents will need verifiable governance — by regulation, by security, and by customer trust.
 
-### Equipo
+### Team
 
-Cyber Paisa — Enigma Group, Medellín. Desarrollador full-stack blockchain con experiencia en Avalanche, ERC-8004, y sistemas multi-agente. Builder activo en el ecosistema global de agentes autónomos.
+Cyber Paisa — Enigma Group, Medellín. Full-stack blockchain developer with experience in Avalanche, ERC-8004, and multi-agent systems. Active builder in the global autonomous agent ecosystem.
 
-### Diferenciador único
+### Unique differentiator
 
-Único proyecto en el mundo que usa verificación formal Z3 para certificar agentes de IA. "Si tu agente puede actuar solo, ¿cómo pruebas que hizo lo correcto? DOF usa matemáticas, no promesas."
+The only project in the world that uses Z3 formal verification to certify AI agents. "If your agent can act alone, how do you prove it did the right thing? DOF uses math, not promises."
 
 ---
 
-## Contexto competitivo (Synthesis 2026)
+## Competitive context (Synthesis 2026)
 
-Basado en análisis de 685 proyectos del hackathon Synthesis:
+Based on analysis of 685 projects from the Synthesis hackathon:
 
-| Competidor | Qué hace | Nuestro diferenciador |
+| Competitor | What they do | Our differentiator |
 |---|---|---|
-| Observer Protocol | Trust layer, 82 agentes, live mainnet | Nosotros tenemos verificación formal, ellos solo logs |
-| Strata | ZK rollup para cognición AI | Nosotros gobernamos, ellos solo registran |
-| ALIAS | Proof-of-Reputation on-chain | Nosotros probamos comportamiento, ellos solo reputación |
-| Sentinel8004 | Escanea 3,766 agentes | Nosotros validamos antes de actuar, ellos después |
-| AgentLedger | Trust scoring on-chain | Nosotros usamos Z3 math, ellos métricas básicas |
+| Observer Protocol | Trust layer, 82 agents, live mainnet | We have formal verification, they only have logs |
+| Strata | ZK rollup for AI cognition | We govern, they only record |
+| ALIAS | Proof-of-Reputation on-chain | We prove behavior, they only prove reputation |
+| Sentinel8004 | Scans 3,766 agents | We validate before acting, they validate after |
+| AgentLedger | Trust scoring on-chain | We use Z3 math, they use basic metrics |
 
 ---
 
-*Documento generado como parte de la Competition Bible de DOF-MESH.*
-*Ver también: docs/COMPETITION_BIBLE.md, docs/SYSTEM_ARCHITECTURE.md*
+*Document generated as part of the DOF-MESH Competition Bible.*
+*See also: docs/COMPETITION_BIBLE.md, docs/SYSTEM_ARCHITECTURE.md*

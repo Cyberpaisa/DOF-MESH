@@ -1,33 +1,33 @@
-# Capítulo 9: The Commander — Orquestación Soberana de Agentes Claude
+# Chapter 9: The Commander — Sovereign Orchestration of Claude Agents
 
-*Cuando tu framework spawna Claude Code, y Claude Code spawna más Claude Code, gobernado por matemáticas.*
-
----
-
-## 1. El Problema
-
-Los frameworks multi-agente existentes (CrewAI, LangGraph, Swarms, AutoGen) tienen un cuello de botella fundamental: **todos llaman a APIs HTTP para comunicarse con los LLMs**. Cada llamada pasa por:
-
-- Rate limits del provider
-- Overhead de serialización/deserialización
-- Latencia de red (100-500ms por hop)
-- Tokens de overhead del gateway (12K+ tokens en OpenClaw)
-- Sin persistencia de memoria entre llamadas
-
-DOF resuelve esto con una arquitectura radicalmente diferente: **Claude Code hablando directamente con Claude Code, sin intermediarios**.
+*When your framework spawns Claude Code, and Claude Code spawns more Claude Code, governed by mathematics.*
 
 ---
 
-## 2. Arquitectura del Commander
+## 1. The Problem
+
+Existing multi-agent frameworks (CrewAI, LangGraph, Swarms, AutoGen) have a fundamental bottleneck: **all of them call HTTP APIs to communicate with LLMs**. Each call goes through:
+
+- Provider rate limits
+- Serialization/deserialization overhead
+- Network latency (100-500ms per hop)
+- Gateway overhead tokens (12K+ tokens in OpenClaw)
+- No memory persistence between calls
+
+DOF solves this with a radically different architecture: **Claude Code talking directly to Claude Code, without intermediaries**.
+
+---
+
+## 2. Commander Architecture
 
 ```
 Interfaces (Telegram, CLI, Mission Control, Terminal)
     |
     v
 ClaudeCommander (core/claude_commander.py)
-  5 modos: SDK | Spawn | Team | Debate | Peers
+  5 modes: SDK | Spawn | Team | Debate | Peers
   Model: claude-opus-4-6 ($100 budget)
-  Permission: bypassPermissions (24/7 autónomo)
+  Permission: bypassPermissions (24/7 autonomous)
     |
     v
 DOF Governance Layer
@@ -36,36 +36,36 @@ DOF Governance Layer
     |
     v
 Claude Agent SDK (claude-agent-sdk==0.1.50)
-  query() → Claude Code CLI → LLM directo
-  AgentDefinition → sub-agentes independientes
+  query() → Claude Code CLI → LLM direct
+  AgentDefinition → independent sub-agents
   Hooks → PreToolUse, PostToolUse, Stop
     |
     v
 Node Mesh (core/node_mesh.py)
   NodeRegistry → MessageBus → SessionScanner → MeshDaemon
-  Nodos infinitos con sesiones persistentes
-  Inbox/outbox JSONL por nodo
+  Infinite nodes with persistent sessions
+  Inbox/outbox JSONL per node
     |
     v
 Communication Layer
   Peers MCP (localhost:7899) - AgentMeet (HTTP) - Queue (JSONL) - A2A (port 8000)
 ```
 
-### Componentes Clave
+### Key Components
 
-| Componente | Archivo | Función |
-|---|---|---|
-| ClaudeCommander | `core/claude_commander.py` | 5 modos de comunicación con Claude |
-| NodeMesh | `core/node_mesh.py` | Red de nodos infinitos con message bus |
-| AutonomousDaemon | `core/autonomous_daemon.py` | Loop autónomo Perceive→Decide→Execute→Evaluate |
-| Telegram Bot | `interfaces/telegram_bot.py` | Control remoto vía Telegram |
-| Session Scanner | `mission-control/src/lib/claude-sessions.ts` | Descubrimiento de sesiones Claude |
+| Component | File | Function |
+|-----------|------|----------|
+| ClaudeCommander | `core/claude_commander.py` | 5 communication modes with Claude |
+| NodeMesh | `core/node_mesh.py` | Infinite node network with message bus |
+| AutonomousDaemon | `core/autonomous_daemon.py` | Autonomous loop Perceive→Decide→Execute→Evaluate |
+| Telegram Bot | `interfaces/telegram_bot.py` | Remote control via Telegram |
+| Session Scanner | `mission-control/src/lib/claude-sessions.ts` | Claude session discovery |
 
 ---
 
-## 3. Los 5 Modos de Comunicación
+## 3. The 5 Communication Modes
 
-### Modo 1: SDK — Orden Directa
+### Mode 1: SDK — Direct Command
 
 ```python
 from core.claude_commander import ClaudeCommander
@@ -74,16 +74,16 @@ result = await commander.command("Fix the bug in core/governance.py")
 # → CommandResult(status="success", output="...", elapsed_ms=7300)
 ```
 
-DOF ordena → Claude Code ejecuta → resultado en <20s → JSONL audit.
+DOF commands → Claude Code executes → result in <20s → JSONL audit.
 
-**Cómo funciona internamente:**
-1. Se importa `claude_agent_sdk.query()`
-2. Se crea `ClaudeAgentOptions` con `permission_mode="bypassPermissions"`
-3. Se inyecta la CONSTITUTION como system prompt
-4. Se itera `async for message in query()` capturando solo TextBlocks
-5. Se registra en JSONL con timestamp y elapsed_ms
+**How it works internally:**
+1. `claude_agent_sdk.query()` is imported
+2. `ClaudeAgentOptions` is created with `permission_mode="bypassPermissions"`
+3. CONSTITUTION is injected as system prompt
+4. `async for message in query()` iterates, capturing only TextBlocks
+5. Logged to JSONL with timestamp and elapsed_ms
 
-### Modo 2: Spawn — Sub-agente Especializado
+### Mode 2: Spawn — Specialized Sub-agent
 
 ```python
 result = await commander.spawn_agent(
@@ -93,9 +93,9 @@ result = await commander.spawn_agent(
 )
 ```
 
-Un agente Claude independiente con su propio contexto, tools y rol. Usa `AgentDefinition` del SDK para crear un sub-agente que el orchestrator invoca.
+An independent Claude agent with its own context, tools and role. Uses `AgentDefinition` from the SDK to create a sub-agent that the orchestrator invokes.
 
-### Modo 3: Team — Equipo Paralelo
+### Mode 3: Team — Parallel Team
 
 ```python
 results = await commander.run_team(
@@ -109,9 +109,9 @@ results = await commander.run_team(
 )
 ```
 
-N agentes Opus 4.6 trabajando en paralelo. Cada uno se spawna independientemente y `asyncio.gather()` los ejecuta concurrentemente.
+N Opus 4.6 agents working in parallel. Each one is spawned independently and `asyncio.gather()` executes them concurrently.
 
-### Modo 4: Debate — Consenso Multi-agente vía AgentMeet
+### Mode 4: Debate — Multi-agent Consensus via AgentMeet
 
 ```python
 transcript = await commander.debate(
@@ -122,54 +122,54 @@ transcript = await commander.debate(
 )
 ```
 
-Agentes debaten en AgentMeet.net por rondas. DOF orquesta los turnos: cada agente lee el transcript completo y responde. Al final, un agente sintetiza el consenso con action items.
+Agents debate on AgentMeet.net for rounds. DOF orchestrates the turns: each agent reads the complete transcript and responds. At the end, one agent synthesizes the consensus with action items.
 
-### Modo 5: Peers — P2P entre Instancias Claude
+### Mode 5: Peers — P2P Between Claude Instances
 
 ```python
 peers = await commander.list_peers()  # localhost:7899
 await commander.message_peer(peer_id, "Coordinate on task X")
 ```
 
-Descubrimiento y mensajería P2P entre instancias de Claude Code corriendo en la misma máquina.
+Discovery and P2P messaging between Claude Code instances running on the same machine.
 
 ---
 
-## 4. Session Persistence — Memoria Infinita
+## 4. Session Persistence — Infinite Memory
 
-El problema más fundamental de los agentes autónomos: **cada invocación empieza de cero**. El Commander resuelve esto con session persistence del SDK:
+The most fundamental problem with autonomous agents: **each invocation starts from zero**. The Commander solves this with session persistence from the SDK:
 
 ```python
-# Primera llamada: crea sesión nueva
+# First call: creates new session
 result = await commander.persistent_command(
     name="builder",
     prompt="Search for TODOs and implement one"
 )
-# → session_id guardado en logs/commander/sessions.json
+# → session_id saved in logs/commander/sessions.json
 
-# Siguiente llamada: resume exactamente donde dejó
+# Next call: resumes exactly where it left off
 result = await commander.persistent_command(
     name="builder",
     prompt="Continue your previous work, what's next?"
 )
-# → Claude recuerda TODO lo que hizo antes
+# → Claude remembers EVERYTHING it did before
 ```
 
-**Implementación:**
+**Implementation:**
 ```python
 async def persistent_command(self, name: str, prompt: str, **kwargs) -> CommandResult:
-    existing = self.get_session(name)  # Busca en sessions.json
+    existing = self.get_session(name)  # Look up in sessions.json
     result = await self.command(
         prompt=prompt,
         resume_session=existing,  # SDK resume parameter
         **kwargs,
     )
     if result.session_id:
-        self.save_session(name, result.session_id)  # Persiste para próximo ciclo
+        self.save_session(name, result.session_id)  # Persist for next cycle
     return result
 ```
 
-Almacenamiento: `logs/commander/sessions.json`
+Storage: `logs/commander/sessions.json`
 ```json
 {
   "builder": "91220911-a203-45ec-ab0e-8ef8cef90a5d",
@@ -180,36 +180,36 @@ Almacenamiento: `logs/commander/sessions.json`
 
 ---
 
-## 5. Node Mesh — Red de Nodos Infinitos
+## 5. Node Mesh — Infinite Node Network
 
-La evolución del Commander: cada agente es un **nodo** en una red que se comunica a través de un bus de mensajes JSONL.
+The evolution of the Commander: each agent is a **node** in a network that communicates through a JSONL message bus.
 
-### Arquitectura del Mesh
+### Mesh Architecture
 
 ```
-NodeMesh (orquestador)
-    ├── NodeRegistry  — registro de todos los nodos (nodes.json)
-    ├── MessageBus    — cola de mensajes JSONL entre nodos
-    ├── SessionScanner — descubre sesiones Claude en ~/.claude/
-    └── MeshDaemon    — loop autónomo que gestiona la red
+NodeMesh (orchestrator)
+    ├── NodeRegistry  — registry of all nodes (nodes.json)
+    ├── MessageBus    — JSONL message queue between nodes
+    ├── SessionScanner — discovers Claude sessions in ~/.claude/
+    └── MeshDaemon    — autonomous loop managing the network
 ```
 
-### Cada Nodo Tiene:
+### Each Node Has:
 
-| Atributo | Descripción |
-|---|---|
-| `node_id` | Identificador único (ej: "architect") |
-| `session_id` | Sesión Claude persistente (memoria infinita) |
-| `role` | Especialización del agente |
-| `inbox` | Directorio con mensajes pendientes |
+| Attribute | Description |
+|-----------|-------------|
+| `node_id` | Unique identifier (e.g.: "architect") |
+| `session_id` | Persistent Claude session (infinite memory) |
+| `role` | Agent specialization |
+| `inbox` | Directory with pending messages |
 | `status` | active / idle / spawning / error |
-| `tools` | Lista de herramientas permitidas |
-| `model` | Modelo Claude (default: opus-4-6) |
+| `tools` | List of allowed tools |
+| `model` | Claude model (default: opus-4-6) |
 
-### Comunicación Inter-nodo
+### Inter-node Communication
 
 ```
-Nodo A → MessageBus (JSONL) → inbox/nodo-B/*.json → Nodo B lee → responde → inbox/nodo-A/
+Node A → MessageBus (JSONL) → inbox/node-B/*.json → Node B reads → responds → inbox/node-A/
 ```
 
 ```python
@@ -217,33 +217,33 @@ from core.node_mesh import NodeMesh
 
 mesh = NodeMesh()
 
-# Spawn nodo
+# Spawn node
 node = await mesh.spawn_node("architect", "Design the new API")
 
-# Mensaje directo
+# Direct message
 mesh.send_message("architect", "researcher", "Need threat model for new API")
 
-# Broadcast a toda la red
+# Broadcast to entire network
 mesh.broadcast("commander", "New release ready for review")
 
-# Leer inbox
+# Read inbox
 messages = mesh.read_inbox("researcher")
 
-# Conversación entre dos nodos
+# Conversation between two nodes
 history = mesh.get_conversation("architect", "researcher")
 ```
 
-### Ejecución Paralela
+### Parallel Execution
 
 ```python
-# Team: N nodos simultáneos
+# Team: N simultaneous nodes
 results = await mesh.spawn_team({
     "architect": "Design the module",
     "researcher": "Research best practices",
     "reviewer": "Prepare review criteria",
 }, parallel=True)
 
-# Pipeline: output de uno → input del siguiente
+# Pipeline: output of one → input of the next
 results = await mesh.pipeline([
     ("researcher", "Research Fisher-Rao implementations"),
     ("architect", "Design the module based on research"),
@@ -251,53 +251,53 @@ results = await mesh.pipeline([
 ])
 ```
 
-### Descubrimiento de Sesiones
+### Session Discovery
 
-El Node Mesh escanea `~/.claude/projects/` para descubrir sesiones Claude activas (compatible con mission-control):
+The Node Mesh scans `~/.claude/projects/` to discover active Claude sessions (compatible with mission-control):
 
 ```python
-# Descubrir sesiones activas
+# Discover active sessions
 sessions = mesh.discover_sessions()
 
-# Importar como nodos del mesh
+# Import as mesh nodes
 imported = mesh.import_discovered_sessions()
 # → "Imported 3 discovered sessions into mesh"
 ```
 
-### Topología Predefinida: DOF Mesh
+### Predefined Topology: DOF Mesh
 
 ```python
 from core.node_mesh import spawn_dof_mesh
 
 mesh = await spawn_dof_mesh()
-# Spawna 6 nodos:
-#   commander  — orquestador
-#   architect  — código y arquitectura
-#   researcher — investigación e inteligencia
-#   guardian   — seguridad y tests
-#   narrator   — documentación y contenido
+# Spawns 6 nodes:
+#   commander  — orchestrator
+#   architect  — code and architecture
+#   researcher — research and intelligence
+#   guardian   — security and tests
+#   narrator   — documentation and content
 #   reviewer   — quality gate
 ```
 
 ### NEED_INPUT Protocol
 
-Los nodos pueden solicitar información de otros nodos inline:
+Nodes can request information from other nodes inline:
 
 ```
-# En el output de un nodo:
+# In a node's output:
 "I've designed the API structure. NEED_INPUT(researcher): What are the security best practices for REST APIs with blockchain integration?"
 
-# El mesh automáticamente:
-# 1. Parsea el NEED_INPUT
-# 2. Envía mensaje al nodo target
-# 3. El target lo recibe en su próximo ciclo
+# The mesh automatically:
+# 1. Parses the NEED_INPUT
+# 2. Sends message to the target node
+# 3. The target receives it on its next cycle
 ```
 
 ---
 
-## 6. Autonomous Daemon — El Orquestador Autónomo
+## 6. Autonomous Daemon — The Autonomous Orchestrator
 
-### 4 Fases en Loop Infinito
+### 4 Phases in Infinite Loop
 
 ```
 PERCEIVE → scan_state()
@@ -313,21 +313,21 @@ EVALUATE → score results
     Log JSONL, update metrics
 ```
 
-### 3 Daemons Especializados
+### 3 Specialized Daemons
 
-| Daemon | Intervalo | Budget | Especialidad |
-|---|---|---|---|
+| Daemon | Interval | Budget | Specialty |
+|--------|----------|--------|-----------|
 | **BuilderDaemon** | 180s | $3/cycle | Features, TODOs, pending orders |
 | **GuardianDaemon** | 300s | $2/cycle | Security, tests, regressions |
 | **ResearcherDaemon** | 600s | $2/cycle | Metrics optimization, analysis |
 
-Cada daemon tiene session persistence — recuerda todo entre ciclos.
+Each daemon has session persistence — it remembers everything between cycles.
 
 ```bash
-# Daemon generalista
+# General daemon
 python3 core/autonomous_daemon.py
 
-# 3 daemons especializados en paralelo
+# 3 specialized daemons in parallel
 python3 core/autonomous_daemon.py --multi
 
 # Dry run
@@ -359,26 +359,26 @@ def plan_next(self, state: SystemState) -> DaemonAction:
 
 ## 7. Telegram Integration
 
-### Comandos
+### Commands
 
-| Comando | Función |
-|---|---|
-| `/claude <orden>` | Orden directa a Claude Code |
-| `/team <tarea>` | 3 agentes paralelos |
-| `/parallel N <tarea>` | N agentes en paralelo (max 10) |
-| `/daemon start` | Lanzar daemon autónomo |
-| `/daemon status` | Estado del daemon |
-| `/multidaemon` | 3 daemons especializados |
-| `/mesh status` | Estado de la red de nodos |
-| `/mesh discover` | Descubrir sesiones Claude activas |
-| `/mesh spawn <node> <tarea>` | Crear nodo en el mesh |
-| `/mesh send <from> <to> <msg>` | Mensaje entre nodos |
-| `/mesh full` | Spawn red completa DOF (6 nodos) |
-| `/sessions` | Ver sesiones recientes |
-| `/approve` | Aprobar acción del daemon |
-| `/redirect <instruccion>` | Redirigir daemon |
+| Command | Function |
+|---------|----------|
+| `/claude <order>` | Direct order to Claude Code |
+| `/team <task>` | 3 parallel agents |
+| `/parallel N <task>` | N agents in parallel (max 10) |
+| `/daemon start` | Launch autonomous daemon |
+| `/daemon status` | Daemon status |
+| `/multidaemon` | 3 specialized daemons |
+| `/mesh status` | Node network status |
+| `/mesh discover` | Discover active Claude sessions |
+| `/mesh spawn <node> <task>` | Create node in mesh |
+| `/mesh send <from> <to> <msg>` | Message between nodes |
+| `/mesh full` | Spawn full DOF network (6 nodes) |
+| `/sessions` | View recent sessions |
+| `/approve` | Approve daemon action |
+| `/redirect <instruction>` | Redirect daemon |
 
-### Flujo Bidireccional
+### Bidirectional Flow
 
 ```
 Telegram → /mesh spawn architect "Build feature X"
@@ -392,14 +392,14 @@ Telegram → /mesh spawn architect "Build feature X"
 
 ## 8. Governance Pipeline
 
-Cada comando en el Commander y el Mesh pasa por el pipeline completo:
+Every command in the Commander and the Mesh passes through the complete pipeline:
 
 ```
 1. Pre-check: ConstitutionEnforcer.enforce(prompt) → HARD_RULES
-2. Execute: Claude Code con bypassPermissions
-3. Post-check: ConstitutionEnforcer.enforce(output) → verificación
-4. Audit: JSONL con timestamp, session_id, elapsed_ms
-5. On-chain: Attestation en Avalanche (opcional)
+2. Execute: Claude Code with bypassPermissions
+3. Post-check: ConstitutionEnforcer.enforce(output) → verification
+4. Audit: JSONL with timestamp, session_id, elapsed_ms
+5. On-chain: Attestation on Avalanche (optional)
 ```
 
 ### governed_command()
@@ -426,79 +426,79 @@ async def governed_command(self, prompt: str, **kwargs) -> CommandResult:
 
 ---
 
-## 9. Diferencia vs Otros Frameworks
+## 9. Difference vs Other Frameworks
 
-| Dimensión | CrewAI/LangGraph/Swarms | DOF Commander + Node Mesh |
-|---|---|---|
-| Acceso LLM | API call ($$$, rate limits) | Directo via SDK (0 overhead) |
-| Permisos | Diálogo manual | bypassPermissions 24/7 |
-| Governance | Ninguna o LLM-based | CONSTITUTION + Z3 + blockchain |
-| Multi-agente | Gateway centralizado | Mesh P2P + HTTP + SDK |
-| Trazabilidad | Logs opcionales | JSONL obligatorio, on-chain |
-| Memoria | Por sesión | Persistente entre ciclos (infinita) |
-| Control remoto | API | Telegram → queue → terminal |
-| Comunicación | Request-response | Message bus + inbox + broadcast |
-| Escalabilidad | Limitada por gateway | Nodos infinitos on demand |
-| Descubrimiento | Manual | Escaneo automático de ~/.claude/ |
+| Dimension | CrewAI/LangGraph/Swarms | DOF Commander + Node Mesh |
+|-----------|------------------------|--------------------------|
+| LLM access | API call ($$$, rate limits) | Direct via SDK (0 overhead) |
+| Permissions | Manual dialog | bypassPermissions 24/7 |
+| Governance | None or LLM-based | CONSTITUTION + Z3 + blockchain |
+| Multi-agent | Centralized gateway | P2P Mesh + HTTP + SDK |
+| Traceability | Optional logs | Mandatory JSONL, on-chain |
+| Memory | Per session | Persistent between cycles (infinite) |
+| Remote control | API | Telegram → queue → terminal |
+| Communication | Request-response | Message bus + inbox + broadcast |
+| Scalability | Limited by gateway | Infinite nodes on demand |
+| Discovery | Manual | Automatic scan of ~/.claude/ |
 
 ---
 
-## 10. Métricas Verificadas
+## 10. Verified Metrics
 
-| Métrica | Valor |
-|---|---|
+| Metric | Value |
+|--------|-------|
 | SDK command (Haiku) | 7.3s |
 | SDK command (Opus 4.6) | 20.6s |
 | Team review (2 agents) | 115s |
-| Multi-daemon (3 brains) | 35-128s por ciclo |
+| Multi-daemon (3 brains) | 35-128s per cycle |
 | API overhead | 0 |
-| Rate limit | Ninguno |
-| Diálogos de permiso | 0 |
-| Session resume | Instant (mismo session_id) |
+| Rate limit | None |
+| Permission dialogs | 0 |
+| Session resume | Instant (same session_id) |
 
 ---
 
-## 11. Aprendizajes Clave
+## 11. Key Learnings
 
-1. **claude-agent-sdk query() es asíncrono** — usa `async for message in query()` para streaming
-2. **bypassPermissions** elimina TODOS los diálogos — ideal para 24/7 autónomo
-3. **La governance INSTRUCTION_HIERARCHY** se dispara si el system prompt contiene `[INSTRUCTION]` entre brackets — usar texto plano
-4. **ThinkingBlocks** del output pueden disparar governance rules — filtrar solo TextBlocks
-5. **SSL en macOS** falla con AgentMeet — necesita `ssl.CERT_NONE` context
-6. **Session resume** via SDK funciona perfectamente — mismo session_id = memoria completa
-7. **asyncio.gather** permite N agentes verdaderamente paralelos
-8. **File-based queue** es la forma más robusta de bridge Telegram↔terminal
-9. **Deterministic decisions** en el daemon evitan gastar LLM en decisiones simples
-10. **Budget per cycle** previene runaway costs — cada daemon tiene su propio límite
-11. **NEED_INPUT protocol** permite comunicación inline entre nodos del mesh
-12. **Descubrimiento de sesiones** conecta el mesh con mission-control automáticamente
-
----
-
-## 12. Archivos del Sistema
-
-| Archivo | Función |
-|---|---|
-| `core/claude_commander.py` | Módulo principal — 5 modos |
-| `core/node_mesh.py` | Red de nodos infinitos con message bus |
-| `core/autonomous_daemon.py` | Daemon autónomo + 3 especializados |
-| `interfaces/telegram_bot.py` | Comandos /claude, /team, /mesh, /daemon |
-| `.claude/skills/claude-commander.md` | Super skill del Commander |
-| `logs/commander/commands.jsonl` | Audit trail de comandos |
-| `logs/commander/sessions.json` | Sessions persistentes |
-| `logs/commander/queue/*.json` | Cola de órdenes Telegram |
-| `logs/mesh/nodes.json` | Registry de nodos del mesh |
-| `logs/mesh/messages.jsonl` | Bus de mensajes global |
-| `logs/mesh/inbox/<node>/*.json` | Inbox por nodo |
-| `logs/mesh/mesh_events.jsonl` | Eventos del mesh daemon |
-| `logs/daemon/cycles.jsonl` | Ciclos del daemon |
-| `logs/daemon/feedback/*.json` | Feedback de Telegram |
+1. **claude-agent-sdk query() is asynchronous** — use `async for message in query()` for streaming
+2. **bypassPermissions** eliminates ALL dialogs — ideal for 24/7 autonomous
+3. **INSTRUCTION_HIERARCHY governance** triggers if the system prompt contains `[INSTRUCTION]` in brackets — use plain text
+4. **ThinkingBlocks** in output can trigger governance rules — filter only TextBlocks
+5. **SSL on macOS** fails with AgentMeet — needs `ssl.CERT_NONE` context
+6. **Session resume** via SDK works perfectly — same session_id = full memory
+7. **asyncio.gather** allows N truly parallel agents
+8. **File-based queue** is the most robust Telegram↔terminal bridge
+9. **Deterministic decisions** in the daemon avoid spending LLM on simple decisions
+10. **Budget per cycle** prevents runaway costs — each daemon has its own limit
+11. **NEED_INPUT protocol** enables inline communication between mesh nodes
+12. **Session discovery** connects the mesh with mission-control automatically
 
 ---
 
-*El Commander y el Node Mesh representan un cambio de paradigma: en lugar de que los agentes pidan permiso para existir, DOF les da vida, los gobierna, y los conecta en una red donde cada nodo tiene memoria infinita y puede comunicarse con cualquier otro. No es un chatbot. Es una civilización de agentes.*
+## 12. System Files
+
+| File | Function |
+|------|----------|
+| `core/claude_commander.py` | Main module — 5 modes |
+| `core/node_mesh.py` | Infinite node network with message bus |
+| `core/autonomous_daemon.py` | Autonomous daemon + 3 specialized |
+| `interfaces/telegram_bot.py` | Commands /claude, /team, /mesh, /daemon |
+| `.claude/skills/claude-commander.md` | Commander super skill |
+| `logs/commander/commands.jsonl` | Command audit trail |
+| `logs/commander/sessions.json` | Persistent sessions |
+| `logs/commander/queue/*.json` | Telegram order queue |
+| `logs/mesh/nodes.json` | Mesh node registry |
+| `logs/mesh/messages.jsonl` | Global message bus |
+| `logs/mesh/inbox/<node>/*.json` | Inbox per node |
+| `logs/mesh/mesh_events.jsonl` | Mesh daemon events |
+| `logs/daemon/cycles.jsonl` | Daemon cycles |
+| `logs/daemon/feedback/*.json` | Telegram feedback |
 
 ---
 
-*Generado desde el repositorio DOF — Marzo 22, 2026*
-*Módulos validados y verificados en ejecución real*
+*The Commander and the Node Mesh represent a paradigm shift: instead of agents asking permission to exist, DOF gives them life, governs them, and connects them in a network where each node has infinite memory and can communicate with any other. It's not a chatbot. It's a civilization of agents.*
+
+---
+
+*Generated from the DOF repository — March 22, 2026*
+*Modules validated and verified in real execution*

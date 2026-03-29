@@ -1,65 +1,65 @@
-# DOF-MESH v0.5.0 — Arquitectura Completa del Sistema
+# DOF-MESH v0.5.0 — Complete System Architecture
 
-> Deterministic Observability Framework — Sistema autónomo de governance para agentes de IA
+> Deterministic Observability Framework — Autonomous governance system for AI agents
 > Cyber Paisa — Enigma Group — 2026
 
 ---
 
-## Números del Sistema
+## System Numbers
 
-| Métrica | Valor |
+| Metric | Value |
 |---|---|
-| Módulos core | 132 |
-| Archivos de test | 143 |
-| Tests totales | 3,698 (100% passing) |
-| Líneas de código | 119,409 |
-| Documentación | 105 archivos .md |
-| Interfaces | 4 (Dashboard, Telegram, Voz, Voz Realtime) |
+| Core modules | 132 |
+| Test files | 143 |
+| Total tests | 3,698 (100% passing) |
+| Lines of code | 119,409 |
+| Documentation | 105 .md files |
+| Interfaces | 4 (Dashboard, Telegram, Voice, Realtime Voice) |
 | Scripts | 13 |
 | CI Workflows | 3 (Tests, DOF CI, Z3 Verify) |
 | SDK | dof-sdk 0.5.0 (PyPI) |
 | On-chain | 21+ attestations (Avalanche C-Chain) |
-| Agentes CrewAI | 17 |
-| Nodos Mesh LLM | 11 |
-| Capas de governance | 7 |
+| CrewAI Agents | 17 |
+| Mesh LLM Nodes | 11 |
+| Governance layers | 7 |
 
 ---
 
-## Arquitectura por Capas
+## Layered Architecture
 
 ```
 +================================================================+
-|                    INTERFACES (entrada)                         |
-|  CLI (main.py)  | Telegram Bot | Dashboard | Voz | A2A Server  |
+|                    INTERFACES (entry)                           |
+|  CLI (main.py)  | Telegram Bot | Dashboard | Voice | A2A Server |
 +========|================|=============|==========|=============+
          |                |             |          |
 +========v================v=============v==========v=============+
-|              CAPA 1 -- GOVERNANCE (deterministica)             |
+|              LAYER 1 -- GOVERNANCE (deterministic)             |
 |                                                                |
 |  governance.py ----> Constitution (HARD + SOFT rules)          |
-|  ast_verifier.py ----> Analisis estatico de codigo generado    |
+|  ast_verifier.py ----> Static analysis of generated code       |
 |  supervisor.py ----> Meta-supervisor Q(0.4)+A(0.25)+C(0.2)+F  |
 |  adversarial.py ----> Red-team + prompt injection detection    |
-|  memory_governance.py ----> Control de memoria                 |
+|  memory_governance.py ----> Memory control                     |
 |  security_hierarchy.py ----> SYSTEM > USER > ASSISTANT         |
-|  entropy_detector.py ----> Deteccion de output anomalo         |
-|  compliance_framework.py ----> Marco regulatorio               |
+|  entropy_detector.py ----> Anomalous output detection          |
+|  compliance_framework.py ----> Regulatory framework            |
 |                                                                |
-|  * enforce_with_proof() ----> Governance + ZK proof automatico |
+|  * enforce_with_proof() ----> Governance + automatic ZK proof  |
 +============================|===================================+
                              |
 +============================v===================================+
-|              CAPA 2 -- VERIFICACION FORMAL (Z3)                |
+|              LAYER 2 -- FORMAL VERIFICATION (Z3)               |
 |                                                                |
-|  z3_verifier.py ----> 4 teoremas formales PROVEN               |
-|  z3_gate.py ----> Gate neurosimbolico (APPROVED/REJECTED)      |
-|  hierarchy_z3.py ----> 42 patrones de jerarquia PROVEN         |
-|  z3_proof.py ----> Proof storage + verificacion                |
-|  z3_test_generator.py ----> Generador automatico de tests Z3   |
+|  z3_verifier.py ----> 4 formal theorems PROVEN                 |
+|  z3_gate.py ----> Neurosymbolic gate (APPROVED/REJECTED)       |
+|  hierarchy_z3.py ----> 42 hierarchy patterns PROVEN            |
+|  z3_proof.py ----> Proof storage + verification                |
+|  z3_test_generator.py ----> Automatic Z3 test generator        |
 +============================|===================================+
                              |
 +============================v===================================+
-|              CAPA 3 -- PROOFS CRIPTOGRAFICOS                   |
+|              LAYER 3 -- CRYPTOGRAPHIC PROOFS                   |
 |                                                                |
 |  zk_governance_proof.py ----> keccak256 hash per decision      |
 |  zk_batch_prover.py ----> Merkle tree + batch attestation      |
@@ -69,68 +69,68 @@
 +============================|===================================+
                              |
 +============================v===================================+
-|              CAPA 4 -- SENTINEL LITE (validacion externa)      |
+|              LAYER 4 -- SENTINEL LITE (external validation)    |
 |                                                                |
-|  sentinel_lite.py ----> 7 checks de agentes externos           |
-|    |-- health (25%) ----> GET /health, respuesta <5s           |
-|    |-- identity (20%) ----> Formato ERC-8004 valido            |
-|    |-- metadata (15%) ----> agent.json con campos requeridos   |
-|    |-- a2a (15%) ----> /.well-known/agent.json accesible       |
-|    |-- response_time (10%) ----> Latencia del endpoint         |
-|    |-- mcp_tools (10%) ----> Cantidad de tools expuestas       |
-|    +-- x402 (5%) ----> Capacidad de pagos                     |
+|  sentinel_lite.py ----> 7 checks for external agents           |
+|    |-- health (25%) ----> GET /health, response <5s            |
+|    |-- identity (20%) ----> Valid ERC-8004 format              |
+|    |-- metadata (15%) ----> agent.json with required fields    |
+|    |-- a2a (15%) ----> /.well-known/agent.json accessible      |
+|    |-- response_time (10%) ----> Endpoint latency              |
+|    |-- mcp_tools (10%) ----> Number of exposed tools           |
+|    +-- x402 (5%) ----> Payment capability                     |
 |                                                                |
 |  Verdicts: PASS (>=60) | WARN (>=40) | FAIL (<40)             |
-|  validate_offline() ----> Funciona sin red                     |
+|  validate_offline() ----> Works without network                |
 +============================|===================================+
                              |
 +============================v===================================+
-|              CAPA 5 -- MESH (coordinacion multi-LLM)           |
+|              LAYER 5 -- MESH (multi-LLM coordination)          |
 |                                                                |
-|  +-- NODOS (11 activos) --------------------------------+      |
-|  | Claude Code (orquestador) | Claude Workers x3        |      |
-|  | DeepSeek V3 | SambaNova | Q-AION Local | Cerebras    |      |
-|  | Kimi K2.5 | MiMo-V2 | MiniMax | GLM-4.7 | Arena AI  |      |
-|  +-------------------------------------------------------+      |
+|  +-- NODES (11 active) ----------------------------------+     |
+|  | Claude Code (orchestrator) | Claude Workers x3        |     |
+|  | DeepSeek V3 | SambaNova | Q-AION Local | Cerebras     |     |
+|  | Kimi K2.5 | MiMo-V2 | MiniMax | GLM-4.7 | Arena AI   |     |
+|  +-------------------------------------------------------+     |
 |                                                                |
 |  node_mesh.py ----> NodeRegistry + MessageBus                  |
 |  mesh_orchestrator.py ----> Task routing + scaling             |
-|  mesh_router_v2.py ----> Smart routing por tipo de tarea       |
+|  mesh_router_v2.py ----> Smart routing by task type            |
 |  mesh_scheduler.py ----> Priority queue                        |
-|  mesh_load_balancer.py ----> Distribucion de carga             |
+|  mesh_load_balancer.py ----> Load distribution                 |
 |  mesh_circuit_breaker.py ----> CLOSED/OPEN/HALF_OPEN           |
-|  mesh_firewall.py ----> Filtrado de mensajes                   |
-|  mesh_guardian.py ----> Seguridad del mesh                     |
+|  mesh_firewall.py ----> Message filtering                      |
+|  mesh_guardian.py ----> Mesh security                          |
 |  mesh_federation.py ----> Peer registration + heartbeats       |
-|  mesh_consensus.py ----> Consenso distribuido                  |
-|  mesh_p2p.py ----> Comunicacion peer-to-peer                  |
-|  mesh_metrics_collector.py ----> Metricas del mesh             |
-|  web_bridge.py ----> Captura IAs sin API (Playwright)          |
+|  mesh_consensus.py ----> Distributed consensus                 |
+|  mesh_p2p.py ----> Peer-to-peer communication                 |
+|  mesh_metrics_collector.py ----> Mesh metrics                  |
+|  web_bridge.py ----> Captures AIs without API (Playwright)     |
 |                                                                |
 |  * threshold_consensus.py ----> N-of-M voting (FROST sim)     |
 +============================|===================================+
                              |
 +============================v===================================+
-|              CAPA 6 -- BLOCKCHAIN (on-chain)                   |
+|              LAYER 6 -- BLOCKCHAIN (on-chain)                  |
 |                                                                |
 |  avalanche_bridge.py ----> Attestations on-chain (C-Chain)     |
-|  chain_adapter.py ----> Abstraccion multi-chain                |
-|  contract_scanner.py ----> Analisis de contratos               |
+|  chain_adapter.py ----> Multi-chain abstraction                |
+|  contract_scanner.py ----> Contract analysis                   |
 |  oracle_bridge.py ----> Oracle data feed                       |
-|  revenue_tracker.py ----> x402 micropagos                      |
+|  revenue_tracker.py ----> x402 micropayments                   |
 |                                                                |
 |  * cross_chain_identity.py ----> Bridge Avalanche/Base/Celo/ETH|
 |                                                                |
-|  Contratos:                                                    |
+|  Contracts:                                                    |
 |    ERC-8004 Identity: 0x8004A169FB4a3325136EB29fA0ceB6D2e...  |
 |    Reputation Registry: 0x8004B663056A597Dffe9eCcC1965A19...  |
 |    USDC: 0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E          |
 +============================|===================================+
                              |
 +============================v===================================+
-|              CAPA 7 -- AGENTES (ejecucion)                     |
+|              LAYER 7 -- AGENTS (execution)                     |
 |                                                                |
-|  17 Agentes CrewAI (config/agents.yaml):                       |
+|  17 CrewAI Agents (config/agents.yaml):                        |
 |    Orchestrator Lead    | File Organizer                       |
 |    Product Manager      | Operations Director                 |
 |    BizDev & Strategy    | Software Architect                  |
@@ -148,7 +148,7 @@
 +================================================================+
 
 +================================================================+
-|              SEGURIDAD (transversal a todas las capas)          |
+|              SECURITY (cross-cutting across all layers)         |
 |                                                                |
 |  cerberus.py ----> 3-headed guardian                           |
 |  icarus.py / icarus_v2.py ----> Containment protocol          |
@@ -165,86 +165,86 @@
 
 ---
 
-## Flujo de una Decision (principio a fin)
+## Decision Flow (start to finish)
 
 ```
-1. INPUT llega (CLI, Telegram, A2A, Voz)
+1. INPUT arrives (CLI, Telegram, A2A, Voice)
          |
 2. +-----v-----+
-   | Sentinel   | Si interactua con agente externo:
+   | Sentinel   | If interacting with external agent:
    | Lite       | -> 7 checks -> PASS/WARN/FAIL
-   +-----+-----+ -> Si FAIL, rechaza interaccion
+   +-----+-----+ -> If FAIL, rejects interaction
          |
 3. +-----v-----+
-   | Governance | Constitutional rules (HARD bloquea, SOFT advierte)
-   | Pipeline   | -> AST verification de codigo generado
-   |            | -> Override detection (6 patrones)
+   | Governance | Constitutional rules (HARD blocks, SOFT warns)
+   | Pipeline   | -> AST verification of generated code
+   |            | -> Override detection (6 patterns)
    |            | -> Language compliance
    +-----+-----+
          |
 4. +-----v-----+
-   | Z3 Formal | 4 teoremas verificados matematicamente
+   | Z3 Formal | 4 mathematically verified theorems
    | Verifier   | -> Gate: APPROVED / REJECTED / TIMEOUT / FALLBACK
    +-----+-----+
          |
 5. +-----v-----+
-   | ZK Proof  | keccak256 hash de la decision
-   | Generator | -> GovernanceProof con input_hash + verdict
-   |            | -> Se acumula en Merkle batch
+   | ZK Proof  | keccak256 hash of the decision
+   | Generator | -> GovernanceProof with input_hash + verdict
+   |            | -> Accumulated in Merkle batch
    +-----+-----+
          |
 6. +-----v-----+
-   | Supervisor| Score compuesto: Q(0.4)+A(0.25)+C(0.2)+F(0.15)
-   |            | -> Evalua calidad de la ejecucion
+   | Supervisor| Composite score: Q(0.4)+A(0.25)+C(0.2)+F(0.15)
+   |            | -> Evaluates execution quality
    +-----+-----+
          |
 7. +-----v-----+
-   | Mesh      | Routea tarea al LLM optimo (11 nodos)
-   | Router    | -> Threshold consensus si decision critica
-   |            | -> Circuit breaker si provider falla
+   | Mesh      | Routes task to optimal LLM (11 nodes)
+   | Router    | -> Threshold consensus if critical decision
+   |            | -> Circuit breaker if provider fails
    +-----+-----+
          |
 8. +-----v-----+
-   | LLM       | Ejecuta la tarea (Claude/DeepSeek/MiMo/etc)
-   | Execution | -> crew_factory rebuild si retry necesario
+   | LLM       | Executes the task (Claude/DeepSeek/MiMo/etc)
+   | Execution | -> crew_factory rebuild if retry needed
    +-----+-----+
          |
 9. +-----v-----+
    | On-Chain  | Merkle root -> Avalanche C-Chain attestation
-   | Attestation| -> Cross-chain bridge si necesario (Base/Celo)
+   | Attestation| -> Cross-chain bridge if needed (Base/Celo)
    +-----+-----+
          |
 10.+-----v-----+
-   | OUTPUT    | Resultado + proof hash + attestation tx
-   |            | -> JSONL log para auditoria
+   | OUTPUT    | Result + proof hash + attestation tx
+   |            | -> JSONL log for audit
    +-----------+
 ```
 
 ---
 
-## Stack Tecnologico
+## Technology Stack
 
-| Capa | Tecnologia | Estado |
+| Layer | Technology | Status |
 |---|---|---|
-| Language | Python 3.10+ | Produccion |
+| Language | Python 3.10+ | Production |
 | Formal Verification | Z3 Theorem Prover | 4/4 PROVEN |
-| Crypto Proofs | SHA3-256 (keccak256) + Merkle | Implementado |
+| Crypto Proofs | SHA3-256 (keccak256) + Merkle | Implemented |
 | Blockchain | Avalanche C-Chain, Base, Celo, ETH | Multi-chain |
-| Agents | CrewAI (17 agentes) | Configurados |
+| Agents | CrewAI (17 agents) | Configured |
 | LLM Routing | LiteLLM + custom router | 8+ providers |
-| Memory | ChromaDB + HuggingFace embeddings | Activo |
+| Memory | ChromaDB + HuggingFace embeddings | Active |
 | Storage | JSONL (default) + PostgreSQL (prod) | Dual |
-| CLI | dof-sdk (PyPI) | Publicado |
-| CI/CD | GitHub Actions (3 workflows) | Verde |
+| CLI | dof-sdk (PyPI) | Published |
+| CI/CD | GitHub Actions (3 workflows) | Green |
 | Dashboard | Streamlit | localhost:8501 |
-| Bots | Telegram (2 bots) | Activos |
-| Deploy | Oracle Cloud VPS + Railway | Configurado |
+| Bots | Telegram (2 bots) | Active |
+| Deploy | Oracle Cloud VPS + Railway | Configured |
 
 ---
 
-## Archivos Clave por Funcion
+## Key Files by Function
 
-| Funcion | Archivo | LOC aprox |
+| Function | File | Approx LOC |
 |---|---|---|
 | Governance | `core/governance.py` | 440 |
 | Z3 Verification | `core/z3_verifier.py` | 620 |
@@ -264,16 +264,16 @@
 
 ---
 
-## Principios de Diseno
+## Design Principles
 
-1. **Zero-LLM governance** — Toda decision de governance es deterministica (regex, AST, Z3). Ningun LLM juzga a otro LLM.
-2. **Zero dependencias externas** — DOF funciona solo, sin Enigma ni ningun servicio externo.
-3. **Proofs, no logs** — Cada decision genera un hash criptografico verificable, no solo un log.
-4. **Multi-chain portable** — Identidad y attestations en Avalanche, Base, Celo, Ethereum.
-5. **Mesh heterogeneo** — 11 LLMs distintos coordinados. Mas fuerte que cualquier modelo individual.
-6. **Offline-capable** — Sentinel, governance, y Z3 funcionan sin conexion a internet.
-7. **Test-first** — 3,698 tests. No se mergea codigo sin tests.
+1. **Zero-LLM governance** — Every governance decision is deterministic (regex, AST, Z3). No LLM judges another LLM.
+2. **Zero external dependencies** — DOF works standalone, without Enigma or any external service.
+3. **Proofs, not logs** — Every decision generates a verifiable cryptographic hash, not just a log.
+4. **Multi-chain portable** — Identity and attestations on Avalanche, Base, Celo, Ethereum.
+5. **Heterogeneous mesh** — 11 distinct coordinated LLMs. Stronger than any individual model.
+6. **Offline-capable** — Sentinel, governance, and Z3 work without an internet connection.
+7. **Test-first** — 3,698 tests. No code is merged without tests.
 
 ---
 
-*Ultima actualizacion: 27 marzo 2026 — Cyber Paisa, Enigma Group*
+*Last updated: March 27, 2026 — Cyber Paisa, Enigma Group*

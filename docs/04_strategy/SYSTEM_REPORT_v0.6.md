@@ -1,24 +1,24 @@
-# INFORME COMPLETO DEL SISTEMA DOF v0.6
+# COMPLETE DOF SYSTEM REPORT v0.6
 
-> **Fecha**: 22 de marzo de 2026
-> **Autor**: Juan Carlos Quiceno Vasquez (Cyber Paisa)
+> **Date**: March 22, 2026
+> **Author**: Juan Carlos Quiceno Vasquez (Cyber Paisa)
 > **Branch**: `main` | **Commits**: 210+ | **Version**: v0.6.0 -- Commander & Mesh Sprint
-> **Anterior**: [SYSTEM_REPORT_v0.5.md](SYSTEM_REPORT_v0.5.md)
+> **Previous**: [SYSTEM_REPORT_v0.5.md](SYSTEM_REPORT_v0.5.md)
 
 ---
 
-## 1. Resumen Ejecutivo
+## 1. Executive Summary
 
-**Deterministic Observability Framework (DOF)** es un framework de orquestacion y observabilidad deterministica para sistemas multi-agente LLM bajo restricciones de infraestructura adversarial.
+**Deterministic Observability Framework (DOF)** is an orchestration and deterministic observability framework for multi-agent LLM systems under adversarial infrastructure constraints.
 
-Reemplaza la confianza probabilistica por **pruebas formales verificables con Z3**, registrando cada decision on-chain (Avalanche C-Chain + Conflux). Gobernanza **Zero-LLM**: funciones puras en Python para reglas de cumplimiento -- cero alucinaciones, cero inyeccion de prompts en la capa de seguridad.
+It replaces probabilistic trust with **formally verifiable Z3 proofs**, recording every decision on-chain (Avalanche C-Chain + Conflux). **Zero-LLM** governance: pure Python functions for compliance rules — zero hallucinations, zero prompt injection in the security layer.
 
-**v0.6 marca la transicion de DOF de framework de observabilidad a sistema autonomo completo**: Claude Commander controla agentes Claude Code directamente, el Autonomous Daemon opera 24/7 sin intervencion humana, y el Node Mesh conecta 6 nodos con sesiones persistentes de memoria infinita. Se registro como agente #1617 en Society AI.
+**v0.6 marks DOF's transition from observability framework to complete autonomous system**: Claude Commander controls Claude Code agents directly, the Autonomous Daemon operates 24/7 without human intervention, and the Node Mesh connects 6 nodes with persistent infinite memory sessions. It was registered as agent #1617 in Society AI.
 
-### Numeros Clave
+### Key Numbers
 
-| Metrica | v0.5 | v0.6 | Delta |
-|---------|------|------|-------|
+| Metric | v0.5 | v0.6 | Delta |
+|--------|------|------|-------|
 | **Core modules** | 45 | 52+ | +7 |
 | **Mesh nodes** | 0 | 6 | +6 |
 | **Messages exchanged** | 0 | 41+ | +41 |
@@ -27,13 +27,13 @@ Reemplaza la confianza probabilistica por **pruebas formales verificables con Z3
 | **Security layers** | -- | L0-L4 | NEW |
 | **Society AI Agent** | -- | #1617 | NEW |
 | **Book chapters** | 0 | 4 | +4 |
-| **Lineas de codigo** | 860K+ | 860K+ | = |
-| **Agentes especializados** | 12 | 12 | = |
+| **Lines of code** | 860K+ | 860K+ | = |
+| **Specialized agents** | 12 | 12 | = |
 | **A2A Skills** | 11 | 11 | = |
 | **Git commits** | 199 | 210+ | +11 |
 | **Z3 Theorems** | 8/8 PROVEN | 8/8 PROVEN | = |
 | **On-chain attestations** | 48+ | 48+ | = |
-| **Proveedores LLM** | 7 | 7 | = |
+| **LLM providers** | 7 | 7 | = |
 | **Smart contracts** | 3 | 3 | = |
 | **Baseline dof_score** | 0.8117 | 0.8117 | = |
 | **Revenue tracked** | $1,134.50 | $1,134.50 | = |
@@ -42,16 +42,16 @@ Reemplaza la confianza probabilistica por **pruebas formales verificables con Z3
 
 ---
 
-## 2. Arquitectura General v0.6
+## 2. General Architecture v0.6
 
 ```mermaid
 flowchart TD
-    subgraph Interfaces["Interfaces de Usuario"]
-        CLI["CLI Interactivo<br/>main.py"]
-        A2A["A2A Server<br/>Puerto 8000"]
+    subgraph Interfaces["User Interfaces"]
+        CLI["Interactive CLI<br/>main.py"]
+        A2A["A2A Server<br/>Port 8000"]
         MCP["MCP Server<br/>Claude Desktop/Cursor"]
         TG["Telegram Bot<br/>@clude_dof_bot"]
-        DASH["Streamlit Dashboard<br/>Puerto 8501"]
+        DASH["Streamlit Dashboard<br/>Port 8501"]
         CHAN["Telegram Channels<br/>Claude Plugin"]
     end
 
@@ -86,15 +86,15 @@ flowchart TD
         L4["L4: Z3 Gate<br/>Formal verification"]
     end
 
-    subgraph Orchestration["Orquestacion -- crew_runner.py"]
+    subgraph Orchestration["Orchestration -- crew_runner.py"]
         PM["Provider Manager<br/>7 LLMs + Bayesian"]
-        CF["Crew Factory<br/>Rebuild por retry"]
+        CF["Crew Factory<br/>Rebuild on retry"]
         GOV["Constitution<br/>Enforcer"]
         SUP["Meta-Supervisor<br/>Q+A+C+F scoring"]
-        CP["Checkpointing<br/>JSONL por step"]
+        CP["Checkpointing<br/>JSONL per step"]
     end
 
-    subgraph Verification["Verificacion Formal + Security"]
+    subgraph Verification["Formal Verification + Security"]
         Z3["Z3 Theorem Prover<br/>8 theorems"]
         PQC["PQC Analyzer<br/>Quantum resistance"]
         CS["Contract Scanner<br/>Solidity vuln detection"]
@@ -118,7 +118,7 @@ flowchart TD
 
 ---
 
-## 3. Pipeline de Ejecucion v0.6
+## 3. Execution Pipeline v0.6
 
 ```mermaid
 flowchart LR
@@ -127,7 +127,7 @@ flowchart LR
     DAE --> MESH["Node Mesh<br/>6 nodes + MessageBus"]
 
     MESH --> L0{"L0 Triage<br/>5 checks"}
-    L0 -->|SKIP| SKIP["Log: skip reason<br/>Ahorro 30-50% latency"]
+    L0 -->|SKIP| SKIP["Log: skip reason<br/>Save 30-50% latency"]
     L0 -->|PROCEED| CF["Crew Factory<br/>Rebuild LLMs"]
     CF --> EXEC["crew.kickoff()<br/>CrewAI execution"]
     EXEC --> GOV{"Governance<br/>L1+L3 Check"}
@@ -152,30 +152,30 @@ flowchart LR
 
 ---
 
-## 4. Nuevos Modulos v0.6 (22 de Marzo de 2026)
+## 4. New Modules v0.6 (March 22, 2026)
 
 ### 4.1 Claude Commander (`core/claude_commander.py`)
 
-**Proposito**: DOF ordena a Claude Code directamente -- 5 modos de comunicacion entre agentes. Sin API keys, sin gateway, sin overhead.
+**Purpose**: DOF commands Claude Code directly -- 5 inter-agent communication modes. No API keys, no gateway, no overhead.
 
-**5 Modos**:
+**5 Modes**:
 
-| # | Modo | Mecanismo | Latencia | Caso de Uso |
-|---|------|-----------|----------|-------------|
-| 1 | **SDK** | `claude_agent_sdk.query()` directo | 7.3s (Haiku) / 20.6s (Opus) | Comandos directos |
-| 2 | **Spawn** | Sub-agente nombrado con AgentDefinition | 20-60s | Agentes especializados |
-| 3 | **Team** | `asyncio.gather()` ejecucion paralela | 60-120s | Code review multi-agente |
-| 4 | **Debate** | Salas AgentMeet HTTP, multi-ronda | 90-180s | Decisiones de arquitectura |
-| 5 | **Peers** | P2P via Claude Peers MCP broker (puerto 7899) | Variable | Comunicacion entre maquinas |
+| # | Mode | Mechanism | Latency | Use Case |
+|---|------|-----------|---------|----------|
+| 1 | **SDK** | `claude_agent_sdk.query()` direct | 7.3s (Haiku) / 20.6s (Opus) | Direct commands |
+| 2 | **Spawn** | Named sub-agent with AgentDefinition | 20-60s | Specialized agents |
+| 3 | **Team** | `asyncio.gather()` parallel execution | 60-120s | Multi-agent code review |
+| 4 | **Debate** | AgentMeet HTTP rooms, multi-round | 90-180s | Architecture decisions |
+| 5 | **Peers** | P2P via Claude Peers MCP broker (port 7899) | Variable | Machine-to-machine communication |
 
 **Session Persistence**:
-- `persistent_command(name, prompt)` crea/retoma sesiones con nombre
-- Sesiones persisten en `logs/commander/sessions.json`
-- Permite **memoria infinita** a traves de ciclos del daemon
+- `persistent_command(name, prompt)` creates/resumes named sessions
+- Sessions persist in `logs/commander/sessions.json`
+- Enables **infinite memory** across daemon cycles
 
 **Governance Wrapper**:
-- `governed_command()` ejecuta pipeline completo: L0 Triage -> Constitution check -> Execute -> Verify output
-- Bloquea prompts y outputs que violan HARD_RULES
+- `governed_command()` runs full pipeline: L0 Triage -> Constitution check -> Execute -> Verify output
+- Blocks prompts and outputs that violate HARD_RULES
 
 **API**:
 ```python
@@ -254,9 +254,9 @@ health = await commander.health_check()
 
 ### 4.2 Autonomous Daemon (`core/autonomous_daemon.py`)
 
-**Proposito**: El orquestador auto-gobernante -- opera 24/7 sin intervencion humana con 4 fases.
+**Purpose**: The self-governing orchestrator -- operates 24/7 without human intervention with 4 phases.
 
-**4 Fases** (ciclo continuo):
+**4 Phases** (continuous cycle):
 
 ```mermaid
 flowchart LR
@@ -273,15 +273,15 @@ flowchart LR
 
 **Perception** (scan_state):
 - Pending Telegram orders (queue/*.json)
-- Recent error count (ultima hora)
+- Recent error count (last hour)
 - Git dirty files count
 - Commander health check (SDK, Peers, AgentMeet)
 - Last experiment dof_score
 
-**Decision** (plan_next) -- Motor deterministico, ZERO LLM:
+**Decision** (plan_next) -- Deterministic engine, ZERO LLM:
 
-| Prioridad | Trigger | Modo | Accion |
-|-----------|---------|------|--------|
+| Priority | Trigger | Mode | Action |
+|----------|---------|------|--------|
 | P1 | pending_orders > 0 | BUILD | Execute Telegram orders |
 | P2 | recent_errors >= 3 | PATROL | Diagnose errors |
 | P3 | git_dirty > 5 | REVIEW | Code review changes |
@@ -289,19 +289,19 @@ flowchart LR
 | P5 | cycle % 10 == 0 | REPORT | Status report |
 | P5 | default | PATROL | Routine health monitoring |
 
-**3 Daemons Especializados** (modo `--multi`):
+**3 Specialized Daemons** (`--multi` mode):
 
-| Daemon | Ciclo | Budget | Especializacion | Session Persistente |
-|--------|-------|--------|-----------------|---------------------|
+| Daemon | Cycle | Budget | Specialization | Persistent Session |
+|--------|-------|--------|----------------|-------------------|
 | **BuilderDaemon** | 180s | $3/cycle | Features, TODOs, code | `builder` |
 | **GuardianDaemon** | 300s | $2/cycle | Security, tests, regressions | `guardian` |
 | **ResearcherDaemon** | 600s | $2/cycle | Metrics, optimization, analysis | `researcher` |
 
 **Feedback Loop** (via Telegram):
-- `submit_feedback("approve", comment)` -- Aprobar accion del daemon
-- `submit_feedback("redirect", "Focus on security")` -- Redirigir prioridad
-- `submit_feedback("stop")` -- Detener ciclo actual
-- Feedback se consume de `logs/daemon/feedback/`
+- `submit_feedback("approve", comment)` -- Approve daemon action
+- `submit_feedback("redirect", "Focus on security")` -- Redirect priority
+- `submit_feedback("stop")` -- Stop current cycle
+- Feedback is consumed from `logs/daemon/feedback/`
 
 **API**:
 ```python
@@ -342,21 +342,21 @@ python3 core/autonomous_daemon.py --max-agents 5         # Up to 5 agents/cycle
 
 ### 4.3 Node Mesh (`core/node_mesh.py`)
 
-**Proposito**: Red de nodos infinitos de agentes Claude con comunicacion via message bus.
+**Purpose**: Infinite network of Claude agent nodes with communication via message bus.
 
-**Arquitectura**:
+**Architecture**:
 ```
-NodeMesh (orquestador)
-    +-- NodeRegistry   -- registro de todos los nodos activos (nodes.json)
-    +-- MessageBus     -- cola de mensajes JSONL entre nodos
-    +-- SessionScanner -- descubre sesiones Claude en ~/.claude/projects/
-    +-- MeshDaemon     -- loop autonomo que gestiona la red
+NodeMesh (orchestrator)
+    +-- NodeRegistry   -- registry of all active nodes (nodes.json)
+    +-- MessageBus     -- JSONL message queue between nodes
+    +-- SessionScanner -- discovers Claude sessions in ~/.claude/projects/
+    +-- MeshDaemon     -- autonomous loop that manages the network
 ```
 
-**6 Nodos del DOF Mesh** (`spawn_dof_mesh()`):
+**6 DOF Mesh Nodes** (`spawn_dof_mesh()`):
 
-| Nodo | Rol | Herramientas |
-|------|-----|-------------|
+| Node | Role | Tools |
+|------|------|-------|
 | **commander** | Orchestrator | Read, Edit, Write, Bash, Glob, Grep |
 | **architect** | Code architecture and implementation | Read, Edit, Write, Bash, Glob, Grep |
 | **researcher** | Research, analysis, intelligence gathering | Read, Glob, Grep, WebSearch, WebFetch |
@@ -364,7 +364,7 @@ NodeMesh (orquestador)
 | **narrator** | Documentation, content, communication | Read, Write, Glob, Grep |
 | **reviewer** | Code review, quality gate | Read, Glob, Grep |
 
-**Topologia**:
+**Topology**:
 ```mermaid
 flowchart TD
     CMD["commander<br/>(orchestrator)"]
@@ -386,14 +386,14 @@ flowchart TD
 ```
 
 **NEED_INPUT Protocol**:
-- Cuando un nodo necesita info de otro: `NEED_INPUT(node_name): question`
-- El mesh parsea automaticamente y routea como mensaje al nodo destino
-- El nodo destinatario lo recibe en su inbox al siguiente wake
+- When a node needs info from another: `NEED_INPUT(node_name): question`
+- The mesh automatically parses and routes it as a message to the destination node
+- The destination node receives it in its inbox on the next wake
 
 **Session Discovery**:
-- `discover_sessions()` escanea `~/.claude/projects/` para sesiones activas (< 90 min)
-- `import_discovered_sessions()` registra sesiones descubiertas como nodos
-- Compatible con mission-control's claude-sessions.ts scanner
+- `discover_sessions()` scans `~/.claude/projects/` for active sessions (< 90 min)
+- `import_discovered_sessions()` registers discovered sessions as nodes
+- Compatible with mission-control's claude-sessions.ts scanner
 
 **API**:
 ```python
@@ -441,18 +441,18 @@ state = mesh.get_state()
 # -> MeshState(total_nodes=6, active_nodes=6, pending_messages=0, total_messages=41)
 ```
 
-**Estadisticas al cierre del dia**:
-- 41+ mensajes intercambiados
-- 6 nodos activos
-- NEED_INPUT routing funcional
-- Session discovery operativo
+**End-of-day statistics**:
+- 41+ messages exchanged
+- 6 active nodes
+- NEED_INPUT routing functional
+- Session discovery operational
 
 **Telegram Commands**:
-- `/mesh status` -- Estado del mesh
-- `/mesh discover` -- Descubrir sesiones Claude activas
-- `/mesh spawn <node> <task>` -- Spawnar nodo
-- `/mesh send <from> <to> <msg>` -- Enviar mensaje entre nodos
-- `/mesh full` -- Spawnar mesh completo (6 nodos)
+- `/mesh status` -- Mesh status
+- `/mesh discover` -- Discover active Claude sessions
+- `/mesh spawn <node> <task>` -- Spawn node
+- `/mesh send <from> <to> <msg>` -- Send message between nodes
+- `/mesh full` -- Spawn full mesh (6 nodes)
 
 **CLI**:
 ```bash
@@ -470,37 +470,37 @@ python3 core/node_mesh.py daemon 10                           # 10 mesh cycles
 
 ---
 
-### 4.4 Security Modules (4 nuevos)
+### 4.4 Security Modules (4 new)
 
 #### 4.4.1 PQC Analyzer (`core/pqc_analyzer.py`)
 
-**Proposito**: Evaluacion deterministica de resistencia cuantica de sistemas criptograficos.
+**Purpose**: Deterministic evaluation of quantum resistance of cryptographic systems.
 
-**Amenazas analizadas**:
-- **Shor's algorithm**: Factorizacion RSA/ECC en tiempo polinomico
-- **Grover's algorithm**: Speedup cuadratico para brute-force AES/hashes
+**Analyzed threats**:
+- **Shor's algorithm**: RSA/ECC factorization in polynomial time
+- **Grover's algorithm**: Quadratic speedup for AES/hash brute-force
 
-**Recomendaciones NIST PQC**:
-- ML-KEM (FIPS 203): Key encapsulation basado en Module-LWE
-- ML-DSA (FIPS 204): Firmas digitales basadas en Module-LWE
-- SLH-DSA (FIPS 205): Firmas hash-based stateless
+**NIST PQC Recommendations**:
+- ML-KEM (FIPS 203): Module-LWE based key encapsulation
+- ML-DSA (FIPS 204): Module-LWE based digital signatures
+- SLH-DSA (FIPS 205): Stateless hash-based signatures
 
 **DOF Assessment**: **VULNERABLE** (3 CRITICAL)
-- ECDSA-secp256k1 (Avalanche/Ethereum): Vulnerable a Shor
-- Ed25519 (Enigma): Vulnerable a Shor
-- ECC-P256 (TLS): Vulnerable a Shor
-- Migracion planificada: ML-DSA-65 para firmas, ML-KEM-768 para key exchange
+- ECDSA-secp256k1 (Avalanche/Ethereum): Vulnerable to Shor
+- Ed25519 (Enigma): Vulnerable to Shor
+- ECC-P256 (TLS): Vulnerable to Shor
+- Planned migration: ML-DSA-65 for signatures, ML-KEM-768 for key exchange
 
 **API**: `PQCAnalyzer().assess_dof()` -> `SystemAssessment`
 **Logs**: `logs/pqc_analysis.jsonl`
 
 #### 4.4.2 Contract Scanner (`core/contract_scanner.py`)
 
-**Proposito**: Deteccion deterministica de vulnerabilidades en smart contracts Solidity.
+**Purpose**: Deterministic vulnerability detection in Solidity smart contracts.
 
-**8 Patrones SWC detectados**:
-| SWC | Vulnerabilidad |
-|-----|---------------|
+**8 SWC patterns detected**:
+| SWC | Vulnerability |
+|-----|--------------|
 | SWC-107 | Reentrancy |
 | SWC-104 | Unchecked external calls |
 | SWC-115 | tx.origin authentication |
@@ -510,34 +510,34 @@ python3 core/node_mesh.py daemon 10                           # 10 mesh cycles
 | -- | Unprotected initializers |
 | -- | Hardcoded addresses / private keys |
 
-Zero dependencias externas. Complementa (no reemplaza) Slither, Mythril, Certora.
+Zero external dependencies. Complements (does not replace) Slither, Mythril, Certora.
 
 **API**: `ContractScanner().scan(source_code)` -> `ScanResult`
 **Logs**: `logs/contract_scan.jsonl`
 
 #### 4.4.3 A-Mem (`core/a_mem.py`)
 
-**Proposito**: Memoria agente con grafo de conocimiento Zettelkasten (patron NeurIPS 2025).
+**Purpose**: Agent memory with Zettelkasten knowledge graph (NeurIPS 2025 pattern).
 
-**Caracteristicas**:
-- Enlaces semanticos bidireccionales entre nodos de memoria
-- Fisher-Rao similarity para retrieval
-- Temporal decay (memorias recientes pesan mas)
-- Tipos: episodic, semantic, procedural
-- Graph traversal para multi-hop reasoning
+**Features**:
+- Bidirectional semantic links between memory nodes
+- Fisher-Rao similarity for retrieval
+- Temporal decay (more recent memories weigh more)
+- Types: episodic, semantic, procedural
+- Graph traversal for multi-hop reasoning
 
-**Referencias**:
+**References**:
 - A-Mem: Agentic Memory for LLM Agents (NeurIPS 2025)
-- SuperLocalMemory V3 (arXiv:2603.14588) -- validacion Fisher-Rao
+- SuperLocalMemory V3 (arXiv:2603.14588) -- Fisher-Rao validation
 
 **API**: `AMem().search(query)` -> `list[SearchResult]`
 **Logs**: `logs/a_mem/`
 
 #### 4.4.4 Security Hierarchy (`core/security_hierarchy.py`)
 
-**Proposito**: Orquestador L0 -> L1 -> L2 -> L3 -> L4 de verificacion de seguridad.
+**Purpose**: L0 -> L1 -> L2 -> L3 -> L4 security verification orchestrator.
 
-**5 Capas encadenadas**:
+**5 Chained layers**:
 
 ```mermaid
 flowchart LR
@@ -555,7 +555,7 @@ flowchart LR
     style L4 fill:#9f9,stroke:#333
 ```
 
-Cada capa es un gate: si falla, la ejecucion se detiene. **100% deterministico** en todas las capas -- cero LLM involvement.
+Each layer is a gate: if it fails, execution stops. **100% deterministic** across all layers -- zero LLM involvement.
 
 **API**: `SecurityHierarchy().verify(input_text, output_text)` -> `HierarchyResult`
 **Logs**: `logs/security_hierarchy.jsonl`
@@ -564,19 +564,19 @@ Cada capa es un gate: si falla, la ejecucion se detiene. **100% deterministico**
 
 ### 4.5 Hybrid Scheduler (`core/scheduler.py`)
 
-**Proposito**: Routing de inferencia a GPU, ANE, o CPU segun carga y prioridad.
+**Purpose**: Inference routing to GPU, ANE, or CPU based on load and priority.
 
 **Backends**:
-- GPU (40-core): Modelos grandes (Qwen3 32B, DeepSeek-R1 32B)
-- ANE (16-core Neural Engine, 19 TFLOPS): Modelos pequenos (Phi-4 14B, Llama 8B)
-- CPU: Fallback cuando GPU/ANE saturados
+- GPU (40-core): Large models (Qwen3 32B, DeepSeek-R1 32B)
+- ANE (16-core Neural Engine, 19 TFLOPS): Small models (Phi-4 14B, Llama 8B)
+- CPU: Fallback when GPU/ANE are saturated
 
-**Constraints Z3-verified**:
+**Z3-verified constraints**:
 - No agent may exceed 75% of combined GPU/ANE capacity per cycle
 - Total memory < 32GB (36GB total, 4GB OS reserve)
-- Priority queue para tareas latency-critical
+- Priority queue for latency-critical tasks
 
-**Origen**: Consenso AgentMeet 14-agent session (17:28-17:38 UTC, 22 Mar 2026)
+**Origin**: AgentMeet 14-agent session consensus (17:28-17:38 UTC, 22 Mar 2026)
 
 **API**: `HybridScheduler().schedule(InferenceRequest(...))` -> `ScheduleResult`
 
@@ -584,9 +584,9 @@ Cada capa es un gate: si falla, la ejecucion se detiene. **100% deterministico**
 
 ## 5. Society AI Registration
 
-**DOF se registro como agente autonomo en Society AI**:
+**DOF registered as an autonomous agent in Society AI**:
 
-| Campo | Valor |
+| Field | Value |
 |-------|-------|
 | **Agent Address** | dof-governance |
 | **Agent ID** | #1617 |
@@ -594,10 +594,10 @@ Cada capa es un gate: si falla, la ejecucion se detiene. **100% deterministico**
 | **Category** | Governance & Compliance |
 | **Status** | Active |
 
-**6 Agent Services Planned**:
+**6 Planned Agent Services**:
 
-| Service | Precio | Descripcion |
-|---------|--------|-------------|
+| Service | Price | Description |
+|---------|-------|-------------|
 | Governance Audit | $0.10/call | HARD + SOFT rules check |
 | Z3 Verification | $0.25/proof | Formal theorem proving |
 | Security Scan | $0.15/scan | L0-L4 full pipeline |
@@ -609,48 +609,48 @@ Cada capa es un gate: si falla, la ejecucion se detiene. **100% deterministico**
 
 ## 6. Telegram Channels Integration
 
-**Dos vias de integracion con Telegram**:
+**Two integration paths with Telegram**:
 
-### Via A: Claude Code Channels (Plugin Nativo)
+### Path A: Claude Code Channels (Native Plugin)
 
-| Campo | Valor |
+| Field | Value |
 |-------|-------|
 | **Plugin** | `telegram@claude-plugins-official` |
 | **Marketplace** | `anthropics/claude-plugins-official` |
-| **Requisitos** | bun 1.3.11+, Claude Code v2.1.80+, Claude Max subscription |
+| **Requirements** | bun 1.3.11+, Claude Code v2.1.80+, Claude Max subscription |
 | **Bot** | @clude_dof_bot |
-| **Modelo** | Claude Opus (via Claude Max, NO API key) |
+| **Model** | Claude Opus (via Claude Max, NO API key) |
 | **Token** | `~/.claude/channels/telegram/.env` |
 
 ```bash
 claude --channels plugin:telegram@claude-plugins-official
 ```
 
-**Limitacion**: Terminal DEBE quedar abierta. Sin modo daemon.
+**Limitation**: Terminal MUST remain open. No daemon mode.
 
-### Via B: Custom Telegram Bot (`interfaces/telegram_bot.py`)
+### Path B: Custom Telegram Bot (`interfaces/telegram_bot.py`)
 
-- Bot custom con 14+ comandos routed a Commander/Mesh
-- Comandos: `/claude`, `/team`, `/parallel`, `/daemon`, `/multidaemon`, `/sessions`, `/approve`, `/redirect`, `/mesh status`, `/mesh discover`, `/mesh spawn`, `/mesh send`, `/mesh full`
-- Integra con task queue via callback webhooks
-- **Ventaja**: Control total, integracion governance, daemon persistente
+- Custom bot with 14+ commands routed to Commander/Mesh
+- Commands: `/claude`, `/team`, `/parallel`, `/daemon`, `/multidaemon`, `/sessions`, `/approve`, `/redirect`, `/mesh status`, `/mesh discover`, `/mesh spawn`, `/mesh send`, `/mesh full`
+- Integrates with task queue via callback webhooks
+- **Advantage**: Full control, governance integration, persistent daemon
 
-**Decision**: Via B es produccion. Via A es para prototipado rapido.
+**Decision**: Path B is production. Path A is for rapid prototyping.
 
 ---
 
 ## 7. Book Chapters (Ethical Hacking Agent)
 
-**4 capitulos escritos/planificados para el libro**:
+**4 chapters written/planned for the book**:
 
-| Capitulo | Archivo | Tema |
-|----------|---------|------|
-| Ch 7 | `docs/BOOK_CH7_ETHICAL_HACKING_AGENT.md` | 6 pilares del ethical hacking agent |
-| Ch 8 | `docs/BOOK_CH8_TOOLS_ECOSYSTEM.md` | Ecosistema de herramientas y MCP servers |
+| Chapter | File | Topic |
+|---------|------|-------|
+| Ch 7 | `docs/BOOK_CH7_ETHICAL_HACKING_AGENT.md` | 6 pillars of the ethical hacking agent |
+| Ch 8 | `docs/BOOK_CH8_TOOLS_ECOSYSTEM.md` | Tools ecosystem and MCP servers |
 | Ch 9 | `docs/BOOK_CH9_THE_COMMANDER.md` | Claude Commander + Node Mesh |
-| Index | `docs/BOOK_INDEX.md` | 14 capitulos + 7 apendices planificados |
+| Index | `docs/BOOK_INDEX.md` | 14 chapters + 7 planned appendices |
 
-**Validacion Ch7**: Los 6 pilares fueron validados con implementaciones reales:
+**Ch7 Validation**: The 6 pillars were validated with real implementations:
 1. PQC Analyzer (post-quantum crypto)
 2. Contract Scanner (Solidity vulnerabilities)
 3. A-Mem (zettelkasten knowledge graph)
@@ -660,71 +660,71 @@ claude --channels plugin:telegram@claude-plugins-official
 
 ## 8. Core Modules (52+)
 
-### Modulos nuevos en v0.6
+### New modules in v0.6
 
-| # | Modulo | Descripcion |
+| # | Module | Description |
 |---|--------|-------------|
-| 46 | **`claude_commander.py`** | **5 modos de comandar Claude Code (SDK, Spawn, Team, Debate, Peers)** |
-| 47 | **`autonomous_daemon.py`** | **Daemon auto-gobernante: 4 fases, 3 especializaciones** |
-| 48 | **`node_mesh.py`** | **Red de nodos infinitos con MessageBus y sesiones persistentes** |
+| 46 | **`claude_commander.py`** | **5 modes for commanding Claude Code (SDK, Spawn, Team, Debate, Peers)** |
+| 47 | **`autonomous_daemon.py`** | **Self-governing daemon: 4 phases, 3 specializations** |
+| 48 | **`node_mesh.py`** | **Infinite node network with MessageBus and persistent sessions** |
 | 49 | **`pqc_analyzer.py`** | **Post-quantum crypto analyzer (Shor, Grover, NIST migration)** |
 | 50 | **`contract_scanner.py`** | **Solidity vulnerability scanner (8 SWC patterns)** |
 | 51 | **`a_mem.py`** | **A-Mem zettelkasten knowledge graph (NeurIPS 2025)** |
 | 52 | **`security_hierarchy.py`** | **L0->L1->L2->L3->L4 security orchestrator** |
 | 53 | **`scheduler.py`** | **Hybrid inference scheduler GPU+ANE+CPU** |
 
-### Lista completa (53 modulos en core/)
+### Full list (53 modules in core/)
 
-| # | Modulo | Descripcion |
+| # | Module | Description |
 |---|--------|-------------|
 | 1 | `__init__.py` | Package init |
 | 2 | `adversarial.py` | Red Team -> Guardian -> Arbiter evaluation loop |
-| 3 | `agent_output.py` | Estandarizacion de formato de output de agentes |
+| 3 | `agent_output.py` | Agent output format standardization |
 | 4 | `agentleak_benchmark.py` | Privacy leak detection: PII, API keys, memory, tool inputs |
 | 5 | `ast_verifier.py` | Python AST security analysis (exec, eval, __import__) |
-| 6 | `avalanche_bridge.py` | Publica attestations a Avalanche C-Chain |
-| 7 | `boundary.py` | Enforcement de limites de agente segun SOUL |
+| 6 | `avalanche_bridge.py` | Publishes attestations to Avalanche C-Chain |
+| 7 | `boundary.py` | Agent boundary enforcement per SOUL |
 | 8 | `chain_adapter.py` | Multi-chain adapter (Avalanche, Conflux, Base) |
-| 9 | `checkpointing.py` | Persistencia JSONL por step para recovery |
-| 10 | `crew_runner.py` | Orquestacion principal: providers, governance, supervisor, retry x3 |
-| 11 | `data_oracle.py` | Interface de oracle de datos para verificacion |
-| 12 | `enigma_bridge.py` | Trust scores a Supabase (Enigma) |
-| 13 | `entropy_detector.py` | Detecta outputs de alta entropia (alucinaciones) |
-| 14 | `event_stream.py` | Bus de eventos: WebSocket + JSONL broadcast |
-| 15 | `execution_dag.py` | Grafo de dependencias de tareas (DAG) |
-| 16 | `experiment.py` | Batch runner, sweeps parametricos, estadistica Bessel |
-| 17 | `fisher_rao.py` | Distancia Fisher-Rao para memoria (stdlib-only) |
+| 9 | `checkpointing.py` | JSONL persistence per step for recovery |
+| 10 | `crew_runner.py` | Main orchestration: providers, governance, supervisor, retry x3 |
+| 11 | `data_oracle.py` | Data oracle interface for verification |
+| 12 | `enigma_bridge.py` | Trust scores to Supabase (Enigma) |
+| 13 | `entropy_detector.py` | Detects high-entropy outputs (hallucinations) |
+| 14 | `event_stream.py` | Event bus: WebSocket + JSONL broadcast |
+| 15 | `execution_dag.py` | Task dependency graph (DAG) |
+| 16 | `experiment.py` | Batch runner, parametric sweeps, Bessel statistics |
+| 17 | `fisher_rao.py` | Fisher-Rao distance for memory (stdlib-only) |
 | 18 | `governance.py` | ConstitutionEnforcer: HARD_RULES + SOFT_RULES |
 | 19 | `hierarchy_z3.py` | Z3 hierarchy verification: 42 patterns, 4.9ms |
-| 20 | `l0_triage.py` | Filtro pre-LLM deterministico (5 checks) |
-| 21 | `loop_guard.py` | Deteccion de loops infinitos + timeout |
-| 22 | `memory_governance.py` | Memoria gobernada: separa knowledge de errors |
+| 20 | `l0_triage.py` | Deterministic pre-LLM filter (5 checks) |
+| 21 | `loop_guard.py` | Infinite loop detection + timeout |
+| 22 | `memory_governance.py` | Governed memory: separates knowledge from errors |
 | 23 | `memory_manager.py` | ChromaDB + HuggingFace embeddings + Fisher-Rao fallback |
-| 24 | `merkle_tree.py` | Merkle tree para verificacion batch de proofs |
-| 25 | `metrics.py` | JSONL logger con rotacion, tracking por agente |
-| 26 | `oags_bridge.py` | OAGS: resolucion token_id <-> agent address |
-| 27 | `observability.py` | RunTrace/StepTrace, 5 metricas formales, modo deterministico |
+| 24 | `merkle_tree.py` | Merkle tree for batch proof verification |
+| 25 | `metrics.py` | JSONL logger with rotation, per-agent tracking |
+| 26 | `oags_bridge.py` | OAGS: token_id <-> agent address resolution |
+| 27 | `observability.py` | RunTrace/StepTrace, 5 formal metrics, deterministic mode |
 | 28 | `oracle_bridge.py` | ERC-8004 attestation oracle |
-| 29 | `otel_bridge.py` | OpenTelemetry integration (opcional) |
+| 29 | `otel_bridge.py` | OpenTelemetry integration (optional) |
 | 30 | `proof_hash.py` | BLAKE3 + SHA256 proof hashes |
-| 31 | `proof_storage.py` | Almacen de proofs: JSONL + IPFS opcional |
+| 31 | `proof_storage.py` | Proof store: JSONL + optional IPFS |
 | 32 | `providers.py` | Multi-provider fallback chains, Bayesian selector, TTL recovery |
-| 33 | `regression_tracker.py` | Tracking de degradacion de metricas |
-| 34 | `revenue_tracker.py` | Revenue tracking real en JSONL |
-| 35 | `runtime_observer.py` | Metricas de produccion (SS, PFI, RP, GCR, SSR) |
-| 36 | `state_model.py` | Maquina de estados de agentes |
-| 37 | `storage.py` | Abstraccion file-based: JSONL, JSON, pickle |
+| 33 | `regression_tracker.py` | Metric degradation tracking |
+| 34 | `revenue_tracker.py` | Real revenue tracking in JSONL |
+| 35 | `runtime_observer.py` | Production metrics (SS, PFI, RP, GCR, SSR) |
+| 36 | `state_model.py` | Agent state machine |
+| 37 | `storage.py` | File-based abstraction: JSONL, JSON, pickle |
 | 38 | `supervisor.py` | Meta-supervisor: Q(0.4)+A(0.25)+C(0.2)+F(0.15) |
-| 39 | `task_contract.py` | Validacion de TASK_CONTRACT.md |
-| 40 | `test_generator.py` | Auto-generacion de tests + BenchmarkRunner |
-| 41 | `transitions.py` | Verificacion de transiciones de estado SOUL-compatible |
-| 42 | `z3_gate.py` | Gate Z3: APPROVED/REJECTED/TIMEOUT/FALLBACK |
-| 43 | `z3_proof.py` | Generacion y serializacion de proofs Z3 |
-| 44 | `z3_test_generator.py` | Auto-generacion de test cases Z3 |
+| 39 | `task_contract.py` | TASK_CONTRACT.md validation |
+| 40 | `test_generator.py` | Auto-generation of tests + BenchmarkRunner |
+| 41 | `transitions.py` | SOUL-compatible state transition verification |
+| 42 | `z3_gate.py` | Z3 Gate: APPROVED/REJECTED/TIMEOUT/FALLBACK |
+| 43 | `z3_proof.py` | Z3 proof generation and serialization |
+| 44 | `z3_test_generator.py` | Auto-generation of Z3 test cases |
 | 45 | `z3_verifier.py` | Z3 formal theorem proving: INV-1,2,5,6,7,8 |
-| 46 | **`claude_commander.py`** | **5 modos de comandar Claude Code** |
-| 47 | **`autonomous_daemon.py`** | **Daemon auto-gobernante 24/7** |
-| 48 | **`node_mesh.py`** | **Red de nodos infinitos con MessageBus** |
+| 46 | **`claude_commander.py`** | **5 modes for commanding Claude Code** |
+| 47 | **`autonomous_daemon.py`** | **24/7 self-governing daemon** |
+| 48 | **`node_mesh.py`** | **Infinite node network with MessageBus** |
 | 49 | **`pqc_analyzer.py`** | **Post-quantum crypto analyzer** |
 | 50 | **`contract_scanner.py`** | **Solidity vulnerability scanner** |
 | 51 | **`a_mem.py`** | **A-Mem zettelkasten knowledge graph** |
@@ -733,24 +733,24 @@ claude --channels plugin:telegram@claude-plugins-official
 
 ---
 
-## 9. Agentes (12)
+## 9. Agents (12)
 
-| # | Agente | Rol | Modelo Principal | SOUL |
-|---|--------|-----|------------------|------|
-| 1 | **researcher** | Investigacion & Intel | Groq Llama 3.3 70B | `agents/researcher/SOUL.md` |
-| 2 | **strategist** | Estrategia MVP | Cerebras GPT-OSS | `agents/strategist/SOUL.md` |
-| 3 | **organizer** | Organizacion de proyecto | Groq | `agents/organizer/SOUL.md` |
-| 4 | **architect** | Arquitectura de codigo | Groq | `agents/architect/SOUL.md` |
+| # | Agent | Role | Primary Model | SOUL |
+|---|-------|------|---------------|------|
+| 1 | **researcher** | Research & Intel | Groq Llama 3.3 70B | `agents/researcher/SOUL.md` |
+| 2 | **strategist** | MVP Strategy | Cerebras GPT-OSS | `agents/strategist/SOUL.md` |
+| 3 | **organizer** | Project organization | Groq | `agents/organizer/SOUL.md` |
+| 4 | **architect** | Code architecture | Groq | `agents/architect/SOUL.md` |
 | 5 | **designer** | UI/UX Design | Cerebras | `agents/designer/SOUL.md` |
 | 6 | **qa-reviewer** | Quality Assurance | Cerebras | `agents/qa-reviewer/SOUL.md` |
-| 7 | **verifier** | Verificacion final | Groq | `agents/verifier/SOUL.md` |
+| 7 | **verifier** | Final verification | Groq | `agents/verifier/SOUL.md` |
 | 8 | **sentinel** | Security Auditor | Groq | `agents/sentinel/SOUL.md` |
 | 9 | **narrative** | Content Writing | Groq | `agents/narrative/SOUL.md` |
 | 10 | **data-engineer** | Data Pipelines | Groq | `agents/data-engineer/SOUL.md` |
 | 11 | **scout** | Market Research | Cerebras | `agents/scout/SOUL.md` |
 | 12 | **synthesis** | Autonomous Synthesis | Zo (Minimax) | `agents/synthesis/SOUL.md` |
 
-**Actualizacion v0.6**: 9 de 12 SOUL.md actualizados con nueva seccion:
+**v0.6 update**: 9 of 12 SOUL.md updated with new section:
 ```markdown
 ## Commander & Mesh Integration
 - Responds to ClaudeCommander SDK/Spawn/Team commands
@@ -762,64 +762,64 @@ claude --channels plugin:telegram@claude-plugins-official
 
 ---
 
-## 10. Observabilidad y Metricas
+## 10. Observability and Metrics
 
-### 5 Metricas Formales (sin cambios desde v0.5)
+### 5 Formal Metrics (unchanged since v0.5)
 
-| Metrica | Formula | Rango | Ideal |
-|---------|---------|-------|-------|
+| Metric | Formula | Range | Ideal |
+|--------|---------|-------|-------|
 | **SS** | `1.0 - (retry_count / max_retries) x (fallback_depth / max_depth)` | [0, 1] | 1.0 |
-| **PFI** | `sum(fallback_events) / sum(total_executions)` ultimos N runs | [0, 1] | 0.0 |
+| **PFI** | `sum(fallback_events) / sum(total_executions)` last N runs | [0, 1] | 0.0 |
 | **RP** | `mean(retry_count) / max_retries` | [0, 1] | 0.0 |
 | **GCR** | `compliant_runs / total_runs` | [0, 1] | 1.0 |
 | **SSR** | `escalate_decisions / total_decisions` | [0, 1] | 0.0 |
 
-**dof_score** (compuesto):
+**dof_score** (composite):
 ```
 dof_score = 0.30*SS + 0.25*(1-PFI) + 0.20*(1-RP) + 0.15*GCR + 0.10*(SSR_normalized)
 ```
 
-**Baseline actual**: 0.8117
+**Current baseline**: 0.8117
 
 ---
 
-## 11. Dependencias Externas
+## 11. External Dependencies
 
-### Proveedores LLM
+### LLM Providers
 
-| Provider | Modelo | Quota (free tier) | Status |
-|----------|--------|-------------------|--------|
+| Provider | Model | Quota (free tier) | Status |
+|----------|-------|-------------------|--------|
 | **Groq** | Llama 3.3 70B | 12K TPM | Key expired (403) |
-| **Cerebras** | GPT-OSS | 1M tokens/dia | Key expired (403) |
-| **NVIDIA NIM** | Various | 1000 creditos (total) | Active |
-| **Zhipu** | GLM-4.7-Flash | Generosa | Active |
-| **Gemini** | gemini-pro | 20 req/dia | Active |
+| **Cerebras** | GPT-OSS | 1M tokens/day | Key expired (403) |
+| **NVIDIA NIM** | Various | 1000 credits (total) | Active |
+| **Zhipu** | GLM-4.7-Flash | Generous | Active |
+| **Gemini** | gemini-pro | 20 req/day | Active |
 | **OpenRouter** | Multi-model proxy | Variable | Active |
 | **SambaNova** | Various | 24K context max | Active |
 
-**Nota v0.6**: Groq y Cerebras keys expiraron (403) -- requiere renewal.
+**v0.6 note**: Groq and Cerebras keys expired (403) -- renewal required.
 
 ### Blockchain
 
-| Red | Chain ID | Uso | Contrato |
-|-----|----------|-----|----------|
+| Network | Chain ID | Usage | Contract |
+|---------|----------|-------|----------|
 | **Avalanche C-Chain** | 43114 | Attestations + proofs | DOFValidationRegistry, DOFProofRegistry |
 | **Conflux** | 1030 | Multi-chain attestations | DOFEvaluator |
 | **Base** | 8453 | ERC-8004 agent identity | Agent token |
 
-### Servicios Externos
+### External Services
 
-| Servicio | Uso |
-|----------|-----|
+| Service | Usage |
+|---------|-------|
 | **Supabase** (Enigma) | Trust scores, dof_trust_scores table |
 | **AgentMeet.net** | Real-time agent conversations, debate rooms |
 | **Society AI** | Agent registry, #1617 (dof-governance) |
 | **DuckDuckGo/Serper/Tavily** | Web search tools (fallback chain) |
-| **IPFS** | Proof storage (opcional) |
+| **IPFS** | Proof storage (optional) |
 | **Claude Agent SDK** | Programmatic Claude Code control |
-| **Claude Peers MCP** | P2P messaging (puerto 7899) |
+| **Claude Peers MCP** | P2P messaging (port 7899) |
 
-### Nuevas Dependencias v0.6
+### New Dependencies v0.6
 
 ```
 claude-agent-sdk        # Claude Code programmatic control
@@ -828,50 +828,50 @@ bun >= 1.3.11           # Telegram channels plugin
 
 ---
 
-## 12. Estructura de Logs v0.6
+## 12. Log Structure v0.6
 
 ```
 logs/
-+-- traces/                   # RunTrace JSON por ejecucion
++-- traces/                   # RunTrace JSON per execution
 |   +-- {run_id}.json
-+-- metrics/                  # Metricas por step + triage
++-- metrics/                  # Metrics per step + triage
 |   +-- steps.jsonl
 |   +-- l0_triage.jsonl
 |   +-- events.jsonl
-+-- experiments/              # Runs agregados
++-- experiments/              # Aggregated runs
 |   +-- runs.jsonl
 +-- checkpoints/              # Recovery mid-execution
 |   +-- {run_id}/{step_id}.jsonl
-+-- revenue/                  # Ingresos + API usage
++-- revenue/                  # Revenue + API usage
 |   +-- revenue.jsonl
 |   +-- api_usage.jsonl
 +-- autoresearch/             # Self-optimization
 |   +-- results.tsv
 |   +-- config_history.jsonl
-+-- commander/                # NUEVO v0.6
-|   +-- commands.jsonl        # Audit trail de todos los comandos
-|   +-- sessions.json         # Sesiones persistentes (name -> session_id)
++-- commander/                # NEW v0.6
+|   +-- commands.jsonl        # Audit trail of all commands
+|   +-- sessions.json         # Persistent sessions (name -> session_id)
 |   +-- queue/                # Telegram -> terminal bridge
 |       +-- *.json            # Pending/completed orders
-+-- daemon/                   # NUEVO v0.6
-|   +-- cycles.jsonl          # Ciclos del daemon (state, action, result)
++-- daemon/                   # NEW v0.6
+|   +-- cycles.jsonl          # Daemon cycles (state, action, result)
 |   +-- feedback/             # Telegram feedback (approve/redirect/stop)
 |       +-- *.json
-+-- mesh/                     # NUEVO v0.6
-|   +-- nodes.json            # Registro de nodos activos
++-- mesh/                     # NEW v0.6
+|   +-- nodes.json            # Active node registry
 |   +-- messages.jsonl        # Global message bus log
 |   +-- mesh_events.jsonl     # Spawn, cycle, error events
-|   +-- inbox/                # Mensajes por nodo
+|   +-- inbox/                # Messages per node
 |       +-- commander/*.json
 |       +-- architect/*.json
 |       +-- researcher/*.json
 |       +-- guardian/*.json
 |       +-- narrator/*.json
 |       +-- reviewer/*.json
-+-- a_mem/                    # NUEVO v0.6 -- Zettelkasten memory
-+-- pqc_analysis.jsonl        # NUEVO v0.6 -- PQC assessments
-+-- contract_scan.jsonl       # NUEVO v0.6 -- Solidity scans
-+-- security_hierarchy.jsonl  # NUEVO v0.6 -- L0-L4 results
++-- a_mem/                    # NEW v0.6 -- Zettelkasten memory
++-- pqc_analysis.jsonl        # NEW v0.6 -- PQC assessments
++-- contract_scan.jsonl       # NEW v0.6 -- Solidity scans
++-- security_hierarchy.jsonl  # NEW v0.6 -- L0-L4 results
 +-- audit/                    # Security audits
 +-- attestations.jsonl        # On-chain attestations
 +-- test_reports.jsonl        # Test results
@@ -879,9 +879,9 @@ logs/
 
 ---
 
-## 13. Verificacion del Sistema v0.6
+## 13. System Verification v0.6
 
-### Comandos con Output Esperado
+### Commands with Expected Output
 
 ```bash
 # Claude Commander health
@@ -964,10 +964,10 @@ $ python3 -c "from a2a_server import AGENT_CARD; print([s['id'] for s in AGENT_C
 
 ---
 
-## 14. Hardware Validado
+## 14. Validated Hardware
 
-| Componente | Especificacion |
-|------------|---------------|
+| Component | Specification |
+|-----------|--------------|
 | **Chip** | Apple M4 Max (16-core CPU, 40-core GPU, 16-core Neural Engine) |
 | **RAM** | 36GB unified memory |
 | **SSD** | 994.66 GB (432 GB free) |
@@ -976,53 +976,53 @@ $ python3 -c "from a2a_server import AGENT_CARD; print([s['id'] for s in AGENT_C
 | **MLX** | v0.31.1, 230 tok/s on 7B |
 | **ANE** | 19 TFLOPS FP16 @ 2.8W |
 
-**Limites de modelos locales**:
-- Max ~32B Q4 (~20GB de 36GB)
-- 70B Q4 NO cabe (~43GB > 36GB)
+**Local model limits**:
+- Max ~32B Q4 (~20GB of 36GB)
+- 70B Q4 does NOT fit (~43GB > 36GB)
 - Best: Qwen3 32B Q4, Phi-4 14B, Llama 3.3 8B
 
 ---
 
-## 15. Scripts de Automatizacion (20+)
+## 15. Automation Scripts (20+)
 
-| Script | Proposito |
-|--------|-----------|
-| `agent-legion-daemon.sh` | Daemon autonomo: 14 agentes + AgentMeet cada 4h |
-| `agentmeet-live.py` | Sesiones LLM-powered de 14 agentes en AgentMeet.net |
+| Script | Purpose |
+|--------|---------|
+| `agent-legion-daemon.sh` | Autonomous daemon: 14 agents + AgentMeet every 4h |
+| `agentmeet-live.py` | LLM-powered sessions of 14 agents on AgentMeet.net |
 | `dof_autoresearch.py` | Self-optimization loop (Karpathy-inspired) |
-| `model_audit.py` | Audit de modelos locales disponibles |
-| `soul-watchdog.sh` | Monitor de SOULs para drift detection |
-| `start-system.sh` | Startup script del sistema completo |
+| `model_audit.py` | Audit of available local models |
+| `soul-watchdog.sh` | SOUL monitor for drift detection |
+| `start-system.sh` | Full system startup script |
 | `watch_orders.py` | Watch Telegram order queue |
-| `e2e_test.py` | Test end-to-end del pipeline completo |
-| `full_pipeline_test.py` | Validacion completa de workflow |
-| `live_test_flow.py` | Test flow con metricas en tiempo real |
-| `agent_10_rounds.py` | Stress test: 10 rounds consecutivos |
+| `e2e_test.py` | End-to-end pipeline test |
+| `full_pipeline_test.py` | Complete workflow validation |
+| `live_test_flow.py` | Test flow with real-time metrics |
+| `agent_10_rounds.py` | Stress test: 10 consecutive rounds |
 | `run_benchmark.py` | Benchmark suite: latency, quality, tokens |
 | `garak_benchmark.py` | GARAK: prompt injection, jailbreaks |
 | `run_privacy_benchmark.py` | Privacy leak detection benchmark |
-| `external_agent_audit.py` | Audit de agentes externos ERC-8004 |
-| `full_audit_test.py` | Audit completo: 55 reglas |
-| `final_audit.py` | Audit pre-produccion |
-| `agent_cross_transactions.py` | Test de comunicacion inter-agente |
-| `extract_garak_payloads.py` | Extraccion de payloads adversariales |
+| `external_agent_audit.py` | Audit of external ERC-8004 agents |
+| `full_audit_test.py` | Full audit: 55 rules |
+| `final_audit.py` | Pre-production audit |
+| `agent_cross_transactions.py` | Inter-agent communication test |
+| `extract_garak_payloads.py` | Adversarial payload extraction |
 
 ---
 
-## 16. Monetizacion
+## 16. Monetization
 
-### Revenue Actual (sin cambios)
+### Current Revenue (unchanged)
 
 ```
-Total Revenue:      $1,134.50 USD (30 dias)
-Transacciones:      8
+Total Revenue:      $1,134.50 USD (30 days)
+Transactions:       8
 API Calls tracked:  5
 ```
 
-### Society AI Services (NUEVO v0.6)
+### Society AI Services (NEW v0.6)
 
-| Service | Precio | Revenue Potencial |
-|---------|--------|-------------------|
+| Service | Price | Potential Revenue |
+|---------|-------|-------------------|
 | Governance Audit | $0.10/call | Variable |
 | Z3 Verification | $0.25/proof | Variable |
 | Security Scan | $0.15/scan | Variable |
@@ -1032,13 +1032,13 @@ API Calls tracked:  5
 
 ---
 
-## 17. Resumen Final
+## 17. Final Summary
 
 ```
 +=============================================================+
 |  DOF v0.6 -- Commander & Mesh Sprint (22 Mar 2026)          |
 +=============================================================+
-|  Core Modules:    52+    |  Agentes:         12             |
+|  Core Modules:    52+    |  Agents:          12             |
 |  A2A Skills:      11     |  Mesh Nodes:      6              |
 |  Messages:        41+    |  Commits:         210+           |
 |  LOC:             860K+  |  Z3 Theorems:     8/8 PROVEN     |
@@ -1049,7 +1049,7 @@ API Calls tracked:  5
 |  Commander Modes: 5      |  Daemon Types:    3              |
 |  Book Chapters:   4      |  Security Layers: L0-L4          |
 +=============================================================+
-|  NUEVOS MODULOS v0.6 (22 Marzo 2026):                       |
+|  NEW MODULES v0.6 (March 22, 2026):                         |
 |  + Claude Commander (5 modes: SDK/Spawn/Team/Debate/Peers)  |
 |  + Autonomous Daemon (Builder/Guardian/Researcher)           |
 |  + Node Mesh (6 nodes, MessageBus, NEED_INPUT protocol)     |
@@ -1059,21 +1059,21 @@ API Calls tracked:  5
 |  + Security Hierarchy (L0->L1->L2->L3->L4 chain)            |
 |  + Hybrid Scheduler (GPU+ANE+CPU routing)                    |
 +=============================================================+
-|  INTEGRACIONES NUEVAS:                                       |
+|  NEW INTEGRATIONS:                                           |
 |  + Society AI Agent #1617 (dof-governance, 6 services)       |
-|  + Telegram Channels Plugin (Claude Max, Opus nativo)        |
+|  + Telegram Channels Plugin (Claude Max, native Opus)        |
 |  + Claude Agent SDK (programmatic control)                   |
 |  + AgentMeet debates (real-time multi-agent rooms)           |
-|  + Claude Peers MCP broker (P2P, puerto 7899)               |
+|  + Claude Peers MCP broker (P2P, port 7899)                 |
 +=============================================================+
 |  BOOK:                                                       |
-|  + Ch 7: Ethical Hacking Agent (6 pilares validados)         |
+|  + Ch 7: Ethical Hacking Agent (6 pillars validated)         |
 |  + Ch 8: Tools & Ecosystem                                   |
 |  + Ch 9: The Commander                                       |
-|  + Index: 14 capitulos + 7 apendices                         |
+|  + Index: 14 chapters + 7 appendices                         |
 +=============================================================+
-|  TRANSICION CLAVE v0.5 -> v0.6:                              |
-|  Framework de observabilidad -> Sistema autonomo completo    |
+|  KEY TRANSITION v0.5 -> v0.6:                                |
+|  Observability framework -> Complete autonomous system       |
 |  Manual operation -> 24/7 daemon with feedback loop          |
 |  Single session -> Infinite memory persistent sessions       |
 |  Independent agents -> 6-node mesh with message bus          |
@@ -1083,5 +1083,5 @@ API Calls tracked:  5
 
 ---
 
-*Generado por DOF Oracle -- 22 de marzo de 2026*
-*Verificado con datos reales de ejecucion del sistema*
+*Generated by DOF Oracle -- March 22, 2026*
+*Verified with real system execution data*

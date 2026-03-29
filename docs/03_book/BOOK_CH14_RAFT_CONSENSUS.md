@@ -1,16 +1,17 @@
-markdown
+```
 +---------------+
-|  Nodo  | Estado  |
+|  Node  | State   |
 +---------------+
 |  N1    | FOLLOWER |
 |  N2    | FOLLOWER |
 |  N3    | CANDIDATE |
 +---------------+
        |
-       |  Votación
+       |  Voting
        v
 +---------------+
-|  N1    | VOTO SI  |
-|  N2    | VOTO SI  |
-|  N3    | LÍDER    |
+|  N1    | YES VOTE |
+|  N2    | YES VOTE |
+|  N3    | LEADER   |
 +---------------+
+```

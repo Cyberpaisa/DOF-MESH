@@ -2,11 +2,11 @@
 
 ## v0.2.7
 
-- Lección: Los patrones de detección exacta son case-sensitive y literal — 'root access for this session' no matchea si el patrón dice otra cosa. Siempre verificar con el payload exacto del test antes de publicar en PyPI.
+- Lesson: Exact detection patterns are case-sensitive and literal — 'root access for this session' does not match if the pattern says something else. Always verify with the exact test payload before publishing to PyPI.
 
 ## v0.2.8
 
-- Lección: Nunca subir a PyPI antes de correr el Colab de validación — el orden correcto es: fix → tests locales → PyPI → Colab → reporte.
+- Lesson: Never upload to PyPI before running the validation Colab — the correct order is: fix → local tests → PyPI → Colab → report.
 
 # ────────────────────────────────────
 # LESSONS LEARNED — DOF v0.3.x Z3 Enhancement
@@ -44,7 +44,7 @@ deps to critical paths.
 
 **L-34: enforce_hierarchy is 33 patterns in 2 categories, not 22 in 6.**
 Read the actual code before writing Z3 translations. The plan assumed 22 patterns
-in 6 categories. Reality: 33 patterns (_SYSTEM_OVERRIDE_PATTERNS + 
+in 6 categories. Reality: 33 patterns (_SYSTEM_OVERRIDE_PATTERNS +
 _RESPONSE_VIOLATION_PATTERNS) in 2 categories. By v0.3.0, expanded to 42 patterns.
 Lesson: count the actual patterns, don't assume from memory.
 
@@ -136,26 +136,26 @@ Shannon entropy + special char ratio + sliding window detects GCG/suffix attacks
 
 ## v0.4.x — DOF Mesh Hyperion (2026-03-25)
 
-**L-51: El filesystem es el cuello de botella, no la lógica.**
-NodeMesh usaba archivos JSON en disco: ~100 tasks/sec. MeshQueue en memoria: 402,000 tasks/sec. El código de negocio era correcto desde el inicio — el error era el transporte. Cambiar el transporte (sin cambiar la lógica) dio 4,000x de mejora.
+**L-51: The filesystem is the bottleneck, not the logic.**
+NodeMesh used JSON files on disk: ~100 tasks/sec. MeshQueue in memory: 402,000 tasks/sec. The business code was correct from the start — the error was the transport. Changing the transport (without changing the logic) gave a 4,000x improvement.
 
-**L-52: Drop-in replacement como estrategia de migración.**
-`from core.hyperion_bridge import HyperionBridge as NodeMesh` — una línea.
-Cero cambios en supervisor.py, cero tests rotos, cero riesgo. La API compatible permite migración gradual sin big-bang rewrites. Patrón aplicable a cualquier subsistema.
+**L-52: Drop-in replacement as migration strategy.**
+`from core.hyperion_bridge import HyperionBridge as NodeMesh` — one line.
+Zero changes in supervisor.py, zero broken tests, zero risk. The compatible API allows gradual migration without big-bang rewrites. Pattern applicable to any subsystem.
 
-**L-53: stdlib Python es suficiente para infraestructura seria.**
-HyperionHTTPServer usa solo `http.server`. Sin FastAPI, sin uvicorn, sin dependencias externas. Funciona en cualquier máquina con Python 3.9+. Para servicios internos, las dependencias son deuda — evitarlas mientras se pueda.
+**L-53: Python stdlib is sufficient for serious infrastructure.**
+HyperionHTTPServer uses only `http.server`. No FastAPI, no uvicorn, no external dependencies. Works on any machine with Python 3.9+. For internal services, dependencies are debt — avoid them as long as possible.
 
-**L-54: Raft cabe en 300 líneas cuando el estado está bien definido.**
-La complejidad de Raft no está en el algoritmo sino en los casos borde de red real. In-process (nodos como objetos Python) elimina los problemas de red y permite iterar rápido. El patrón: implementar in-process primero, luego agregar capa de red encima.
+**L-54: Raft fits in 300 lines when the state is well defined.**
+The complexity of Raft is not in the algorithm but in the edge cases of real networks. In-process (nodes as Python objects) eliminates network problems and allows fast iteration. The pattern: implement in-process first, then add a network layer on top.
 
-**L-55: Timeouts aleatorios evitan split votes en leader election.**
-Si todos los nodos tienen el mismo timeout de elección, todos se postulan a la vez y ninguno gana. Randomizar entre 300-600ms garantiza que siempre hay un candidato antes que los demás. Simple, efectivo, elegante.
+**L-55: Random timeouts prevent split votes in leader election.**
+If all nodes have the same election timeout, they all run at the same time and no one wins. Randomizing between 300-600ms guarantees that there is always a candidate before the others. Simple, effective, elegant.
 
-**L-56: Autonomía real = el sistema construye mientras el usuario vive.**
-El usuario durmió (00:00-06:00). El usuario fue al trabajo (09:00-12:00).
-En esas horas se construyeron 5 módulos, 107 tests, 4 commits, 2 capítulos de libro.
-La autonomía no es que el agente haga tareas — es que el agente toma decisiones de arquitectura y las ejecuta con criterio.
+**L-56: Real autonomy = the system builds while the user lives their life.**
+The user slept (00:00-06:00). The user went to work (09:00-12:00).
+In those hours, 5 modules, 107 tests, 4 commits, 2 book chapters were built.
+Autonomy is not the agent doing tasks — it is the agent making architecture decisions and executing them with judgment.
 
 ---
 
@@ -182,18 +182,18 @@ Fix: PID file lock with process-alive check on startup. Never kill-and-takeover,
 **L-63: 5 parallel repair agents are faster than sequential fixes.**
 Launched 5 background agents simultaneously: paths, Telegram, mesh cleanup, governance, Streamlit. All completed in ~2 minutes vs ~10 minutes sequential. Lesson: independent fixes have zero data dependencies — parallelize them always. The mesh pattern applies to repair, not just feature work.
 
-## Coliseum de la Verdad — Lecciones (2026-03-26)
+## Coliseum of Truth — Lessons (2026-03-26)
 
-**L-64 — La unanimidad ética no requiere unanimidad técnica.** 12 modelos coincidieron en "no explotar" pero usaron 8 frameworks diferentes. El consensus ético es más robusto cuando emerge de diversidad de razonamiento.
+**L-64 — Ethical unanimity does not require technical unanimity.** 12 models agreed on "do not exploit" but used 8 different frameworks. Ethical consensus is more robust when it emerges from diversity of reasoning.
 
-**L-65 — La divergencia matemática es información, no error.** 4 respuestas numéricas "diferentes" al mismo problema no significan que 3 estén mal. Cada uno midió una métrica distinta. Z3 lo distingue.
+**L-65 — Mathematical divergence is information, not error.** 4 "different" numerical answers to the same problem do not mean 3 are wrong. Each one measured a different metric. Z3 distinguishes this.
 
-**L-66 — El modelo que detecta el ataque al prompt es el más valioso como guardián.** Claude detectó que la pregunta ERA ingeniería social. En un mesh de seguridad, ese modelo protege a los demás.
+**L-66 — The model that detects the attack on the prompt is the most valuable as guardian.** Claude detected that the question WAS social engineering. In a security mesh, that model protects the others.
 
-**L-67 — El steelman + refutación revela más que la respuesta directa.** MiMo construyó los 4 mejores argumentos a favor y luego los destruyó. Revela más capacidad que responder directamente.
+**L-67 — Steelman + refutation reveals more than a direct answer.** MiMo built the 4 best arguments in favor and then destroyed them. This reveals more capability than answering directly.
 
-**L-68 — Cada modelo tiene un rol natural — no intentes que todos hagan todo.** Arquitecto (MiMo), Guardián (Claude), Investigador (Perplexity), Filósofo (MiniMax), Ingeniero (Gemini), Estratega (Kimi), Policy Maker (GPT), Ético (GLM).
+**L-68 — Each model has a natural role — don't try to make all of them do everything.** Architect (MiMo), Guardian (Claude), Researcher (Perplexity), Philosopher (MiniMax), Engineer (Gemini), Strategist (Kimi), Policy Maker (GPT), Ethicist (GLM).
 
-**L-69 — El Coliseum es un producto vendible.** Model Integrity Score: prompt estandarizado + captura multi-modelo + Z3 verification + score on-chain = servicio por el que empresas pagarían.
+**L-69 — The Coliseum is a sellable product.** Model Integrity Score: standardized prompt + multi-model capture + Z3 verification + on-chain score = service that companies would pay for.
 
-**L-70 — "Build a system where exploitation is architecturally impossible regardless of what the models want."** La frase de MiMo que define DOF. Z3 como invariante arquitectural, no como sugerencia.
+**L-70 — "Build a system where exploitation is architecturally impossible regardless of what the models want."** The MiMo phrase that defines DOF. Z3 as architectural invariant, not as suggestion.

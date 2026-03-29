@@ -1,347 +1,347 @@
-# COMPETITION BIBLE -- La Biblia Definitiva para Hackathons
+# COMPETITION BIBLE -- The Definitive Bible for Hackathons
 
-> Documento de inteligencia competitiva basado en Synthesis 2026 (685 proyectos, $100K prize pool).
-> Autor: Cyber Paisa -- Enigma Group
-> Fecha base: 27 marzo 2026
-> Uso: Referencia obligatoria antes, durante y despues de cada hackathon.
+> Competitive intelligence document based on Synthesis 2026 (685 projects, $100K prize pool).
+> Author: Cyber Paisa -- Enigma Group
+> Base date: March 27, 2026
+> Use: Mandatory reference before, during, and after every hackathon.
 
 ---
 
-## Tabla de Contenidos
+## Table of Contents
 
-1. [Lecciones Aprendidas -- Synthesis 2026](#1-lecciones-aprendidas----synthesis-2026)
-2. [Checklist Pre-Hackathon (30 items)](#2-checklist-pre-hackathon-30-items)
-3. [Stack Competitivo](#3-stack-competitivo----lo-que-debemos-tener)
+1. [Lessons Learned -- Synthesis 2026](#1-lessons-learned----synthesis-2026)
+2. [Pre-Hackathon Checklist (30 items)](#2-pre-hackathon-checklist-30-items)
+3. [Competitive Stack](#3-competitive-stack----what-we-must-have)
 4. [Pitch Templates](#4-pitch-templates)
-5. [Timeline Ideal de Hackathon (10 dias)](#5-timeline-ideal-de-hackathon-10-dias)
+5. [Ideal Hackathon Timeline (10 days)](#5-ideal-hackathon-timeline-10-days)
 6. [Post-Mortem Template](#6-post-mortem-template)
 
 ---
 
-## 1. Lecciones Aprendidas -- Synthesis 2026
+## 1. Lessons Learned -- Synthesis 2026
 
-### Lo que hicimos bien
+### What we did well
 
-| Accion | Por que importa |
+| Action | Why it matters |
 |--------|-----------------|
-| Video en YouTube | La mayoria de proyectos no tienen video. Los jueces agradecen contenido visual rapido. |
-| Logo profesional del buho DOF | Branding memorable. En 685 proyectos, la imagen importa mas de lo que creemos. |
-| 11 tracks = maxima exposicion | Nos vieron en todas las categorias. Garantizo al menos una revision. |
-| Tech diferenciador real (Z3, deterministic, zero-LLM governance) | Ningun otro proyecto tenia verificacion formal de agentes. Unico en el campo. |
-| Numeros concretos | 238 ciclos autonomos, 986 tests, 48 attestations on-chain. Los numeros no mienten. |
-| Frase killer | "Agent acted autonomously. Math proved it. Blockchain recorded it." -- Memorable y diferenciadora. |
+| YouTube video | Most projects have no video. Judges appreciate quick visual content. |
+| Professional DOF owl logo | Memorable branding. Among 685 projects, image matters more than we think. |
+| 11 tracks = maximum exposure | We were seen in all categories. Guaranteed at least one review. |
+| Real differentiating tech (Z3, deterministic, zero-LLM governance) | No other project had formal agent verification. Unique in the field. |
+| Concrete numbers | 238 autonomous cycles, 986 tests, 48 on-chain attestations. Numbers don't lie. |
+| Killer phrase | "Agent acted autonomously. Math proved it. Blockchain recorded it." -- Memorable and differentiating. |
 
-### Errores que NO repetir
+### Mistakes NOT to repeat
 
-| Error | Impacto | Solucion para la proxima |
+| Mistake | Impact | Solution for next time |
 |-------|---------|--------------------------|
-| Sin servicio en produccion publico | Observer Protocol tenia 82 agentes registrados, live desde Feb 2026. Nosotros solo repo. | Tener al menos 1 endpoint publico funcionando ANTES de aplicar. |
-| Demasiados tracks (11) | Parece "spray and pray". Los jueces lo notan. Diluye el mensaje. | Maximo 4 tracks, bien elegidos, con narrativa adaptada a cada uno. |
-| Pitch demasiado tecnico | "Z3 theorem prover" no dice nada a un juez de negocio. Perdimos audiencia no-tecnica. | Pitch en lenguaje de impacto: "probamos matematicamente que el agente hizo lo correcto". |
-| Solo 2 agentes propios | Sin usuarios externos, parece proyecto de juguete. | Conseguir al menos 5-10 agentes de terceros registrados antes del submit. |
-| Landing page basica | Los ganadores tienen demos interactivos, GIFs, metricas en vivo. | Landing con demo embebido, metricas reales, CTA de registro. |
-| Sin metricas de adopcion externa | "Lo usamos nosotros" no es traccion. | Invitar builders, documentar uso externo, mostrar graficas de crecimiento. |
-| No tener SDK publicado | Competidores como Observer tenian `pip install` o `npm install`. | Publicar SDK minimo en npm/pip antes del hackathon. |
-| README sin Quick Start | Jueces tienen 5 minutos por proyecto. Si no pueden probarlo rapido, next. | Quick Start de 5 lineas maximo. Copy-paste y funciona. |
+| No public production service | Observer Protocol had 82 agents registered, live since Feb 2026. We only had a repo. | Have at least 1 public endpoint working BEFORE applying. |
+| Too many tracks (11) | Looks like "spray and pray". Judges notice. Dilutes the message. | Maximum 4 tracks, well chosen, with narrative adapted to each. |
+| Too technical pitch | "Z3 theorem prover" means nothing to a business judge. We lost non-technical audience. | Pitch in impact language: "we mathematically prove the agent did the right thing". |
+| Only 2 own agents | Without external users, it looks like a toy project. | Get at least 5-10 third-party agents registered before submission. |
+| Basic landing page | Winners have interactive demos, GIFs, live metrics. | Landing with embedded demo, real metrics, registration CTA. |
+| No external adoption metrics | "We use it ourselves" is not traction. | Invite builders, document external usage, show growth charts. |
+| No published SDK | Competitors like Observer had `pip install` or `npm install`. | Publish minimal SDK on npm/pip before the hackathon. |
+| README without Quick Start | Judges have 5 minutes per project. If they can't try it quickly, next. | Quick Start of 5 lines maximum. Copy-paste and it works. |
 
-### Competidores que nos ensenaron
+### Competitors who taught us
 
-#### Observer Protocol -- "El estandar de produccion"
-- **Leccion clave**: "This isn't a demo. It's infrastructure running in production since February 2026."
-- 82 agentes registrados, 67 transacting activamente
-- LIVE en mainnet, no en testnet
-- **Takeaway**: La produccion real mata cualquier demo. Prioridad #1 siempre.
+#### Observer Protocol -- "The production standard"
+- **Key lesson**: "This isn't a demo. It's infrastructure running in production since February 2026."
+- 82 agents registered, 67 actively transacting
+- LIVE on mainnet, not testnet
+- **Takeaway**: Real production kills any demo. Priority #1 always.
 
-#### Strata -- "El poder de ZK"
-- ZK rollup para cognicion AI
-- ZK proofs > JSONL logs (nosotros usamos JSONL)
-- **Takeaway**: Las pruebas criptograficas son mas convincentes que logs. Explorar circom/noir.
+#### Strata -- "The power of ZK"
+- ZK rollup for AI cognition
+- ZK proofs > JSONL logs (we use JSONL)
+- **Takeaway**: Cryptographic proofs are more convincing than logs. Explore circom/noir.
 
-#### ALIAS -- "Reputation como primitiva"
-- Proof-of-Reputation como primitiva on-chain reutilizable
-- No un feature, sino un building block para otros
-- **Takeaway**: Posicionar nuestro trust score como primitiva, no como feature.
+#### ALIAS -- "Reputation as a primitive"
+- Proof-of-Reputation as reusable on-chain primitive
+- Not a feature, but a building block for others
+- **Takeaway**: Position our trust score as a primitive, not a feature.
 
-#### Sentinel8004 -- "Escala automatica"
-- Escanea 3,766 agentes del registry automaticamente
-- No depende de que los agentes se registren manualmente
-- **Takeaway**: Automatizar el onboarding. Escanear, no esperar.
+#### Sentinel8004 -- "Automatic scale"
+- Scans 3,766 agents from the registry automatically
+- Does not depend on agents manually registering
+- **Takeaway**: Automate onboarding. Scan, don't wait.
 
-#### DJZS Protocol -- "Prevencion > Deteccion"
-- Intercepta razonamiento ANTES de ejecucion
-- 11 codigos de fallo predefinidos
-- **Takeaway**: Governance preventiva es mas valiosa que auditoria post-facto.
+#### DJZS Protocol -- "Prevention > Detection"
+- Intercepts reasoning BEFORE execution
+- 11 predefined failure codes
+- **Takeaway**: Preventive governance is more valuable than post-facto auditing.
 
-#### Chorus -- "Consenso criptografico"
-- FROST threshold signatures para consenso multi-agente
-- Multiples agentes firman juntos, no uno solo decide
-- **Takeaway**: Threshold crypto agrega confianza real, no solo governance social.
+#### Chorus -- "Cryptographic consensus"
+- FROST threshold signatures for multi-agent consensus
+- Multiple agents sign together, not one alone decides
+- **Takeaway**: Threshold crypto adds real trust, not just social governance.
 
 #### OmniAgent -- "Cross-chain identity"
-- ERC-8004 x LayerZero V2 = identidad de agente en multiples chains
-- Un agente, una identidad, cualquier blockchain
-- **Takeaway**: La identidad cross-chain es el siguiente paso natural para DOF.
+- ERC-8004 x LayerZero V2 = agent identity on multiple chains
+- One agent, one identity, any blockchain
+- **Takeaway**: Cross-chain identity is the natural next step for DOF.
 
 #### Shulam -- "Compliance-first"
-- 45 soluciones autonomas con compliance integrado
-- Regulatory-ready desde el dia 1
-- **Takeaway**: Compliance no es un afterthought. Los jueces institucionales lo valoran.
+- 45 autonomous solutions with integrated compliance
+- Regulatory-ready from day 1
+- **Takeaway**: Compliance is not an afterthought. Institutional judges value it.
 
-#### zkx402 -- "Privacy en pagos"
-- ZK + x402 = pagos verificables sin revelar montos
-- Privacy como feature de pagos entre agentes
-- **Takeaway**: Privacy + pagos es un nicho poderoso y poco explorado.
+#### zkx402 -- "Privacy in payments"
+- ZK + x402 = verifiable payments without revealing amounts
+- Privacy as a payment feature between agents
+- **Takeaway**: Privacy + payments is a powerful and underexplored niche.
 
 #### Maiat8183 -- "Meta-governance"
-- "Quien vigila a los vigilantes?"
-- Governance de la governance misma
-- **Takeaway**: La pregunta meta es poderosa narrativamente y tecnicamente valida.
+- "Who watches the watchers?"
+- Governance of governance itself
+- **Takeaway**: The meta-question is powerful narratively and technically valid.
 
 ---
 
-## 2. Checklist Pre-Hackathon (30 items)
+## 2. Pre-Hackathon Checklist (30 items)
 
-### A. Preparacion Tecnica (1-10)
+### A. Technical Preparation (1-10)
 
-- [ ] **1. Repo limpio y publico** -- README actualizado, sin secrets, sin archivos basura, licencia clara
-- [ ] **2. CI/CD verde** -- GitHub Actions pasando. Badge verde visible en el README
-- [ ] **3. Tests con cobertura >80%** -- Numero de tests visible en README (ej: "986 tests passing")
-- [ ] **4. Deploy en produccion** -- URL publica funcionando, no localhost. Preferiblemente mainnet
-- [ ] **5. Endpoint /health respondiendo** -- `curl https://tu-api.com/health` debe devolver 200 + version + uptime
-- [ ] **6. Agent.json registrado y validado** -- En el registry ERC-8004, metadata completa, campos obligatorios llenos
-- [ ] **7. Wallet con fondos** -- Suficiente gas para transacciones durante el hackathon (minimo 0.5 AVAX + 5 USDC)
-- [ ] **8. SDK publicado** -- `npm install tu-sdk` o `pip install tu-sdk` funcionando
-- [ ] **9. Documentacion API** -- Swagger/OpenAPI o al menos un doc con todos los endpoints
-- [ ] **10. Quick Start de 5 lineas** -- Desde cero hasta "funciona" en menos de 2 minutos
+- [ ] **1. Clean and public repo** -- Updated README, no secrets, no junk files, clear license
+- [ ] **2. Green CI/CD** -- GitHub Actions passing. Green badge visible in README
+- [ ] **3. Tests with >80% coverage** -- Number of tests visible in README (e.g.: "986 tests passing")
+- [ ] **4. Production deploy** -- Public URL working, not localhost. Preferably mainnet
+- [ ] **5. /health endpoint responding** -- `curl https://your-api.com/health` must return 200 + version + uptime
+- [ ] **6. Agent.json registered and validated** -- In ERC-8004 registry, complete metadata, mandatory fields filled
+- [ ] **7. Funded wallet** -- Enough gas for transactions during hackathon (minimum 0.5 AVAX + 5 USDC)
+- [ ] **8. Published SDK** -- `npm install your-sdk` or `pip install your-sdk` working
+- [ ] **9. API documentation** -- Swagger/OpenAPI or at least a doc with all endpoints
+- [ ] **10. 5-line Quick Start** -- From zero to "it works" in less than 2 minutes
 
-### B. Presentacion y Branding (11-20)
+### B. Presentation and Branding (11-20)
 
-- [ ] **11. Video demo (2-3 min)** -- Subido a YouTube, sin musica molesta, con subtitulos si es posible
-- [ ] **12. Cover image profesional** -- 1200x630px minimo. Logo, nombre, tagline. No templates genericos
-- [ ] **13. Pitch de 1 linea** -- No tecnico. Entendible por cualquiera. Probado con gente no-tech
-- [ ] **14. Landing page con CTA** -- URL publica, demo embebido o link a demo, boton de registro
-- [ ] **15. Screenshots/GIFs del producto** -- Al menos 3 capturas mostrando el flujo principal
-- [ ] **16. Perfil de equipo profesional** -- Foto/avatar, bio corta, links relevantes (GitHub, Twitter)
-- [ ] **17. Social proof** -- Al menos 3-5 tweets/posts sobre el proyecto ANTES del submit
-- [ ] **18. Seleccion de 3-4 tracks** -- Maximo 4. Cada uno con narrativa adaptada, no copy-paste
-- [ ] **19. README con badges** -- CI status, version, license, tests, coverage. Profesionalismo visual
-- [ ] **20. Nombre memorable** -- Si el nombre no se recuerda en 5 segundos, cambiarlo
+- [ ] **11. Demo video (2-3 min)** -- Uploaded to YouTube, no annoying music, with subtitles if possible
+- [ ] **12. Professional cover image** -- 1200x630px minimum. Logo, name, tagline. No generic templates
+- [ ] **13. 1-line pitch** -- Non-technical. Understandable by anyone. Tested with non-tech people
+- [ ] **14. Landing page with CTA** -- Public URL, embedded demo or demo link, registration button
+- [ ] **15. Product screenshots/GIFs** -- At least 3 captures showing the main flow
+- [ ] **16. Professional team profile** -- Photo/avatar, short bio, relevant links (GitHub, Twitter)
+- [ ] **17. Social proof** -- At least 3-5 tweets/posts about the project BEFORE submission
+- [ ] **18. Selection of 3-4 tracks** -- Maximum 4. Each with adapted narrative, not copy-paste
+- [ ] **19. README with badges** -- CI status, version, license, tests, coverage. Visual professionalism
+- [ ] **20. Memorable name** -- If the name is not remembered in 5 seconds, change it
 
-### C. Traccion y Metricas (21-25)
+### C. Traction and Metrics (21-25)
 
-- [ ] **21. Metricas de adopcion reales** -- Usuarios, transacciones, agentes registrados. Numeros verificables
-- [ ] **22. Attestations on-chain visibles** -- Link a explorer mostrando transacciones reales
-- [ ] **23. Al menos 5 usuarios/agentes externos** -- No solo los propios. Terceros usando el sistema
-- [ ] **24. Uptime documentado** -- Cuanto tiempo lleva el servicio corriendo sin interrupciones
-- [ ] **25. Grafica de crecimiento** -- Aunque sea pequena, mostrar tendencia positiva
+- [ ] **21. Real adoption metrics** -- Users, transactions, registered agents. Verifiable numbers
+- [ ] **22. On-chain attestations visible** -- Link to explorer showing real transactions
+- [ ] **23. At least 5 external users/agents** -- Not just your own. Third parties using the system
+- [ ] **24. Documented uptime** -- How long the service has been running without interruptions
+- [ ] **25. Growth chart** -- Even if small, show positive trend
 
-### D. Estrategia de Competencia (26-30)
+### D. Competition Strategy (26-30)
 
-- [ ] **26. Analisis de competidores** -- Conocer al menos 10 proyectos en los mismos tracks
-- [ ] **27. Diferenciador claro** -- 1 cosa que NADIE mas tiene. Documentada y prominente
-- [ ] **28. Plan de respuesta a preguntas** -- FAQ interno con las 10 preguntas mas probables de jueces
-- [ ] **29. Backup plan tecnico** -- Si el deploy falla durante judging, tener video/screenshots como respaldo
-- [ ] **30. Post-submit engagement** -- Plan para responder comentarios de jueces en las primeras 24h
+- [ ] **26. Competitor analysis** -- Know at least 10 projects in the same tracks
+- [ ] **27. Clear differentiator** -- 1 thing that NOBODY else has. Documented and prominent
+- [ ] **28. Response plan to questions** -- Internal FAQ with the 10 most likely judge questions
+- [ ] **29. Technical backup plan** -- If deploy fails during judging, have video/screenshots as backup
+- [ ] **30. Post-submit engagement** -- Plan to respond to judge comments in the first 24h
 
 ---
 
-## 3. Stack Competitivo -- Lo que debemos tener
+## 3. Competitive Stack -- What We Must Have
 
-### Matriz de Tecnologias
+### Technology Matrix
 
-| Tecnologia | La tenemos? | Prioridad | Referencia | Esfuerzo estimado | Impacto en jueces |
+| Technology | Do we have it? | Priority | Reference | Estimated Effort | Impact on Judges |
 |---|---|---|---|---|---|
-| ZK Proofs (circom/noir) | NO | ALTA | Strata, zkx402 | 2-3 semanas | Muy alto -- pruebas criptograficas > logs |
-| Cross-chain bridge (LayerZero V2) | NO | ALTA | OmniAgent | 1-2 semanas | Alto -- multi-chain es el futuro |
-| Threshold signatures (FROST) | NO | MEDIA | Chorus | 2-3 semanas | Alto -- consenso criptografico real |
-| API publica en produccion | NO | CRITICA | Observer Protocol | 3-5 dias | Critico -- sin esto no competimos |
-| Compliance layer | NO | MEDIA | Shulam | 1-2 semanas | Medio-alto -- jueces institucionales |
-| Insurance/surety bonds | NO | BAJA | Surety | 3-4 semanas | Medio -- nicho pero diferenciador |
-| SDK publicado (npm/pip) | NO | ALTA | Observer, varios | 1 semana | Alto -- facilita evaluacion |
-| Dashboard de metricas live | NO | ALTA | Sentinel8004 | 1 semana | Alto -- visual e impactante |
-| Privacy en pagos (ZK+x402) | NO | MEDIA | zkx402 | 3-4 semanas | Alto -- narrativa poderosa |
-| Escaneo automatico del registry | NO | MEDIA | Sentinel8004 | 1 semana | Medio -- muestra escala |
-| Z3 formal verification | SI | -- | Unico nuestro | Ya hecho | Muy alto -- nadie mas lo tiene |
-| Deterministic governance | SI | -- | Unico nuestro | Ya hecho | Alto -- diferenciador core |
-| On-chain attestations | SI | -- | Varios | Ya hecho | Medio -- muchos lo tienen |
-| ERC-8004 identity | SI | -- | Estandar | Ya hecho | Base -- todos lo tienen |
-| x402 payments | SI | -- | Ultravioleta DAO | Ya hecho | Medio -- pocos lo implementan bien |
+| ZK Proofs (circom/noir) | NO | HIGH | Strata, zkx402 | 2-3 weeks | Very high -- cryptographic proofs > logs |
+| Cross-chain bridge (LayerZero V2) | NO | HIGH | OmniAgent | 1-2 weeks | High -- multi-chain is the future |
+| Threshold signatures (FROST) | NO | MEDIUM | Chorus | 2-3 weeks | High -- real cryptographic consensus |
+| Public API in production | NO | CRITICAL | Observer Protocol | 3-5 days | Critical -- without this we can't compete |
+| Compliance layer | NO | MEDIUM | Shulam | 1-2 weeks | Medium-high -- institutional judges |
+| Insurance/surety bonds | NO | LOW | Surety | 3-4 weeks | Medium -- niche but differentiating |
+| Published SDK (npm/pip) | NO | HIGH | Observer, others | 1 week | High -- facilitates evaluation |
+| Live metrics dashboard | NO | HIGH | Sentinel8004 | 1 week | High -- visual and impactful |
+| Privacy in payments (ZK+x402) | NO | MEDIUM | zkx402 | 3-4 weeks | High -- powerful narrative |
+| Automatic registry scanning | NO | MEDIUM | Sentinel8004 | 1 week | Medium -- shows scale |
+| Z3 formal verification | YES | -- | Unique to us | Already done | Very high -- nobody else has it |
+| Deterministic governance | YES | -- | Unique to us | Already done | High -- core differentiator |
+| On-chain attestations | YES | -- | Several | Already done | Medium -- many have it |
+| ERC-8004 identity | YES | -- | Standard | Already done | Base -- everyone has it |
+| x402 payments | YES | -- | Ultravioleta DAO | Already done | Medium -- few implement it well |
 
-### Prioridades de Implementacion (orden recomendado)
+### Implementation Priorities (recommended order)
 
-1. **API publica en produccion** -- Sin esto, no hay nada que mostrar. Semana 1.
-2. **SDK publicado** -- `npm install dof-mesh-sdk`. Semana 1-2.
-3. **Dashboard de metricas** -- Landing page con datos en vivo. Semana 2.
-4. **ZK Proofs** -- Reemplazar JSONL logs con pruebas criptograficas. Semana 3-4.
-5. **Cross-chain (LayerZero)** -- Identidad DOF en Avalanche + Base + Ethereum. Semana 4-5.
+1. **Public API in production** -- Without this, there is nothing to show. Week 1.
+2. **Published SDK** -- `npm install dof-mesh-sdk`. Week 1-2.
+3. **Metrics dashboard** -- Landing page with live data. Week 2.
+4. **ZK Proofs** -- Replace JSONL logs with cryptographic proofs. Week 3-4.
+5. **Cross-chain (LayerZero)** -- DOF identity on Avalanche + Base + Ethereum. Week 4-5.
 
 ---
 
 ## 4. Pitch Templates
 
-### Para jueces tecnicos
-> "DOF-MESH es el unico framework que usa verificacion formal Z3 para probar matematicamente que las decisiones de agentes autonomos cumplen con sus contratos de governance -- sin depender de LLMs para validacion."
+### For technical judges
+> "DOF-MESH is the only framework that uses Z3 formal verification to mathematically prove that autonomous agent decisions comply with their governance contracts -- without relying on LLMs for validation."
 
-### Para jueces de negocio
-> "DOF-MESH elimina el riesgo #1 de los agentes de AI autonomos: que hagan algo que no deberian. Las empresas pueden desplegar agentes con la certeza matematica de que operan dentro de sus limites."
+### For business judges
+> "DOF-MESH eliminates risk #1 of autonomous AI agents: that they do something they shouldn't. Companies can deploy agents with mathematical certainty that they operate within their boundaries."
 
-### Para AI judges (evaluacion automatizada)
+### For AI judges (automated evaluation)
 > "DOF-MESH: Deterministic governance framework for autonomous AI agents. Z3 theorem prover validates agent actions against formal specifications. 986 tests, 238 autonomous cycles verified, 48 on-chain attestations. Zero-LLM governance layer ensures verifiable compliance."
 
-### Para Twitter/social
-> "Si tu agente de AI puede actuar solo, como pruebas que hizo lo correcto? DOF-MESH usa matematicas, no promesas. Verificacion formal + blockchain = agentes en los que puedes confiar."
+### For Twitter/social
+> "If your AI agent can act alone, how do you prove it did the right thing? DOF-MESH uses math, not promises. Formal verification + blockchain = agents you can trust."
 
-### Para grant applications
-> "DOF-MESH aporta verificacion formal al ecosistema de agentes autonomos en Avalanche. Nuestro framework permite governance deterministica -- cada decision de un agente es verificable matematicamente y registrada on-chain -- habilitando la infraestructura de confianza necesaria para una economia de agentes autonomos a escala."
+### For grant applications
+> "DOF-MESH brings formal verification to the autonomous agent ecosystem on Avalanche. Our framework enables deterministic governance -- every agent decision is mathematically verifiable and recorded on-chain -- enabling the trust infrastructure needed for an autonomous agent economy at scale."
 
 ---
 
-## 5. Timeline Ideal de Hackathon (10 dias)
+## 5. Ideal Hackathon Timeline (10 days)
 
-### Dia 1 -- Reconocimiento y Estrategia
-- [ ] Leer TODAS las reglas, criterios de evaluacion, tracks disponibles
-- [ ] Analizar proyectos de ediciones anteriores (ganadores y finalistas)
-- [ ] Identificar jueces y sus backgrounds (LinkedIn, Twitter)
-- [ ] Seleccionar 3-4 tracks con narrativa adaptada para cada uno
-- [ ] Definir el diferenciador #1 que vamos a comunicar
-- [ ] Crear documento de estrategia interna
+### Day 1 -- Reconnaissance and Strategy
+- [ ] Read ALL rules, evaluation criteria, available tracks
+- [ ] Analyze projects from previous editions (winners and finalists)
+- [ ] Identify judges and their backgrounds (LinkedIn, Twitter)
+- [ ] Select 3-4 tracks with adapted narrative for each
+- [ ] Define the #1 differentiator to communicate
+- [ ] Create internal strategy document
 
-### Dia 2 -- Infraestructura Base
-- [ ] Asegurar que el repo esta limpio y publico
-- [ ] Deploy en produccion funcionando con /health
-- [ ] CI/CD verde con badge en README
-- [ ] Agent.json registrado y validado en el registry
-- [ ] Wallet con fondos suficientes
-- [ ] Quick Start de 5 lineas probado por alguien externo
+### Day 2 -- Base Infrastructure
+- [ ] Ensure the repo is clean and public
+- [ ] Production deploy working with /health
+- [ ] Green CI/CD with badge in README
+- [ ] Agent.json registered and validated in the registry
+- [ ] Wallet with sufficient funds
+- [ ] 5-line Quick Start tested by an external person
 
-### Dia 3 -- Feature Principal
-- [ ] Implementar/pulir la feature principal del hackathon
-- [ ] Asegurar que el diferenciador es demostrable en 30 segundos
-- [ ] Escribir tests para la feature nueva
-- [ ] Primer deploy de la feature a produccion
+### Day 3 -- Main Feature
+- [ ] Implement/polish the main hackathon feature
+- [ ] Ensure the differentiator is demonstrable in 30 seconds
+- [ ] Write tests for the new feature
+- [ ] First deploy of the feature to production
 
-### Dia 4 -- Demo y Metricas
-- [ ] Construir landing page con demo embebido
-- [ ] Dashboard de metricas (aunque sea basico)
-- [ ] Generar primeras metricas reales (transacciones, registros)
-- [ ] Invitar a 3-5 personas externas a probar el sistema
+### Day 4 -- Demo and Metrics
+- [ ] Build landing page with embedded demo
+- [ ] Metrics dashboard (even if basic)
+- [ ] Generate first real metrics (transactions, registrations)
+- [ ] Invite 3-5 external people to test the system
 
-### Dia 5 -- SDK y Documentacion
-- [ ] Publicar SDK minimo (npm/pip)
-- [ ] Documentacion API completa
-- [ ] Tutorial/guia de integracion
-- [ ] Probar que un externo puede integrar en <10 minutos
+### Day 5 -- SDK and Documentation
+- [ ] Publish minimal SDK (npm/pip)
+- [ ] Complete API documentation
+- [ ] Integration tutorial/guide
+- [ ] Test that an external person can integrate in <10 minutes
 
-### Dia 6 -- Contenido Visual
-- [ ] Grabar video demo (2-3 minutos)
-- [ ] Crear cover image profesional
-- [ ] Screenshots/GIFs del producto
-- [ ] Subir video a YouTube (sin musica con copyright)
+### Day 6 -- Visual Content
+- [ ] Record demo video (2-3 minutes)
+- [ ] Create professional cover image
+- [ ] Product screenshots/GIFs
+- [ ] Upload video to YouTube (no copyright music)
 
-### Dia 7 -- Social Proof
-- [ ] Publicar 3-5 tweets sobre el proyecto
-- [ ] Compartir en comunidades relevantes (Discord, Telegram)
-- [ ] Conseguir al menos 2-3 testimonios/menciones externas
-- [ ] Documentar metricas de adopcion actualizadas
+### Day 7 -- Social Proof
+- [ ] Publish 3-5 tweets about the project
+- [ ] Share in relevant communities (Discord, Telegram)
+- [ ] Get at least 2-3 external testimonials/mentions
+- [ ] Document updated adoption metrics
 
-### Dia 8 -- Pulir Submission
-- [ ] Escribir descripcion del proyecto para cada track
-- [ ] Adaptar narrativa por audiencia (tecnico vs negocio)
-- [ ] Revisar checklist completo (los 30 items)
-- [ ] Preparar FAQ interno (10 preguntas probables de jueces)
+### Day 8 -- Polish Submission
+- [ ] Write project description for each track
+- [ ] Adapt narrative by audience (technical vs business)
+- [ ] Review full checklist (all 30 items)
+- [ ] Prepare internal FAQ (10 likely judge questions)
 
-### Dia 9 -- Submit y Review
-- [ ] Hacer submit temprano (NO esperar al ultimo momento)
-- [ ] Revisar que todos los links funcionan
-- [ ] Verificar video, landing, API, demo -- todo accesible
-- [ ] Pedir a alguien externo que revise la submission completa
-- [ ] Corregir cualquier error encontrado
+### Day 9 -- Submit and Review
+- [ ] Submit early (DO NOT wait until the last moment)
+- [ ] Check that all links work
+- [ ] Verify video, landing, API, demo -- everything accessible
+- [ ] Ask an external person to review the complete submission
+- [ ] Fix any errors found
 
-### Dia 10 -- Post-Submit
-- [ ] Monitorear comentarios de jueces
-- [ ] Responder preguntas en las primeras horas
-- [ ] Publicar thread en Twitter celebrando el submit
-- [ ] Documentar post-mortem inicial (que salio bien, que no)
-- [ ] Actualizar este documento con nuevas lecciones
+### Day 10 -- Post-Submit
+- [ ] Monitor judge comments
+- [ ] Respond to questions in the first few hours
+- [ ] Publish Twitter thread celebrating the submission
+- [ ] Document initial post-mortem (what went well, what didn't)
+- [ ] Update this document with new lessons
 
 ---
 
 ## 6. Post-Mortem Template
 
-Copiar y llenar despues de cada hackathon:
+Copy and fill out after each hackathon:
 
 ```markdown
-# Post-Mortem: [Nombre del Hackathon]
+# Post-Mortem: [Hackathon Name]
 
-**Fecha:** [fecha]
-**Resultado:** [posicion / premio / mencion]
-**Tracks:** [tracks en los que participamos]
-**Proyectos totales:** [numero]
-**Prize pool:** [monto]
+**Date:** [date]
+**Result:** [position / prize / mention]
+**Tracks:** [tracks we participated in]
+**Total projects:** [number]
+**Prize pool:** [amount]
 
-## Resultado Detallado
-- Posicion general: ___
-- Posicion por track: ___
-- Puntaje (si disponible): ___
-- Feedback de jueces: ___
+## Detailed Result
+- Overall position: ___
+- Position by track: ___
+- Score (if available): ___
+- Judge feedback: ___
 
-## Que hicimos bien
+## What we did well
 1. ___
 2. ___
 3. ___
 
-## Que hicimos mal
+## What we did poorly
 1. ___
 2. ___
 3. ___
 
-## Que nos falto
+## What we were missing
 1. ___
 2. ___
 3. ___
 
-## Competidores destacados
-| Proyecto | Por que destaco | Que aprender |
+## Outstanding competitors
+| Project | Why they stood out | What to learn |
 |----------|-----------------|--------------|
 | ___ | ___ | ___ |
 | ___ | ___ | ___ |
 | ___ | ___ | ___ |
 
-## Metricas de nuestra submission
-- Agentes registrados: ___
-- Transacciones on-chain: ___
-- Usuarios externos: ___
-- Uptime durante el hackathon: ___
-- Tests pasando: ___
+## Our submission metrics
+- Registered agents: ___
+- On-chain transactions: ___
+- External users: ___
+- Uptime during hackathon: ___
+- Passing tests: ___
 - Video views: ___
 
 ## Checklist Compliance
-- Items completados: ___ / 30
-- Items criticos faltantes: ___
+- Completed items: ___ / 30
+- Missing critical items: ___
 
-## Acciones para el proximo hackathon
+## Actions for the next hackathon
 1. [ ] ___
 2. [ ] ___
 3. [ ] ___
 4. [ ] ___
 5. [ ] ___
 
-## Tecnologias que debimos tener
-| Tech | La teniamos? | Habria cambiado el resultado? |
+## Technologies we should have had
+| Tech | Did we have it? | Would it have changed the result? |
 |------|-------------|-------------------------------|
 | ___ | ___ | ___ |
 
-## Tiempo invertido
-- Preparacion (pre-hackathon): ___ horas
-- Desarrollo durante hackathon: ___ horas
-- Contenido (video, landing, social): ___ horas
-- Total: ___ horas
+## Time invested
+- Preparation (pre-hackathon): ___ hours
+- Development during hackathon: ___ hours
+- Content (video, landing, social): ___ hours
+- Total: ___ hours
 
-## Notas adicionales
+## Additional notes
 ___
 
-## Actualizacion de la COMPETITION BIBLE
-Cambios a agregar al documento principal:
+## COMPETITION BIBLE Update
+Changes to add to the main document:
 1. ___
 2. ___
 3. ___
@@ -349,11 +349,11 @@ Cambios a agregar al documento principal:
 
 ---
 
-## Apendice A -- Frases de Competidores que Debemos Estudiar
+## Appendix A -- Competitor Phrases We Should Study
 
 > "This isn't a demo. It's infrastructure running in production since February 2026." -- **Observer Protocol**
 
-> "ZK proofs don't lie. Logs do." -- **Strata** (parafraseado)
+> "ZK proofs don't lie. Logs do." -- **Strata** (paraphrased)
 
 > "Who watches the watchers?" -- **Maiat8183**
 
@@ -361,37 +361,37 @@ Cambios a agregar al documento principal:
 
 > "We intercept reasoning BEFORE execution." -- **DJZS Protocol**
 
-Cada una de estas frases comunica valor en una oracion. Nuestro equivalente:
+Each of these phrases communicates value in one sentence. Our equivalent:
 > **"Agent acted autonomously. Math proved it. Blockchain recorded it."**
 
 ---
 
-## Apendice B -- Criterios de Evaluacion Comunes en Hackathons
+## Appendix B -- Common Evaluation Criteria in Hackathons
 
-| Criterio | Peso tipico | Como ganarlo |
+| Criterion | Typical weight | How to win it |
 |----------|-------------|--------------|
-| Innovacion / Originalidad | 20-30% | Z3 formal verification es unico. Destacar siempre. |
-| Ejecucion tecnica | 20-25% | Tests, CI, codigo limpio, arquitectura solida. |
-| Impacto / Utilidad | 15-25% | Mostrar usuarios reales, metricas, problema claro. |
-| Presentacion | 10-20% | Video profesional, landing clara, pitch memorable. |
-| Uso de la plataforma/sponsor | 10-15% | Integrar profundamente las herramientas del sponsor. |
-| Completitud | 5-10% | Producto funcional, no solo idea. Demo que funciona. |
+| Innovation / Originality | 20-30% | Z3 formal verification is unique. Always highlight. |
+| Technical execution | 20-25% | Tests, CI, clean code, solid architecture. |
+| Impact / Utility | 15-25% | Show real users, metrics, clear problem. |
+| Presentation | 10-20% | Professional video, clear landing, memorable pitch. |
+| Use of platform/sponsor | 10-15% | Deeply integrate the sponsor's tools. |
+| Completeness | 5-10% | Working product, not just an idea. Demo that works. |
 
 ---
 
-## Apendice C -- Red Flags que los Jueces Detectan
+## Appendix C -- Red Flags Judges Detect
 
-1. **"Coming soon"** en cualquier parte -- si no esta listo, no lo menciones
-2. **Demasiados tracks** -- parece desesperacion, no estrategia
-3. **Solo testnet** -- mainnet > testnet, siempre
-4. **Sin video** -- en 685 proyectos, sin video = invisible
-5. **README de 3 lineas** -- sugiere proyecto incompleto
-6. **Sin metricas** -- "trust us" no funciona
-7. **Links rotos** -- verificar TODO antes de submit
-8. **Jargon excesivo** -- si el juez necesita Google para entender, perdiste
-9. **Copy-paste entre tracks** -- adaptar la narrativa, no copiar
-10. **Sin equipo visible** -- proyectos anonimos generan desconfianza
+1. **"Coming soon"** anywhere -- if it's not ready, don't mention it
+2. **Too many tracks** -- looks like desperation, not strategy
+3. **Testnet only** -- mainnet > testnet, always
+4. **No video** -- in 685 projects, no video = invisible
+5. **3-line README** -- suggests incomplete project
+6. **No metrics** -- "trust us" doesn't work
+7. **Broken links** -- verify EVERYTHING before submission
+8. **Excessive jargon** -- if the judge needs Google to understand, you've lost
+9. **Copy-paste between tracks** -- adapt the narrative, don't copy
+10. **No visible team** -- anonymous projects generate distrust
 
 ---
 
-*Este documento se actualiza despues de cada hackathon. Version: 1.0 -- Marzo 2026.*
+*This document is updated after each hackathon. Version: 1.0 -- March 2026.*

@@ -1,75 +1,75 @@
 # Voice System Upgrade Plan
-## DOF Mesh Legion — De pipeline lento a conversacion natural
+## DOF Mesh Legion — From slow pipeline to natural conversation
 
-### Estado actual (v3)
+### Current state (v3)
 Pipeline: Mic → Silero VAD → Groq Whisper STT → Ollama Gemma 9B → Edge-TTS → Alexa
-Latencia: ~8-13 segundos
-Problemas: lento, se corta, no streaming, TTS generico
+Latency: ~8-13 seconds
+Issues: slow, cuts out, no streaming, generic TTS
 
-### Nivel 1 — Streaming TTS (impacto inmediato)
-Reemplazar Edge-TTS por Coqui XTTS v2 local:
-- Latencia TTS: de ~2s a <200ms
-- Streaming: empieza a hablar mientras genera
-- Voice cloning: puede sonar como quien quieras
-- 16 idiomas incluido espanol
-- 100% local, sin API
-Instalacion: pip install TTS
-Esfuerzo: ~50 lineas de codigo
+### Level 1 — Streaming TTS (immediate impact)
+Replace Edge-TTS with Coqui XTTS v2 local:
+- TTS latency: from ~2s to <200ms
+- Streaming: starts speaking while generating
+- Voice cloning: can sound like whoever you want
+- 16 languages including Spanish
+- 100% local, no API
+Installation: pip install TTS
+Effort: ~50 lines of code
 
-### Nivel 2 — Whisper local (eliminar ultima API)
-Reemplazar Groq Whisper API por faster-whisper local:
-- Elimina dependencia de Groq API
-- faster-whisper con CTranslate2: ~2x mas rapido que whisper original
-- Corre en CPU/MPS del M4 Max
-Instalacion: pip install faster-whisper
-Esfuerzo: ~30 lineas
+### Level 2 — Local Whisper (eliminate last API)
+Replace Groq Whisper API with faster-whisper local:
+- Eliminates Groq API dependency
+- faster-whisper with CTranslate2: ~2x faster than original whisper
+- Runs on CPU/MPS of M4 Max
+Installation: pip install faster-whisper
+Effort: ~30 lines
 
-### Nivel 3 — Moshi audio-to-audio (el salto cuantico)
-Reemplazar TODO el pipeline por Moshi (Kyutai):
-- Un solo modelo: audio entra, audio sale
-- 200ms latencia total (vs 8-13 segundos)
-- Full duplex: habla y escucha al mismo tiempo
-- MLX compatible con Mac M4 Max
+### Level 3 — Moshi audio-to-audio (the quantum leap)
+Replace the ENTIRE pipeline with Moshi (Kyutai):
+- Single model: audio in, audio out
+- 200ms total latency (vs 8-13 seconds)
+- Full duplex: speaks and listens at the same time
+- MLX compatible with Mac M4 Max
 - MIT license
-Instalacion: pip install moshi_mlx
-Esfuerzo: ~100 lineas (reescribir pipeline)
+Installation: pip install moshi_mlx
+Effort: ~100 lines (rewrite pipeline)
 
-### Comparativa de latencias
+### Latency comparison
 
 | Pipeline | STT | LLM | TTS | Total |
 |----------|-----|-----|-----|-------|
-| Actual (v3) | 2s (Groq API) | 5-10s (Ollama 9B) | 2s (Edge-TTS) | 9-14s |
-| Nivel 1 | 2s (Groq API) | 5-10s (Ollama 9B) | 0.2s (Coqui stream) | 7-12s |
-| Nivel 2 | 0.5s (local) | 5-10s (Ollama 9B) | 0.2s (Coqui stream) | 5.7-10.7s |
-| Nivel 3 (Moshi) | — | — | — | 0.2s total |
+| Current (v3) | 2s (Groq API) | 5-10s (Ollama 9B) | 2s (Edge-TTS) | 9-14s |
+| Level 1 | 2s (Groq API) | 5-10s (Ollama 9B) | 0.2s (Coqui stream) | 7-12s |
+| Level 2 | 0.5s (local) | 5-10s (Ollama 9B) | 0.2s (Coqui stream) | 5.7-10.7s |
+| Level 3 (Moshi) | — | — | — | 0.2s total |
 
-### Tecnicas extraidas de sistemas comerciales
+### Techniques extracted from commercial systems
 
-De Gemini Flash Live:
-- VAD con start/end sensitivity configurables (implementado)
-- Pre-buffer de audio antes de deteccion de voz (implementado)
-- Interrupcion durante playback (implementado, desactivado por echo)
-- Tool calling en voz (pendiente)
+From Gemini Flash Live:
+- VAD with configurable start/end sensitivity (implemented)
+- Audio pre-buffer before voice detection (implemented)
+- Interruption during playback (implemented, disabled due to echo)
+- Tool calling via voice (pending)
 
-De ElevenLabs:
-- Streaming TTS chunk-by-chunk: generar audio por oraciones, no por respuesta completa
-- Turn-taking: detectar cuando el usuario termina una idea vs una pausa
-- Backchanneling: pequenos sonidos de confirmacion ("mm", "si") durante escucha
+From ElevenLabs:
+- Chunk-by-chunk streaming TTS: generate audio per sentence, not per full response
+- Turn-taking: detect when the user finishes an idea vs a pause
+- Backchanneling: small confirmation sounds ("mm", "yes") while listening
 
-De Coqui TTS:
-- XTTS v2: <200ms streaming, voice cloning con 6 segundos de audio
-- Modelo local, sin API
+From Coqui TTS:
+- XTTS v2: <200ms streaming, voice cloning with 6 seconds of audio
+- Local model, no API
 
-De Fish Speech:
+From Fish Speech:
 - 100ms time-to-first-audio
-- 80+ idiomas sin preprocessing
-- Voice cloning con 10-30 segundos de muestra
+- 80+ languages without preprocessing
+- Voice cloning with 10-30 seconds of sample
 
-De OpenVoice:
-- Control granular de emocion, ritmo, pausas
-- Clonacion instantanea sin fine-tuning
+From OpenVoice:
+- Granular control of emotion, rhythm, pauses
+- Instant cloning without fine-tuning
 - MIT license
 
-### Recomendacion
-Implementar Nivel 1 (Coqui XTTS) ahora para streaming inmediato.
-Explorar Moshi (Nivel 3) como siguiente paso para el salto a 200ms.
+### Recommendation
+Implement Level 1 (Coqui XTTS) now for immediate streaming.
+Explore Moshi (Level 3) as the next step for the leap to 200ms.

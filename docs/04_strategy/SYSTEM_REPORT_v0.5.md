@@ -1,65 +1,65 @@
-# INFORME COMPLETO DEL SISTEMA DOF v0.5
+# COMPLETE DOF SYSTEM REPORT v0.5
 
-> **Fecha**: 22 de marzo de 2026
-> **Autor**: Juan Carlos Quiceno Vasquez (Cyber Paisa)
-> **Branch**: `main` | **Commits**: 199 | **Versión**: v0.4.x Hackathon Sprint
+> **Date**: March 22, 2026
+> **Author**: Juan Carlos Quiceno Vasquez (Cyber Paisa)
+> **Branch**: `main` | **Commits**: 199 | **Version**: v0.4.x Hackathon Sprint
 
 ---
 
-## 1. Resumen Ejecutivo
+## 1. Executive Summary
 
-**Deterministic Observability Framework (DOF)** es un framework de orquestación y observabilidad determinística para sistemas multi-agente LLM bajo restricciones de infraestructura adversarial.
+**Deterministic Observability Framework (DOF)** is an orchestration and deterministic observability framework for multi-agent LLM systems under adversarial infrastructure constraints.
 
-Reemplaza la confianza probabilística por **pruebas formales verificables con Z3**, registrando cada decisión on-chain (Avalanche C-Chain + Conflux). Gobernanza **Zero-LLM**: funciones puras en Python para reglas de cumplimiento — cero alucinaciones, cero inyección de prompts en la capa de seguridad.
+It replaces probabilistic trust with **verifiable formal proofs using Z3**, recording every decision on-chain (Avalanche C-Chain + Conflux). **Zero-LLM** governance: pure Python functions for compliance rules — zero hallucinations, zero prompt injection in the security layer.
 
-### Números Clave
+### Key Numbers
 
-| Métrica | Valor |
+| Metric | Value |
 |---------|-------|
-| **Líneas de código** | 860K+ (633K Python, 222K JS/TS, 5.6K Shell) |
+| **Lines of code** | 860K+ (633K Python, 222K JS/TS, 5.6K Shell) |
 | **Core modules** | 45 (`core/`) |
-| **Agentes especializados** | 12 (cada uno con SOUL.md) |
-| **A2A Skills** | 11 (expuestos via JSON-RPC) |
-| **Archivos Python** | 1,889 |
-| **Archivos de test** | 260 |
+| **Specialized agents** | 12 (each with SOUL.md) |
+| **A2A Skills** | 11 (exposed via JSON-RPC) |
+| **Python files** | 1,889 |
+| **Test files** | 260 |
 | **Git commits** | 199 |
 | **Z3 Theorems** | 8/8 PROVEN (109ms) |
 | **On-chain attestations** | 48+ |
-| **Proveedores LLM** | 7 (Groq, Cerebras, NVIDIA, Zhipu, Gemini, OpenRouter, SambaNova) |
+| **LLM providers** | 7 (Groq, Cerebras, NVIDIA, Zhipu, Gemini, OpenRouter, SambaNova) |
 | **Smart contracts** | 3 (DOFValidationRegistry, DOFProofRegistry, DOFEvaluator) |
 | **Baseline dof_score** | 0.8117 |
 | **Revenue tracked** | $1,134.50 USD |
-| **L0 Triage skip rate** | 72.7% (ahorro de tokens) |
-| **Disco** | 4.2 GB |
+| **L0 Triage skip rate** | 72.7% (token savings) |
+| **Disk** | 4.2 GB |
 
 ---
 
-## 2. Arquitectura General
+## 2. General Architecture
 
 ```mermaid
 flowchart TD
-    subgraph Interfaces["Interfaces de Usuario"]
-        CLI["CLI Interactivo<br/>main.py"]
-        A2A["A2A Server<br/>Puerto 8000"]
+    subgraph Interfaces["User Interfaces"]
+        CLI["Interactive CLI<br/>main.py"]
+        A2A["A2A Server<br/>Port 8000"]
         MCP["MCP Server<br/>Claude Desktop/Cursor"]
         TG["Telegram Bot"]
-        DASH["Streamlit Dashboard<br/>Puerto 8501"]
+        DASH["Streamlit Dashboard<br/>Port 8501"]
     end
 
-    subgraph EventBus["Bus de Eventos"]
+    subgraph EventBus["Event Bus"]
         ES["Event Stream<br/>WebSocket + JSONL"]
     end
 
-    subgraph Orchestration["Orquestación — crew_runner.py"]
-        L0["L0 Triage<br/>Filtro Pre-LLM"]
+    subgraph Orchestration["Orchestration — crew_runner.py"]
+        L0["L0 Triage<br/>Pre-LLM Filter"]
         PM["Provider Manager<br/>7 LLMs + Bayesian"]
-        CF["Crew Factory<br/>Rebuild por retry"]
+        CF["Crew Factory<br/>Rebuild per retry"]
         GOV["Constitution<br/>Enforcer"]
         SUP["Meta-Supervisor<br/>Q+A+C+F scoring"]
-        CP["Checkpointing<br/>JSONL por step"]
+        CP["Checkpointing<br/>JSONL per step"]
     end
 
-    subgraph Agents["12 Agentes Especializados"]
+    subgraph Agents["12 Specialized Agents"]
         RES["Researcher"]
         STR["Strategist"]
         ARC["Architect"]
@@ -74,7 +74,7 @@ flowchart TD
         SYN["Synthesis"]
     end
 
-    subgraph Tools["16+ Tools — 7 Categorías"]
+    subgraph Tools["16+ Tools — 7 Categories"]
         T1["Research Tools<br/>web_search, web_brief"]
         T2["Code Tools<br/>read, write, execute"]
         T3["Data Tools<br/>SQL, pandas, viz"]
@@ -83,7 +83,7 @@ flowchart TD
         T6["Execution Tools<br/>shell, process"]
     end
 
-    subgraph Verification["Verificación Formal"]
+    subgraph Verification["Formal Verification"]
         Z3["Z3 Theorem Prover<br/>8 theorems"]
         AST["AST Verifier<br/>Security patterns"]
         CON["Constitution<br/>HARD + SOFT rules"]
@@ -95,9 +95,9 @@ flowchart TD
         PH["Proof Hash<br/>keccak256 + BLAKE3"]
     end
 
-    subgraph Observability["Observabilidad"]
-        RT["RunTrace<br/>UUID v4 por ejecución"]
-        MET["5 Métricas Formales<br/>SS, PFI, RP, GCR, SSR"]
+    subgraph Observability["Observability"]
+        RT["RunTrace<br/>UUID v4 per execution"]
+        MET["5 Formal Metrics<br/>SS, PFI, RP, GCR, SSR"]
         LOG["JSONL Logs<br/>traces, metrics, experiments"]
         REV["Revenue Tracker<br/>$1,134.50 USD"]
         AR["AutoResearch<br/>Self-optimization"]
@@ -115,12 +115,12 @@ flowchart TD
 
 ---
 
-## 3. Pipeline de Ejecución
+## 3. Execution Pipeline
 
 ```mermaid
 flowchart LR
-    A["Input<br/>(texto + crew_name)"] --> B{"L0 Triage<br/>5 checks"}
-    B -->|SKIP| C["Log: skip reason<br/>Ahorro 30-50% latency"]
+    A["Input<br/>(text + crew_name)"] --> B{"L0 Triage<br/>5 checks"}
+    B -->|SKIP| C["Log: skip reason<br/>Save 30-50% latency"]
     B -->|PROCEED| D["Crew Factory<br/>Rebuild LLMs"]
     D --> E["crew.kickoff()<br/>CrewAI execution"]
     E --> F["step_callback<br/>StepTrace"]
@@ -141,13 +141,13 @@ flowchart LR
     style H fill:#f99,stroke:#333
 ```
 
-### Detalle del Pipeline
+### Pipeline Detail
 
 1. **L0 Triage** (Zero LLM): input_length, retry_exhaustion, providers, repeated_errors, input_quality
-2. **Crew Factory**: reconstruye el crew en cada retry para rotar providers agotados
-3. **Governance**: ConstitutionEnforcer con ~50 tokens de constitución inyectada
-4. **Supervisor**: scoring ponderado → decisión determinística ACCEPT/RETRY/ESCALATE
-5. **Checkpointing**: JSONL por step para recovery mid-execution
+2. **Crew Factory**: rebuilds the crew on each retry to rotate exhausted providers
+3. **Governance**: ConstitutionEnforcer with ~50 injected constitution tokens
+4. **Supervisor**: weighted scoring → deterministic ACCEPT/RETRY/ESCALATE decision
+5. **Checkpointing**: JSONL per step for mid-execution recovery
 
 ---
 
@@ -155,17 +155,17 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    START["Inicio<br/>Leer config actual"] --> BASE["Run Baseline<br/>5 runs determinísticos"]
+    START["Start<br/>Read current config"] --> BASE["Run Baseline<br/>5 deterministic runs"]
     BASE --> SCORE["Compute dof_score<br/>0.3·SS + 0.25·(1-PFI) + 0.2·RP_inv + 0.15·GCR + 0.1·SSR"]
-    SCORE --> CYCLE["Proponer 1 Modificación<br/>Random param + direction"]
+    SCORE --> CYCLE["Propose 1 Modification<br/>Random param + direction"]
 
-    CYCLE --> APPLY["Aplicar Modificación<br/>config/autoresearch_overrides.json"]
-    APPLY --> RUN["Run Experiment<br/>5 runs con nuevo config"]
-    RUN --> EVAL["Compute nuevo dof_score"]
-    EVAL --> CMP{"nuevo > baseline?"}
+    CYCLE --> APPLY["Apply Modification<br/>config/autoresearch_overrides.json"]
+    APPLY --> RUN["Run Experiment<br/>5 runs with new config"]
+    RUN --> EVAL["Compute new dof_score"]
+    EVAL --> CMP{"new > baseline?"}
 
-    CMP -->|"Sí"| KEEP["KEEP<br/>Actualizar baseline<br/>Log TSV"]
-    CMP -->|"No"| DISCARD["DISCARD<br/>Revert modificación<br/>Log TSV"]
+    CMP -->|"Yes"| KEEP["KEEP<br/>Update baseline<br/>Log TSV"]
+    CMP -->|"No"| DISCARD["DISCARD<br/>Revert modification<br/>Log TSV"]
 
     KEEP --> WAIT["Sleep 1s"]
     DISCARD --> WAIT
@@ -176,9 +176,9 @@ flowchart TD
     style DISCARD fill:#f99,stroke:#333
 ```
 
-### Parámetros Tunables
+### Tunable Parameters
 
-| Parámetro | Rango | Step | Default |
+| Parameter | Range | Step | Default |
 |-----------|-------|------|---------|
 | `supervisor_weight_quality` | [0.20, 0.60] | 0.05 | 0.40 |
 | `supervisor_weight_actionability` | [0.10, 0.40] | 0.05 | 0.25 |
@@ -188,7 +188,7 @@ flowchart TD
 | `supervisor_accept_threshold` | [5.0, 9.0] | 0.5 | 7.0 |
 | `supervisor_retry_threshold` | [3.0, 7.0] | 0.5 | 5.0 |
 
-Inspirado en [Karpathy's autoresearch](https://github.com/karpathy/autoresearch) — modify → experiment → keep/discard → repeat.
+Inspired by [Karpathy's autoresearch](https://github.com/karpathy/autoresearch) — modify → experiment → keep/discard → repeat.
 
 ---
 
@@ -196,13 +196,13 @@ Inspirado en [Karpathy's autoresearch](https://github.com/karpathy/autoresearch)
 
 ```mermaid
 flowchart LR
-    OUT["Agent Output<br/>(texto)"] --> CE{"ConstitutionEnforcer"}
+    OUT["Agent Output<br/>(text)"] --> CE{"ConstitutionEnforcer"}
 
-    CE --> HR{"HARD_RULES<br/>(bloquean)"}
-    HR -->|"Violación"| BLOCK["BLOCKED<br/>Output rechazado"]
-    HR -->|"OK"| SR{"SOFT_RULES<br/>(advierten)"}
+    CE --> HR{"HARD_RULES<br/>(block)"}
+    HR -->|"Violation"| BLOCK["BLOCKED<br/>Output rejected"]
+    HR -->|"OK"| SR{"SOFT_RULES<br/>(warn)"}
 
-    SR -->|"Violación"| WARN["WARNING<br/>Log + continuar"]
+    SR -->|"Violation"| WARN["WARNING<br/>Log + continue"]
     SR -->|"OK"| GR["GovernanceResult<br/>passed=True, score, violations=[], warnings=[]"]
 
     WARN --> GR
@@ -213,7 +213,7 @@ flowchart LR
 
     PH --> AVA["Avalanche Bridge<br/>DOFValidationRegistry.sol"]
     PH --> ENI["Enigma Bridge<br/>Supabase dof_trust_scores"]
-    PH --> PS["Proof Storage<br/>JSONL + IPFS (opcional)"]
+    PH --> PS["Proof Storage<br/>JSONL + IPFS (optional)"]
 
     AVA --> ATT["On-Chain Attestation<br/>bytes32 hash"]
     ENI --> TS["Trust Scores<br/>GCR, SS, AST, ACR, PFI, RP, SSR"]
@@ -224,24 +224,24 @@ flowchart LR
     style ATT fill:#99f,stroke:#333
 ```
 
-### Reglas de Governance
+### Governance Rules
 
-- **HARD_RULES**: Bloquean el output completamente. Ejemplos: detección de API keys, PII, URLs maliciosas, inyección de código
-- **SOFT_RULES**: Logean warning pero permiten continuar. Ejemplos: falta de fuentes, longitud insuficiente, tono inadecuado
-- **Zero-LLM**: Todas las reglas son funciones puras Python + regex — cero llamadas LLM para governance
+- **HARD_RULES**: Block output completely. Examples: API key detection, PII, malicious URLs, code injection
+- **SOFT_RULES**: Log warning but allow continuation. Examples: missing sources, insufficient length, inappropriate tone
+- **Zero-LLM**: All rules are pure Python functions + regex — zero LLM calls for governance
 
 ---
 
-## 6. Observabilidad y Métricas
+## 6. Observability and Metrics
 
 ```mermaid
 flowchart TD
-    EXEC["Crew Execution"] --> SC["step_callback<br/>Por cada step de agente"]
+    EXEC["Crew Execution"] --> SC["step_callback<br/>Per agent step"]
     SC --> ST["StepTrace<br/>agent, tool, result, latency_ms, tokens"]
     ST --> ML["MetricsLogger<br/>emit() → JSONL"]
     ML --> JSONL["logs/metrics/steps.jsonl"]
 
-    EXEC --> TC["task_callback<br/>Al completar crew"]
+    EXEC --> TC["task_callback<br/>On crew completion"]
     TC --> RT["RunTrace<br/>UUID v4, session_id, all steps"]
     RT --> CDM["compute_derived_metrics()"]
 
@@ -269,42 +269,42 @@ flowchart TD
     style SSR fill:#9ff,stroke:#333
 ```
 
-### Fórmulas Matemáticas
+### Mathematical Formulas
 
-| Métrica | Fórmula | Rango | Ideal |
+| Metric | Formula | Range | Ideal |
 |---------|---------|-------|-------|
 | **SS** | `1.0 - (retry_count / max_retries) × (fallback_depth / max_depth)` | [0, 1] | 1.0 |
-| **PFI** | `Σ(fallback_events) / Σ(total_executions)` últimos N runs | [0, 1] | 0.0 |
+| **PFI** | `Σ(fallback_events) / Σ(total_executions)` last N runs | [0, 1] | 0.0 |
 | **RP** | `mean(retry_count) / max_retries` | [0, 1] | 0.0 |
 | **GCR** | `compliant_runs / total_runs` | [0, 1] | 1.0 |
 | **SSR** | `escalate_decisions / total_decisions` | [0, 1] | 0.0 |
 
-**dof_score** (compuesto):
+**dof_score** (composite):
 ```
 dof_score = 0.30×SS + 0.25×(1-PFI) + 0.20×(1-RP) + 0.15×GCR + 0.10×(SSR_normalized)
 ```
 
 ---
 
-## 7. Memoria Fisher-Rao
+## 7. Fisher-Rao Memory
 
 ```mermaid
 flowchart LR
-    Q["Query<br/>(texto)"] --> TOK["Tokenize<br/>lowercase + split"]
-    TOK --> TFIDF["TF-IDF Distribution<br/>Frecuencias normalizadas"]
+    Q["Query<br/>(text)"] --> TOK["Tokenize<br/>lowercase + split"]
+    TOK --> TFIDF["TF-IDF Distribution<br/>Normalized frequencies"]
 
-    DB["Memory Store<br/>Entries JSONL"] --> TOK2["Tokenize cada entry<br/>key + value"]
-    TOK2 --> TFIDF2["TF-IDF por entry"]
+    DB["Memory Store<br/>Entries JSONL"] --> TOK2["Tokenize each entry<br/>key + value"]
+    TOK2 --> TFIDF2["TF-IDF per entry"]
 
     TFIDF --> FR{"Fisher-Rao Distance<br/>d_FR(P,Q) = 2·arccos(Σ√(p_i·q_i))"}
     TFIDF2 --> FR
 
     FR --> RANK["Ranked by similarity<br/>sim = 1 - d_FR/π ∈ [0,1]"]
     RANK --> FILTER{"sim > 0.05?"}
-    FILTER -->|"Sí"| TOPK["Top-K Results"]
+    FILTER -->|"Yes"| TOPK["Top-K Results"]
     FILTER -->|"No results"| FALLBACK["Fallback: keyword matching"]
 
-    TOPK --> GMS["Governed Memory Store<br/>Separación knowledge/errors"]
+    TOPK --> GMS["Governed Memory Store<br/>knowledge/errors separation"]
     FALLBACK --> GMS
 
     style FR fill:#ff9,stroke:#333
@@ -312,123 +312,123 @@ flowchart LR
     style FALLBACK fill:#f99,stroke:#333
 ```
 
-### Ventajas sobre Cosine Similarity
+### Advantages over Cosine Similarity
 
-| Aspecto | Cosine Similarity | Fisher-Rao Distance |
+| Aspect | Cosine Similarity | Fisher-Rao Distance |
 |---------|-------------------|---------------------|
-| **Base matemática** | Ángulo en espacio vectorial | Geometría de información en manifold estadístico |
-| **Sensibilidad contextual** | Solo dirección del vector | Varianza + distribución completa |
-| **Dependencias** | Requiere embeddings (PyTorch/HF) | Stdlib puro (zero deps) |
-| **Complejidad** | O(n) por comparación | O(V) donde V = vocabulario |
-| **Validación** | Heurístico | Fundamentado en geometría diferencial |
+| **Mathematical basis** | Angle in vector space | Information geometry on statistical manifold |
+| **Contextual sensitivity** | Vector direction only | Full variance + distribution |
+| **Dependencies** | Requires embeddings (PyTorch/HF) | Pure stdlib (zero deps) |
+| **Complexity** | O(n) per comparison | O(V) where V = vocabulary |
+| **Validation** | Heuristic | Grounded in differential geometry |
 
-Referencia: arXiv:2603.14588 — *"SuperLocalMemory V3: Information-Geometric Foundations for Zero-LLM Enterprise Agent Memory"*
+Reference: arXiv:2603.14588 — *"SuperLocalMemory V3: Information-Geometric Foundations for Zero-LLM Enterprise Agent Memory"*
 
 ---
 
 ## 8. Core Modules (45)
 
-| # | Módulo | Descripción |
+| # | Module | Description |
 |---|--------|-------------|
 | 1 | `__init__.py` | Package init |
 | 2 | `adversarial.py` | Red Team → Guardian → Arbiter evaluation loop |
-| 3 | `agent_output.py` | Estandarización de formato de output de agentes |
+| 3 | `agent_output.py` | Agent output format standardization |
 | 4 | `agentleak_benchmark.py` | Privacy leak detection: PII, API keys, memory, tool inputs |
 | 5 | `ast_verifier.py` | Python AST security analysis (exec, eval, __import__) |
-| 6 | `avalanche_bridge.py` | Publica attestations a Avalanche C-Chain |
-| 7 | `boundary.py` | Enforcement de límites de agente según SOUL |
+| 6 | `avalanche_bridge.py` | Publishes attestations to Avalanche C-Chain |
+| 7 | `boundary.py` | Agent boundary enforcement according to SOUL |
 | 8 | `chain_adapter.py` | Multi-chain adapter (Avalanche, Conflux, Base) |
-| 9 | `checkpointing.py` | Persistencia JSONL por step para recovery |
-| 10 | `crew_runner.py` | Orquestación principal: providers, governance, supervisor, retry ×3 |
-| 11 | `data_oracle.py` | Interface de oracle de datos para verificación |
-| 12 | `enigma_bridge.py` | Trust scores a Supabase (Enigma) |
-| 13 | `entropy_detector.py` | Detecta outputs de alta entropía (alucinaciones) |
-| 14 | `event_stream.py` | Bus de eventos: WebSocket + JSONL broadcast |
-| 15 | `execution_dag.py` | Grafo de dependencias de tareas (DAG) |
-| 16 | `experiment.py` | Batch runner, sweeps paramétricos, estadística Bessel |
-| 17 | **`fisher_rao.py`** | **NUEVO — Distancia Fisher-Rao para memoria (stdlib-only)** |
+| 9 | `checkpointing.py` | JSONL persistence per step for recovery |
+| 10 | `crew_runner.py` | Main orchestration: providers, governance, supervisor, retry ×3 |
+| 11 | `data_oracle.py` | Data oracle interface for verification |
+| 12 | `enigma_bridge.py` | Trust scores to Supabase (Enigma) |
+| 13 | `entropy_detector.py` | Detects high-entropy outputs (hallucinations) |
+| 14 | `event_stream.py` | Event bus: WebSocket + JSONL broadcast |
+| 15 | `execution_dag.py` | Task dependency graph (DAG) |
+| 16 | `experiment.py` | Batch runner, parametric sweeps, Bessel statistics |
+| 17 | **`fisher_rao.py`** | **NEW — Fisher-Rao distance for memory (stdlib-only)** |
 | 18 | `governance.py` | ConstitutionEnforcer: HARD_RULES + SOFT_RULES |
 | 19 | `hierarchy_z3.py` | Z3 hierarchy verification: 42 patterns, 4.9ms |
-| 20 | **`l0_triage.py`** | **NUEVO — Filtro pre-LLM determinístico (5 checks)** |
-| 21 | `loop_guard.py` | Detección de loops infinitos + timeout |
-| 22 | `memory_governance.py` | Memoria gobernada: separa knowledge de errors |
+| 20 | **`l0_triage.py`** | **NEW — Deterministic pre-LLM filter (5 checks)** |
+| 21 | `loop_guard.py` | Infinite loop detection + timeout |
+| 22 | `memory_governance.py` | Governed memory: separates knowledge from errors |
 | 23 | `memory_manager.py` | ChromaDB + HuggingFace embeddings + Fisher-Rao fallback |
-| 24 | `merkle_tree.py` | Merkle tree para verificación batch de proofs |
-| 25 | `metrics.py` | JSONL logger con rotación, tracking por agente |
-| 26 | `oags_bridge.py` | OAGS: resolución token_id ↔ agent address |
-| 27 | `observability.py` | RunTrace/StepTrace, 5 métricas formales, modo determinístico |
+| 24 | `merkle_tree.py` | Merkle tree for batch proof verification |
+| 25 | `metrics.py` | JSONL logger with rotation, per-agent tracking |
+| 26 | `oags_bridge.py` | OAGS: token_id ↔ agent address resolution |
+| 27 | `observability.py` | RunTrace/StepTrace, 5 formal metrics, deterministic mode |
 | 28 | `oracle_bridge.py` | ERC-8004 attestation oracle |
-| 29 | `otel_bridge.py` | OpenTelemetry integration (opcional) |
+| 29 | `otel_bridge.py` | OpenTelemetry integration (optional) |
 | 30 | `proof_hash.py` | BLAKE3 + SHA256 proof hashes |
-| 31 | `proof_storage.py` | Almacén de proofs: JSONL + IPFS opcional |
+| 31 | `proof_storage.py` | Proof store: JSONL + optional IPFS |
 | 32 | `providers.py` | Multi-provider fallback chains, Bayesian selector, TTL recovery |
-| 33 | `regression_tracker.py` | Tracking de degradación de métricas |
-| 34 | **`revenue_tracker.py`** | **NUEVO — Revenue tracking real en JSONL** |
-| 35 | `runtime_observer.py` | Métricas de producción (SS, PFI, RP, GCR, SSR) |
-| 36 | `state_model.py` | Máquina de estados de agentes |
-| 37 | `storage.py` | Abstracción file-based: JSONL, JSON, pickle |
+| 33 | `regression_tracker.py` | Metrics degradation tracking |
+| 34 | **`revenue_tracker.py`** | **NEW — Real revenue tracking in JSONL** |
+| 35 | `runtime_observer.py` | Production metrics (SS, PFI, RP, GCR, SSR) |
+| 36 | `state_model.py` | Agent state machine |
+| 37 | `storage.py` | File-based abstraction: JSONL, JSON, pickle |
 | 38 | `supervisor.py` | Meta-supervisor: Q(0.4)+A(0.25)+C(0.2)+F(0.15) |
-| 39 | `task_contract.py` | Validación de TASK_CONTRACT.md |
-| 40 | `test_generator.py` | Auto-generación de tests + BenchmarkRunner |
-| 41 | `transitions.py` | Verificación de transiciones de estado SOUL-compatible |
-| 42 | `z3_gate.py` | Gate Z3: APPROVED/REJECTED/TIMEOUT/FALLBACK |
-| 43 | `z3_proof.py` | Generación y serialización de proofs Z3 |
-| 44 | `z3_test_generator.py` | Auto-generación de test cases Z3 |
+| 39 | `task_contract.py` | TASK_CONTRACT.md validation |
+| 40 | `test_generator.py` | Auto-generation of tests + BenchmarkRunner |
+| 41 | `transitions.py` | SOUL-compatible state transition verification |
+| 42 | `z3_gate.py` | Z3 gate: APPROVED/REJECTED/TIMEOUT/FALLBACK |
+| 43 | `z3_proof.py` | Z3 proof generation and serialization |
+| 44 | `z3_test_generator.py` | Auto-generation of Z3 test cases |
 | 45 | `z3_verifier.py` | Z3 formal theorem proving: INV-1,2,5,6,7,8 |
 
 ---
 
-## 9. Agentes (12)
+## 9. Agents (12)
 
-| # | Agente | Rol | Modelo Principal | SOUL |
+| # | Agent | Role | Primary Model | SOUL |
 |---|--------|-----|------------------|------|
-| 1 | **researcher** | Investigación & Intel | Groq Llama 3.3 70B | `agents/researcher/SOUL.md` |
-| 2 | **strategist** | Estrategia MVP | Cerebras GPT-OSS | `agents/strategist/SOUL.md` |
-| 3 | **organizer** | Organización de proyecto | Groq | `agents/organizer/SOUL.md` |
-| 4 | **architect** | Arquitectura de código | Groq | `agents/architect/SOUL.md` |
+| 1 | **researcher** | Research & Intel | Groq Llama 3.3 70B | `agents/researcher/SOUL.md` |
+| 2 | **strategist** | MVP Strategy | Cerebras GPT-OSS | `agents/strategist/SOUL.md` |
+| 3 | **organizer** | Project organization | Groq | `agents/organizer/SOUL.md` |
+| 4 | **architect** | Code architecture | Groq | `agents/architect/SOUL.md` |
 | 5 | **designer** | UI/UX Design | Cerebras | `agents/designer/SOUL.md` |
 | 6 | **qa-reviewer** | Quality Assurance | Cerebras | `agents/qa-reviewer/SOUL.md` |
-| 7 | **verifier** | Verificación final | Groq | `agents/verifier/SOUL.md` |
+| 7 | **verifier** | Final verification | Groq | `agents/verifier/SOUL.md` |
 | 8 | **sentinel** | Security Auditor | Groq | `agents/sentinel/SOUL.md` |
 | 9 | **narrative** | Content Writing | Groq | `agents/narrative/SOUL.md` |
 | 10 | **data-engineer** | Data Pipelines | Groq | `agents/data-engineer/SOUL.md` |
 | 11 | **scout** | Market Research | Cerebras | `agents/scout/SOUL.md` |
 | 12 | **synthesis** | Autonomous Synthesis | Zo (Minimax) | `agents/synthesis/SOUL.md` |
 
-Cada SOUL.md define: Identity, Principles, Cognitive Style, Risk Policy, Failure Handling, Collaboration, Output Standards, Monetization Strategies, Research Integration.
+Each SOUL.md defines: Identity, Principles, Cognitive Style, Risk Policy, Failure Handling, Collaboration, Output Standards, Monetization Strategies, Research Integration.
 
 ---
 
 ## 10. A2A Skills (11)
 
-| # | Skill ID | Nombre | Descripción |
+| # | Skill ID | Name | Description |
 |---|----------|--------|-------------|
-| 1 | `research` | Market Research | Deep market research con web data, competitor analysis, Go/No-Go |
+| 1 | `research` | Market Research | Deep market research with web data, competitor analysis, Go/No-Go |
 | 2 | `code-review` | Code Review | Architecture analysis, security audit, actionable fixes |
-| 3 | `data-analysis` | Data Analysis | Excel/CSV/DB con statistics, anomaly detection, Python scripts |
-| 4 | `build-project` | Build Project | Genera proyecto completo: research → plan → code → review |
+| 3 | `data-analysis` | Data Analysis | Excel/CSV/DB with statistics, anomaly detection, Python scripts |
+| 4 | `build-project` | Build Project | Generates complete project: research → plan → code → review |
 | 5 | `grant-hunt` | Grant Hunter | Grants/hackathons across blockchain ecosystems |
 | 6 | `content` | Content Creator | Web3 content: threads, blogs, pitch decks, grant narratives |
 | 7 | `daily-ops` | Daily Operations | Morning scan: news, metrics, daily plan, social content |
 | 8 | `enigma-audit` | Enigma Agent Audit | Audit ERC-8004 AI agents: endpoints, metadata, trust scores |
-| 9 | **`revenue`** | **Revenue Tracker** | **NUEVO — Track revenue, log API usage, generate reports** |
-| 10 | **`triage-stats`** | **L0 Triage Stats** | **NUEVO — Get L0 triage statistics: decisions, skip rate** |
-| 11 | **`memory-search`** | **Fisher-Rao Memory** | **NUEVO — Search memory usando Fisher-Rao information geometry** |
+| 9 | **`revenue`** | **Revenue Tracker** | **NEW — Track revenue, log API usage, generate reports** |
+| 10 | **`triage-stats`** | **L0 Triage Stats** | **NEW — Get L0 triage statistics: decisions, skip rate** |
+| 11 | **`memory-search`** | **Fisher-Rao Memory** | **NEW — Search memory using Fisher-Rao information geometry** |
 
 ---
 
-## 11. Módulos Nuevos (Marzo 2026 Hackathon)
+## 11. New Modules (March 2026 Hackathon)
 
 ### 11.1 L0 Triage (`core/l0_triage.py`)
 
-**Propósito**: Filtro pre-LLM — zero llamadas LLM, puras reglas determinísticas.
+**Purpose**: Pre-LLM filter — zero LLM calls, pure deterministic rules.
 
 **5 Checks**:
 1. Input length (< 3 tokens → SKIP)
 2. Input overflow (> 50K tokens → SKIP)
-3. Retry exhaustion (> 5 intentos → SKIP)
+3. Retry exhaustion (> 5 attempts → SKIP)
 4. Provider availability (0 providers → SKIP)
-5. Repeated identical errors (3+ mismos → SKIP)
+5. Repeated identical errors (3+ same → SKIP)
 
 **API**:
 ```python
@@ -438,13 +438,13 @@ decision = triage.evaluate(input_text, attempt=1, active_providers=["groq"], pre
 # → TriageDecision(proceed=True, reason='all_checks_passed', input_tokens_est=25, ...)
 ```
 
-**Estado**: PASS — 6/6 tests, skip rate 72.7%, integrado en `crew_runner.py`
+**Status**: PASS — 6/6 tests, skip rate 72.7%, integrated in `crew_runner.py`
 
 ### 11.2 Fisher-Rao Distance (`core/fisher_rao.py`)
 
-**Propósito**: Retrieval de memoria basado en geometría de información.
+**Purpose**: Memory retrieval based on information geometry.
 
-**Fórmula**:
+**Formula**:
 ```
 d_FR(P, Q) = 2 · arccos(Σ √(p_i · q_i))    ∈ [0, π]
 similarity  = 1 - d_FR/π                      ∈ [0, 1]
@@ -458,11 +458,11 @@ s = fisher_rao_similarity("AI agents", "AI agents blockchain")  # → 0.667
 results = ranked_search("ML training", documents, top_k=5)
 ```
 
-**Estado**: PASS — 4/4 tests, stdlib-only, integrado en `memory_manager.py`
+**Status**: PASS — 4/4 tests, stdlib-only, integrated in `memory_manager.py`
 
 ### 11.3 Revenue Tracker (`core/revenue_tracker.py`)
 
-**Propósito**: Tracking real de ingresos + uso de API.
+**Purpose**: Real revenue tracking + API usage.
 
 **Sources**: SaaS, grant, bounty, freelance, consulting, content, template, API
 **Payment Methods**: Stripe, x402, Lightning, PayPal, crypto, bank, gumroad
@@ -477,76 +477,76 @@ report = rt.report(days=30)
 # → {'total_revenue': 1134.50, 'transactions': 8, 'by_source': {...}, ...}
 ```
 
-**Estado**: PASS — $1,134.50 tracked, 8 transacciones, 5 API calls
+**Status**: PASS — $1,134.50 tracked, 8 transactions, 5 API calls
 
 ### 11.4 AutoResearch (`scripts/dof_autoresearch.py`)
 
-**Propósito**: Self-optimization loop inspirado en Karpathy.
+**Purpose**: Self-optimization loop inspired by Karpathy.
 
-**Ciclo**:
+**Cycle**:
 1. Read config → 2. Propose modification → 3. Run experiment (5 runs)
-4. Compute dof_score → 5. KEEP si mejora, DISCARD si no → 6. Repeat
+4. Compute dof_score → 5. KEEP if improved, DISCARD if not → 6. Repeat
 
 **API**:
 ```bash
 python3 scripts/dof_autoresearch.py                  # Run forever
-python3 scripts/dof_autoresearch.py --max-cycles 5   # 5 ciclos
-python3 scripts/dof_autoresearch.py --dry-run        # Solo propuestas
+python3 scripts/dof_autoresearch.py --max-cycles 5   # 5 cycles
+python3 scripts/dof_autoresearch.py --dry-run        # Proposals only
 # Output: Baseline dof_score: 0.811700
 #         Proposal: supervisor_accept_threshold = 7.0 → 6.5
 #         [DRY RUN] Would modify supervisor_accept_threshold: 7.0 → 6.5
 ```
 
-**Estado**: PASS — baseline 0.8117, proposals generadas correctamente
+**Status**: PASS — baseline 0.8117, proposals generated correctly
 
 ### 11.5 AgentMeet Daemon Integration
 
-**Propósito**: Reuniones LLM-powered de 14 agentes cada 4 horas.
+**Purpose**: LLM-powered meetings of 14 agents every 4 hours.
 
-**Integración**: En `scripts/agent-legion-daemon.sh`, cada 8 ciclos (~4h):
+**Integration**: In `scripts/agent-legion-daemon.sh`, every 8 cycles (~4h):
 ```bash
-# Topics rotativos:
+# Rotating topics:
 # standup → brainstorm revenue → technical review → research debrief
 python3 scripts/agentmeet-live.py --topic "$topic"
 ```
 
-**14 Agentes en AgentMeet**:
+**14 Agents in AgentMeet**:
 DOF Oracle, Sentinel Shield, Ralph Code, Architect Enigma, Blockchain Wizard, Moltbook, Product Overlord, Biz Dominator, DeFi Orbital, Scrum Master Zen, Charlie UX, QA Vigilante, RWA Tokenizator, Organizer OS
 
-**Estado**: PASS — 14 agentes registrados, 23+ mensajes reales por sesión
+**Status**: PASS — 14 agents registered, 23+ real messages per session
 
 ---
 
-## 12. Dependencias Externas
+## 12. External Dependencies
 
-### Proveedores LLM
+### LLM Providers
 
-| Provider | Modelo | Quota (free tier) | Notas |
+| Provider | Model | Quota (free tier) | Notes |
 |----------|--------|-------------------|-------|
 | **Groq** | Llama 3.3 70B | 12K TPM | Primary |
-| **Cerebras** | GPT-OSS | 1M tokens/día | Secondary |
-| **NVIDIA NIM** | Various | 1000 créditos (total) | Prefijo `nvidia_nim/` |
-| **Zhipu** | GLM-4.7-Flash | Generosa | Requiere `enable_thinking: False` |
-| **Gemini** | gemini-pro | 20 req/día | Backup |
+| **Cerebras** | GPT-OSS | 1M tokens/day | Secondary |
+| **NVIDIA NIM** | Various | 1000 credits (total) | Prefix `nvidia_nim/` |
+| **Zhipu** | GLM-4.7-Flash | Generous | Requires `enable_thinking: False` |
+| **Gemini** | gemini-pro | 20 req/day | Backup |
 | **OpenRouter** | Multi-model proxy | Variable | Routing |
 | **SambaNova** | Various | 24K context max | Emergency backup |
 
 ### Blockchain
 
-| Red | Chain ID | Uso | Contrato |
+| Network | Chain ID | Use | Contract |
 |-----|----------|-----|----------|
 | **Avalanche C-Chain** | 43114 | Attestations + proofs | DOFValidationRegistry, DOFProofRegistry |
 | **Conflux** | 1030 | Multi-chain attestations | DOFEvaluator |
 | **Base** | 8453 | ERC-8004 agent identity | Agent token |
 
-### Servicios Externos
+### External Services
 
-| Servicio | Uso |
+| Service | Use |
 |----------|-----|
 | **Supabase** (Enigma) | Trust scores, dof_trust_scores table |
 | **AgentMeet.net** | Real-time agent conversations |
 | **DuckDuckGo/Serper/Tavily** | Web search tools (fallback chain) |
-| **IPFS** | Proof storage (opcional) |
+| **IPFS** | Proof storage (optional) |
 
 ### Python Dependencies
 
@@ -555,55 +555,55 @@ crewai, crewai-tools     # Agent orchestration
 web3                      # Blockchain interactions
 z3-solver                 # Formal verification
 python-dotenv             # Environment variables
-chromadb (opcional)       # Vector memory
+chromadb (optional)       # Vector memory
 pydantic                  # Data validation
 requests                  # HTTP
 ```
 
 ---
 
-## 13. SuperLocalMemory V3 — Validación Académica
+## 13. SuperLocalMemory V3 — Academic Validation
 
-> **Referencia**: arXiv:2603.14588 — *"SuperLocalMemory V3: Information-Geometric Foundations for Zero-LLM Enterprise Agent Memory"*
+> **Reference**: arXiv:2603.14588 — *"SuperLocalMemory V3: Information-Geometric Foundations for Zero-LLM Enterprise Agent Memory"*
 
-### Fisher-Rao vs Cosine: Validado
+### Fisher-Rao vs Cosine: Validated
 
-DOF implementa `core/fisher_rao.py` con la distancia Fisher-Rao sobre distribuciones TF-IDF. SuperLocalMemory V3 confirma que esta métrica supera la similitud coseno tradicional porque:
+DOF implements `core/fisher_rao.py` with Fisher-Rao distance over TF-IDF distributions. SuperLocalMemory V3 confirms this metric outperforms traditional cosine similarity because:
 
-- Opera en el **manifold estadístico** (espacio de distribuciones) en lugar del espacio vectorial plano
-- Captura **varianza contextual**, no solo dirección
-- Es invariante a reparametrización — la distancia no cambia si se transforma el espacio de features
+- Operates on the **statistical manifold** (space of distributions) rather than flat vector space
+- Captures **contextual variance**, not just direction
+- Is invariant to reparametrization — the distance does not change when transforming the feature space
 
-**Estado DOF**: Implementado y funcional en `core/fisher_rao.py` + integrado en `core/memory_manager.py`
+**DOF Status**: Implemented and functional in `core/fisher_rao.py` + integrated in `core/memory_manager.py`
 
-### Ciclo de Vida de Memoria (Langevin)
+### Memory Lifecycle (Langevin)
 
-SuperLocalMemory V3 propone un ciclo de vida gobernado por dinámicas de Langevin:
+SuperLocalMemory V3 proposes a lifecycle governed by Langevin dynamics:
 
 ```
-Activo → Tibio → Frío → Archivado
+Active → Warm → Cold → Archived
 ```
 
-- **Activo**: Memorias frecuentemente accedidas (< 24h)
-- **Tibio**: Acceso moderado (1-7 días)
-- **Frío**: Raramente accedidas (> 7 días)
-- **Archivado**: Comprimidas + indexadas para retrieval profundo
+- **Active**: Frequently accessed memories (< 24h)
+- **Warm**: Moderate access (1-7 days)
+- **Cold**: Rarely accessed (> 7 days)
+- **Archived**: Compressed + indexed for deep retrieval
 
-La ecuación de Langevin `dX_t = -∇U(X_t)dt + √(2T)dW_t` modela la "temperatura" de cada memoria — a mayor acceso, más caliente; con el tiempo, se enfrían naturalmente.
+The Langevin equation `dX_t = -∇U(X_t)dt + √(2T)dW_t` models the "temperature" of each memory — the more access, the hotter; over time, they cool naturally.
 
-**Estado DOF**: Roadmap — actualmente todas las memorias tienen el mismo estado. Implementación futura en `core/memory_governance.py`.
+**DOF Status**: Roadmap — currently all memories have the same state. Future implementation in `core/memory_governance.py`.
 
-### Cohomología de Haces
+### Sheaf Cohomology
 
-SuperLocalMemory V3 introduce un marco de **cohomología de haces** (sheaf cohomology) para detección de contradicciones:
+SuperLocalMemory V3 introduces a **sheaf cohomology** framework for contradiction detection:
 
-- Cada memoria se modela como una **sección de un haz** sobre el grafo de conocimiento
-- Las **contradicciones** aparecen como secciones incompatibles — no se pueden pegar globalmente
-- La **obstrucción** (grupo de cohomología H¹) mide cuánta inconsistencia hay
+- Each memory is modeled as a **section of a sheaf** over the knowledge graph
+- **Contradictions** appear as incompatible sections — they cannot be globally glued together
+- The **obstruction** (cohomology group H¹) measures how much inconsistency exists
 
-**Aplicación práctica**: Si el agente tiene memoria A = "Python es lento" y memoria B = "Python es óptimo para ML", la cohomología detecta la contradicción antes de que afecte una decisión.
+**Practical application**: If the agent has memory A = "Python is slow" and memory B = "Python is optimal for ML", cohomology detects the contradiction before it affects a decision.
 
-**Estado DOF**: Roadmap — DOF actualmente usa `memory_governance.py` para separar knowledge de errors, pero no tiene detección topológica de contradicciones.
+**DOF Status**: Roadmap — DOF currently uses `memory_governance.py` to separate knowledge from errors, but does not have topological contradiction detection.
 
 ---
 
@@ -629,23 +629,23 @@ flowchart LR
     style EV fill:#99f,stroke:#333
 ```
 
-### Flujo de Attestation
+### Attestation Flow
 
-1. Agent produce output → Governance check → Z3 verification
+1. Agent produces output → Governance check → Z3 verification
 2. proof_hash = `keccak256(z3_proof_json)`
 3. `avalanche_bridge.py` → `DOFValidationRegistry.registerAttestation(hash, agentId, true)`
-4. TX confirmada → hash almacenado en Supabase via `enigma_bridge.py`
-5. Total: **48+ attestations** publicadas
+4. TX confirmed → hash stored in Supabase via `enigma_bridge.py`
+5. Total: **48+ attestations** published
 
 ---
 
-## 15. Monetización
+## 15. Monetization
 
-### Revenue Actual
+### Current Revenue
 
 ```
-Total Revenue:      $1,134.50 USD (30 días)
-Transacciones:      8
+Total Revenue:      $1,134.50 USD (30 days)
+Transactions:       8
 API Calls tracked:  5
 ```
 
@@ -659,15 +659,15 @@ API Calls tracked:  5
 | Template | $29.00 | gumroad |
 | API | $5.50 | stripe |
 
-### Canales de Monetización
+### Monetization Channels
 
 ```mermaid
 flowchart TD
-    REV["Revenue Streams"] --> DIRECT["Directos"]
-    REV --> INDIRECT["Indirectos"]
-    REV --> PASSIVE["Pasivos"]
+    REV["Revenue Streams"] --> DIRECT["Direct"]
+    REV --> INDIRECT["Indirect"]
+    REV --> PASSIVE["Passive"]
 
-    DIRECT --> API["API-as-a-Service<br/>x402 micropagos"]
+    DIRECT --> API["API-as-a-Service<br/>x402 micropayments"]
     DIRECT --> FREE["Freelance<br/>Consulting"]
     DIRECT --> GRANT["Grants<br/>Gitcoin, Octant"]
 
@@ -687,17 +687,17 @@ flowchart TD
     PAY --> BANK["Bank Transfer"]
 ```
 
-### Integración x402 (Roadmap)
+### x402 Integration (Roadmap)
 
-- HTTP 402 Payment Required → agent paga automáticamente por servicios
-- MoltLaunch: agents contratan otros agents con micropagos
-- Revenue tracker ya soporta `payment_method: "x402"` en JSONL
+- HTTP 402 Payment Required → agent pays automatically for services
+- MoltLaunch: agents hire other agents with micropayments
+- Revenue tracker already supports `payment_method: "x402"` in JSONL
 
 ---
 
-## 16. Verificación del Sistema
+## 16. System Verification
 
-### Comandos con Output Esperado
+### Commands with Expected Output
 
 ```bash
 # L0 Triage
@@ -736,21 +736,21 @@ $ python3 -c "from core.l0_triage import L0Triage; print(L0Triage().get_stats())
 
 ---
 
-## 17. Estructura de Logs
+## 17. Log Structure
 
 ```
 logs/
-├── traces/              # RunTrace JSON — uno por ejecución
+├── traces/              # RunTrace JSON — one per execution
 │   └── {run_id}.json
-├── metrics/             # Métricas por step + triage
+├── metrics/             # Metrics per step + triage
 │   ├── steps.jsonl
 │   ├── l0_triage.jsonl
 │   └── events.jsonl
-├── experiments/         # Runs agregados
+├── experiments/         # Aggregated runs
 │   └── runs.jsonl
-├── checkpoints/         # Recovery mid-execution
+├── checkpoints/         # Mid-execution recovery
 │   └── {run_id}/{step_id}.jsonl
-├── revenue/             # Ingresos + API usage
+├── revenue/             # Revenue + API usage
 │   ├── revenue.jsonl
 │   └── api_usage.jsonl
 ├── autoresearch/        # Self-optimization
@@ -763,55 +763,55 @@ logs/
 
 ---
 
-## 18. Scripts de Automatización (17)
+## 18. Automation Scripts (17)
 
-| Script | Propósito |
+| Script | Purpose |
 |--------|-----------|
-| `agent-legion-daemon.sh` | Daemon autónomo: 14 agentes + AgentMeet cada 4h |
-| `agentmeet-live.py` | Sesiones LLM-powered de 14 agentes en AgentMeet.net |
+| `agent-legion-daemon.sh` | Autonomous daemon: 14 agents + AgentMeet every 4h |
+| `agentmeet-live.py` | LLM-powered sessions of 14 agents on AgentMeet.net |
 | `dof_autoresearch.py` | Self-optimization loop (Karpathy-inspired) |
-| `e2e_test.py` | Test end-to-end del pipeline completo |
-| `full_pipeline_test.py` | Validación completa de workflow |
-| `live_test_flow.py` | Test flow con métricas en tiempo real |
-| `agent_10_rounds.py` | Stress test: 10 rounds consecutivos |
+| `e2e_test.py` | End-to-end test of the complete pipeline |
+| `full_pipeline_test.py` | Complete workflow validation |
+| `live_test_flow.py` | Test flow with real-time metrics |
+| `agent_10_rounds.py` | Stress test: 10 consecutive rounds |
 | `run_benchmark.py` | Benchmark suite: latency, quality, tokens |
 | `garak_benchmark.py` | GARAK: prompt injection, jailbreaks |
 | `run_privacy_benchmark.py` | Privacy leak detection benchmark |
-| `external_agent_audit.py` | Audit de agentes externos ERC-8004 |
-| `full_audit_test.py` | Audit completo: 55 reglas |
-| `final_audit.py` | Audit pre-producción |
-| `agent_cross_transactions.py` | Test de comunicación inter-agente |
-| `extract_garak_payloads.py` | Extracción de payloads adversariales |
-| `soul-watchdog.sh` | Monitor de SOULs para drift detection |
-| `start-system.sh` | Startup script del sistema completo |
+| `external_agent_audit.py` | External ERC-8004 agent audit |
+| `full_audit_test.py` | Full audit: 55 rules |
+| `final_audit.py` | Pre-production audit |
+| `agent_cross_transactions.py` | Inter-agent communication test |
+| `extract_garak_payloads.py` | Adversarial payload extraction |
+| `soul-watchdog.sh` | SOUL monitor for drift detection |
+| `start-system.sh` | Complete system startup script |
 
 ---
 
-## 19. Resumen Final
+## 19. Final Summary
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║  DOF v0.5 — Deterministic Observability Framework           ║
 ╠══════════════════════════════════════════════════════════════╣
-║  Core Modules:    45     │  Agentes:         12             ║
+║  Core Modules:    45     │  Agents:          12             ║
 ║  A2A Skills:      11     │  Tools:           16+            ║
 ║  Test Files:      260    │  Commits:         199            ║
 ║  LOC:             860K+  │  Z3 Theorems:     8/8 PROVEN     ║
 ║  Attestations:    48+    │  Smart Contracts: 3              ║
 ║  LLM Providers:   7      │  dof_score:       0.8117         ║
 ║  Revenue:         $1,134 │  L0 Skip Rate:    72.7%          ║
-║  Disco:           4.2 GB │  Branch:          main           ║
+║  Disk:            4.2 GB │  Branch:          main           ║
 ╠══════════════════════════════════════════════════════════════╣
-║  Nuevos Módulos (Marzo 2026):                               ║
+║  New Modules (March 2026):                                  ║
 ║  ✓ L0 Triage (pre-LLM filter)                              ║
 ║  ✓ Fisher-Rao (information geometry memory)                 ║
 ║  ✓ Revenue Tracker (JSONL persistence)                      ║
 ║  ✓ AutoResearch (self-optimization)                         ║
 ║  ✓ AgentMeet Daemon (4h meetings)                           ║
 ╠══════════════════════════════════════════════════════════════╣
-║  Validación Académica:                                      ║
-║  arXiv:2603.14588 — SuperLocalMemory V3 confirma:           ║
-║  ✓ Fisher-Rao > cosine para memory retrieval                ║
+║  Academic Validation:                                       ║
+║  arXiv:2603.14588 — SuperLocalMemory V3 confirms:           ║
+║  ✓ Fisher-Rao > cosine for memory retrieval                 ║
 ║  ◇ Langevin memory lifecycle (roadmap)                      ║
 ║  ◇ Sheaf cohomology contradictions (roadmap)                ║
 ╚══════════════════════════════════════════════════════════════╝
@@ -819,5 +819,5 @@ logs/
 
 ---
 
-*Generado por DOF Oracle — 22 de marzo de 2026*
-*Verificado con datos reales de ejecución del sistema*
+*Generated by DOF Oracle — March 22, 2026*
+*Verified with real system execution data*

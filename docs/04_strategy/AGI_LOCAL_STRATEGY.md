@@ -1,149 +1,149 @@
-# AGI Local Strategy — DOF v0.5 (Marzo 2026)
+# AGI Local Strategy — DOF v0.5 (March 2026)
 
-> **Estado**: Draft v1.0
-> **Autor**: Principal Agentic Engineer
-> **Fecha**: 22 de marzo de 2026
-> **Objetivo**: Maximizar inferencia local para soberania, privacidad, reduccion de costos y velocidad consistente.
+> **Status**: Draft v1.0
+> **Author**: Principal Agentic Engineer
+> **Date**: March 22, 2026
+> **Objective**: Maximize local inference for sovereignty, privacy, cost reduction, and consistent speed.
 
 ---
 
-## 1. Perfil de Hardware
+## 1. Hardware Profile
 
-### MacBook Pro M4 Max — Especificaciones Relevantes
+### MacBook Pro M4 Max — Relevant Specifications
 
-| Componente | Especificacion | Impacto en Inferencia |
+| Component | Specification | Impact on Inference |
 |---|---|---|
-| CPU | 16 cores (12P + 4E) | Tokenizacion, pre/post procesamiento |
-| GPU | 40 cores Metal | Inferencia principal via MLX/llama.cpp |
-| Neural Engine | 16 cores, 19 TFLOPS FP16 @ 2.8W | Experimental — fine-tuning de modelos <1B |
-| RAM Unificada | **36 GB** | **RESTRICCION CRITICA** — define techo de modelos |
-| SSD | 994 GB (432 GB libres) | Suficiente para ~50 modelos GGUF |
-| Ancho de Banda Memoria | ~546 GB/s | Factor clave para tok/s en modelos grandes |
+| CPU | 16 cores (12P + 4E) | Tokenization, pre/post processing |
+| GPU | 40 cores Metal | Main inference via MLX/llama.cpp |
+| Neural Engine | 16 cores, 19 TFLOPS FP16 @ 2.8W | Experimental — fine-tuning of models <1B |
+| Unified RAM | **36 GB** | **CRITICAL CONSTRAINT** — defines model ceiling |
+| SSD | 994 GB (432 GB free) | Sufficient for ~50 GGUF models |
+| Memory Bandwidth | ~546 GB/s | Key factor for tok/s on large models |
 
-### Limites Duros de Memoria
+### Hard Memory Limits
 
 ```
-Memoria total:           36 GB
-- macOS + servicios:     ~4 GB
+Total memory:            36 GB
+- macOS + services:      ~4 GB
 - DOF runtime (Python):  ~2 GB
 - ChromaDB + embeddings: ~1 GB
-- Disponible para LLM:   ~29 GB
-- Maximo modelo viable:  ~20 GB (32B Q4_K_M)
+- Available for LLM:     ~29 GB
+- Maximum viable model:  ~20 GB (32B Q4_K_M)
 ```
 
-**Regla fundamental**: Un modelo 70B en Q4 necesita ~43 GB. **NO CABE**. No intentar — causa swap catastrofico y el sistema se congela.
+**Fundamental rule**: A 70B model in Q4 needs ~43 GB. **DOES NOT FIT**. Do not attempt — causes catastrophic swap and the system freezes.
 
-### Modelos que Caben vs No Caben
+### Models That Fit vs Don't Fit
 
 ```
-[OK]  8B  Q4  →  ~5 GB   ✓ Sobra RAM para 2-3 modelos simultaneos
-[OK]  14B Q4  →  ~9 GB   ✓ Cabe con margen amplio
-[OK]  22B Q4  →  ~14 GB  ✓ Cabe bien, un modelo a la vez
-[OK]  32B Q4  →  ~20 GB  ✓ Cabe justo, cerrar apps pesadas
-[NO]  70B Q4  →  ~43 GB  ✗ NO CABE — ni con Q2
-[NO]  70B Q2  →  ~35 GB  ✗ Llena toda la RAM, swap inmediato
+[OK]  8B  Q4  →  ~5 GB   ✓ RAM to spare for 2-3 simultaneous models
+[OK]  14B Q4  →  ~9 GB   ✓ Fits with ample margin
+[OK]  22B Q4  →  ~14 GB  ✓ Fits well, one model at a time
+[OK]  32B Q4  →  ~20 GB  ✓ Fits just right, close heavy apps
+[NO]  70B Q4  →  ~43 GB  ✗ DOES NOT FIT — not even with Q2
+[NO]  70B Q2  →  ~35 GB  ✗ Fills all RAM, immediate swap
 ```
 
 ---
 
-## 2. Frameworks de Inferencia — Comparativa
+## 2. Inference Frameworks — Comparison
 
-| Framework | Velocidad (7B) | Velocidad (32B) | Facilidad | API OpenAI Compatible | Mejor Para |
+| Framework | Speed (7B) | Speed (32B) | Ease | OpenAI Compatible API | Best For |
 |---|---|---|---|---|---|
-| **MLX v0.31.1** | ~230 tok/s | ~45 tok/s | Media | Via litellm | Velocidad maxima nativa Apple Silicon |
-| **Ollama** | ~180 tok/s | ~35 tok/s | **Alta** | **Si (nativo)** | Setup rapido, 200+ modelos, integracion facil |
-| **llama.cpp** | ~200 tok/s | ~40 tok/s | Baja | Via server mode | Control maximo, formato GGUF, Metal backend |
-| **vLLM-MLX** | **~525 tok/s** | ~80 tok/s | Media | Si | Produccion con batching continuo |
-| **LM Studio** | ~180 tok/s | ~35 tok/s | **Muy Alta** | Si | GUI, gestion visual de modelos, motor MLX |
-| **ExoLabs** | Variable | Variable | Media | Si | Inferencia distribuida P2P entre Macs |
+| **MLX v0.31.1** | ~230 tok/s | ~45 tok/s | Medium | Via litellm | Maximum native Apple Silicon speed |
+| **Ollama** | ~180 tok/s | ~35 tok/s | **High** | **Yes (native)** | Quick setup, 200+ models, easy integration |
+| **llama.cpp** | ~200 tok/s | ~40 tok/s | Low | Via server mode | Maximum control, GGUF format, Metal backend |
+| **vLLM-MLX** | **~525 tok/s** | ~80 tok/s | Medium | Yes | Production with continuous batching |
+| **LM Studio** | ~180 tok/s | ~35 tok/s | **Very High** | Yes | GUI, visual model management, MLX engine |
+| **ExoLabs** | Variable | Variable | Medium | Yes | P2P distributed inference between Macs |
 
-### Recomendacion para DOF
+### Recommendation for DOF
 
-**Stack principal**:
-1. **Ollama** como servidor base — API compatible con OpenAI, facil de integrar con LiteLLM
-2. **MLX** para benchmarks y tareas que requieren maxima velocidad
-3. **vLLM-MLX** cuando se necesite batching (multiples agentes concurrentes)
+**Main stack**:
+1. **Ollama** as base server — OpenAI-compatible API, easy to integrate with LiteLLM
+2. **MLX** for benchmarks and tasks requiring maximum speed
+3. **vLLM-MLX** when batching is needed (multiple concurrent agents)
 
-**Razon**: Ollama tiene la mejor relacion facilidad/rendimiento y su API es directamente compatible con el patron `openai/` que ya usa `litellm` en el DOF.
+**Reason**: Ollama has the best ease/performance ratio and its API is directly compatible with the `openai/` pattern already used by `litellm` in DOF.
 
 ---
 
-## 3. Modelos Recomendados para 36 GB
+## 3. Recommended Models for 36 GB
 
-### Tier 1 — Caben facilmente (5-9 GB)
+### Tier 1 — Fit easily (5-9 GB)
 
-| Modelo | RAM | tok/s (MLX) | Fortaleza | Caso de Uso DOF |
+| Model | RAM | tok/s (MLX) | Strength | DOF Use Case |
 |---|---|---|---|---|
-| **Llama 3.3 8B Q4** | ~5 GB | ~230 | General, rapido | Agentes de tareas simples |
-| **Phi-4 14B Q4** | ~9 GB | ~120 | Razonamiento, codigo | Seguridad, verificacion |
-| **Qwen3 8B Q4** | ~5 GB | ~220 | Multilingual, razonamiento | Investigacion rapida |
-| **Gemma 3 12B Q4** | ~8 GB | ~140 | Instrucciones, seguridad | Agentes de soporte |
+| **Llama 3.3 8B Q4** | ~5 GB | ~230 | General, fast | Simple task agents |
+| **Phi-4 14B Q4** | ~9 GB | ~120 | Reasoning, code | Security, verification |
+| **Qwen3 8B Q4** | ~5 GB | ~220 | Multilingual, reasoning | Fast research |
+| **Gemma 3 12B Q4** | ~8 GB | ~140 | Instructions, safety | Support agents |
 
-**Ventaja**: Se pueden ejecutar 2-3 modelos Tier 1 simultaneamente sin problemas.
+**Advantage**: 2-3 Tier 1 models can run simultaneously without issues.
 
-### Tier 2 — Caben bien (14-20 GB)
+### Tier 2 — Fit well (14-20 GB)
 
-| Modelo | RAM | tok/s (MLX) | Fortaleza | Caso de Uso DOF |
+| Model | RAM | tok/s (MLX) | Strength | DOF Use Case |
 |---|---|---|---|---|
-| **Qwen3 32B Q4** | ~20 GB | ~45 | **MEJOR general para 36GB** | Oracle, Architect, Strategist |
-| **DeepSeek-R1 Distill 32B Q4** | ~20 GB | ~40 | Chain-of-thought profundo | Tareas de razonamiento complejo |
-| **Codestral 22B Q4** | ~14 GB | ~65 | Codigo especializado | Generacion y revision de codigo |
+| **Qwen3 32B Q4** | ~20 GB | ~45 | **BEST general for 36GB** | Oracle, Architect, Strategist |
+| **DeepSeek-R1 Distill 32B Q4** | ~20 GB | ~40 | Deep chain-of-thought | Complex reasoning tasks |
+| **Codestral 22B Q4** | ~14 GB | ~65 | Specialized code | Code generation and review |
 
-**Restriccion**: Solo UN modelo Tier 2 a la vez. Al cargar Qwen3 32B, quedan ~9 GB para el sistema.
+**Constraint**: Only ONE Tier 2 model at a time. When loading Qwen3 32B, ~9 GB remains for the system.
 
-### Tier 3 — Apretado, usar con cuidado
+### Tier 3 — Tight, use with care
 
-| Modelo | RAM | tok/s (MLX) | Nota |
+| Model | RAM | tok/s (MLX) | Note |
 |---|---|---|---|
-| **Qwen3-Coder MoE** | ~10 GB activos | ~90 | MoE activa solo 2 expertos a la vez |
-| **Mixtral 8x7B Q4** | ~26 GB | ~25 | Muy justo, no deja margen |
+| **Qwen3-Coder MoE** | ~10 GB active | ~90 | MoE activates only 2 experts at a time |
+| **Mixtral 8x7B Q4** | ~26 GB | ~25 | Very tight, leaves no margin |
 
-### No Caben — NO intentar
+### Do Not Fit — DO NOT attempt
 
-| Modelo | RAM Necesaria | Razon |
+| Model | RAM Required | Reason |
 |---|---|---|
-| Llama 3.3 70B Q4 | ~43 GB | Excede 36 GB por 7 GB |
-| Qwen3 72B Q4 | ~44 GB | Excede 36 GB por 8 GB |
-| DeepSeek-V3 671B | ~350 GB | Imposible en cualquier Mac |
-| Cualquier modelo >45B | >30 GB | Swap catastrofico |
+| Llama 3.3 70B Q4 | ~43 GB | Exceeds 36 GB by 7 GB |
+| Qwen3 72B Q4 | ~44 GB | Exceeds 36 GB by 8 GB |
+| DeepSeek-V3 671B | ~350 GB | Impossible on any Mac |
+| Any model >45B | >30 GB | Catastrophic swap |
 
 ---
 
-## 4. Estrategia Hibrida Local + Cloud
+## 4. Hybrid Local + Cloud Strategy
 
-### Regla 80/20
+### 80/20 Rule
 
 ```
-80% de las inferencias → LOCAL (Ollama/MLX)
-20% de las inferencias → CLOUD (Groq, Cerebras, NVIDIA NIM)
+80% of inferences → LOCAL (Ollama/MLX)
+20% of inferences → CLOUD (Groq, Cerebras, NVIDIA NIM)
 ```
 
-### Arbol de Decision de Ruteo
+### Routing Decision Tree
 
 ```
                     ┌─────────────────┐
-                    │  Tarea entrante  │
+                    │  Incoming task   │
                     └────────┬────────┘
                              │
                     ┌────────▼────────┐
-                    │ Datos sensibles? │
+                    │ Sensitive data? │
                     └────┬────────┬───┘
-                    Si   │        │ No
+                    Yes  │        │ No
                          │        │
                 ┌────────▼───┐    │
-                │ SOLO LOCAL │    │
-                │ (nunca cloud)   │
+                │ LOCAL ONLY │    │
+                │ (never cloud)   │
                 └────────────┘    │
                          ┌────────▼────────┐
-                         │ Contexto > 24K? │
+                         │ Context > 24K?  │
                          └────┬────────┬───┘
-                         Si   │        │ No
+                         Yes  │        │ No
                               │        │
                      ┌────────▼───┐  ┌─▼──────────────┐
-                     │ Cloud 70B+ │  │ Complejidad?    │
+                     │ Cloud 70B+ │  │ Complexity?     │
                      │ (Groq/NVIDIA)  │                │
                      └────────────┘  └──┬─────────┬───┘
-                                   Alta │         │ Baja
+                                   High │         │ Low
                                         │         │
                               ┌─────────▼──┐  ┌──▼─────────┐
                               │ Local 32B   │  │ Local 8B    │
@@ -151,75 +151,75 @@ Memoria total:           36 GB
                               └─────────────┘  └─────────────┘
 ```
 
-### Cadena de Fallback
+### Fallback Chain
 
 ```python
-# Orden de fallback en providers.py
+# Fallback order in providers.py
 FALLBACK_CHAIN = [
-    "ollama/qwen3:32b-q4_K_M",      # 1. Local — mejor modelo
-    "ollama/phi4:14b-q4_K_M",        # 2. Local — fallback rapido
-    "ollama/llama3.3:8b-q4_K_M",     # 3. Local — ultrarapido
+    "ollama/qwen3:32b-q4_K_M",      # 1. Local — best model
+    "ollama/phi4:14b-q4_K_M",        # 2. Local — fast fallback
+    "ollama/llama3.3:8b-q4_K_M",     # 3. Local — ultra-fast
     "groq/llama-3.3-70b-versatile",  # 4. Cloud — Groq free tier
     "cerebras/llama-3.3-70b",        # 5. Cloud — Cerebras free tier
     "nvidia_nim/qwen3-32b",          # 6. Cloud — NVIDIA NIM
-    "clawrouter/auto",               # 7. ClawRouter — ultimo recurso
+    "clawrouter/auto",               # 7. ClawRouter — last resort
 ]
 ```
 
-### Politica de Privacidad
+### Privacy Policy
 
-| Tipo de Dato | Permitido en Cloud | Modelo Local Requerido |
+| Data Type | Allowed in Cloud | Local Model Required |
 |---|---|---|
-| Codigo fuente del proyecto | No | Qwen3 32B / Codestral 22B |
-| Claves API, credenciales | **NUNCA** | Cualquier local |
-| Datos de usuarios | No | Cualquier local |
-| Queries de investigacion publica | Si | Opcional |
-| Documentacion tecnica generica | Si | Opcional |
-| Metricas de governance DOF | No | Phi-4 14B |
+| Project source code | No | Qwen3 32B / Codestral 22B |
+| API keys, credentials | **NEVER** | Any local |
+| User data | No | Any local |
+| Public research queries | Yes | Optional |
+| Generic technical documentation | Yes | Optional |
+| DOF governance metrics | No | Phi-4 14B |
 
 ---
 
-## 5. Mapeo Agente-a-Modelo
+## 5. Agent-to-Model Mapping
 
-### Asignacion Optima
+### Optimal Assignment
 
-| # | Agente | Rol | Modelo Local | RAM | Razon | Fallback Cloud |
+| # | Agent | Role | Local Model | RAM | Reason | Cloud Fallback |
 |---|---|---|---|---|---|---|
-| 1 | **Synthesis (Oracle)** | Orquestador principal | Qwen3 32B Q4 | 20 GB | Razonamiento complejo, sintesis | Groq Llama 70B |
-| 2 | **Architect** | Diseno de sistemas | Qwen3 32B Q4 / Codestral 22B | 20/14 GB | Codigo + arquitectura | NVIDIA Qwen3 |
-| 3 | **Researcher** | Investigacion | Qwen3 32B Q4 | 20 GB | Contexto amplio necesario | Groq Llama 70B |
-| 4 | **Sentinel** | Seguridad | Phi-4 14B Q4 | 9 GB | Checks rapidos, no necesita 32B | Cerebras Llama |
-| 5 | **Scout** | Recopilacion web | Llama 3.3 8B Q4 | 5 GB | Tareas simples, velocidad | Groq Llama 8B |
-| 6 | **Narrative** | Escritura creativa | Qwen3 32B Q4 | 20 GB | Requiere calidad literaria | Groq Llama 70B |
-| 7 | **Strategist** | Planificacion | Qwen3 32B Q4 | 20 GB | Razonamiento estrategico | NVIDIA Qwen3 |
-| 8 | **Designer** | Diseno visual | Phi-4 14B Q4 + SD local | 9 GB + 4 GB | Codigo UI + generacion imagen | Cerebras |
-| 9 | **Organizer** | Gestion de tareas | Llama 3.3 8B Q4 | 5 GB | Tareas simples, rapido | Groq Llama 8B |
-| 10 | **QA Reviewer** | Revision de codigo | Phi-4 14B Q4 | 9 GB | Analisis de codigo eficiente | Cerebras |
-| 11 | **Verifier** | Verificacion formal | Phi-4 14B Q4 | 9 GB | Verificacion deterministica | Cerebras |
-| 12 | **Data Engineer** | Procesamiento datos | Qwen3 32B Q4 | 20 GB | Transformaciones complejas | NVIDIA Qwen3 |
+| 1 | **Synthesis (Oracle)** | Main orchestrator | Qwen3 32B Q4 | 20 GB | Complex reasoning, synthesis | Groq Llama 70B |
+| 2 | **Architect** | Systems design | Qwen3 32B Q4 / Codestral 22B | 20/14 GB | Code + architecture | NVIDIA Qwen3 |
+| 3 | **Researcher** | Research | Qwen3 32B Q4 | 20 GB | Wide context needed | Groq Llama 70B |
+| 4 | **Sentinel** | Security | Phi-4 14B Q4 | 9 GB | Fast checks, no need for 32B | Cerebras Llama |
+| 5 | **Scout** | Web gathering | Llama 3.3 8B Q4 | 5 GB | Simple tasks, speed | Groq Llama 8B |
+| 6 | **Narrative** | Creative writing | Qwen3 32B Q4 | 20 GB | Requires literary quality | Groq Llama 70B |
+| 7 | **Strategist** | Planning | Qwen3 32B Q4 | 20 GB | Strategic reasoning | NVIDIA Qwen3 |
+| 8 | **Designer** | Visual design | Phi-4 14B Q4 + SD local | 9 GB + 4 GB | UI code + image generation | Cerebras |
+| 9 | **Organizer** | Task management | Llama 3.3 8B Q4 | 5 GB | Simple tasks, fast | Groq Llama 8B |
+| 10 | **QA Reviewer** | Code review | Phi-4 14B Q4 | 9 GB | Efficient code analysis | Cerebras |
+| 11 | **Verifier** | Formal verification | Phi-4 14B Q4 | 9 GB | Deterministic verification | Cerebras |
+| 12 | **Data Engineer** | Data processing | Qwen3 32B Q4 | 20 GB | Complex transformations | NVIDIA Qwen3 |
 
-### Restriccion de Concurrencia
+### Concurrency Constraint
 
 ```
-REGLA: Solo UN modelo de 32B puede estar cargado a la vez.
+RULE: Only ONE 32B model can be loaded at a time.
 
-Escenario A — Agente complejo activo:
-  [Qwen3 32B: 20 GB] + [Sistema: 7 GB] + [Libre: 9 GB]
-  → Puede correr UN agente Tier 1 (8B) en paralelo
+Scenario A — Complex active agent:
+  [Qwen3 32B: 20 GB] + [System: 7 GB] + [Free: 9 GB]
+  → Can run ONE Tier 1 agent (8B) in parallel
 
-Escenario B — Multiples agentes simples:
-  [Phi-4 14B: 9 GB] + [Llama 8B: 5 GB] + [Llama 8B: 5 GB] + [Sistema: 7 GB]
-  → Tres agentes ligeros en paralelo = 10 GB libres
+Scenario B — Multiple simple agents:
+  [Phi-4 14B: 9 GB] + [Llama 8B: 5 GB] + [Llama 8B: 5 GB] + [System: 7 GB]
+  → Three lightweight agents in parallel = 10 GB free
 
-Escenario C — Swarm mode:
-  [4x Llama 8B: 20 GB] + [Sistema: 7 GB]
-  → Cuatro agentes ultra-rapidos en paralelo = 9 GB libres
+Scenario C — Swarm mode:
+  [4x Llama 8B: 20 GB] + [System: 7 GB]
+  → Four ultra-fast agents in parallel = 9 GB free
 ```
 
-### Estrategia de Precarga
+### Preload Strategy
 
 ```python
-# En crew_runner.py — precargar modelo antes de ejecutar crew
+# In crew_runner.py — preload model before running crew
 MODEL_PRELOAD_MAP = {
     "high_reasoning": "qwen3:32b-q4_K_M",     # Oracle, Researcher, Strategist
     "coding":         "codestral:22b-q4_K_M",  # Architect
@@ -230,163 +230,162 @@ MODEL_PRELOAD_MAP = {
 
 ---
 
-## 6. Apple Neural Engine (ANE) — Investigacion
+## 6. Apple Neural Engine (ANE) — Research
 
-### Estado Actual (Marzo 2026)
+### Current Status (March 2026)
 
-El Neural Engine del M4 Max ofrece 19 TFLOPS en FP16 a solo 2.8W de consumo, pero su uso para LLM es aun experimental.
+The M4 Max Neural Engine offers 19 TFLOPS in FP16 at only 2.8W of consumption, but its use for LLMs is still experimental.
 
-### Avances Clave
+### Key Advances
 
-| Investigador / Paper | Logro | Relevancia DOF |
+| Researcher / Paper | Achievement | DOF Relevance |
 |---|---|---|
-| **@maderix** (reverse engineering) | Training a 91 ms/step en ANE | Apple dijo que era "imposible" — demostro lo contrario |
-| **Orion** (arXiv:2603.06728) | 170 tok/s GPT-2 124M en ANE, training de transformers 110M | Primer framework viable para fine-tuning en ANE |
-| **CoreML + coremltools** | Conversion de modelos PyTorch a ANE | Pipeline oficial de Apple, estable |
+| **@maderix** (reverse engineering) | Training at 91 ms/step on ANE | Apple said it was "impossible" — proved otherwise |
+| **Orion** (arXiv:2603.06728) | 170 tok/s GPT-2 124M on ANE, training of 110M transformers | First viable framework for fine-tuning on ANE |
+| **CoreML + coremltools** | Conversion of PyTorch models to ANE | Official Apple pipeline, stable |
 
-### Capacidades vs Limitaciones
+### Capabilities vs Limitations
 
 ```
-LO QUE EL ANE PUEDE HACER HOY:
-  ✓ Inferencia de modelos <1B parametros
-  ✓ Fine-tuning experimental de modelos ~100M parametros
-  ✓ Embeddings locales (all-MiniLM-L6-v2 ya corre parcialmente en ANE)
-  ✓ Clasificacion de texto rapida
-  ✓ 19 TFLOPS @ 2.8W = eficiencia energetica extrema
+WHAT THE ANE CAN DO TODAY:
+  ✓ Inference of models <1B parameters
+  ✓ Experimental fine-tuning of ~100M parameter models
+  ✓ Local embeddings (all-MiniLM-L6-v2 already runs partially on ANE)
+  ✓ Fast text classification
+  ✓ 19 TFLOPS @ 2.8W = extreme energy efficiency
 
-LO QUE EL ANE NO PUEDE HACER (AUN):
-  ✗ Modelos >1B parametros (limitacion de memoria interna)
-  ✗ Atencion arbitraria (KV-cache limitado)
-  ✗ Ser el runtime principal de un agente LLM
-  ✗ Reemplazar GPU para inferencia de modelos 8B+
+WHAT THE ANE CANNOT DO (YET):
+  ✗ Models >1B parameters (internal memory limitation)
+  ✗ Arbitrary attention (limited KV-cache)
+  ✗ Be the main runtime of an LLM agent
+  ✗ Replace GPU for inference of 8B+ models
 ```
 
-### Roadmap DOF para ANE
+### DOF Roadmap for ANE
 
-1. **Corto plazo (Q1 2026)**: Embeddings en ANE via CoreML para `memory_manager.py`
-2. **Medio plazo (Q2 2026)**: LoRA adapters para personalizacion de agentes — fine-tune Phi-4 LoRA en ANE
-3. **Largo plazo (Q3-Q4 2026)**: Modelos de clasificacion/routing en ANE para el `skill_engine.py`
+1. **Short term (Q1 2026)**: Embeddings on ANE via CoreML for `memory_manager.py`
+2. **Medium term (Q2 2026)**: LoRA adapters for agent personalization — fine-tune Phi-4 LoRA on ANE
+3. **Long term (Q3-Q4 2026)**: Classification/routing models on ANE for `skill_engine.py`
 
 ---
 
-## 7. SuperLocalMemory V3 — Integracion (arXiv:2603.14588)
+## 7. SuperLocalMemory V3 — Integration (arXiv:2603.14588)
 
-### Conexion con DOF
+### Connection with DOF
 
-SuperLocalMemory V3 propone un framework de gestion de memoria para agentes LLM usando geometria diferencial, alineado con los principios de observabilidad deterministica del DOF.
+SuperLocalMemory V3 proposes a memory management framework for LLM agents using differential geometry, aligned with DOF's deterministic observability principles.
 
-### Fisher-Rao — Ya Implementado
+### Fisher-Rao — Already Implemented
 
 ```python
-# core/fisher_rao.py — YA EXISTE en DOF
-# Metrica de Fisher-Rao para medir distancia entre distribuciones
-# de memoria de agentes
+# core/fisher_rao.py — ALREADY EXISTS in DOF
+# Fisher-Rao metric to measure distance between agent memory distributions
 
 class FisherRaoMetric:
     """
-    Calcula la distancia geodesica entre estados de memoria
-    usando la metrica de Fisher-Rao en el espacio de distribuciones.
+    Calculates the geodesic distance between memory states
+    using the Fisher-Rao metric in the space of distributions.
 
-    Uso en DOF: detectar drift entre lo que un agente "recuerda"
-    vs lo que deberia recordar segun su SOUL.md
+    Use in DOF: detect drift between what an agent "remembers"
+    vs what it should remember according to its SOUL.md
     """
     def compute_distance(self, p: Distribution, q: Distribution) -> float:
-        # Distancia geodesica en la variedad estadistica
+        # Geodesic distance in the statistical manifold
         ...
 ```
 
-### Ciclo de Vida Langevin de Memoria (Roadmap)
+### Langevin Memory Lifecycle (Roadmap)
 
 ```
-Active Memory (Hot)     → Acceso frecuente, en RAM
-    ↓ τ_warm = 1 hora
-Warm Memory             → Acceso reciente, en ChromaDB local
-    ↓ τ_cold = 24 horas
-Cold Memory             → Acceso infrecuente, comprimida en disco
-    ↓ τ_archive = 7 dias
-Archived Memory         → Solo referencia, JSONL comprimido
+Active Memory (Hot)     → Frequent access, in RAM
+    ↓ τ_warm = 1 hour
+Warm Memory             → Recent access, in local ChromaDB
+    ↓ τ_cold = 24 hours
+Cold Memory             → Infrequent access, compressed on disk
+    ↓ τ_archive = 7 days
+Archived Memory         → Reference only, compressed JSONL
 
-Transicion gobernada por dinamica de Langevin:
+Transition governed by Langevin dynamics:
   dM/dt = -∇V(M) + σ·dW
-  donde V(M) = potencial de relevancia, σ = ruido termico
+  where V(M) = relevance potential, σ = thermal noise
 ```
 
-### Cohomologia de Sheaves (Roadmap)
+### Sheaf Cohomology (Roadmap)
 
 ```
-Proposito: Detectar contradicciones entre tipos de memoria
+Purpose: Detect contradictions between memory types
 
-Ejemplo:
-  - Memoria episodica: "El agente Sentinel aprobó el output X"
-  - Memoria semantica: "La regla HARD_RULE_7 prohibe outputs como X"
-  → Cohomologia H¹ ≠ 0 → CONTRADICCION DETECTADA → escalar a governance
+Example:
+  - Episodic memory: "The Sentinel agent approved output X"
+  - Semantic memory: "HARD_RULE_7 prohibits outputs like X"
+  → Cohomology H¹ ≠ 0 → CONTRADICTION DETECTED → escalate to governance
 
-Integracion DOF:
-  - core/governance.py detecta violaciones en tiempo real
-  - SuperLocalMemory V3 detectaria contradicciones en memoria historica
-  - Complementarios, no sustitutos
+DOF Integration:
+  - core/governance.py detects violations in real time
+  - SuperLocalMemory V3 would detect contradictions in historical memory
+  - Complementary, not substitutes
 ```
 
-### Ventaja Clave: Zero-LLM Memory Retrieval
+### Key Advantage: Zero-LLM Memory Retrieval
 
 ```
-MODELO ACTUAL (con LLM):
-  Query → Embedding (LLM) → ChromaDB → Re-ranking (LLM) → Resultado
-  Latencia: ~500ms | Costo: tokens consumidos | Privacidad: depende del provider
+CURRENT MODEL (with LLM):
+  Query → Embedding (LLM) → ChromaDB → Re-ranking (LLM) → Result
+  Latency: ~500ms | Cost: tokens consumed | Privacy: depends on provider
 
-MODELO SLM-V3 (sin LLM):
-  Query → Fisher-Rao distance → Geodesic search → Resultado
-  Latencia: ~5ms | Costo: $0 | Privacidad: 100% local
+SLM-V3 MODEL (without LLM):
+  Query → Fisher-Rao distance → Geodesic search → Result
+  Latency: ~5ms | Cost: $0 | Privacy: 100% local
 
-  → Retrieval completamente deterministico y local
-  → Alineado con principio DOF: "Zero LLM para governance"
+  → Completely deterministic and local retrieval
+  → Aligned with DOF principle: "Zero LLM for governance"
 ```
 
 ---
 
-## 8. Comandos de Setup
+## 8. Setup Commands
 
-### Instalacion del Stack Local
+### Local Stack Installation
 
 ```bash
 # ============================================
-# 1. Instalar MLX (framework nativo Apple Silicon)
+# 1. Install MLX (native Apple Silicon framework)
 # ============================================
 pip install mlx mlx-lm
 
-# Verificar instalacion
+# Verify installation
 python3 -c "import mlx; print(f'MLX version: {mlx.__version__}')"
 
 # ============================================
-# 2. Instalar Ollama (servidor de modelos)
+# 2. Install Ollama (model server)
 # ============================================
 brew install ollama
 
-# Iniciar servidor (dejar corriendo en background)
+# Start server (leave running in background)
 ollama serve &
 
-# Verificar
+# Verify
 curl http://localhost:11434/api/tags
 
 # ============================================
-# 3. Descargar modelos recomendados
+# 3. Download recommended models
 # ============================================
 
-# Tier 1 — Modelos rapidos (descargar todos)
+# Tier 1 — Fast models (download all)
 ollama pull llama3.3:8b-q4_K_M        # ~5 GB
 ollama pull phi4:14b-q4_K_M           # ~9 GB
 
-# Tier 2 — Modelo principal (descargar el que mas se use)
-ollama pull qwen3:32b-q4_K_M          # ~20 GB — MODELO PRINCIPAL
-ollama pull codestral:22b-q4_K_M      # ~14 GB — Para coding
+# Tier 2 — Main model (download most used)
+ollama pull qwen3:32b-q4_K_M          # ~20 GB — MAIN MODEL
+ollama pull codestral:22b-q4_K_M      # ~14 GB — For coding
 
 # ============================================
-# 4. Verificar modelos descargados
+# 4. Verify downloaded models
 # ============================================
 ollama list
 
 # ============================================
-# 5. Test rapido de inferencia
+# 5. Quick inference test
 # ============================================
 
 # Test Ollama
@@ -396,38 +395,38 @@ curl http://localhost:11434/api/generate -d '{
   "stream": false
 }'
 
-# Test MLX (modelos en formato MLX)
+# Test MLX (models in MLX format)
 mlx_lm.generate \
   --model mlx-community/Qwen3-32B-4bit \
   --prompt "What is deterministic observability?" \
   --max-tokens 200
 
 # ============================================
-# 6. LiteLLM Proxy (para integrar con DOF)
+# 6. LiteLLM Proxy (to integrate with DOF)
 # ============================================
 pip install litellm
 
-# Iniciar proxy que expone API compatible con OpenAI
+# Start proxy that exposes OpenAI-compatible API
 litellm --model ollama/qwen3:32b-q4_K_M --port 4000 &
 
-# Verificar proxy
+# Verify proxy
 curl http://localhost:4000/v1/models
 
 # ============================================
-# 7. Configurar DOF para usar modelos locales
+# 7. Configure DOF to use local models
 # ============================================
 
-# En .env agregar:
+# In .env add:
 # OLLAMA_BASE_URL=http://localhost:11434
 # LITELLM_PROXY_URL=http://localhost:4000
 # LOCAL_INFERENCE_PRIORITY=true
 ```
 
-### Script de Verificacion Completa
+### Full Verification Script
 
 ```bash
 #!/bin/bash
-# verify_local_stack.sh — Verificar que todo el stack local funciona
+# verify_local_stack.sh — Verify that the entire local stack works
 
 echo "=== DOF Local Inference Stack Verification ==="
 
@@ -435,16 +434,16 @@ echo "=== DOF Local Inference Stack Verification ==="
 echo -n "Ollama server: "
 curl -s http://localhost:11434/api/tags > /dev/null && echo "OK" || echo "FAIL"
 
-# 2. Modelos disponibles
-echo "Modelos instalados:"
-ollama list 2>/dev/null || echo "  Ollama no disponible"
+# 2. Available models
+echo "Installed models:"
+ollama list 2>/dev/null || echo "  Ollama not available"
 
 # 3. MLX
 echo -n "MLX: "
 python3 -c "import mlx; print(f'v{mlx.__version__}')" 2>/dev/null || echo "FAIL"
 
-# 4. RAM disponible
-echo -n "RAM libre: "
+# 4. Available RAM
+echo -n "Free RAM: "
 python3 -c "
 import subprocess
 result = subprocess.run(['sysctl', 'hw.memsize'], capture_output=True, text=True)
@@ -452,8 +451,8 @@ total = int(result.stdout.split(':')[1].strip()) / (1024**3)
 print(f'{total:.0f} GB total')
 "
 
-# 5. Test de inferencia
-echo -n "Inferencia local: "
+# 5. Inference test
+echo -n "Local inference: "
 RESPONSE=$(curl -s http://localhost:11434/api/generate -d '{
   "model": "llama3.3:8b-q4_K_M",
   "prompt": "Say OK",
@@ -461,128 +460,128 @@ RESPONSE=$(curl -s http://localhost:11434/api/generate -d '{
 }' | python3 -c "import sys,json; print(json.load(sys.stdin).get('response','FAIL')[:20])")
 echo "$RESPONSE"
 
-echo "=== Verificacion completa ==="
+echo "=== Verification complete ==="
 ```
 
 ---
 
-## 9. Analisis de Costos
+## 9. Cost Analysis
 
-### Comparativa Mensual
+### Monthly Comparison
 
-| Escenario | Costo Mensual | Velocidad | Privacidad | Disponibilidad | Rate Limits |
+| Scenario | Monthly Cost | Speed | Privacy | Availability | Rate Limits |
 |---|---|---|---|---|---|
-| **100% Cloud (actual)** | ~$0 (free tiers) | Variable (50-200 tok/s) | Baja | Depende de APIs | **Si** — 12K TPM Groq, 1M/dia Cerebras |
-| **80% Local / 20% Cloud** | ~$5 (electricidad) | Consistente 45-230 tok/s | **Alta** | 99.9% (local) | Minimos |
-| **100% Local** | ~$5 (electricidad) | Consistente | **Maxima** | 100% | **Cero** |
+| **100% Cloud (current)** | ~$0 (free tiers) | Variable (50-200 tok/s) | Low | Depends on APIs | **Yes** — 12K TPM Groq, 1M/day Cerebras |
+| **80% Local / 20% Cloud** | ~$5 (electricity) | Consistent 45-230 tok/s | **High** | 99.9% (local) | Minimal |
+| **100% Local** | ~$5 (electricity) | Consistent | **Maximum** | 100% | **Zero** |
 
-### Desglose de Consumo Electrico
+### Electricity Consumption Breakdown
 
 ```
-MacBook Pro M4 Max bajo inferencia LLM:
+MacBook Pro M4 Max under LLM inference:
   - Idle:                    ~15W
-  - Inferencia 8B (GPU):     ~35W
-  - Inferencia 32B (GPU):    ~55W
-  - Inferencia 32B (GPU+ANE):~50W (futuro)
+  - 8B inference (GPU):      ~35W
+  - 32B inference (GPU):     ~55W
+  - 32B inference (GPU+ANE): ~50W (future)
 
-Horas de inferencia estimadas: ~8h/dia × 30 dias = 240h/mes
-Consumo medio: 45W × 240h = 10.8 kWh/mes
-Costo electricidad Colombia: ~$800 COP/kWh ≈ $0.20 USD/kWh
-Costo mensual: 10.8 × $0.20 = $2.16 USD/mes
+Estimated inference hours: ~8h/day × 30 days = 240h/month
+Average consumption: 45W × 240h = 10.8 kWh/month
+Colombia electricity cost: ~$800 COP/kWh ≈ $0.20 USD/kWh
+Monthly cost: 10.8 × $0.20 = $2.16 USD/month
 ```
 
-### ROI vs Rate Limits Cloud
+### ROI vs Cloud Rate Limits
 
 ```
-PROBLEMA ACTUAL:
-  Groq:     12,000 tokens/minuto → agente espera 5+ min entre calls
-  Cerebras: 1M tokens/dia → se agota en ~3 runs complejos
-  NVIDIA:   1000 creditos totales → no es sustentable
+CURRENT PROBLEM:
+  Groq:     12,000 tokens/minute → agent waits 5+ min between calls
+  Cerebras: 1M tokens/day → exhausted in ~3 complete runs
+  NVIDIA:   1000 total credits → not sustainable
 
-SOLUCION LOCAL:
-  Ollama Qwen3 32B: SIN LIMITES
-  → Un agente puede generar 45 tok/s × 60s = 2,700 tok/min
-  → 2,700 × 60 min = 162,000 tok/hora
-  → 162,000 × 24h = 3.8M tok/dia
-  → 13.5x mas que el free tier de Cerebras
+LOCAL SOLUTION:
+  Ollama Qwen3 32B: NO LIMITS
+  → An agent can generate 45 tok/s × 60s = 2,700 tok/min
+  → 2,700 × 60 min = 162,000 tok/hour
+  → 162,000 × 24h = 3.8M tok/day
+  → 13.5x more than Cerebras free tier
 ```
 
 ---
 
-## 10. Riesgos y Mitigaciones
+## 10. Risks and Mitigations
 
-### Matriz de Riesgos
+### Risk Matrix
 
-| # | Riesgo | Probabilidad | Impacto | Mitigacion |
+| # | Risk | Probability | Impact | Mitigation |
 |---|---|---|---|---|
-| R1 | **Presion de RAM con modelo 32B** | Alta | Media | Cerrar apps pesadas (Chrome, Docker). Monitorear con `Activity Monitor`. Script de pre-check antes de cargar modelo. |
-| R2 | **Calidad inferior a 70B cloud** | Media | Media | Compensar con mejor prompting, chain-of-thought explicito, CONSTITUTION mas detallada. Benchmark local vs cloud periodicamente. |
-| R3 | **ANE aun experimental** | Alta | Baja | No depender de ANE para produccion. Usarlo solo para embeddings y clasificacion ligera. Mantener GPU como runtime principal. |
-| R4 | **Single point of failure** | Media | Alta | Mantener cadena de fallback a cloud. Backups de modelos en disco externo. Script de recovery automatico. |
-| R5 | **Modelo corrupto o incompatible** | Baja | Media | Verificar checksums despues de descarga. Mantener version anterior del modelo. `ollama rm` + re-download si falla. |
-| R6 | **Actualizacion de macOS rompe MLX** | Baja | Alta | No actualizar macOS sin verificar compatibilidad MLX. Pinear version de MLX en requirements.txt. |
-| R7 | **Swap excesivo degrada rendimiento** | Media | Alta | Monitorear `memory_pressure` del sistema. Kill automatico si swap > 4 GB. |
+| R1 | **RAM pressure with 32B model** | High | Medium | Close heavy apps (Chrome, Docker). Monitor with `Activity Monitor`. Pre-check script before loading model. |
+| R2 | **Lower quality than 70B cloud** | Medium | Medium | Compensate with better prompting, explicit chain-of-thought, more detailed CONSTITUTION. Benchmark local vs cloud periodically. |
+| R3 | **ANE still experimental** | High | Low | Don't depend on ANE for production. Use only for embeddings and light classification. Keep GPU as main runtime. |
+| R4 | **Single point of failure** | Medium | High | Maintain cloud fallback chain. Model backups on external disk. Automatic recovery script. |
+| R5 | **Corrupt or incompatible model** | Low | Medium | Verify checksums after download. Keep previous model version. `ollama rm` + re-download if it fails. |
+| R6 | **macOS update breaks MLX** | Low | High | Don't update macOS without verifying MLX compatibility. Pin MLX version in requirements.txt. |
+| R7 | **Excessive swap degrades performance** | Medium | High | Monitor system `memory_pressure`. Automatic kill if swap > 4 GB. |
 
-### Script de Monitoreo de RAM
+### RAM Monitoring Script
 
 ```bash
 #!/bin/bash
-# monitor_ram.sh — Alerta si la presion de memoria es critica
+# monitor_ram.sh — Alert if memory pressure is critical
 
 while true; do
   PRESSURE=$(memory_pressure 2>/dev/null | grep "System-wide" | awk '{print $NF}')
 
   if [[ "$PRESSURE" == *"critical"* ]]; then
-    echo "[ALERTA] Presion de memoria CRITICA — considerar descargar modelo 32B"
-    osascript -e 'display notification "RAM critica — descargar modelo" with title "DOF Monitor"'
+    echo "[ALERT] CRITICAL memory pressure — consider unloading 32B model"
+    osascript -e 'display notification "Critical RAM — unload model" with title "DOF Monitor"'
   fi
 
   sleep 30
 done
 ```
 
-### Plan de Contingencia
+### Contingency Plan
 
 ```
-SI el modelo local falla:
-  1. Log del error en logs/metrics/local_inference_errors.jsonl
-  2. Fallback automatico a cloud (Groq → Cerebras → NVIDIA)
-  3. Incrementar backoff TTL para el modelo local (5 → 10 → 20 min)
-  4. Notificar via Telegram al operador
-  5. Si 3 fallos consecutivos → desactivar modelo local por 1 hora
+IF the local model fails:
+  1. Log the error in logs/metrics/local_inference_errors.jsonl
+  2. Automatic fallback to cloud (Groq → Cerebras → NVIDIA)
+  3. Increase backoff TTL for the local model (5 → 10 → 20 min)
+  4. Notify via Telegram to operator
+  5. If 3 consecutive failures → deactivate local model for 1 hour
 
-SI la maquina se congela:
-  1. Force quit del proceso Python (Activity Monitor)
-  2. ollama stop (mata el modelo cargado)
-  3. Verificar logs en logs/checkpoints/ — DOF tiene recovery por step
-  4. Reiniciar desde ultimo checkpoint valido
-```
-
----
-
-## Resumen Ejecutivo
-
-```
-ESTADO ACTUAL:    100% cloud, rate-limited, sin privacidad
-ESTADO OBJETIVO:  80% local, sin rate limits, soberania total
-
-MODELO PRINCIPAL: Qwen3 32B Q4 via Ollama (~20 GB, ~45 tok/s)
-MODELOS RAPIDOS:  Phi-4 14B, Llama 3.3 8B (concurrencia)
-FRAMEWORK:        Ollama + LiteLLM proxy + MLX para benchmarks
-
-COSTO:            ~$2 USD/mes en electricidad
-PRIVACIDAD:       Datos sensibles NUNCA salen de la maquina
-VELOCIDAD:        Consistente, sin esperas por rate limits
-DISPONIBILIDAD:   99.9% — no depende de APIs externas
-
-PROXIMOS PASOS:
-  1. Instalar Ollama + descargar Qwen3 32B Q4
-  2. Configurar LiteLLM proxy en puerto 4000
-  3. Actualizar providers.py con cadena de fallback local-first
-  4. Benchmark: local vs cloud en las 5 metricas DOF
-  5. Migrar agentes uno por uno, empezando por Sentinel (bajo riesgo)
+IF the machine freezes:
+  1. Force quit the Python process (Activity Monitor)
+  2. ollama stop (kills the loaded model)
+  3. Check logs in logs/checkpoints/ — DOF has recovery by step
+  4. Restart from last valid checkpoint
 ```
 
 ---
 
-> *"La soberania computacional no es un lujo — es un requisito para sistemas de observabilidad que pretenden ser verdaderamente deterministas."*
+## Executive Summary
+
+```
+CURRENT STATE:    100% cloud, rate-limited, no privacy
+TARGET STATE:     80% local, no rate limits, full sovereignty
+
+MAIN MODEL:  Qwen3 32B Q4 via Ollama (~20 GB, ~45 tok/s)
+FAST MODELS: Phi-4 14B, Llama 3.3 8B (concurrency)
+FRAMEWORK:   Ollama + LiteLLM proxy + MLX for benchmarks
+
+COST:         ~$2 USD/month in electricity
+PRIVACY:      Sensitive data NEVER leaves the machine
+SPEED:        Consistent, no waiting for rate limits
+AVAILABILITY: 99.9% — does not depend on external APIs
+
+NEXT STEPS:
+  1. Install Ollama + download Qwen3 32B Q4
+  2. Configure LiteLLM proxy on port 4000
+  3. Update providers.py with local-first fallback chain
+  4. Benchmark: local vs cloud on 5 DOF metrics
+  5. Migrate agents one by one, starting with Sentinel (low risk)
+```
+
+---
+
+> *"Computational sovereignty is not a luxury — it is a requirement for observability systems that claim to be truly deterministic."*

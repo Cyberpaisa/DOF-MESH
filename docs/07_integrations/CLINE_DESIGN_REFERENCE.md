@@ -1,14 +1,14 @@
 # Cline.bot Design Reference
 
-Referencia completa del sistema de diseno, contenido y estructura de cline.bot.
-Extraido el 2026-03-26 para usarse como referencia en la landing page de DOF-MESH.
+Complete reference of the design system, content, and structure of cline.bot.
+Extracted on 2026-03-26 for use as reference in the DOF-MESH landing page.
 
 ---
 
-## Tabla de Contenidos
+## Table of Contents
 
-1. [Sistema de Diseno Global](#sistema-de-diseno-global)
-2. [Pagina Principal (/)](#pagina-principal)
+1. [Global Design System](#global-design-system)
+2. [Main Page (/)](#main-page)
 3. [Enterprise (/enterprise)](#enterprise)
 4. [Pricing (/pricing)](#pricing)
 5. [Kanban (/kanban)](#kanban)
@@ -17,57 +17,57 @@ Extraido el 2026-03-26 para usarse como referencia en la landing page de DOF-MES
 
 ---
 
-## Sistema de Diseno Global
+## Global Design System
 
-### Paleta de Colores
+### Color Palette
 
-| Rol | Valor | Uso |
-|-----|-------|-----|
-| Background principal (light) | `#ffffff` / `brand-white` | Fondo principal de todas las paginas |
-| Background principal (dark) | `#0a0a0a` | Modo oscuro |
-| Texto primario (light) | Negro / dark gray | Headings y body text |
-| Texto primario (dark) | Blanco | Headings y body text en dark mode |
-| Acento principal | `brand-purple` | Seleccion de texto, highlights, CTAs |
-| Backgrounds secundarios | `bg-slate-100`, `bg-slate-200` | Secciones alternas, cards |
-| Secciones oscuras | `bg-slate-900` | Bloques de contraste |
+| Role | Value | Use |
+|------|-------|-----|
+| Main background (light) | `#ffffff` / `brand-white` | Main background of all pages |
+| Main background (dark) | `#0a0a0a` | Dark mode |
+| Primary text (light) | Black / dark gray | Headings and body text |
+| Primary text (dark) | White | Headings and body text in dark mode |
+| Primary accent | `brand-purple` | Text selection, highlights, CTAs |
+| Secondary backgrounds | `bg-slate-100`, `bg-slate-200` | Alternate sections, cards |
+| Dark sections | `bg-slate-900` | Contrast blocks |
 | Selection highlight | `brand-purple` bg + white text | `selection:bg-brand-purple selection:text-white` |
-| Bordes y divisores | Grises neutros | Separadores, card borders |
+| Borders and dividers | Neutral grays | Separators, card borders |
 
-### Tipografia
+### Typography
 
-| Propiedad | Valor |
-|-----------|-------|
+| Property | Value |
+|----------|-------|
 | Font Family | `font-sans` (system sans-serif stack) |
-| Headings | Bold weight, multiples niveles h1-h4 |
+| Headings | Bold weight, multiple levels h1-h4 |
 | Body text | Regular weight |
-| Tamanos responsivos | Clases Tailwind (text-4xl, text-xl, etc.) |
-| Selection styling | Purple background con white text |
+| Responsive sizes | Tailwind classes (text-4xl, text-xl, etc.) |
+| Selection styling | Purple background with white text |
 
-### Efectos Visuales
+### Visual Effects
 
-- **Animaciones de carga**: `animate-pulse` para skeleton loading states
-- **Hover states**: Transiciones suaves en links y botones
-- **Fade-in on scroll**: Animaciones de entrada al hacer scroll
-- **Skeleton loaders**: Gradiente shimmer effect en estados de carga
-- **Gradientes**: Gradientes sutiles en secciones de fondo
-- **Videos embebidos**: Tag `<video>` en secciones de demo
-- **Dark mode toggle**: Soporte completo de modo oscuro
-- **Overflow hidden**: En containers principales
+- **Loading animations**: `animate-pulse` for skeleton loading states
+- **Hover states**: Smooth transitions on links and buttons
+- **Fade-in on scroll**: Entry animations on scroll
+- **Skeleton loaders**: Gradient shimmer effect in loading states
+- **Gradients**: Subtle gradients in background sections
+- **Embedded videos**: `<video>` tag in demo sections
+- **Dark mode toggle**: Full dark mode support
+- **Overflow hidden**: On main containers
 
-### Navegacion Global
+### Global Navigation
 
-**Menu Principal:**
+**Main Menu:**
 - Enterprise
 - Pricing
 - Kanban
 - MCP (MCP Marketplace)
 - CLI
 
-**Botones de accion:**
-- Sign In (secundario)
-- Install Cline (primario)
+**Action buttons:**
+- Sign In (secondary)
+- Install Cline (primary)
 
-**Menu de Recursos (dropdown):**
+**Resources Menu (dropdown):**
 - Blog
 - Learn
 - Docs
@@ -78,11 +78,11 @@ Extraido el 2026-03-26 para usarse como referencia en la landing page de DOF-MES
 - Contact Sales
 - GitHub
 
-### Footer Global
+### Global Footer
 
 **Tagline:** "Transform your engineering team with a fully collaborative AI partner. Open source, fully extensible, and built to amplify developer impact."
 
-**Columnas de links:**
+**Link columns:**
 
 | Product | Community | Support | Company |
 |---------|-----------|---------|---------|
@@ -93,25 +93,25 @@ Extraido el 2026-03-26 para usarse como referencia en la landing page de DOF-MES
 | CLI | | | |
 | Changelog | | | |
 
-**Iconos sociales:** Discord, X/Twitter, LinkedIn, Reddit, GitHub
+**Social icons:** Discord, X/Twitter, LinkedIn, Reddit, GitHub
 
 **Copyright:** "(c) 2026 Cline Bot Inc. All rights reserved."
 
 ---
 
-## Pagina Principal
+## Main Page
 
 **URL:** `https://cline.bot/`
 
-### Estructura de Layout
+### Layout Structure
 
 ```
 [Nav Header]
 [Hero Section]
-  - Headline principal
+  - Main headline
   - Subheadline
   - Dual CTAs
-[Product Distribution Grid] (3 columnas)
+[Product Distribution Grid] (3 columns)
   - VS Code | CLI | JetBrains
 [Install CTA Section]
 [Social Proof Section]
@@ -123,19 +123,19 @@ Extraido el 2026-03-26 para usarse como referencia en la landing page de DOF-MES
 [Footer]
 ```
 
-### Contenido por Seccion
+### Content by Section
 
 #### Hero
 - **Heading:** "The Open Coding Agent"
 - **Subheading:** "Ship securely w/ Claude in VS Code"
 - **CTAs:** "Sign Up Free" | "Contact Sales"
 
-#### Product Distribution (3 columnas)
+#### Product Distribution (3 columns)
 - **Visual Studio Code:** "The world's most popular code editor with Cline's full AI capabilities built right in"
 - **Cline CLI:** "Command-line interface for terminal-first developers. Power and flexibility at your fingertips"
 - **JetBrains:** "Professional IDE suite with Cline integration for IntelliJ IDEA, PyCharm, WebStorm, and more"
 
-#### Subheading de transicion
+#### Transition subheading
 - "Same powerful agent, everywhere"
 
 #### Social Proof
@@ -154,7 +154,7 @@ Extraido el 2026-03-26 para usarse como referencia en la landing page de DOF-MES
 **Tab 3 - Automate with Cline CLI:**
 "Use Cline CLI in scripts, cron jobs, and CI pipelines to run recurring checks, updates, and custom workflows"
 
-#### CTA intermedio
+#### Intermediate CTA
 - "Ready to experience AI coding without limits?"
 - CTAs: "Install Cline" | "Visit the Repo"
 
@@ -177,7 +177,7 @@ Extraido el 2026-03-26 para usarse como referencia en la landing page de DOF-MES
 
 **URL:** `https://cline.bot/enterprise`
 
-### Estructura de Layout
+### Layout Structure
 
 ```
 [Nav Header]
@@ -195,14 +195,14 @@ Extraido el 2026-03-26 para usarse como referencia en la landing page de DOF-MES
 [Footer]
 ```
 
-### Contenido por Seccion
+### Content by Section
 
 #### Hero
 - **Heading:** "Secure by design."
 - **Subheading:** "The coding agent for enterprises that use any provider in any IDE"
 - **CTAs:** "Talk to Us" | "Contact Sales"
 
-#### Feature Grid (3 columnas)
+#### Feature Grid (3 columns)
 
 **Bring your own inference:**
 "Connects directly to Amazon Bedrock, GCP Vertex, Azure OpenAI, models running on your providers, or your local inference."
@@ -226,7 +226,7 @@ Samsung, Salesforce, Oracle, Microsoft, Amazon, LG, Globant, eBay, Visa, IBM, Cr
 #### Dashboard Section
 - **Heading:** "Scale Your Engineering Impact"
 - **Subheading:** "Built for how teams actually work"
-- **Interactivo:** "Click around to explore" con hover states
+- **Interactive:** "Click around to explore" with hover states
 
 #### Capabilities Grid (8 items)
 
@@ -241,7 +241,7 @@ Samsung, Salesforce, Oracle, Microsoft, Amazon, LG, Globant, eBay, Visa, IBM, Cr
 | Contextual Understanding | Ask questions of the codebase to understand complex logic instantly |
 | Feature Implementation | Implement new features end-to-end, from planning to code |
 
-#### Press Coverage (5 cards con fechas)
+#### Press Coverage (5 cards with dates)
 
 1. Salesforce Agentforce Vibes (Oct 29, 2025)
 2. Samsung Electronics adoption (Sep 12, 2025)
@@ -255,21 +255,21 @@ Samsung, Salesforce, Oracle, Microsoft, Amazon, LG, Globant, eBay, Visa, IBM, Cr
 
 **URL:** `https://cline.bot/pricing`
 
-### Estructura de Layout
+### Layout Structure
 
 ```
 [Nav Header]
 [Hero Section]
   - Headline
   - Value proposition copy
-[Pricing Cards] (3 columnas)
+[Pricing Cards] (3 columns)
   - Open Source | Teams | Enterprise
 [Trust Badges]
 [FAQ Accordion]
 [Footer]
 ```
 
-### Contenido por Seccion
+### Content by Section
 
 #### Hero
 - **Heading:** "Simple, transparent pricing"
@@ -278,7 +278,7 @@ Samsung, Salesforce, Oracle, Microsoft, Amazon, LG, Globant, eBay, Visa, IBM, Cr
 #### Pricing Tiers
 
 **Open Source - Free**
-- Subtitulo: "For individual developers"
+- Subtitle: "For individual developers"
 - CTA: "Install Cline >"
 - Features:
   - VS Code Extension
@@ -291,7 +291,7 @@ Samsung, Salesforce, Oracle, Microsoft, Amazon, LG, Globant, eBay, Visa, IBM, Cr
 
 **Teams - $0/mo** *(through Q1 2026, then $20/mo/user)*
 - CTA: "Get started"
-- Todo lo de Open Source, mas:
+- Everything in Open Source, plus:
   - JetBrains Extension
   - Centralized Billing
   - Simple Config Mgmt
@@ -301,9 +301,9 @@ Samsung, Salesforce, Oracle, Microsoft, Amazon, LG, Globant, eBay, Visa, IBM, Cr
   - Priority Support
 
 **Enterprise - Custom**
-- Subtitulo: "SSO, SLA & Dedicated Support"
+- Subtitle: "SSO, SLA & Dedicated Support"
 - CTA: "Contact Sales"
-- Todo lo de Teams, mas:
+- Everything in Teams, plus:
   - SSO
   - SLA
   - Dedicated Support
@@ -326,13 +326,13 @@ Samsung, Salesforce, Oracle, Microsoft, Amazon, LG, Globant, eBay, Visa, IBM, Cr
 
 **URL:** `https://cline.bot/kanban`
 
-### Estructura de Layout
+### Layout Structure
 
 ```
 [Nav Header]
 [Hero Section]
-  - Headline principal
-  - Subtitulo
+  - Main headline
+  - Subtitle
 [Feature Sections] (alternating layout)
   - Human-agent coordination
   - Watch the board
@@ -344,7 +344,7 @@ Samsung, Salesforce, Oracle, Microsoft, Amazon, LG, Globant, eBay, Visa, IBM, Cr
 [Footer]
 ```
 
-### Contenido por Seccion
+### Content by Section
 
 #### Hero
 - **Heading:** "Cline Kanban"
@@ -359,13 +359,13 @@ Samsung, Salesforce, Oracle, Microsoft, Amazon, LG, Globant, eBay, Visa, IBM, Cr
 "Observe your agents working next to a real time diff of changes. Leave comments like you're reviewing a PR and see as your agents execute."
 
 **"Unblock agents quickly. No more issue hunting."**
-(Monitoreo en tiempo real de agentes bloqueados)
+(Real-time monitoring of blocked agents)
 
 **"Chain dependent tasks, manually or automatically."**
 "Set up your workflow in the sequence you'd like it to run. Or let Cline do it. Break a project down with auto-commit and Cline will create and link with max parallelization."
 
 **"Any Agent. One UI."**
-Agentes soportados: Claude Code, Codex, Cline + "more agents coming soon"
+Supported agents: Claude Code, Codex, Cline + "more agents coming soon"
 
 #### Resources
 - "Kanban Launch Announcement" - CTA: "Read the blog"
@@ -378,7 +378,7 @@ Agentes soportados: Claude Code, Codex, Cline + "more agents coming soon"
 
 **URL:** `https://cline.bot/mcp-marketplace`
 
-### Estructura de Layout
+### Layout Structure
 
 ```
 [Nav Header]
@@ -392,7 +392,7 @@ Agentes soportados: Claude Code, Codex, Cline + "more agents coming soon"
 [Footer]
 ```
 
-### Contenido por Seccion
+### Content by Section
 
 #### Hero
 - **Heading:** "Plugins for Cline"
@@ -404,15 +404,15 @@ Agentes soportados: Claude Code, Codex, Cline + "more agents coming soon"
 
 #### Search/Filter UI
 - Placeholder: "Search MCPs..."
-- Tabs de filtro: "All" | "Popular" | categorias especificas
-- CTA por servidor: "One-click install"
+- Filter tabs: "All" | "Popular" | specific categories
+- CTA per server: "One-click install"
 
-#### Categorias del Marketplace (27 categorias)
+#### Marketplace Categories (27 categories)
 
 Developer-tools, Speech-processing, Security, Ecommerce-retail, Monitoring, Location-services, Finance, Communication, Cloud-platforms, File-systems, Search, Image-video-processing, Knowledge-memory, Browser-automation, Note-taking, Quality, Databases, Os-automation, Virtualization, Research-data, Version-control, License, Entertainment-media, Calendar-management, Cloud-storage, Marketing, Customer-support
 
-#### Servidores Populares
-Airtable, Google Calendar, Supabase, File System, Browser Tools, Sequential Thinking, Git Tools, Playwright + 200 mas
+#### Popular Servers
+Airtable, Google Calendar, Supabase, File System, Browser Tools, Sequential Thinking, Git Tools, Playwright + 200 more
 
 #### Submit Section
 - CTA: "Submit to Marketplace"
@@ -424,7 +424,7 @@ Airtable, Google Calendar, Supabase, File System, Browser Tools, Sequential Thin
 
 **URL:** `https://cline.bot/cli`
 
-### Estructura de Layout
+### Layout Structure
 
 ```
 [Nav Header]
@@ -444,7 +444,7 @@ Airtable, Google Calendar, Supabase, File System, Browser Tools, Sequential Thin
 [Footer]
 ```
 
-### Contenido por Seccion
+### Content by Section
 
 #### Hero
 - **Heading:** "Cline CLI"
@@ -484,25 +484,25 @@ Providers: Anthropic, OpenAI, Google Gemini, AWS Bedrock, Azure, GCP Vertex, Oll
 #### Code Snippets
 
 ```bash
-# Instalacion
+# Installation
 npm install -g cline
 
-# Autenticacion
+# Authentication
 cline auth
 
 # Version
 cline --version
 
-# Actualizar
+# Update
 npm update -g cline
 
-# CI/CD - Review de diff
+# CI/CD - Diff review
 git diff origin/main | cline -y "Review this diff. Flag bugs, security issues, and style violations."
 
-# Seguridad
+# Security
 cline -y "Check for known CVEs in package.json"
 
-# Review de staged changes
+# Review staged changes
 git diff --cached | cline -y "Review staged changes"
 
 # ACP Protocol
@@ -513,7 +513,7 @@ cline --acp
 "Node.js 18+ and an API key from a supported provider. Works on macOS, Linux, and Windows"
 
 #### FAQ - "Frequently Asked Questions"
-(Accordion section, preguntas no detalladas en el fetch)
+(Accordion section, questions not detailed in the fetch)
 
 #### Resources
 - CTA: "Read docs"
@@ -522,58 +522,58 @@ cline --acp
 
 ---
 
-## Patrones de Diseno Clave para Replicar
+## Key Design Patterns to Replicate
 
-### 1. Layout General
-- **Hero sections grandes** con headline bold + subheadline + dual CTAs
-- **Grids de 3 columnas** para features principales
-- **Secciones alternantes** (light/dark backgrounds)
-- **Social proof prominente** (logos de empresas, stats)
-- **Cards de contenido** para blog posts y recursos
+### 1. General Layout
+- **Large hero sections** with bold headline + subheadline + dual CTAs
+- **3-column grids** for main features
+- **Alternating sections** (light/dark backgrounds)
+- **Prominent social proof** (company logos, stats)
+- **Content cards** for blog posts and resources
 
-### 2. Componentes Recurrentes
-- **Trust badge strip**: Grid de logos de companias
-- **Feature card**: Icono + heading + descripcion
-- **CTA block**: Heading + copy + boton(es)
-- **FAQ accordion**: Pregunta expandible con respuesta
-- **Pricing card**: Nombre + precio + lista de features + CTA
-- **Blog card**: Imagen + titulo + excerpt + link
+### 2. Recurring Components
+- **Trust badge strip**: Grid of company logos
+- **Feature card**: Icon + heading + description
+- **CTA block**: Heading + copy + button(s)
+- **FAQ accordion**: Expandable question with answer
+- **Pricing card**: Name + price + feature list + CTA
+- **Blog card**: Image + title + excerpt + link
 
-### 3. Patrones de CTA
-- **Primario**: Fondo solido (purple/brand color), texto blanco
-- **Secundario**: Borde/outline, texto del color de acento
-- **Texto link**: Sin borde, con flecha ">"
-- Siempre en pares: accion principal + accion secundaria
+### 3. CTA Patterns
+- **Primary**: Solid background (purple/brand color), white text
+- **Secondary**: Border/outline, accent color text
+- **Text link**: No border, with ">" arrow
+- Always in pairs: main action + secondary action
 
-### 4. Esquema de Pagina Tipo
+### 4. Standard Page Layout
 ```
 [Sticky Nav]
-[Hero: grande, centrado, con gradiente sutil]
+[Hero: large, centered, with subtle gradient]
 [Social Proof: stats + logos]
-[Features: grid o tabs]
-[Deep Dive: secciones alternantes con demos/screenshots]
-[CTA intermedio]
-[Testimonials o Press]
-[Footer multi-columna]
+[Features: grid or tabs]
+[Deep Dive: alternating sections with demos/screenshots]
+[Intermediate CTA]
+[Testimonials or Press]
+[Multi-column Footer]
 ```
 
-### 5. Tech Stack Detectado
-- **Framework**: Next.js (Next.js image optimization detectado)
-- **CSS**: Tailwind CSS (clases utilitarias en todo el markup)
-- **Dark mode**: Toggle con clases Tailwind dark:
+### 5. Detected Tech Stack
+- **Framework**: Next.js (Next.js image optimization detected)
+- **CSS**: Tailwind CSS (utility classes throughout the markup)
+- **Dark mode**: Toggle with Tailwind dark: classes
 - **SEO**: Schema markup (SoftwareApplication, FAQPage, Organization)
 - **Analytics**: Google Tag Manager, Google Ads, Facebook Pixel
-- **Fonts**: System sans-serif stack (no custom fonts detectadas)
+- **Fonts**: System sans-serif stack (no custom fonts detected)
 
 ---
 
-## Notas para Adaptacion a DOF-MESH
+## Notes for Adaptation to DOF-MESH
 
-1. **Reemplazar brand-purple** con el color primario de DOF-MESH
-2. **Mantener la estructura**: Hero > Social Proof > Features > Deep Dive > CTA > Footer
-3. **Adaptar el social proof**: En lugar de logos enterprise, usar metricas de nodos, uptime, scores
-4. **Feature showcase**: Tabs o cards para las capacidades principales de DOF-MESH
-5. **Pricing**: Adaptar tiers al modelo de DOF-MESH si aplica
-6. **Dark mode first**: Considerar dark mode como default (mas apropiado para crypto/blockchain)
-7. **Codigo/terminal demos**: Mostrar comandos de DOF-MESH CLI similar al CLI page de Cline
-8. **MCP Marketplace equivalent**: Marketplace de agentes o skills de DOF-MESH
+1. **Replace brand-purple** with DOF-MESH primary color
+2. **Keep the structure**: Hero > Social Proof > Features > Deep Dive > CTA > Footer
+3. **Adapt social proof**: Instead of enterprise logos, use node metrics, uptime, scores
+4. **Feature showcase**: Tabs or cards for DOF-MESH main capabilities
+5. **Pricing**: Adapt tiers to DOF-MESH model if applicable
+6. **Dark mode first**: Consider dark mode as default (more appropriate for crypto/blockchain)
+7. **Code/terminal demos**: Show DOF-MESH CLI commands similar to Cline's CLI page
+8. **MCP Marketplace equivalent**: Agent or skills marketplace for DOF-MESH

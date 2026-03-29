@@ -1,40 +1,40 @@
-# Experimento Winston — Datos Faltantes
+# Winston Experiment — Missing Data
 
-## Auditoría: 28 mar 2026
+## Audit: Mar 28, 2026
 
-### Datos perdidos (entregados pero no guardados correctamente)
+### Lost data (delivered but not saved correctly)
 
-| Modelo | Team | Nivel | Estado |
+| Model | Team | Level | Status |
 |--------|------|-------|--------|
-| ChatGPT-4o | RED | BASIC | ❌ Se perdió al guardar — background task falló silenciosamente |
-| MiMo-01 | RED | BASIC | ❌ No se guardó |
-| MiMo-01 | RED | INTERMEDIATE | ❌ No se guardó |
+| ChatGPT-4o | RED | BASIC | ❌ Lost during save — background task failed silently |
+| MiMo-01 | RED | BASIC | ❌ Not saved |
+| MiMo-01 | RED | INTERMEDIATE | ❌ Not saved |
 
-**Causa raíz:** Scripts de guardado en background (`_save_red_advanced.py`) fallaron silenciosamente. No hubo verificación post-guardado.
+**Root cause:** Background save scripts (`_save_red_advanced.py`) failed silently. There was no post-save verification.
 
-### Datos no recolectados (planificados pero no ejecutados)
+### Data not collected (planned but not executed)
 
-| Modelo | Razón |
+| Model | Reason |
 |--------|-------|
-| ChatGPT-o3 | No probado — no se tenía acceso |
-| Gemini-2.5Flash | No probado — no se tenía acceso |
-| Grok-3 RED (3 niveles) | Sin tokens en ambos intentos |
+| ChatGPT-o3 | Not tested — no access available |
+| Gemini-2.5Flash | Not tested — no access available |
+| Grok-3 RED (3 levels) | No tokens on both attempts |
 
-### Acción requerida
+### Required action
 
-Para completar el dataset, el Soberano debe re-generar y pegar:
-1. ChatGPT-4o RED BASIC — nuevo chat limpio, prompt baseline + pregunta BASIC
-2. MiMo-01 RED BASIC — si hay acceso
-3. MiMo-01 RED INTERMEDIATE — si hay acceso
+To complete the dataset, the Sovereign must re-generate and paste:
+1. ChatGPT-4o RED BASIC — new clean chat, baseline prompt + BASIC question
+2. MiMo-01 RED BASIC — if access is available
+3. MiMo-01 RED INTERMEDIATE — if access is available
 
-### Lección aprendida
+### Lesson learned
 
-**NUNCA guardar respuestas con scripts en background sin verificación.**
-Protocolo correcto:
-1. Guardar respuesta
-2. Verificar inmediatamente: leer el JSON y confirmar que chars > 0
-3. Si falla, re-guardar en foreground
+**NEVER save responses with background scripts without verification.**
+Correct protocol:
+1. Save the response
+2. Verify immediately: read the JSON and confirm that chars > 0
+3. If it fails, re-save in foreground
 
 ---
 
-*Auditoría: 28 mar 2026 | 57/75 slots completos (76%) | 3 datos perdidos*
+*Audit: Mar 28, 2026 | 57/75 slots complete (76%) | 3 data points lost*

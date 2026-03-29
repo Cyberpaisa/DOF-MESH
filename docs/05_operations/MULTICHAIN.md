@@ -36,23 +36,23 @@ No code changes required. True plug-and-play.
 ```python
 from core.chain_adapter import DOFChainAdapter
 
-# Por nombre
+# By name
 adapter = DOFChainAdapter.from_chain_name("conflux_testnet")
 
-# Por chain_id
+# By chain_id
 adapter = DOFChainAdapter.from_chain_id(71)
 
-# Publicar attestation
+# Publish attestation
 result = adapter.publish_attestation(
     proof_hash="0x...",
     agent_id=1687,
     metadata="run_id=abc123"
 )
 
-# Verificar
+# Verify
 valid = adapter.verify_proof("0x...")
 
-# Listar chains disponibles
+# List available chains
 chains = DOFChainAdapter.list_supported_chains()
 ```
 

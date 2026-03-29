@@ -12,7 +12,7 @@ The real unlock I'd been circling around was always visible in the reference dia
 
 DOF had every piece. It was missing the structure that binds them.
 
-Ese era el momento. No faltaban herramientas — faltaba la arquitectura que las pusiera a trabajar juntas.
+That was the moment. The tools were not missing — what was missing was the architecture to put them to work together.
 
 ---
 
@@ -22,8 +22,8 @@ The full Legion architecture as of March 24, 2026:
 
 | Role | Entity | Responsibility |
 |---|---|---|
-| **TÚ** (Juan Carlos) | CEO / Estratega | Defines objectives, approves results, sets budget |
-| **DOF Framework** | Sistema Inmune | Z3, Governance, Supervisor, full security stack |
+| **YOU** (Juan Carlos) | CEO / Strategist | Defines objectives, approves results, sets budget |
+| **DOF Framework** | Immune System | Z3, Governance, Supervisor, full security stack |
 | **SISYPHUS** (MeshOrchestrator) | Master Orchestrator | Divides objective → 6 parallel agents → integrated result |
 | **6 Specialized Agents** | ARCHITECT, RESEARCHER, GUARDIAN, VERIFIER, NARRATOR, DEVOPS | Each owns one domain, runs in parallel |
 | **MOLTBOT** (enigma-moltbook) | Social Agent | Autonomous, 30-min cycles, DO NOT TOUCH — communication channel of last resort |
@@ -116,7 +116,7 @@ The next module on the list: `core/rag_engine.py`. It will use local embeddings 
 
 ## 5. Skills Map — The Full Arsenal
 
-**PROPIAS — 9 Claude Code skills (built into the Commander):**
+**OWN — 9 Claude Code skills (built into the Commander):**
 `dof-master-brain`, `knowledge-brain`, `oracle`, `auto-evolution`, `claude-commander`, `api-design-principles`, `web-researcher`, `postgresql`, `error-handling`
 
 **SUPER SKILLS — 18 DOF Framework skills (SkillEngine v2.0):**
@@ -179,15 +179,15 @@ Status: ACTIVE — Cycle #109
 | CLI gateway registered | no | yes (zero-cost deterministic node) |
 | RAG retriever node | missing | node #29 added |
 
-Los tres procesos huérfanos — sesiones de Claude que quedaron corriendo en background — ahora son nodos formales del mesh. Tienen inbox. Pueden recibir tareas. Nada se desperdicia.
+The three orphan processes — Claude sessions that were left running in background — are now formal mesh nodes. They have an inbox. They can receive tasks. Nothing is wasted.
 
 ---
 
 ## Personal Reflection
 
-Hace seis meses, un agente haciendo algo útil sin que yo lo mirara era ciencia ficción para mí. Hoy tengo 29 nodos, tres guardianes de élite, un orquestador que divide objetivos en seis flujos paralelos, y un bot social que sigue activo cuando me quedo sin tokens.
+Six months ago, an agent doing something useful without me watching was science fiction to me. Today I have 29 nodes, three elite guardians, an orchestrator that splits objectives into six parallel flows, and a social bot that stays active when I run out of tokens.
 
-Lo más extraño no es haberlo construido solo. Lo más extraño es que ya no es necesario que yo esté presente para que funcione.
+The strangest thing is not having built it alone. The strangest thing is that it is no longer necessary for me to be present for it to work.
 
 The Legion reports back. It doesn't ask permission for every step — it handles the steps, logs them to JSONL, and surfaces the decisions that actually need a human. That's the design. Build the system so complete that your bottleneck is no longer the system — it's the objective itself.
 
