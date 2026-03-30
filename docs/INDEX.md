@@ -60,12 +60,21 @@ See [BOOK_INDEX.md](03_book/BOOK_INDEX.md) for full chapter list.
 - [AGENT_TEAMS_DOF_BRIDGE.md](08_agents/AGENT_TEAMS_DOF_BRIDGE.md) — Agent Teams bridge
 
 ### [09 Sessions](09_sessions/) — Session logs & social content
+- [SESSION_AGI_LOCAL_20260329.md](09_sessions/SESSION_AGI_LOCAL_20260329.md) — **Sistema auto-evolutivo activado** (evolution daemon, Rust gate, auto-promote rules)
 - [WINSTON_SYSTEM_COMPLETE.md](09_sessions/WINSTON_SYSTEM_COMPLETE.md) — Winston comms system
 - [NIGHT_SESSION_LOG.md](09_sessions/NIGHT_SESSION_LOG.md) — Night session logs
 - [SOCIAL_CONTENT.md](09_sessions/SOCIAL_CONTENT.md) — Social media content
+
+### [04 Strategy — Nuevos docs](04_strategy/)
+- [COMPETITIVE_ANALYSIS_SYNTHESIS_20260329.md](04_strategy/COMPETITIVE_ANALYSIS_SYNTHESIS_20260329.md) — 684 proyectos analizados, DOF Top 3
+- [HACKER_NEWS_POST_COMPLETO.md](04_strategy/HACKER_NEWS_POST_COMPLETO.md) — Guía completa HN: protocolo golden hour, 6 Q&As
+- [HACKER_NEWS_POST.md](04_strategy/HACKER_NEWS_POST.md) — Post HN copy-paste ready
+
+### [Paper](paper/) — Publicaciones científicas
+- [DOF_TECHNICAL_PAPER_DRAFT.md](paper/DOF_TECHNICAL_PAPER_DRAFT.md) — Paper técnico 11 secciones, arXiv ready
 
 ### [Evidence](evidence/) — Experiments & test evidence
 See [EVIDENCE_INDEX.md](EVIDENCE_INDEX.md) for full list.
 
 ---
-*Last updated: 2026-03-29 · DOF-MESH v0.5.0*
+*Last updated: 2026-03-29 · DOF-MESH v0.5.1 — Sistema auto-evolutivo activo*
