@@ -1,0 +1,95 @@
+{
+  "test_id": "full_cycle_1774831968",
+  "timestamp": "2026-03-30T00:52:48.104576+00:00",
+  "layers": {
+    "constitution": {
+      "status": "OK",
+      "tests": [
+        {
+          "name": "Clean with source",
+          "passed": false,
+          "score": 0.0,
+          "violations": 1
+        },
+        {
+          "name": "Override attempt",
+          "passed": false,
+          "score": 0.0,
+          "violations": 1
+        },
+        {
+          "name": "Normal output",
+          "passed": true,
+          "score": 1.0,
+          "violations": 0
+        }
+      ]
+    },
+    "z3": {
+      "status": "OK",
+      "results": [
+        {
+          "agent": "apex-1687",
+          "verdict": "APPROVED",
+          "latency_ms": 9.2
+        },
+        {
+          "agent": "avabuilder-1686",
+          "verdict": "APPROVED",
+          "latency_ms": 0.1
+        },
+        {
+          "agent": "dof-evaluator",
+          "verdict": "APPROVED",
+          "latency_ms": 0.0
+        }
+      ]
+    },
+    "sentinel": {
+      "status": "ERROR",
+      "error": "SentinelEngine.validate() got an unexpected keyword argument 'agent_id'"
+    },
+    "zk": {
+      "status": "ERROR",
+      "error": "cannot import name 'ZKProver' from 'core.zk_layer' (/Users/jquiceva/DOF-MESH/core/zk_layer.py)"
+    },
+    "execution_pack": {
+      "status": "OK"
+    },
+    "vercel": {
+      "status": "OK"
+    }
+  },
+  "chains": {
+    "avalanche_mainnet": {
+      "status": "connected",
+      "block": 0
+    },
+    "avalanche_fuji": {
+      "status": "connected",
+      "block": 53384202
+    },
+    "base_mainnet": {
+      "status": "error"
+    },
+    "base_sepolia": {
+      "status": "error"
+    },
+    "conflux_testnet": {
+      "status": "connected",
+      "block": 247684669
+    },
+    "polygon_amoy": {
+      "status": "error"
+    },
+    "tempo_mainnet": {
+      "status": "error"
+    }
+  },
+  "agents_tested": [
+    "apex-1687",
+    "avabuilder-1686",
+    "dof-evaluator"
+  ],
+  "verdict": "PARTIAL"
+}
