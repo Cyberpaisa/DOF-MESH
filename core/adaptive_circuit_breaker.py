@@ -11,7 +11,7 @@ States:
   OPEN      — agent quarantined, all actions rejected until rate recovers
 
 Usage:
-    breaker = AdaptiveCircuitBreaker(agent_id="apex-1687")
+    breaker = AdaptiveCircuitBreaker(agent_id=1687)
     breaker.record(blocked=True)   # called by Supervisor after each governance check
     if breaker.state() == CircuitState.OPEN:
         raise AgentQuarantinedException(agent_id)

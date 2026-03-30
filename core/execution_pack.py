@@ -16,7 +16,7 @@ Rule: If a spec cannot be executed immediately, it is functionally incomplete.
 Usage:
     from core.execution_pack import ExecutionPackBuilder
 
-    builder = ExecutionPackBuilder(agent_id="apex_1687", version="1.0.0")
+    builder = ExecutionPackBuilder(agent_id=1687, version="1.0.0")
     builder.set_policy(violations=[], warnings=[], score=85)
     builder.set_sentinel(checks_passed=27, score=85, verdict="PASS")
     builder.set_state_machine(states=["idle","running","governed","done"])

@@ -89,7 +89,7 @@
       "rpc_url": "https://sepolia.base.org",
       "explorer": "https://sepolia.basescan.org",
       "contract_address": "0x7e0f0D0bC09D14Fa6C1F79ab7C0EF05b5e4F1f59",
-      "deployer": "0xB529f4f99ab244cfa7a48596Bf165CAc5B317929",
+      "deployer": "",
       "deploy_tx": "0x772fb9fc523a4535f0e8bf54afac47ee642a34050d911bc9cb32016a06a9aeb3",
       "deploy_date": "2026-03-28",
       "status": "testnet",
