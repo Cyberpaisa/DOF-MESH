@@ -26,7 +26,7 @@ fi
 # 2. Verificar / instalar maturin
 if ! command -v maturin &>/dev/null; then
     echo "[2/4] Instalando maturin..."
-    pip install maturin --quiet
+    pip3 install maturin --quiet 2>/dev/null || python3 -m pip install maturin --quiet
     echo "  ✓ maturin $(maturin --version)"
 else
     echo "[2/4] maturin ya instalado: $(maturin --version)"

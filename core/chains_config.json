@@ -168,6 +168,26 @@
       "gas_multiplier": 1,
       "native_token": "CELO",
       "faucet": "https://faucet.celo.org/"
+    },
+    "tempo": {
+      "chain_id": 4217,
+      "name": "Tempo Mainnet",
+      "rpc_url": "https://rpc.tempo.xyz",
+      "contract_address": "0x4e54634d0e12f2fa585b6523fb21c7d8aafc881d",
+      "status": "mainnet",
+      "native_token": "TEMPO",
+      "gas_multiplier": 1.2,
+      "notes": "Stripe+Paradigm L1 para agentes. DOFIdentityRegistry deployado."
+    },
+    "virtuals": {
+      "chain_id": 8453,
+      "name": "Base (Virtuals ACP)",
+      "rpc_url": "https://mainnet.base.org",
+      "contract_address": "0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D",
+      "status": "mainnet",
+      "native_token": "ETH",
+      "gas_multiplier": 1.1,
+      "notes": "Base mainnet \u2014 DOFProofRegistry. DOF registrado como ACP Evaluator en Virtuals Protocol."
     }
   }
 }
