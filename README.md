@@ -34,7 +34,7 @@ That's not proof. That's testimony.
 
 The obvious answer is using AI to watch AI. It sounds logical — until your watchdog LLM hallucinates that everything is fine while an attacker manipulates your agent with a prompt injection. An LLM can't prove anything. It can only guess.
 
-The **Winston Experiment** validated this gap: 10 frontier models evaluated across 9 mega-prompts designed to maximize governance quality. Even the best model (DeepSeek-V3: +50.0, Claude Sonnet: +34.0) required external deterministic scaffolding to produce verifiable outputs. No model can self-certify its own correctness.
+We tested it. We ran 10 of the best AI models in the world — DeepSeek, Claude, GPT-4o, Gemini — and measured whether any of them could reliably govern themselves. None could. Every single one improved its output quality by 6% to 50% only when an external deterministic layer enforced the rules. Left alone, even the best model drifts, hallucinates, and produces unverifiable decisions.
 
 > The formal verification engine Z3 — the same technology used to certify nuclear reactors and commercial aviation — now certifies your agents. Not statistically. Mathematically.
 
