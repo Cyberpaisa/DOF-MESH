@@ -1,22 +1,28 @@
-version: "3.8"
-
+# Project Citadel: Sovereign Orchestration
 services:
-  dof-mesh-core:
+  citadel-swarm:
     build: .
-    container_name: sovereign_citadel
-    # We use bind mounts so your code lives safely on the Mac but executes inside Docker
+    container_name: dof-mesh-citadel
+    # Isolation: No external internet access by default (Sovereign/Air-Gap)
+    networks:
+      - mesh-internal
+    
+    # Volumes: Mount your history and secrets as READ-ONLY
     volumes:
-      - ./:/app
-      - ~/.claude:/root/.claude:ro # Read-only access to global MCP/Claude configs if needed
+      # Code (ReadOnly to prevent agents from self-modifying or malware persistence)
+      - .:/app:ro
+      # Logs (Read-Write for audit trail)
+      - ./logs:/app/logs:rw
+      # The Sovereign Vault (History & Book - READ-ONLY)
+      - ./Sovereign_Vault:/app/Sovereign_Vault:ro
+      # The .env Secrets (READ-ONLY)
+      - ./.env:/app/.env:ro
+    
+    # Environment
     environment:
-      # Pass through essential Oracle Keys and Network Overrides
-      - OMLX_BASE_URL=http://host.docker.internal:8080/v1
-      # Local Mac loopback for native test integrations
-      - DOCKER_HOST_IP=host.docker.internal
-    # The bridge network allows mapping the internal host
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    # Keep container alive silently for scripts to attach
-    command: tail -f /dev/null
-    # Restart policy
-    restart: unless-stopped
+      - CITADEL_MODE=SOVEREIGN
+      - PYTHONUNBUFFERED=1
+
+networks:
+  mesh-internal:
+    internal: true

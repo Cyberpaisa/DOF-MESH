@@ -1,32 +1,45 @@
-# -----------------------------------------------------------------------------
-# DOF-MESH SOVEREIGN CITADEL (PHASE 4.3) - Air-Gap Container
-# -----------------------------------------------------------------------------
-# Base Image: Python 3.13 (Slim) to match the host macOS environment closely
-FROM python:3.13-slim
+# Project Citadel: Sovereign Dockerfile
+# Base: Python 3.12-slim (Minimalist and secure)
+FROM python:3.12-slim
 
-# Set environment variables for non-interactive installs and Python optimization
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    DEBIAN_FRONTEND=noninteractive \
-    NODE_VERSION=20.x
+# Labels for provenance
+LABEL maintainer="Antigravity"
+LABEL version="0.4.0-citadel"
+LABEL security.isolation="HARD"
 
-# Install System Dependencies, Build Tools, and Node.js (for Context7 MCP)
+# Environment configuration
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+# System dependencies (Z3 solver for formal verification)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    gnupg \
     build-essential \
-    && curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION} | bash - \
-    && apt-get install -y nodejs \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    libz3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set Working Directory (This will be bind-mounted from macOS)
+# Security: Create non-root user 'citadel'
+RUN groupadd -r citadel && useradd -r -g citadel citadel
+
+# Workspace setup
 WORKDIR /app
 
-# Install Python requirements
-# We copy only the requirements first to cache the pip install layer
+# Copy and install dependencies first (caching)
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt || echo "Warning: Some requirements failed. Consider updating requirements.txt"
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Default Command: keeps the container alive for execution via mesh_run.sh
-CMD ["tail", "-f", "/dev/null"]
+# Initial code copy (Structure only)
+# Note: At runtime, we mount the real codebase as READ-ONLY for security
+COPY . .
+
+# Set permissions
+RUN chown -r citadel:citadel /app
+USER citadel
+
+# Expose internal port (Proxy or local models)
+EXPOSE 8080
+
+# The Guardian: Run integrity check before execution
+# Note: The entrypoint will run verify_sovereignty.py
+# CMD ["python3", "scripts/verify_sovereignty.py", "&&", "python3", "scripts/execute_global_evaluator.py", "run"]
+CMD ["python3", "scripts/execute_global_evaluator.py", "run"]

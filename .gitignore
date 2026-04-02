@@ -37,6 +37,14 @@ memory/
 experiments/
 !experiments/schema.json
 
+# Project Citadel: Sovereign Vault
+Sovereign_Vault/
+reports/
+*.json
+!package.json
+!composer.json
+!**/dof.constitution.yml
+
 # Output
 output/
 
