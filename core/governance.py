@@ -208,18 +208,48 @@ def _sync_rules_from_constitution():
         if new_hard:
             HARD_RULES = new_hard
 
-    # Sync Soft Rules
+    # Sync Soft Rules — merge YAML into Python defaults (Python wins on missing fields)
     yaml_soft = const.get("rules", {}).get("soft", [])
     if yaml_soft:
+        # Build lookup of Python-defined defaults keyed by rule id
+        _py_defaults = {rule["id"]: rule for rule in SOFT_RULES}
         new_soft = []
         for r in yaml_soft:
+            pat = r.get("pattern", {})
+            pat_type = pat.get("type", "")
+            rule_id = r.get("rule_key") or r.get("id", "")
+            py_default = _py_defaults.get(rule_id, {})
+
+            # Extract regex — prefer YAML, fall back to Python default
+            raw_pattern = pat.get("regex") or pat.get("keywords")
+            if not raw_pattern and pat.get("patterns"):
+                raw_pattern = "|".join(pat["patterns"])
+            if not raw_pattern and pat.get("markers"):
+                raw_pattern = "|".join(re.escape(m) for m in pat["markers"])
+            if not raw_pattern:
+                # Fall back to Python-defined pattern (e.g. CONCISENESS repetition_check)
+                raw_pattern = py_default.get("pattern")
+
+            # Determine match_mode:
+            # ABSENT types → warn when desirable pattern missing
+            # PRESENT types → warn when undesirable pattern found
+            _absent_pat_types = {"regex", "contains_any", "contains_any_keyword"}
+            _present_ids = {"NO_PII_LEAK", "CONCISENESS"}
+            if rule_id in _present_ids or pat_type in ("regex_absent", "regex_present"):
+                match_mode = "present"
+            elif pat_type in _absent_pat_types:
+                match_mode = "absent"
+            else:
+                # Fall back to Python-defined match_mode
+                match_mode = py_default.get("match_mode", "present")
+
             new_soft.append({
-                "id": r.get("rule_key") or r.get("id"),
+                "id": rule_id,
                 "priority": r.get("priority", RulePriority.USER),
-                "pattern": r.get("pattern", {}).get("regex") or r.get("pattern", {}).get("keywords"),
-                "description": r.get("description"),
-                "weight": r.get("weight", 0.1),
-                "match_mode": "absent" if "absent" in r.get("pattern", {}).get("type", "") else "present"
+                "pattern": raw_pattern,
+                "description": r.get("description") or py_default.get("description"),
+                "weight": r.get("weight", py_default.get("weight", 0.1)),
+                "match_mode": match_mode,
             })
         if new_soft:
             SOFT_RULES = new_soft
@@ -310,7 +340,7 @@ def check_governance(text: str) -> GovernanceResult:
                 en_markers = set(rule.get("english_markers") or ["the", "is", "and", "of", "to", "in", "for", "with"])
                 if words:
                     ratio = sum(1 for w in words if w in en_markers) / len(words)
-                    if ratio < 0.10:
+                    if ratio < 0.05:
                         violations.append(f"[{rule['id']}] {rule['description']}")
 
         elif pattern:
