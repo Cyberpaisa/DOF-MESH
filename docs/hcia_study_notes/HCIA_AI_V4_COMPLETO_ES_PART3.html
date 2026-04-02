@@ -1,0 +1,2622 @@
+<!-- HCIA-AI V4.0 — PARTE 3: Conceptos Importantes de ML + Algoritmos Comunes de ML + Fundamentos de Deep Learning y Modelos Fundacionales -->
+<!-- Diapositivas 134–282 (pages 134–282 del PDF) -->
+
+<!-- ============================================================ -->
+<!--  SECCIÓN: Conceptos Importantes de Aprendizaje Automático    -->
+<!--  (Continuación del Capítulo de Machine Learning)             -->
+<!-- ============================================================ -->
+
+<div class="slide" id="slide-134">
+  <h3>Diapositiva 134</h3>
+  <img src="slides/page-134.png" alt="Diapositiva 134">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Algoritmos de Aprendizaje Automático</li>
+      <li>Tipos de Aprendizaje Automático</li>
+      <li>Proceso de Aprendizaje Automático</li>
+      <li><strong>Conceptos Importantes de Aprendizaje Automático</strong></li>
+      <li>Algoritmos Comunes de Aprendizaje Automático</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-135">
+  <h3>Diapositiva 135</h3>
+  <img src="slides/page-135.png" alt="Diapositiva 135">
+  <div class="content">
+    <h4>Métodos de Entrenamiento en ML - Descenso de Gradiente (1)</h4>
+    <ul>
+      <li>Este método utiliza la dirección del gradiente negativo de la posición actual como dirección de búsqueda, que es la dirección de descenso más rápido de la posición actual. La fórmula es la siguiente:</li>
+      <li><strong>w<sub>k+1</sub> = w<sub>k</sub> - &eta;&nabla;f<sub>w<sub>k</sub></sub>(x<sub>i</sub>)</strong></li>
+      <li>&eta; es la <strong>tasa de aprendizaje</strong>. <em>i</em> indica el <em>i</em>-ésimo registro de datos. &eta;&nabla;f<sub>w<sub>k</sub></sub>(x<sub>i</sub>) indica el cambio del parámetro de peso <em>w</em> en cada iteración.</li>
+      <li><strong>Convergencia</strong> significa que el valor de la función objetivo cambia muy poco o se alcanza el número máximo de iteraciones.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-136">
+  <h3>Diapositiva 136</h3>
+  <img src="slides/page-136.png" alt="Diapositiva 136">
+  <div class="content">
+    <h4>Métodos de Entrenamiento en ML - Descenso de Gradiente (2)</h4>
+    <ul>
+      <li><strong>Descenso de gradiente por lotes (BGD):</strong> Utiliza la suma de los gradientes de todas las <em>m</em> muestras del conjunto de datos en el punto actual para actualizar el parámetro de peso.</li>
+      <li><strong>Descenso de gradiente estocástico (SGD):</strong> Utiliza aleatoriamente el gradiente de una muestra aleatoria del conjunto de datos en el punto actual para actualizar el parámetro de peso.</li>
+      <li><strong>Descenso de gradiente por mini-lotes (MBGD):</strong> Combina las características de BGD y SGD, eligiendo los gradientes de <em>n</em> muestras del conjunto de datos cada vez para actualizar el parámetro de peso.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>Típicamente, el método de descenso de gradiente muestra un descenso decreciente en un rango muy pequeño cerca del punto objetivo, pero el gradiente puede fluctuar en un rango específico del punto objetivo.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-137">
+  <h3>Diapositiva 137</h3>
+  <img src="slides/page-137.png" alt="Diapositiva 137">
+  <div class="content">
+    <h4>Métodos de Entrenamiento en ML - Descenso de Gradiente (3)</h4>
+    <p>Comparación de métodos de descenso de gradiente:</p>
+    <ul>
+      <li><strong>SGD</strong> elige muestras aleatoriamente para cada paso de entrenamiento, causando inestabilidad. Como resultado, la función de pérdida fluctúa o incluso produce desplazamiento inverso durante el proceso de descenso hacia el mínimo.</li>
+      <li><strong>BGD</strong> es el más estable, pero consume demasiados recursos de cómputo. <strong>MBGD</strong> es un equilibrio entre BGD y SGD.</li>
+    </ul>
+    <table>
+      <tr><th>BGD</th><td>Se usan todas las muestras de entrenamiento en cada paso.</td></tr>
+      <tr><th>SGD</th><td>Se usa una muestra de entrenamiento en cada paso.</td></tr>
+      <tr><th>MBGD</th><td>Se usa un cierto número de muestras en cada paso.</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="slide" id="slide-138">
+  <h3>Diapositiva 138</h3>
+  <img src="slides/page-138.png" alt="Diapositiva 138">
+  <div class="content">
+    <h4>Parámetros e Hiperparámetros</h4>
+    <ul>
+      <li>Un modelo contiene no solo <strong>parámetros</strong> sino también <strong>hiperparámetros</strong>. Los hiperparámetros permiten que el modelo aprenda las configuraciones óptimas de los parámetros.</li>
+      <li><strong>Parámetros:</strong> Son aprendidos automáticamente por los modelos.</li>
+      <li><strong>Hiperparámetros:</strong> Son configurados manualmente.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>El desplazamiento inverso es causado por datos ruidosos del conjunto de datos.</li>
+        <li>Algunos consideran BGD y MBGD como tipos de SGD.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-139">
+  <h3>Diapositiva 139</h3>
+  <img src="slides/page-139.png" alt="Diapositiva 139">
+  <div class="content">
+    <h4>Parámetros e Hiperparámetros (Detalle)</h4>
+    <p>Los parámetros se "destilan" de los datos. Los hiperparámetros son configuraciones externas al modelo.</p>
+    <p><strong>Características de los hiperparámetros:</strong></p>
+    <ul>
+      <li>Comúnmente usados para la estimación de parámetros del modelo.</li>
+      <li>Especificados por el usuario.</li>
+      <li>Configurados heurísticamente.</li>
+      <li>A menudo ajustados para un problema específico de modelado predictivo.</li>
+    </ul>
+    <p><strong>Hiperparámetros comunes:</strong></p>
+    <ul>
+      <li>&lambda; de regresión Lasso/Ridge</li>
+      <li>Tasa de aprendizaje, número de iteraciones, tamaño de lote, función de activación y número de neuronas de una red neuronal</li>
+      <li><em>C</em> y &sigma; de máquinas de vectores de soporte (SVM)</li>
+      <li><em>k</em> en el algoritmo de k-vecinos más cercanos (k-NN)</li>
+      <li>Número de árboles en un bosque aleatorio</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-140">
+  <h3>Diapositiva 140</h3>
+  <img src="slides/page-140.png" alt="Diapositiva 140">
+  <div class="content">
+    <h4>Proceso de Búsqueda de Hiperparámetros y Métodos</h4>
+    <p><strong>Proceso general de búsqueda de hiperparámetros:</strong></p>
+    <ol>
+      <li>Dividir el conjunto de datos en conjunto de entrenamiento, conjunto de validación y conjunto de prueba.</li>
+      <li>Optimizar los parámetros del modelo usando el conjunto de entrenamiento basándose en las métricas de rendimiento del modelo.</li>
+      <li>Buscar los hiperparámetros del modelo usando el conjunto de validación basándose en las métricas de rendimiento.</li>
+      <li>Realizar los pasos 2 y 3 alternadamente hasta que se determinen los parámetros e hiperparámetros del modelo, y evaluar el modelo usando el conjunto de prueba.</li>
+    </ol>
+    <p><strong>Algoritmos de búsqueda (paso 3):</strong></p>
+    <ul>
+      <li>Búsqueda en cuadrícula (Grid search)</li>
+      <li>Búsqueda aleatoria (Random search)</li>
+      <li>Búsqueda inteligente heurística</li>
+      <li>Búsqueda bayesiana</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>Los parámetros son parte del modelo aprendido de los datos históricos de entrenamiento y son clave para los algoritmos de ML. Son necesarios para hacer predicciones, definen las funciones del modelo, se aprenden o estiman de los datos, y generalmente no son configurados manualmente.</li>
+        <li>Ejemplos: Pesos en una red neuronal artificial, vectores de soporte en un SVM, coeficientes en regresión lineal o logística.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-141">
+  <h3>Diapositiva 141</h3>
+  <img src="slides/page-141.png" alt="Diapositiva 141">
+  <div class="content">
+    <h4>Métodos de Ajuste de Hiperparámetros - Búsqueda en Cuadrícula</h4>
+    <ul>
+      <li>La <strong>búsqueda en cuadrícula</strong> realiza una búsqueda exhaustiva de todas las combinaciones posibles de hiperparámetros para formar una cuadrícula de valores.</li>
+      <li>En la práctica, los rangos y pasos de los hiperparámetros se especifican manualmente.</li>
+      <li>La búsqueda en cuadrícula es <strong>costosa y consume mucho tiempo</strong>.</li>
+      <li>Funciona bien cuando hay relativamente pocos hiperparámetros. Por lo tanto, es viable para algoritmos generales de ML, pero no para redes neuronales.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-142">
+  <h3>Diapositiva 142</h3>
+  <img src="slides/page-142.png" alt="Diapositiva 142">
+  <div class="content">
+    <h4>Métodos de Ajuste de Hiperparámetros - Búsqueda Aleatoria</h4>
+    <ul>
+      <li>Si el espacio de búsqueda de hiperparámetros es grande, la <strong>búsqueda aleatoria</strong> es más apropiada que la búsqueda en cuadrícula.</li>
+      <li>En una búsqueda aleatoria, cada elemento de configuración se muestrea de los posibles valores de parámetros para encontrar el subconjunto de parámetros más apropiado.</li>
+    </ul>
+    <p><strong>Nota:</strong></p>
+    <ul>
+      <li>Primero se busca dentro de un rango amplio, y luego se estrecha el rango según la ubicación del mejor resultado.</li>
+      <li>Algunos hiperparámetros son más importantes que otros y afectan las preferencias de búsqueda aleatoria.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-143">
+  <h3>Diapositiva 143</h3>
+  <img src="slides/page-143.png" alt="Diapositiva 143">
+  <div class="content">
+    <h4>Validación Cruzada (1)</h4>
+    <ul>
+      <li>La <strong>validación cruzada</strong> es un método de análisis estadístico usado para verificar el rendimiento de clasificadores. Divide los datos originales en conjunto de entrenamiento y conjunto de validación. El primero entrena al clasificador, y el segundo evalúa al clasificador probando el modelo entrenado.</li>
+    </ul>
+    <p><strong>Validación cruzada de k-pliegues (k-fold CV):</strong></p>
+    <ul>
+      <li>Divide los datos originales en <em>k</em> subconjuntos (usualmente de igual tamaño).</li>
+      <li>Cada grupo único se trata como conjunto de validación, y los <em>k-1</em> grupos restantes como conjunto de entrenamiento. Así se obtienen <em>k</em> modelos.</li>
+      <li>La precisión promedio de clasificación de los <em>k</em> modelos en el conjunto de validación se usa como métrica de rendimiento.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-144">
+  <h3>Diapositiva 144</h3>
+  <img src="slides/page-144.png" alt="Diapositiva 144">
+  <div class="content">
+    <h4>Validación Cruzada (2)</h4>
+    <p>Diagrama de división del conjunto de datos:</p>
+    <ul>
+      <li><strong>Conjunto de datos completo</strong> &rarr; Conjunto de entrenamiento + Conjunto de prueba</li>
+      <li><strong>Conjunto de entrenamiento</strong> &rarr; Conjunto de entrenamiento + Conjunto de validación + Conjunto de prueba</li>
+    </ul>
+    <p><strong>Nota:</strong> <em>k</em> en la validación cruzada de k-pliegues es un hiperparámetro.</p>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>Si el conjunto de prueba es pequeño, existe incertidumbre estadística alrededor del error medio estimado, lo que dificulta afirmar que el algoritmo A funciona mejor que el B. Cuando el conjunto de datos tiene cientos de miles de muestras o más, esto no es un problema serio.</li>
+        <li>En k-fold CV, <em>k</em> típicamente es mayor o igual a 2. Usualmente comienza en 3 y se establece en 2 solo cuando el conjunto de datos original es pequeño. La validación cruzada de k-pliegues puede evitar eficazmente el sobreaprendizaje y el subaprendizaje.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-145">
+  <h3>Diapositiva 145</h3>
+  <img src="slides/page-145.png" alt="Diapositiva 145">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Algoritmos de Aprendizaje Automático</li>
+      <li>Tipos de Aprendizaje Automático</li>
+      <li>Proceso de Aprendizaje Automático</li>
+      <li>Conceptos Importantes de Aprendizaje Automático</li>
+      <li><strong>Algoritmos Comunes de Aprendizaje Automático</strong></li>
+    </ol>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN: Algoritmos Comunes de Aprendizaje Automático       -->
+<!-- ============================================================ -->
+
+<div class="slide" id="slide-146">
+  <h3>Diapositiva 146</h3>
+  <img src="slides/page-146.png" alt="Diapositiva 146">
+  <div class="content">
+    <h4>Panorama General de Algoritmos de Aprendizaje Automático</h4>
+    <p><strong>Aprendizaje Automático</strong></p>
+    <table>
+      <tr>
+        <th>Aprendizaje Supervisado</th>
+        <th>Aprendizaje No Supervisado</th>
+      </tr>
+      <tr>
+        <td>
+          <strong>Clasificación:</strong> Regresión logística, SVM, Red neuronal, Árbol de decisión, Bosque aleatorio, GBDT, k-NN, Naive Bayes<br>
+          <strong>Regresión:</strong> Regresión lineal, SVM, Red neuronal, Árbol de decisión, Bosque aleatorio, GBDT, k-NN
+        </td>
+        <td>
+          <strong>Agrupamiento:</strong> k-means, Agrupamiento jerárquico, Agrupamiento basado en densidad<br>
+          <strong>Otros:</strong> Regla de asociación, Análisis de componentes principales, Modelado de mezcla gaussiana
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<div class="slide" id="slide-147">
+  <h3>Diapositiva 147</h3>
+  <img src="slides/page-147.png" alt="Diapositiva 147">
+  <div class="content">
+    <h4>Regresión Lineal (1)</h4>
+    <ul>
+      <li>La <strong>regresión lineal</strong> utiliza el análisis de regresión de la estadística matemática para determinar la relación cuantitativa entre dos o más variables.</li>
+      <li>La regresión lineal es un tipo de <strong>aprendizaje supervisado</strong>.</li>
+      <li><strong>Regresión lineal simple:</strong> Una variable independiente y una variable dependiente.</li>
+      <li><strong>Regresión lineal múltiple:</strong> Dos o más variables independientes.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-148">
+  <h3>Diapositiva 148</h3>
+  <img src="slides/page-148.png" alt="Diapositiva 148">
+  <div class="content">
+    <h4>Regresión Lineal (2)</h4>
+    <ul>
+      <li>La <strong>función del modelo</strong> de regresión lineal es: <strong>h(x) = w<sup>T</sup>x + b</strong>, donde <em>w</em> es el parámetro de peso, <em>b</em> es el sesgo, y <em>x</em> representa la muestra.</li>
+      <li>La relación entre el valor predicho y el valor real es: <strong>y = w<sup>T</sup>x + b + &epsilon;</strong>, donde <em>y</em> indica el valor real y <em>&epsilon;</em> indica el error.</li>
+      <li>El error &epsilon; está afectado por muchos factores independientes. La regresión lineal asume que el error sigue una <strong>distribución normal</strong>.</li>
+      <li>La <strong>función de pérdida</strong> se obtiene usando la función de distribución normal y la <strong>estimación de máxima verosimilitud (MLE)</strong>.</li>
+      <li>Queremos que el valor predicho se acerque lo más posible al valor real, es decir, <strong>minimizar el valor de pérdida</strong>. Podemos usar el algoritmo de descenso de gradiente para calcular el parámetro de peso <em>w</em> cuando la función de pérdida alcanza el mínimo.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>La regresión lineal simple se refiere al análisis de regresión donde solo existe una variable independiente y una dependiente, y su relación se puede representar aproximadamente por una línea recta.</li>
+        <li>La regresión lineal múltiple involucra dos o más variables independientes. El modelo es una recta solo cuando <em>x</em> es unidimensional; es un hiperplano cuando es multidimensional.</li>
+        <li>Por ejemplo, el precio de un apartamento está determinado por factores como área, distribución y ubicación.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-149">
+  <h3>Diapositiva 149</h3>
+  <img src="slides/page-149.png" alt="Diapositiva 149">
+  <div class="content">
+    <h4>Extensión de Regresión Lineal - Regresión Polinomial</h4>
+    <ul>
+      <li>La <strong>regresión polinomial</strong> es una extensión de la regresión lineal. Cuando la complejidad del conjunto de datos excede la posibilidad de ajuste mediante una línea recta (se produce un claro subajuste si se usa el modelo de regresión lineal original), se utiliza la regresión polinomial.</li>
+      <li>Fórmula: <strong>h(x) = w<sub>1</sub>x + w<sub>2</sub>x<sup>2</sup> + ... + w<sub>n</sub>x<sup>n</sup> + b</strong></li>
+      <li>Aquí, la <em>n</em>-ésima potencia indica el grado del polinomio.</li>
+      <li>La regresión polinomial es un tipo de regresión lineal. Aunque sus características son no lineales, la relación entre sus parámetros de peso <em>w</em> sigue siendo lineal.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-150">
+  <h3>Diapositiva 150</h3>
+  <img src="slides/page-150.png" alt="Diapositiva 150">
+  <div class="content">
+    <h4>Prevención del Sobreajuste en Regresión Lineal</h4>
+    <ul>
+      <li>Los <strong>términos de regularización</strong> ayudan a reducir el sobreajuste. El valor de <em>w</em> no puede ser demasiado grande ni demasiado pequeño en el espacio de muestras.</li>
+      <li><strong>Regularización L2 (Regresión Ridge):</strong><br>
+        J(w) = (1/2m) &sum;(h<sub>w</sub>(x) - y)<sup>2</sup> + &lambda;||w||<sub>2</sub><sup>2</sup></li>
+      <li><strong>Regularización L1 (Regresión Lasso):</strong><br>
+        J(w) = (1/2m) &sum;(h<sub>w</sub>(x) - y)<sup>2</sup> + &lambda;||w||<sub>1</sub></li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-151">
+  <h3>Diapositiva 151</h3>
+  <img src="slides/page-151.png" alt="Diapositiva 151">
+  <div class="content">
+    <h4>Regresión Logística (1)</h4>
+    <ul>
+      <li>El modelo de <strong>regresión logística</strong> es un modelo de clasificación utilizado para resolver problemas de clasificación.</li>
+      <li>El modelo se define como:
+        <ul>
+          <li>P(Y=1|x) = 1 / (1 + e<sup>-(wx+b)</sup>)</li>
+          <li>P(Y=0|x) = e<sup>-(wx+b)</sup> / (1 + e<sup>-(wx+b)</sup>)</li>
+        </ul>
+      </li>
+      <li><em>w</em> representa el peso, <em>b</em> representa el sesgo, y <em>wx + b</em> representa una función lineal respecto a <em>x</em>.</li>
+      <li>Se comparan los dos valores de probabilidad. <em>x</em> pertenece al tipo con mayor valor de probabilidad.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-152">
+  <h3>Diapositiva 152</h3>
+  <img src="slides/page-152.png" alt="Diapositiva 152">
+  <div class="content">
+    <h4>Regresión Logística (2)</h4>
+    <ul>
+      <li>La regresión logística y la regresión lineal son ambos modelos lineales en sentido amplio. La primera introduce un <strong>factor no lineal (función sigmoide)</strong> sobre la base de la segunda y establece un umbral. Por lo tanto, la regresión logística se aplica a la <strong>clasificación binaria</strong>.</li>
+      <li>Según la función del modelo de regresión logística, la <strong>función de pérdida</strong> se puede calcular mediante estimación de máxima verosimilitud:</li>
+      <li><strong>J(w) = -(1/m) &sum;[y&middot;ln(h<sub>w</sub>(x)) + (1-y)&middot;ln(1-h<sub>w</sub>(x))]</strong></li>
+      <li>En la fórmula, <em>w</em> indica el parámetro de peso, <em>m</em> el número de muestras, <em>x</em> la muestra, e <em>y</em> el valor real. También se pueden obtener los valores de todos los parámetros de peso <em>w</em> usando el algoritmo de descenso de gradiente.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <p>El sobreajuste de la regresión logística también se puede prevenir agregando términos de regularización.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-153">
+  <h3>Diapositiva 153</h3>
+  <img src="slides/page-153.png" alt="Diapositiva 153">
+  <div class="content">
+    <h4>Extensión de Regresión Logística - Softmax (1)</h4>
+    <ul>
+      <li>La regresión logística se aplica principalmente a la <strong>clasificación binaria</strong>. Para la <strong>clasificación multiclase</strong>, típicamente se usa la función <strong>softmax</strong>.</li>
+    </ul>
+    <p>Ejemplos visuales:</p>
+    <ul>
+      <li><strong>Problema de clasificación binaria:</strong> &iquest;Niño? &iquest;Niña?</li>
+      <li><strong>Problema de clasificación multiclase:</strong> &iquest;Uva? &iquest;Naranja? &iquest;Manzana? &iquest;Plátano?</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-154">
+  <h3>Diapositiva 154</h3>
+  <img src="slides/page-154.png" alt="Diapositiva 154">
+  <div class="content">
+    <h4>Extensión de Regresión Logística - Softmax (2)</h4>
+    <ul>
+      <li>La <strong>regresión Softmax</strong> es una generalización de la regresión logística y se aplica a la clasificación de <em>k</em> clases.</li>
+      <li>La función softmax comprime (mapea) un vector <em>k</em>-dimensional de valores reales arbitrarios a otro vector <em>k</em>-dimensional de valores reales, donde cada elemento del vector está en (0, 1).</li>
+      <li>La función de probabilidad de la regresión Softmax es:<br>
+        <strong>P(y=k|x; w) = e<sup>w<sub>k</sub><sup>T</sup>x</sup> / &sum;<sub>l=1</sub><sup>K</sup> e<sup>w<sub>l</sub><sup>T</sup>x</sup></strong>, para k = 1, 2, ..., K</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-155">
+  <h3>Diapositiva 155</h3>
+  <img src="slides/page-155.png" alt="Diapositiva 155">
+  <div class="content">
+    <h4>Extensión de Regresión Logística - Softmax (3)</h4>
+    <ul>
+      <li>Softmax asigna un <strong>valor de probabilidad a cada clase</strong> en un problema de clasificación multiclase. La suma de todas las probabilidades es 1.</li>
+    </ul>
+    <table>
+      <tr><th>Clase</th><th>Probabilidad</th></tr>
+      <tr><td>Uva</td><td>0.09</td></tr>
+      <tr><td>Naranja</td><td>0.22</td></tr>
+      <tr><td>Manzana</td><td>0.68</td></tr>
+      <tr><td>Plátano</td><td>0.01</td></tr>
+    </table>
+    <p>Suma de todas las probabilidades: 0.09 + 0.22 + 0.68 + 0.01 = 1</p>
+    <p>El objeto más probable en la imagen: <strong>Manzana</strong></p>
+  </div>
+</div>
+
+<div class="slide" id="slide-156">
+  <h3>Diapositiva 156</h3>
+  <img src="slides/page-156.png" alt="Diapositiva 156">
+  <div class="content">
+    <h4>Árbol de Decisión</h4>
+    <ul>
+      <li>Cada <strong>nodo no-hoja</strong> del árbol de decisión denota una prueba sobre un atributo; cada <strong>rama</strong> representa el resultado de una prueba; y cada <strong>hoja (nodo terminal)</strong> contiene una etiqueta de clase.</li>
+      <li>El algoritmo comienza en el <strong>nodo raíz</strong> (nodo superior del árbol), prueba los atributos seleccionados en los nodos intermedios (internos), y genera ramas según el resultado de las pruebas. Luego, guarda las etiquetas de clase en los nodos hoja como resultados de decisión.</li>
+    </ul>
+    <p><strong>Ejemplo:</strong> Clasificación de animales por tamaño, sonido, longitud de cuello/nariz y hábitat (ardilla, rata, jirafa, elefante, rinoceronte, hipopótamo).</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-157">
+  <h3>Diapositiva 157</h3>
+  <img src="slides/page-157.png" alt="Diapositiva 157">
+  <div class="content">
+    <h4>Estructura de un Árbol de Decisión</h4>
+    <p>Estructura jerárquica:</p>
+    <ul>
+      <li><strong>Nodo raíz</strong> &rarr; Subnodos &rarr; Nodos hoja</li>
+      <li>Todos los nodos excepto el nodo raíz se denominan nodos hoja.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>Cómo construir un árbol de decisión es muy importante. Debemos determinar la estructura topológica de los atributos de características basándonos en medidas de selección de atributos. El paso clave es dividir atributos.</li>
+        <li>Los algoritmos de aprendizaje comunes para generar un árbol de decisión incluyen <strong>ID3, C4.5 y CART</strong>.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-158">
+  <h3>Diapositiva 158</h3>
+  <img src="slides/page-158.png" alt="Diapositiva 158">
+  <div class="content">
+    <h4>Clave para la Construcción de Árboles de Decisión</h4>
+    <ul>
+      <li>Un árbol de decisión requiere atributos de características y una estructura de árbol apropiada. El paso clave es dividir los datos de todos los atributos de características, comparar los conjuntos resultantes en términos de <strong>pureza</strong>, y seleccionar el atributo con mayor pureza como punto de datos para la división.</li>
+      <li>La pureza se mide principalmente a través de la <strong>entropía de información</strong> y el <strong>coeficiente GINI</strong>:</li>
+      <li><strong>Entropía:</strong> H(X) = -&sum;<sub>k=1</sub><sup>K</sup> p<sub>k</sub> log<sub>2</sub>(p<sub>k</sub>)</li>
+      <li><strong>GINI:</strong> Gini = 1 - &sum;<sub>k=1</sub><sup>K</sup> p<sub>k</sub><sup>2</sup></li>
+      <li>p<sub>k</sub> indica la probabilidad de que una muestra pertenezca a la categoría <em>k</em>. Una mayor diferencia de pureza entre la muestra antes y después de la división indica un mejor árbol de decisión.</li>
+      <li>Algoritmos comunes: <strong>ID3, C4.5 y CART</strong>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-159">
+  <h3>Diapositiva 159</h3>
+  <img src="slides/page-159.png" alt="Diapositiva 159">
+  <div class="content">
+    <h4>Proceso de Construcción de Árboles de Decisión</h4>
+    <ul>
+      <li><strong>Selección de características:</strong> Seleccionar una de las características de los datos de entrenamiento como el estándar de división del nodo actual. (Diferentes estándares distinguen diferentes algoritmos de árboles de decisión.)</li>
+      <li><strong>Generación del árbol de decisión:</strong> Generar subnodos de arriba hacia abajo basándose en la característica seleccionada y detenerse hasta que el conjunto de datos ya no pueda dividirse.</li>
+      <li><strong>Poda:</strong> El árbol de decisión puede sobreajustarse fácilmente a menos que se realice la poda necesaria (incluyendo <strong>pre-poda y post-poda</strong>) para reducir el tamaño del árbol y optimizar su estructura de nodos.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-160">
+  <h3>Diapositiva 160</h3>
+  <img src="slides/page-160.png" alt="Diapositiva 160">
+  <div class="content">
+    <h4>Ejemplo de Árbol de Decisión</h4>
+    <p>La siguiente figura muestra un árbol de decisión para un problema de clasificación. El resultado de clasificación se ve afectado por tres atributos: <strong>reembolso, estado civil e ingreso gravable</strong>.</p>
+    <table>
+      <tr><th>TID</th><th>Reembolso</th><th>Estado Civil</th><th>Ingreso Gravable</th><th>Fraude</th></tr>
+      <tr><td>1</td><td>Sí</td><td>Soltero</td><td>125K</td><td>No</td></tr>
+      <tr><td>2</td><td>No</td><td>Casado</td><td>100K</td><td>No</td></tr>
+      <tr><td>3</td><td>No</td><td>Soltero</td><td>70K</td><td>No</td></tr>
+      <tr><td>4</td><td>Sí</td><td>Casado</td><td>120K</td><td>No</td></tr>
+      <tr><td>5</td><td>No</td><td>Divorciado</td><td>95K</td><td>Sí</td></tr>
+      <tr><td>6</td><td>No</td><td>Casado</td><td>60K</td><td>No</td></tr>
+      <tr><td>7</td><td>Sí</td><td>Divorciado</td><td>220K</td><td>No</td></tr>
+      <tr><td>8</td><td>No</td><td>Soltero</td><td>85K</td><td>Sí</td></tr>
+      <tr><td>9</td><td>No</td><td>Casado</td><td>75K</td><td>No</td></tr>
+      <tr><td>10</td><td>No</td><td>Soltero</td><td>90K</td><td>Sí</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="slide" id="slide-161">
+  <h3>Diapositiva 161</h3>
+  <img src="slides/page-161.png" alt="Diapositiva 161">
+  <div class="content">
+    <h4>Máquina de Vectores de Soporte</h4>
+    <ul>
+      <li>Las <strong>máquinas de vectores de soporte (SVM)</strong> son modelos de clasificación binaria. Su modelo básico es el clasificador lineal que maximiza el ancho del margen entre las dos categorías en el espacio de características.</li>
+      <li>Las SVM también tienen un <strong>truco del kernel</strong>, que las convierte en un clasificador no lineal.</li>
+      <li>El algoritmo de aprendizaje de las SVM es el algoritmo óptimo para <strong>programación cuadrática convexa</strong>.</li>
+    </ul>
+    <p><strong>Mapeo:</strong> Difícil de separar en un espacio de baja dimensión &rarr; Fácil de separar en un espacio de alta dimensión.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-162">
+  <h3>Diapositiva 162</h3>
+  <img src="slides/page-162.png" alt="Diapositiva 162">
+  <div class="content">
+    <h4>SVM Lineal (1)</h4>
+    <p>&iquest;Cómo podemos dividir los puntos de datos rojos y azules con solo una línea?</p>
+    <p>Conjunto de datos bidimensional con dos categorías de muestras. Tanto los métodos de división izquierdo como derecho pueden dividir los datos. Pero &iquest;cuál es correcto?</p>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>Las ideas principales de las SVM son:</li>
+        <li>En caso de inseparabilidad lineal, se utilizan algoritmos de mapeo no lineal para convertir las muestras linealmente inseparables del espacio de entrada de baja dimensión en muestras del espacio de características de alta dimensión, haciéndolas linealmente separables.</li>
+        <li>Basándose en el principio de minimización del riesgo estructural, se construye un hiperplano óptimo en el espacio de características.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-163">
+  <h3>Diapositiva 163</h3>
+  <img src="slides/page-163.png" alt="Diapositiva 163">
+  <div class="content">
+    <h4>SVM Lineal (2)</h4>
+    <ul>
+      <li>Podemos usar diferentes líneas rectas para dividir datos en diferentes categorías. Las SVM encuentran una línea recta y mantienen los puntos más cercanos lo más lejos posible de la línea. Esto le da al modelo una fuerte <strong>capacidad de generalización</strong>.</li>
+      <li>Estos puntos más cercanos se llaman <strong>vectores de soporte</strong>.</li>
+      <li>En el espacio bidimensional, se usa una línea recta para la división; en el espacio de alta dimensión, se usa un <strong>hiperplano</strong>.</li>
+    </ul>
+    <p><em>Maximizar la distancia de cada vector de soporte a la línea.</em></p>
+  </div>
+</div>
+
+<div class="slide" id="slide-164">
+  <h3>Diapositiva 164</h3>
+  <img src="slides/page-164.png" alt="Diapositiva 164">
+  <div class="content">
+    <h4>SVM No Lineal (1)</h4>
+    <p>&iquest;Cómo podemos dividir un conjunto de datos linealmente inseparable?</p>
+    <ul>
+      <li>La SVM lineal funciona bien en un conjunto de datos linealmente separable.</li>
+      <li>Un conjunto de datos no lineal <strong>no puede dividirse usando una línea recta</strong>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-165">
+  <h3>Diapositiva 165</h3>
+  <img src="slides/page-165.png" alt="Diapositiva 165">
+  <div class="content">
+    <h4>SVM No Lineal (2)</h4>
+    <ul>
+      <li>Las <strong>funciones kernel</strong> se pueden usar para crear SVM no lineales.</li>
+      <li>Las funciones kernel permiten a los algoritmos ajustar un hiperplano de margen máximo en un espacio de características de alta dimensión transformado.</li>
+    </ul>
+    <p><strong>Funciones kernel comunes:</strong></p>
+    <table>
+      <tr><td>Kernel lineal</td><td>Kernel polinomial</td><td>Kernel gaussiano</td><td>Kernel sigmoide</td></tr>
+    </table>
+    <p>Espacio de entrada &rarr; Espacio de características de alta dimensión</p>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <p>La función kernel gaussiana es la más frecuentemente utilizada.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-166">
+  <h3>Diapositiva 166</h3>
+  <img src="slides/page-166.png" alt="Diapositiva 166">
+  <div class="content">
+    <h4>Algoritmo de k-Vecinos Más Cercanos (1)</h4>
+    <ul>
+      <li>El algoritmo de clasificación <strong>k-vecinos más cercanos (k-NN)</strong> es un método teóricamente maduro y uno de los algoritmos de aprendizaje automático más simples.</li>
+      <li>La idea de k-NN es que, si la mayoría de las <em>k</em> muestras más cercanas (vecinos más cercanos) de una muestra en el espacio de características pertenecen a una categoría, la muestra también pertenece a esa categoría.</li>
+    </ul>
+    <p><em>La categoría del punto ? varía según cuántos nodos vecinos se elijan.</em></p>
+  </div>
+</div>
+
+<div class="slide" id="slide-167">
+  <h3>Diapositiva 167</h3>
+  <img src="slides/page-167.png" alt="Diapositiva 167">
+  <div class="content">
+    <h4>Algoritmo de k-Vecinos Más Cercanos (2)</h4>
+    <ul>
+      <li>La lógica de k-NN es simple: Si los <em>k</em> vecinos más cercanos de un objeto pertenecen a una clase, el objeto también pertenece a esa clase.</li>
+      <li>k-NN es un <strong>método no paramétrico</strong> y se usa frecuentemente para conjuntos de datos con fronteras de decisión irregulares.</li>
+      <li>k-NN típicamente usa el <strong>método de votación por mayoría</strong> para predecir clasificación, y el <strong>método del valor medio</strong> para predecir regresión.</li>
+      <li>k-NN requiere una <strong>cantidad muy grande de cómputo</strong>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-168">
+  <h3>Diapositiva 168</h3>
+  <img src="slides/page-168.png" alt="Diapositiva 168">
+  <div class="content">
+    <h4>Algoritmo de k-Vecinos Más Cercanos (3)</h4>
+    <ul>
+      <li>Típicamente, un valor de <em>k</em> más grande reduce el impacto del ruido en la clasificación, pero hace que la frontera entre clases sea menos obvia.</li>
+      <li>Un valor grande de <em>k</em> indica mayor probabilidad de <strong>subajuste</strong> porque la división es muy gruesa; mientras que un valor pequeño de <em>k</em> indica mayor probabilidad de <strong>sobreajuste</strong> porque la división es muy fina.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>Como se ve en la figura, la frontera se vuelve más suave a medida que el valor de <em>k</em> aumenta.</li>
+        <li>A medida que el valor de <em>k</em> aumenta, los puntos eventualmente se volverán todos azules o todos rojos.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-169">
+  <h3>Diapositiva 169</h3>
+  <img src="slides/page-169.png" alt="Diapositiva 169">
+  <div class="content">
+    <h4>Naive Bayes (1)</h4>
+    <ul>
+      <li>Los clasificadores <strong>Naive Bayes</strong> son una familia de clasificadores probabilísticos simples basados en el <strong>teorema de Bayes</strong> con fuertes suposiciones de independencia entre las características.</li>
+      <li>Para una característica de muestra dada <em>X</em>, la probabilidad de que la muestra pertenezca a la categoría <em>C<sub>k</sub></em> es:</li>
+      <li><strong>P(C<sub>k</sub>|X<sub>1</sub>, X<sub>2</sub>, ..., X<sub>n</sub>) = P(X<sub>1</sub>, X<sub>2</sub>, ..., X<sub>n</sub>|C<sub>k</sub>) &middot; P(C<sub>k</sub>) / P(X<sub>1</sub>, X<sub>2</sub>, ..., X<sub>n</sub>)</strong></li>
+      <li><em>X<sub>1</sub>, X<sub>2</sub>, ..., X<sub>n</sub></em> son características de datos.</li>
+      <li><em>P(C<sub>k</sub>|X<sub>1</sub>, ..., X<sub>n</sub>)</em> es la <strong>probabilidad posterior</strong>.</li>
+      <li><em>P(C<sub>k</sub>)</em> es la <strong>probabilidad a priori</strong> independiente de X.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-170">
+  <h3>Diapositiva 170</h3>
+  <img src="slides/page-170.png" alt="Diapositiva 170">
+  <div class="content">
+    <h4>Naive Bayes (2)</h4>
+    <p><strong>Ejemplo de la hipótesis de independencia de características:</strong></p>
+    <ul>
+      <li>Si una fruta es roja, redonda y de aproximadamente 10 cm de diámetro, puede considerarse una manzana.</li>
+      <li>Un clasificador Naive Bayes cree que cada una de estas características contribuye <strong>independientemente</strong> a la probabilidad de que la fruta sea una manzana, sin importar cualquier posible correlación entre las características de color, redondez y diámetro.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li><strong>Independencia condicional de clase:</strong> El clasificador Bayes asume que el efecto de un valor de atributo en una clase dada es independiente de los valores de otros atributos. Esta suposición se hace para simplificar el cálculo y se vuelve "ingenuo" (naive) en este sentido.</li>
+        <li>Los clasificadores Bayes muestran alta precisión y velocidad cuando se aplican a bases de datos grandes.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-171">
+  <h3>Diapositiva 171</h3>
+  <img src="slides/page-171.png" alt="Diapositiva 171">
+  <div class="content">
+    <h4>Aprendizaje por Ensamble</h4>
+    <ul>
+      <li>El <strong>aprendizaje por ensamble</strong> es un paradigma de aprendizaje automático en el que se entrenan y combinan múltiples aprendices para resolver un problema.</li>
+      <li>Cuando se usan múltiples aprendices, la capacidad de generalización del ensamble puede ser mucho más fuerte que la de un solo aprendiz.</li>
+      <li><strong>Analogía:</strong> Si preguntas a miles de personas al azar una pregunta compleja y luego resumes sus respuestas, la respuesta resumida es más precisa que la respuesta de un experto en la mayoría de los casos. Esta es la <strong>sabiduría de la multitud</strong>.</li>
+    </ul>
+    <p>Conjunto de entrenamiento &rarr; Conjunto 1, Conjunto 2, ..., Conjunto m &rarr; Modelo 1, Modelo 2, ..., Modelo m &rarr; Ensamble &rarr; Modelo grande</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-172">
+  <h3>Diapositiva 172</h3>
+  <img src="slides/page-172.png" alt="Diapositiva 172">
+  <div class="content">
+    <h4>Tipos de Aprendizaje por Ensamble</h4>
+    <p><strong>Bagging</strong> (Ejemplo: Bosque aleatorio)</p>
+    <ul>
+      <li>Bagging construye independientemente múltiples aprendices básicos y luego promedia sus predicciones.</li>
+      <li>En promedio, un aprendiz ensamble suele ser mejor que un aprendiz base individual porque tiene una <strong>menor varianza</strong>.</li>
+    </ul>
+    <p><strong>Boosting</strong> (Ejemplo: AdaBoost, GBDT, XGBoost)</p>
+    <ul>
+      <li>Boosting construye aprendices básicos en secuencia y reduce gradualmente los sesgos del aprendiz ensamble.</li>
+      <li>Un aprendiz ensamble tiene una fuerte capacidad de ajuste pero <strong>puede sobreajustarse</strong>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-173">
+  <h3>Diapositiva 173</h3>
+  <img src="slides/page-173.png" alt="Diapositiva 173">
+  <div class="content">
+    <h4>Aprendizaje por Ensamble - Bosque Aleatorio</h4>
+    <ul>
+      <li><strong>Bosque aleatorio = Bagging + Árbol de clasificación y regresión (CART)</strong></li>
+      <li>El bosque aleatorio construye múltiples árboles de decisión y agrega sus resultados para hacer la predicción más precisa y estable.</li>
+      <li>El algoritmo de bosque aleatorio se puede usar tanto para problemas de clasificación como de regresión.</li>
+    </ul>
+    <p><strong>Proceso:</strong></p>
+    <ol>
+      <li><strong>Muestreo Bootstrap</strong> &rarr; Subconjunto 1, Subconjunto 2, ..., Subconjunto n</li>
+      <li><strong>Construir árboles</strong> &rarr; Predicción 1, Predicción 2, ..., Predicción n</li>
+      <li><strong>Agregar resultados</strong> &rarr; Clasificación: votación por mayoría / Regresión: valor medio &rarr; Predicción final</li>
+    </ol>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <p>El Bootstrap Bagging se basa en muestreo con reemplazo.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-174">
+  <h3>Diapositiva 174</h3>
+  <img src="slides/page-174.png" alt="Diapositiva 174">
+  <div class="content">
+    <h4>Aprendizaje por Ensamble - Árbol de Decisión con Gradiente Potenciado (GBDT)</h4>
+    <ul>
+      <li>El <strong>GBDT (Gradient Boosted Decision Tree)</strong> es un tipo de algoritmo de boosting.</li>
+      <li>El resultado de predicción del modelo ensamble es la <strong>suma de resultados de todos los aprendices base</strong>. La esencia de GBDT es que el siguiente aprendiz base intenta ajustar el <strong>residuo</strong> de la función de error al valor de predicción (el residuo es el error entre el valor predicho y el valor real).</li>
+      <li>Durante el entrenamiento del modelo GBDT, el valor de la función de pérdida de la muestra predicha por el modelo debe ser lo más pequeño posible.</li>
+    </ul>
+    <p><strong>Ejemplo:</strong> Valor real = 30 &rarr; Predicción = 20, Residuo = 10 &rarr; Predicción = 9, Residuo = 1 &rarr; Predicción = 1</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-175">
+  <h3>Diapositiva 175</h3>
+  <img src="slides/page-175.png" alt="Diapositiva 175">
+  <div class="content">
+    <h4>Aprendizaje No Supervisado - Agrupamiento k-Means</h4>
+    <ul>
+      <li>El <strong>agrupamiento k-means</strong> toma como entradas el número de clusters <em>k</em> y un conjunto de datos de <em>n</em> objetos, y produce como salida <em>k</em> clusters con varianzas intra-cluster minimizadas.</li>
+      <li>Los clusters obtenidos cumplen: alta similitud entre objetos en el mismo cluster, y baja similitud entre objetos en clusters diferentes.</li>
+    </ul>
+    <p>El agrupamiento k-means clasifica automáticamente datos no etiquetados.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-176">
+  <h3>Diapositiva 176</h3>
+  <img src="slides/page-176.png" alt="Diapositiva 176">
+  <div class="content">
+    <h4>Aprendizaje No Supervisado - Agrupamiento Jerárquico</h4>
+    <ul>
+      <li>El <strong>agrupamiento jerárquico</strong> divide un conjunto de datos en diferentes capas y forma una estructura de agrupamiento en forma de árbol.</li>
+      <li>La división del conjunto de datos puede usar una política de agregación <strong>"de abajo hacia arriba"</strong> o una política de división <strong>"de arriba hacia abajo"</strong>.</li>
+      <li>La jerarquía del agrupamiento se representa en un <strong>dendrograma</strong>. La raíz es el único cluster de todas las muestras, y las hojas son clusters de muestras individuales.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-177">
+  <h3>Diapositiva 177</h3>
+  <img src="slides/page-177.png" alt="Diapositiva 177">
+  <div class="content">
+    <h4>Resumen</h4>
+    <p>Este curso primero describe la definición y tipos de aprendizaje automático, así como los problemas que resuelve. Luego, introduce los puntos de conocimiento clave:</p>
+    <ul>
+      <li>Procedimiento general (preparación de datos, limpieza de datos, selección de características, evaluación del modelo y despliegue del modelo)</li>
+      <li>Algoritmos comunes: regresión lineal, regresión logística, árbol de decisión, SVM, Naive Bayes, k-NN, aprendizaje por ensamble y agrupamiento k-means</li>
+      <li>Hiperparámetros</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-178">
+  <h3>Diapositiva 178</h3>
+  <img src="slides/page-178.png" alt="Diapositiva 178">
+  <div class="content">
+    <h4>Cuestionario</h4>
+    <ol>
+      <li>(Respuesta única) &iquest;Cuál de los siguientes NO es un algoritmo de aprendizaje supervisado?
+        <ol type="A">
+          <li>Regresión lineal</li>
+          <li>Árbol de decisión</li>
+          <li>k-NN</li>
+          <li>Agrupamiento k-means</li>
+        </ol>
+      </li>
+      <li>(Verdadero o falso) El descenso de gradiente es el único método de aprendizaje automático. ( )</li>
+    </ol>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <p>Respuestas: 1. D &mdash; 2. Falso</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-179">
+  <h3>Diapositiva 179</h3>
+  <img src="slides/page-179.png" alt="Diapositiva 179">
+  <div class="content">
+    <h4>Recomendaciones</h4>
+    <ul>
+      <li><strong>Huawei Talent:</strong> <a href="https://e.huawei.com/en/talent/portal/#/">https://e.huawei.com/en/talent/portal/#/</a></li>
+      <li><strong>Base de conocimiento de Huawei:</strong> <a href="https://support.huawei.com/enterprise/en/knowledge?lang=en">https://support.huawei.com/enterprise/en/knowledge</a></li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-180">
+  <h3>Diapositiva 180</h3>
+  <img src="slides/page-180.png" alt="Diapositiva 180">
+  <div class="content">
+    <h4>Gracias</h4>
+    <p><em>Llevar lo digital a cada persona, hogar y organización para un mundo completamente conectado e inteligente.</em></p>
+  </div>
+</div>
+
+<div class="slide" id="slide-181">
+  <h3>Diapositiva 181</h3>
+  <img src="slides/page-181.png" alt="Diapositiva 181">
+  <div class="content">
+    <p><em>Aviso legal de Huawei Technologies Co., Ltd.</em></p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  CAPÍTULO: Fundamentos de Deep Learning y Modelos            -->
+<!--  Fundacionales                                                -->
+<!-- ============================================================ -->
+
+<div class="slide" id="slide-182">
+  <h3>Diapositiva 182</h3>
+  <img src="slides/page-182.png" alt="Diapositiva 182">
+  <div class="content">
+    <h4>Fundamentos de Deep Learning y Modelos Fundacionales - Prólogo</h4>
+    <ul>
+      <li>En la era digital actual, el crecimiento explosivo de datos y las mejoras significativas en la capacidad de cómputo han habilitado oportunidades de desarrollo sin precedentes en la industria de la IA. El <strong>aprendizaje profundo</strong> es una rama importante de esta industria.</li>
+      <li>A medida que la investigación se desarrolla y la tecnología progresa, una arquitectura superficial de aprendizaje profundo ha sido reemplazada por una más profunda, dando lugar a los <strong>modelos fundacionales</strong>. Estos son redes neuronales extremadamente grandes con una estructura más compleja. Debido a su excelente expresividad, los modelos fundacionales han superado a la mayoría de otros métodos en generación de imágenes, reconocimiento de voz y generación de texto.</li>
+      <li>Este capítulo explica los fundamentos de las redes neuronales y los modelos fundacionales.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-183">
+  <h3>Diapositiva 183</h3>
+  <img src="slides/page-183.png" alt="Diapositiva 183">
+  <div class="content">
+    <h4>Objetivos</h4>
+    <p>Al completar este curso, podrás comprender:</p>
+    <ul>
+      <li>Fundamentos de aprendizaje profundo</li>
+      <li>La arquitectura básica de las redes neuronales convolucionales</li>
+      <li>La arquitectura básica de las redes neuronales recurrentes</li>
+      <li>La arquitectura Transformer</li>
+      <li>Las arquitecturas de modelos fundacionales comunes</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-184">
+  <h3>Diapositiva 184</h3>
+  <img src="slides/page-184.png" alt="Diapositiva 184">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Perceptrón</li>
+      <li>Red Neuronal Completamente Conectada y Cómo se Entrena</li>
+      <li>Red Neuronal Convolucional</li>
+      <li>Arquitectura de Modelo Basada en la Red Neuronal Recurrente</li>
+      <li>Arquitectura Transformer</li>
+      <li>Arquitectura Básica de Modelos Fundacionales</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-185">
+  <h3>Diapositiva 185</h3>
+  <img src="slides/page-185.png" alt="Diapositiva 185">
+  <div class="content">
+    <h4>Aprendizaje Automático Tradicional</h4>
+    <p>Flujo de trabajo:</p>
+    <ol>
+      <li>Análisis del problema / Localización de la tarea</li>
+      <li>Limpieza de datos</li>
+      <li>Extracción de características</li>
+      <li>Selección de características</li>
+      <li>Algoritmo de aprendizaje automático</li>
+      <li>Inferencia, predicción e identificación</li>
+    </ol>
+    <p><strong>Pregunta:</strong> &iquest;Se puede usar un algoritmo para ejecutar automáticamente el procedimiento?</p>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>Generalmente, las características se seleccionan manualmente en el aprendizaje automático. Más características proporcionan más información y mayor precisión.</li>
+        <li>Sin embargo, más características también aumentan la complejidad computacional y el espacio de búsqueda, afectando la determinación de similitud (exploración de dimensiones).</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 1: Perceptrón                                       -->
+<!-- ============================================================ -->
+
+<div class="slide" id="slide-186">
+  <h3>Diapositiva 186</h3>
+  <img src="slides/page-186.png" alt="Diapositiva 186">
+  <div class="content">
+    <h4>&iquest;Qué es un Perceptrón?</h4>
+    <ul>
+      <li>Un <strong>perceptrón</strong> recibe múltiples señales de entrada y produce una señal de salida.</li>
+      <li>La figura muestra un ejemplo de un perceptrón que recibe dos señales de entrada. x<sub>1</sub> y x<sub>2</sub> son las señales de entrada, y es la señal de salida, y w<sub>1</sub> y w<sub>2</sub> son los pesos.</li>
+      <li>Los círculos en la figura son <strong>neuronas o nodos</strong>. Cuando las señales de entrada se envían a la neurona, se multiplican por un peso fijo (w<sub>1</sub>x<sub>1</sub> y w<sub>2</sub>x<sub>2</sub>). La neurona calcula la suma de las señales de entrada y produce 1 solo cuando la suma <strong>excede un cierto umbral</strong>. Esto también se llama <strong>activación de la neurona</strong>.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>En 1957, Frank Rosenblatt en el laboratorio de aviación de la Universidad de Cornell inventó el perceptrón de red neuronal artificial. Considerado la forma más simple de una red neuronal feedforward, es un clasificador lineal binario.</li>
+        <li>Las señales del perceptrón tienen solo dos valores: corriente (1) y sin corriente (0).</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-187">
+  <h3>Diapositiva 187</h3>
+  <img src="slides/page-187.png" alt="Diapositiva 187">
+  <div class="content">
+    <h4>Representación Matemática de un Perceptrón</h4>
+    <ul>
+      <li>Las señales de entrada del perceptrón tienen sus propios <strong>pesos inherentes</strong>, que determinan la importancia de cada señal. Un peso mayor indica que la señal es más importante.</li>
+      <li>Un peso es similar a la resistencia en un circuito eléctrico. La resistencia determina qué tan difícil es que fluya la corriente. Cuanto menor la resistencia, mayor la corriente que fluye. En el perceptrón, un peso mayor indica una señal mayor que pasa a través del perceptrón.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-188">
+  <h3>Diapositiva 188</h3>
+  <img src="slides/page-188.png" alt="Diapositiva 188">
+  <div class="content">
+    <h4>Usando un Perceptrón para Simular un Circuito Lógico Simple</h4>
+    <p>Formas de circuitos lógicos:</p>
+    <table>
+      <tr><th>Compuerta AND</th><td>(w<sub>1</sub>, w<sub>2</sub>, &theta;) = (0.5, 0.5, 0.7)</td></tr>
+      <tr><th>Compuerta NAND</th><td>(w<sub>1</sub>, w<sub>2</sub>, &theta;) = (-0.5, -0.5, -0.7)</td></tr>
+      <tr><th>Compuerta OR</th><td>(w<sub>1</sub>, w<sub>2</sub>, &theta;) = ?</td></tr>
+    </table>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>&iquest;Qué otras combinaciones de valores cumplen con las diferentes compuertas?</li>
+        <li>Compuerta AND: (0.5, 0.5, 0.8) o (1.0, 1.0, 1.0)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-189">
+  <h3>Diapositiva 189</h3>
+  <img src="slides/page-189.png" alt="Diapositiva 189">
+  <div class="content">
+    <h4>Cómo Usar un Perceptrón de Capa Única para Resolver el Problema XOR</h4>
+    <ul>
+      <li>Cuando la tabla de verdad de la compuerta OR se expresa en un sistema de coordenadas bidimensional, el perceptrón de capa única <strong>separa linealmente</strong> los dos tipos de valores.</li>
+      <li>La <strong>compuerta XOR</strong> (circuito lógico XOR exclusivo) produce salida 1 solo cuando x<sub>1</sub> o x<sub>2</sub> es 1 (pero no ambos).</li>
+      <li>&iquest;Podemos usar un perceptrón de capa única para distinguir entre 0 y 1 en una compuerta XOR?</li>
+      <li>Un perceptrón de capa única es un <strong>problema lineal</strong>. Podemos usar una línea recta para dividir los datos. Pero los datos XOR <strong>no pueden separarse con una sola línea recta</strong>.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <p>Las dos líneas pueden separarse, llevando a dos capas.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-190">
+  <h3>Diapositiva 190</h3>
+  <img src="slides/page-190.png" alt="Diapositiva 190">
+  <div class="content">
+    <h4>Cómo Usar las Compuertas AND, NAND y OR para Implementar la Compuerta XOR</h4>
+    <ul>
+      <li>Si un perceptrón de capa única no puede resolver el problema XOR, &iquest;podemos combinar las compuertas lógicas ya implementadas para implementar la compuerta XOR?</li>
+      <li>Reemplazar los signos de interrogación (?) con las compuertas AND, NAND y OR para implementar la compuerta XOR.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-191">
+  <h3>Diapositiva 191</h3>
+  <img src="slides/page-191.png" alt="Diapositiva 191">
+  <div class="content">
+    <h4>Implementación de la Compuerta XOR - Perceptrón de Dos Capas</h4>
+    <ul>
+      <li>La compuerta XOR se puede implementar combinando las compuertas AND, NAND y OR.</li>
+      <li>Tabla de verdad del proceso de implementación de la compuerta XOR:</li>
+    </ul>
+    <table>
+      <tr><th>x<sub>1</sub></th><th>x<sub>2</sub></th><th>s<sub>1</sub> (NAND)</th><th>s<sub>2</sub> (OR)</th><th>y (AND)</th></tr>
+      <tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+      <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td></tr>
+      <tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+      <tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="slide" id="slide-192">
+  <h3>Diapositiva 192</h3>
+  <img src="slides/page-192.png" alt="Diapositiva 192">
+  <div class="content">
+    <h4>Perceptrón Multicapa</h4>
+    <p>Convertir la representación de compuerta lógica anterior en una representación de perceptrón:</p>
+    <ul>
+      <li><strong>Capa 0 (Entrada):</strong> Las dos neuronas reciben una señal de entrada y la envían a una neurona en la Capa 1.</li>
+      <li><strong>Capa 1 (Intermedia):</strong> La neurona envía la señal a la neurona en la Capa 2.</li>
+      <li><strong>Capa 2 (Salida):</strong> Produce la salida <em>y</em>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-193">
+  <h3>Diapositiva 193</h3>
+  <img src="slides/page-193.png" alt="Diapositiva 193">
+  <div class="content">
+    <h4>No Linealidad</h4>
+    <ul>
+      <li>Para resolver el problema XOR, se requiere una <strong>curva no lineal</strong> para separar 0 y 1 para simular el efecto de la compuerta XOR.</li>
+      <li><strong>Pregunta:</strong> &iquest;Cómo transforma un perceptrón multicapa la función del perceptrón de lineal a no lineal?</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-194">
+  <h3>Diapositiva 194</h3>
+  <img src="slides/page-194.png" alt="Diapositiva 194">
+  <div class="content">
+    <h4>Fuente de la No Linealidad de un Perceptrón Multicapa - Más Capas</h4>
+    <p>Un perceptrón multicapa puede resolver problemas complejos por la siguiente razón: <strong>más capas</strong>.</p>
+    <ul>
+      <li>Perceptrón de 3 capas: Capa de entrada &rarr; Capa intermedia &rarr; Capa de salida</li>
+      <li>Función signo: sign(x) = 1 si x > 0; sign(x) = -1 si x &le; 0</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-195">
+  <h3>Diapositiva 195</h3>
+  <img src="slides/page-195.png" alt="Diapositiva 195">
+  <div class="content">
+    <h4>Fuente de la No Linealidad - Función de Activación No Lineal</h4>
+    <ul>
+      <li>Se utiliza una <strong>función no lineal</strong> para procesar la salida.</li>
+      <li>La suma ponderada de múltiples entradas sigue siendo una representación lineal.</li>
+      <li>La <strong>función signo</strong> determina si la neurona se activa según la salida de la fase anterior. Por lo tanto, la función usada en esta fase se llama <strong>función de activación</strong>.</li>
+      <li>&theta; es el <strong>umbral</strong> que indica el nivel de dificultad para activar la neurona. Se mueve al lado izquierdo de la fórmula y se usa como parte de la entrada para el siguiente cálculo.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-196">
+  <h3>Diapositiva 196</h3>
+  <img src="slides/page-196.png" alt="Diapositiva 196">
+  <div class="content">
+    <h4>La Importancia de los Perceptrones Multicapa y las Funciones de Activación No Lineales</h4>
+    <ul>
+      <li>Si se usa un perceptrón de capa única, la fórmula es decisiva para la discriminación, y es un <strong>clasificador lineal</strong>.</li>
+      <li>Si no se usa la función signo en la capa intermedia:</li>
+      <li>a<sub>1</sub> = x<sub>1</sub> * w<sub>1</sub> + x<sub>2</sub> * w<sub>2</sub> + &theta;<sub>1</sub> (lineal)</li>
+      <li>a<sub>2</sub> = x<sub>1</sub> * w<sub>3</sub> + x<sub>2</sub> * w<sub>4</sub> + &theta;<sub>1</sub> (lineal)</li>
+      <li>La salida final sigue siendo lineal: a<sub>1</sub> * w<sub>5</sub> + a<sub>2</sub> * w<sub>6</sub> + &theta;<sub>2</sub> = combinación lineal</li>
+      <li><strong>Sin función de activación no lineal, agregar más capas no aporta capacidad no lineal.</strong></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 2: Red Neuronal Completamente Conectada             -->
+<!-- ============================================================ -->
+
+<div class="slide" id="slide-197">
+  <h3>Diapositiva 197</h3>
+  <img src="slides/page-197.png" alt="Diapositiva 197">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Perceptrón</li>
+      <li><strong>Red Neuronal Completamente Conectada y Cómo se Entrena</strong>
+        <ul>
+          <li><strong>Red Neuronal Profunda</strong></li>
+          <li>Funciones de Activación Comunes</li>
+          <li>Entrenamiento de Redes Neuronales</li>
+          <li>Optimizadores</li>
+          <li>Regularización</li>
+        </ul>
+      </li>
+      <li>Red Neuronal Convolucional</li>
+      <li>Arquitectura de Modelo Basada en la Red Neuronal Recurrente</li>
+      <li>Arquitectura Transformer</li>
+      <li>Arquitectura Básica de Modelos Fundacionales</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-198">
+  <h3>Diapositiva 198</h3>
+  <img src="slides/page-198.png" alt="Diapositiva 198">
+  <div class="content">
+    <h4>Mejora de la Capacidad del Perceptrón</h4>
+    <ul>
+      <li>Hemos visto la capacidad de los perceptrones multicapa para resolver problemas complejos (ajustar funciones complejas). Sin embargo, su capa intermedia tiene solo dos unidades, y solo puede resolver problemas de clasificación binaria.</li>
+      <li>&iquest;Se puede mejorar aún más esta capacidad si seguimos <strong>aumentando el número de nodos en la capa intermedia y el número de capas de la red</strong>?</li>
+    </ul>
+    <p>Estructura: Capa de entrada &rarr; Capa intermedia (muchos nodos) &rarr; Capa añadida &rarr; Capa de salida</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-199">
+  <h3>Diapositiva 199</h3>
+  <img src="slides/page-199.png" alt="Diapositiva 199">
+  <div class="content">
+    <h4>Red Neuronal Profunda</h4>
+    <ul>
+      <li>Generalmente, la arquitectura de aprendizaje profundo es una <strong>red neuronal profunda</strong>. La <strong>profundidad</strong> se refiere al número de capas en la red neuronal.</li>
+      <li>Comparación: Red neuronal humana &rarr; Perceptrón &rarr; Red neuronal profunda</li>
+      <li>Capa de entrada &rarr; Capas ocultas &rarr; Capa de salida</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>El aprendizaje profundo es un subconjunto del aprendizaje automático.</li>
+        <li>La red se construye simulando la red neuronal humana.</li>
+        <li>En el diseño y aplicación de redes neuronales artificiales (ANN), se deben considerar: funciones de las neuronas, modos de conexión entre neuronas, y aprendizaje (entrenamiento) de la red.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-200">
+  <h3>Diapositiva 200</h3>
+  <img src="slides/page-200.png" alt="Diapositiva 200">
+  <div class="content">
+    <h4>Estructura de la Red Neuronal Feedforward (FNN)</h4>
+    <p>Una <strong>Red Neuronal Feedforward (FNN)</strong> es un modelo típico de aprendizaje profundo con las siguientes características:</p>
+    <ul>
+      <li>La primera capa, como <strong>capa de entrada</strong>, proporciona la fuente de datos inicial para la red.</li>
+      <li>Cada neurona en la <strong>capa oculta</strong> y la capa de salida recibe la suma ponderada de todas las neuronas de la capa anterior, y proporciona la salida a la siguiente capa a través de la función de activación.</li>
+      <li>Se usa una estructura <strong>multicapa unidireccional</strong>. La red no proporciona retroalimentación. Las señales se transmiten unidireccionalmente desde la capa de entrada hasta la capa de salida (grafo acíclico dirigido - DAG).</li>
+    </ul>
+    <p><strong>Notación:</strong></p>
+    <ul>
+      <li><strong>X:</strong> datos de entrada</li>
+      <li><strong>W:</strong> peso</li>
+      <li><strong>B:</strong> umbral para activar una neurona (sesgo/bias)</li>
+      <li><strong>Y:</strong> salida de una neurona después de ser procesada por la función de activación</li>
+    </ul>
+    <p>El nodo <em>j</em> en la capa <em>L</em> está conectado al nodo <em>i</em> en la capa <em>L-1</em>.</p>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <p>También se llama Red Neuronal Feedforward (de alimentación directa).</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-201">
+  <h3>Diapositiva 201</h3>
+  <img src="slides/page-201.png" alt="Diapositiva 201">
+  <div class="content">
+    <h4>Cálculo de la FNN</h4>
+    <p>La primera neurona en la capa oculta 1 se expande. El cálculo de una sola neurona es:</p>
+    <ul>
+      <li><strong>a<sub>1</sub><sup>(1)</sup> = &sigma;(&sum;<sub>i=1</sub><sup>m</sup> x<sub>i</sub> * w<sub>1</sub><sup>1i</sup>) + b<sub>1</sub></strong></li>
+      <li><strong>y<sub>1</sub><sup>(1)</sup> = f(a<sub>1</sub><sup>(1)</sup>)</strong></li>
+    </ul>
+    <p>Estructura: Capa de entrada &rarr; Capa oculta 1 &rarr; Capa oculta 2 &rarr; Capa completamente conectada &rarr; Capa de salida</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-202">
+  <h3>Diapositiva 202</h3>
+  <img src="slides/page-202.png" alt="Diapositiva 202">
+  <div class="content">
+    <h4>&iquest;Cómo Impactan las Capas Ocultas Adicionales en las Redes Neuronales?</h4>
+    <p>Comparación visual:</p>
+    <ul>
+      <li><strong>0 capas ocultas:</strong> Separación lineal simple</li>
+      <li><strong>3 capas ocultas:</strong> Fronteras de decisión más complejas</li>
+      <li><strong>20 capas ocultas:</strong> Fronteras de decisión muy sofisticadas</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <p>Cuantas más capas ocultas, mayor la capacidad de identificación de la red neuronal.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-203">
+  <h3>Diapositiva 203</h3>
+  <img src="slides/page-203.png" alt="Diapositiva 203">
+  <div class="content">
+    <h4>Agregando Nodos en una Sola Capa</h4>
+    <ul>
+      <li>Al pasar de perceptrones de capa única a multicapa, nos damos cuenta de que podemos aumentar tanto el número de capas como el número de nodos de red en una sola capa.</li>
+      <li>&iquest;Podemos mejorar las capacidades de la red simplemente agregando nodos a una sola capa?</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-204">
+  <h3>Diapositiva 204</h3>
+  <img src="slides/page-204.png" alt="Diapositiva 204">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Perceptrón</li>
+      <li>Red Neuronal Completamente Conectada y Cómo se Entrena
+        <ul>
+          <li>Red Neuronal Profunda</li>
+          <li><strong>Funciones de Activación Comunes</strong></li>
+          <li>Entrenamiento de Redes Neuronales</li>
+          <li>Optimizadores</li>
+          <li>Regularización</li>
+        </ul>
+      </li>
+      <li>Red Neuronal Convolucional</li>
+      <li>Arquitectura de Modelo Basada en la RNN</li>
+      <li>Arquitectura Transformer</li>
+      <li>Arquitectura Básica de Modelos Fundacionales</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-205">
+  <h3>Diapositiva 205</h3>
+  <img src="slides/page-205.png" alt="Diapositiva 205">
+  <div class="content">
+    <h4>Las Redes Neuronales Profundas Aún Requieren Funciones de Activación No Lineales</h4>
+    <ul>
+      <li>Aparte de los perceptrones multicapa, las redes neuronales profundas aún necesitan <strong>funciones de activación no lineales</strong> para tener capacidades no lineales.</li>
+      <li>Usando una función de activación lineal, por ejemplo: <strong>f(x) = wx + b</strong>, la red no gana capacidad no lineal.</li>
+      <li>&iquest;Cuáles son algunas funciones de activación comunes?</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-206">
+  <h3>Diapositiva 206</h3>
+  <img src="slides/page-206.png" alt="Diapositiva 206">
+  <div class="content">
+    <h4>Función Escalón (Step Function)</h4>
+    <ul>
+      <li>Cada nodo neuronal en la red neuronal recibe la suma ponderada de las neuronas de la capa superior como entrada. Después de ser procesada por una función no lineal, el valor de entrada ingresa a la siguiente capa como entrada. Esta función no lineal se denomina <strong>función de activación</strong>.</li>
+      <li>La <strong>función signo</strong> es la función de activación usada en el perceptrón multicapa y es una <strong>función escalón</strong>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-207">
+  <h3>Diapositiva 207</h3>
+  <img src="slides/page-207.png" alt="Diapositiva 207">
+  <div class="content">
+    <h4>Función Sigmoide</h4>
+    <ul>
+      <li>La <strong>función sigmoide</strong> es una función de activación frecuentemente usada en redes neuronales.</li>
+      <li>Para una entrada con dominio en R, la función sigmoide la mapea a una salida dentro del intervalo <strong>(0, 1)</strong>.</li>
+      <li>Porque comprime cualquier entrada en el rango (-&infin;, +&infin;) a un valor dentro del intervalo (0, 1), la función sigmoide a menudo se denomina <strong>función de compresión (squeezing function)</strong>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-208">
+  <h3>Diapositiva 208</h3>
+  <img src="slides/page-208.png" alt="Diapositiva 208">
+  <div class="content">
+    <h4>Función Tanh</h4>
+    <ul>
+      <li>Similar a la función sigmoide, la función <strong>tanh (tangente hiperbólica)</strong> también puede comprimir y convertir su entrada al intervalo <strong>(-1, 1)</strong>.</li>
+      <li>Cuando la entrada está cerca de 0, la función tanh es cercana a una transformación lineal.</li>
+      <li>Tiene una forma similar a la función sigmoide. La diferencia es que la función tanh es <strong>centrosimétrica respecto al origen</strong> del sistema de coordenadas.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-209">
+  <h3>Diapositiva 209</h3>
+  <img src="slides/page-209.png" alt="Diapositiva 209">
+  <div class="content">
+    <h4>Función ReLU</h4>
+    <ul>
+      <li><strong>ReLU (Rectified Linear Unit / Unidad Lineal Rectificada)</strong> es una de las funciones de activación más populares porque es fácil de implementar y tiene buen rendimiento en diversas tareas de predicción.</li>
+      <li>ReLU proporciona una <strong>transformación no lineal simple</strong>. Dado un elemento x, la función ReLU se define como el valor máximo entre el elemento y 0:</li>
+      <li><strong>ReLU(x) = max(0, x)</strong></li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-210">
+  <h3>Diapositiva 210</h3>
+  <img src="slides/page-210.png" alt="Diapositiva 210">
+  <div class="content">
+    <h4>Función Leaky ReLU</h4>
+    <ul>
+      <li>La función <strong>Leaky ReLU</strong> es una versión mejorada de ReLU. Asigna una <strong>pendiente no nula</strong> a todos los valores negativos.</li>
+      <li>Esto resuelve el problema de las "neuronas muertas" de la ReLU estándar.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-211">
+  <h3>Diapositiva 211</h3>
+  <img src="slides/page-211.png" alt="Diapositiva 211">
+  <div class="content">
+    <h4>Función Swish</h4>
+    <ul>
+      <li>La función <strong>Swish</strong> es una función de activación de auto-compuerta, definida como: <strong>f(x) = x &middot; &sigma;(&beta;x)</strong></li>
+      <li>Donde &sigma;(.) es la función sigmoide. &beta; es un parámetro aprendible o un hiperparámetro fijo.</li>
+      <li>&sigma;() &isin; (0, 1) puede considerarse como un <strong>mecanismo de compuerta suave</strong>:</li>
+      <li>Cuando &sigma;(&beta;x) se acerca a 1, la compuerta está abierta, y la salida es aproximadamente <em>x</em> mismo.</li>
+      <li>Cuando &sigma;(&beta;x) se acerca a 0, la compuerta está cerrada, y la salida es aproximadamente 0.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>Cuando &beta; = 0, Swish se convierte en la función lineal x/2.</li>
+        <li>Cuando &beta; = 1, Swish es aproximadamente lineal cuando x > 0, y aproximadamente saturada con cierta no monotonía cuando x < 0.</li>
+        <li>Cuando &beta; &rarr; +&infin;, Swish se aproxima a la función ReLU.</li>
+        <li>Swish puede considerarse como una <strong>función de interpolación no lineal</strong> entre una función lineal y ReLU.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-212">
+  <h3>Diapositiva 212</h3>
+  <img src="slides/page-212.png" alt="Diapositiva 212">
+  <div class="content">
+    <h4>Función Softmax</h4>
+    <ul>
+      <li>La función <strong>Softmax</strong> se usa habitualmente para la <strong>clasificación multiclase</strong> en aprendizaje profundo.</li>
+      <li>Convierte un vector K-dimensional que contiene cualquier número real en otro vector K-dimensional dentro del rango (0, 1), y la <strong>suma de todos los elementos es igual a 1</strong>.</li>
+      <li>Por lo tanto, la salida del vector de la función Softmax puede interpretarse como una <strong>distribución de probabilidad</strong>, adecuada para representar las probabilidades de diferentes clasificaciones.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 2.3: Entrenamiento de Redes Neuronales              -->
+<!-- ============================================================ -->
+
+<div class="slide" id="slide-213">
+  <h3>Diapositiva 213</h3>
+  <img src="slides/page-213.png" alt="Diapositiva 213">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Perceptrón</li>
+      <li>Red Neuronal Completamente Conectada y Cómo se Entrena
+        <ul>
+          <li>Red Neuronal Profunda</li>
+          <li>Funciones de Activación Comunes</li>
+          <li><strong>Entrenamiento de Redes Neuronales</strong></li>
+          <li>Optimizadores</li>
+          <li>Regularización</li>
+        </ul>
+      </li>
+      <li>Red Neuronal Convolucional</li>
+      <li>Arquitectura de Modelo Basada en la RNN</li>
+      <li>Arquitectura Transformer</li>
+      <li>Arquitectura Básica de Modelos Fundacionales</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-214">
+  <h3>Diapositiva 214</h3>
+  <img src="slides/page-214.png" alt="Diapositiva 214">
+  <div class="content">
+    <h4>Aprendizaje a Partir de Datos</h4>
+    <ul>
+      <li>La diferencia principal entre una red neuronal y un perceptrón multicapa es que, al resolver problemas no lineales, la red neuronal puede <strong>aprender automáticamente cómo extraer características</strong> para formar un modelo de resolución de problemas. Esta capacidad de aprendizaje depende de los <strong>datos</strong>.</li>
+    </ul>
+    <p>Tres enfoques para identificar dígitos manuscritos (como el 5):</p>
+    <ol>
+      <li><strong>Algoritmos humanos:</strong> Los humanos diseñan reglas &rarr; Respuesta</li>
+      <li><strong>Aprendizaje automático:</strong> Características diseñadas por humanos (SIFT, HOG, etc.) + ML (SVM, KNN, etc.) &rarr; Respuesta</li>
+      <li><strong>Red neuronal (deep learning):</strong> Datos directamente &rarr; Respuesta</li>
+    </ol>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <p>Los datos son el fundamento del aprendizaje automático. Encontrar respuestas en los datos, descubrir patrones, y contar historias basadas en datos... Sin datos, el aprendizaje automático no sería posible. Este enfoque basado en datos nos ayuda a liberarnos del enfoque centrado en humanos.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-215">
+  <h3>Diapositiva 215</h3>
+  <img src="slides/page-215.png" alt="Diapositiva 215">
+  <div class="content">
+    <h4>División de Datos</h4>
+    <ul>
+      <li>Un conjunto de datos generalmente se divide en <strong>conjunto de entrenamiento</strong>, <strong>conjunto de validación</strong> y <strong>conjunto de prueba</strong>.</li>
+      <li><strong>Datos de entrenamiento:</strong> Aprendizaje de características &rarr; Modo de identificación establecido &rarr; Auto-optimización</li>
+      <li><strong>Datos de prueba:</strong> Identificación (Flores, Hojas, etc.)</li>
+      <li>El <strong>conjunto de validación</strong> se usa para evaluar el entrenamiento del modelo al final de una fase, permitiendo hacer ajustes.</li>
+      <li>El <strong>conjunto de prueba</strong> son generalmente datos nunca vistos por el modelo. Los resultados reflejan directamente el rendimiento del modelo.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-216">
+  <h3>Diapositiva 216</h3>
+  <img src="slides/page-216.png" alt="Diapositiva 216">
+  <div class="content">
+    <h4>&iquest;Cómo Aprende una Red Neuronal?</h4>
+    <p><strong>Proceso de aprendizaje humano:</strong> Aprendizaje &rarr; Examen de simulación &rarr; Tu respuesta vs. Respuesta correcta &rarr; Reflexión</p>
+    <p><strong>Proceso de aprendizaje de la red neuronal:</strong> Resultado de identificación vs. Resultado real &rarr; Calcular error &rarr; Ajuste de parámetros</p>
+    <p><strong>Pregunta clave:</strong> &iquest;Cómo se calcula el error?</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-217">
+  <h3>Diapositiva 217</h3>
+  <img src="slides/page-217.png" alt="Diapositiva 217">
+  <div class="content">
+    <h4>Funciones de Pérdida</h4>
+    <ul>
+      <li>Una <strong>función de pérdida</strong> se usa para medir la diferencia entre el valor predicho por el modelo y el valor real en aprendizaje automático y aprendizaje profundo. Cuantifica el grado en que un modelo comete errores durante el entrenamiento.</li>
+    </ul>
+    <p><strong>Funciones de pérdida comunes:</strong></p>
+    <ul>
+      <li><strong>Error cuadrático medio (MSE):</strong> Principalmente usado para tareas de regresión.<br>
+        y<sub>k</sub> representa la salida de la red neuronal, t<sub>k</sub> representa los datos supervisados, y <em>k</em> representa el número de dimensiones de datos.</li>
+      <li><strong>Función de pérdida de entropía cruzada:</strong> Principalmente usada para tareas de clasificación.<br>
+        y<sub>k</sub> representa la salida de la red neuronal, y t<sub>k</sub> representa la etiqueta de solución correcta.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-218">
+  <h3>Diapositiva 218</h3>
+  <img src="slides/page-218.png" alt="Diapositiva 218">
+  <div class="content">
+    <h4>Descenso de Gradiente</h4>
+    <ul>
+      <li>El aprendizaje de la red neuronal es un proceso de encontrar los <strong>parámetros óptimos</strong>. A medida que los parámetros se optimizan, el valor predicho se acerca gradualmente al valor real, y la función de pérdida disminuye.</li>
+      <li>El <strong>gradiente</strong> es la dirección en la que el valor de la función multivariable aumenta más rápido. Por lo tanto, todos los parámetros deben optimizarse en la <strong>dirección inversa del gradiente</strong>.</li>
+      <li>El gradiente de la función multivariable C(W) = f(w<sub>0</sub>, w<sub>1</sub>, ..., w<sub>n</sub>) es:<br>
+        <strong>&nabla;f = [&part;f/&part;w<sub>0</sub>, &part;f/&part;w<sub>1</sub>, ..., &part;f/&part;w<sub>n</sub>]<sup>T</sup></strong></li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-219">
+  <h3>Diapositiva 219</h3>
+  <img src="slides/page-219.png" alt="Diapositiva 219">
+  <div class="content">
+    <h4>Algoritmo de Descenso de Gradiente por Lotes (BGD)</h4>
+    <ul>
+      <li>&lt;X, t&gt; indica una muestra en el conjunto de entrenamiento. X es el vector de valor de entrada, t es la salida objetivo, o es la salida real, &eta; es la tasa de aprendizaje, y C es la función de pérdida.</li>
+    </ul>
+    <p><strong>Algoritmo:</strong></p>
+    <ol>
+      <li>Inicializar cada w<sub>i</sub> con un valor aleatorio de valor absoluto pequeño.</li>
+      <li>Hasta que se cumpla la condición de terminación:
+        <ul>
+          <li>Inicializar cada &Delta;w<sub>i</sub> a cero.</li>
+          <li>Para cada &lt;X, t&gt; en el conjunto de entrenamiento: Calcular salida o, actualizar &Delta;w<sub>i</sub></li>
+          <li>Para cada w<sub>i</sub>: w<sub>i</sub> += &Delta;w<sub>i</sub></li>
+        </ul>
+      </li>
+    </ol>
+    <p>Este algoritmo <strong>no se usa frecuentemente</strong> porque la convergencia es muy lenta ya que todas las muestras de entrenamiento necesitan calcularse cada vez que se actualiza el peso.</p>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <p>BGD usa todo el conjunto de entrenamiento para cada aprendizaje. Cada actualización va en la dirección correcta, asegurando convergencia al extremo. Una función convexa converge a un extremo global; una no convexa puede converger a un extremo local. Sin embargo, requiere más tiempo y más recursos de memoria.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-220">
+  <h3>Diapositiva 220</h3>
+  <img src="slides/page-220.png" alt="Diapositiva 220">
+  <div class="content">
+    <h4>Algoritmo de Descenso de Gradiente Estocástico (SGD)</h4>
+    <ul>
+      <li>Una variante común, el <strong>Descenso de Gradiente Estocástico</strong>, fue desarrollada para resolver los problemas encontrados en el algoritmo BGD. Una de sus implementaciones es el <strong>aprendizaje en línea</strong>, que actualiza el gradiente basándose en cada muestra.</li>
+    </ul>
+    <p><strong>Algoritmo SGD:</strong></p>
+    <ol>
+      <li>Inicializar cada w<sub>i</sub> con un valor aleatorio de valor absoluto pequeño.</li>
+      <li>Hasta que se cumpla la condición de terminación:
+        <ul>
+          <li>Seleccionar aleatoriamente &lt;X, t&gt; del conjunto de entrenamiento.</li>
+          <li>Calcular salida o.</li>
+          <li>Para cada w<sub>i</sub>: actualizar directamente w<sub>i</sub></li>
+        </ul>
+      </li>
+    </ol>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <p>Este algoritmo actualiza el peso basándose en cada muestra. La mayoría de las muestras contienen ruido. Como resultado, cuando se aproxima al extremo, la dirección del gradiente oscila alrededor del extremo pero es difícil converger exactamente a él.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-221">
+  <h3>Diapositiva 221</h3>
+  <img src="slides/page-221.png" alt="Diapositiva 221">
+  <div class="content">
+    <h4>Algoritmo de Descenso de Gradiente por Mini-Lotes (MBGD)</h4>
+    <ul>
+      <li>El algoritmo MBGD fue diseñado para abordar los problemas de los dos algoritmos anteriores y es actualmente el <strong>más ampliamente utilizado</strong>. Usa un tamaño de lote pequeño y fijo (BS) de muestras para calcular &Delta;w<sub>i</sub> y actualizar pesos.</li>
+    </ul>
+    <p><strong>Algoritmo:</strong></p>
+    <ol>
+      <li>Inicializar cada w<sub>i</sub> con un valor aleatorio de valor absoluto pequeño.</li>
+      <li>Hasta que se cumpla la condición de terminación:
+        <ul>
+          <li>Inicializar cada &Delta;w<sub>i</sub> a cero.</li>
+          <li>Para cada &lt;X, t&gt; en el siguiente lote de muestras (número = BS):</li>
+          <li>Calcular salida o, actualizar &Delta;w<sub>i</sub></li>
+          <li>Para cada w<sub>i</sub>: w<sub>i</sub> += &Delta;w<sub>i</sub></li>
+          <li>Si es el último lote, barajar las muestras de entrenamiento.</li>
+        </ul>
+      </li>
+    </ol>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <p>Este algoritmo considera tanto la eficiencia como la estabilidad del gradiente. Es el más comúnmente usado en el trabajo práctico. El tamaño de lote varía según el problema y generalmente se establece en 32.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-222">
+  <h3>Diapositiva 222</h3>
+  <img src="slides/page-222.png" alt="Diapositiva 222">
+  <div class="content">
+    <h4>Proceso de Entrenamiento de la Red</h4>
+    <ul>
+      <li><strong>Propagación hacia adelante (Forward propagation):</strong><br>
+        C(W) = (1/2)(y - a<sub>3</sub>)<sup>2</sup> = (1/2)(y - g(W<sub>2</sub> &middot; g(W<sub>1</sub> &middot; X)))<sup>2</sup></li>
+      <li>Si el parámetro W<sub>1</sub> necesita actualizarse, según W<sub>t+1</sub> = W<sub>t</sub> - &eta;(dC/dW), calcular:<br>
+        <strong>dC/dW<sub>1</sub> = (&part;C/&part;a<sub>3</sub>) &middot; (&part;a<sub>3</sub>/&part;z<sub>3</sub>) &middot; (&part;z<sub>3</sub>/&part;a<sub>2</sub>) &middot; (&part;a<sub>2</sub>/&part;z<sub>2</sub>) &middot; (&part;z<sub>2</sub>/&part;W<sub>1</sub>)</strong></li>
+    </ul>
+    <p>Secuencia: Propagación hacia adelante &rarr; Combinación Lineal &rarr; Activación &rarr; Combinación Lineal &rarr; Activación</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-223">
+  <h3>Diapositiva 223</h3>
+  <img src="slides/page-223.png" alt="Diapositiva 223">
+  <div class="content">
+    <h4>Regla de la Cadena</h4>
+    <ul>
+      <li><strong>Función compuesta:</strong> Si una función se representa como una función compuesta, la derivada de la función compuesta puede representarse por el <strong>producto de las derivadas de las funciones</strong> que forman la función compuesta.</li>
+      <li>La derivada (de z con respecto a x) puede expresarse como (dz/dt) multiplicada por (dt/dx).</li>
+      <li>Esta es la <strong>regla de la cadena</strong>.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>Las redes neuronales se propagan hacia adelante capa por capa. &iquest;Cómo podemos calcular los gradientes de todos los parámetros basándonos en el gradiente de la función de pérdida?</li>
+        <li>La secuencia de la retropropagación es multiplicar la señal LOSS por la derivada local del nodo y luego enviar el resultado al siguiente nodo.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-224">
+  <h3>Diapositiva 224</h3>
+  <img src="slides/page-224.png" alt="Diapositiva 224">
+  <div class="content">
+    <h4>Gradientes que Desaparecen y Explotan (1)</h4>
+    <ul>
+      <li><strong>Gradiente que desaparece (vanishing gradient):</strong> A medida que el número de capas de la red aumenta, el valor de la derivada de la propagación hacia atrás disminuye, y el gradiente desaparece.</li>
+      <li><strong>Gradiente que explota (exploding gradient):</strong> A medida que el número de capas aumenta, el valor de la derivada de la propagación hacia atrás aumenta, y el gradiente explota.</li>
+      <li><strong>Causa:</strong> y<sub>i</sub> = &sigma;(z<sub>i</sub>) = &sigma;(w<sub>i</sub>x<sub>i</sub> + b<sub>i</sub>), donde &sigma; es la función sigmoide.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-225">
+  <h3>Diapositiva 225</h3>
+  <img src="slides/page-225.png" alt="Diapositiva 225">
+  <div class="content">
+    <h4>Gradientes que Desaparecen y Explotan (2)</h4>
+    <ul>
+      <li>El valor máximo de &sigma;'(x) es <strong>1/4</strong>.</li>
+      <li>El peso de la red |w| generalmente es menor que 1. Por lo tanto, |&sigma;'(z) &middot; w| &le; 1/4. Al usar la regla de la cadena, el valor de &part;C/&part;b<sub>1</sub> se hace más pequeño cuando el número de capas aumenta, resultando en <strong>desvanecimiento del gradiente</strong>.</li>
+      <li>Cuando el peso |w| es grande, es decir |&sigma;'(z) &middot; w| > 1, el <strong>gradiente explota</strong>.</li>
+    </ul>
+    <p><strong>Soluciones:</strong></p>
+    <ul>
+      <li>Usar <strong>recorte de gradientes</strong> para prevenir la explosión del gradiente.</li>
+      <li>Usar la <strong>función de activación ReLU</strong> y la <strong>red neuronal LSTM</strong> para mitigar el desvanecimiento del gradiente.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>La explosión y el desvanecimiento del gradiente son causados por la gran profundidad de la red y la actualización inestable de pesos. En esencia, son causados por la regla de la cadena en la propagación hacia atrás del gradiente.</li>
+        <li>El recorte de gradientes establece un umbral; si el gradiente lo excede, se limita a ese umbral.</li>
+        <li>ReLU: Si la derivada de la función de activación es 1, el gradiente no desaparece ni explota.</li>
+        <li>Para redes LSTM, el desvanecimiento del gradiente no ocurre fácilmente gracias a las compuertas complejas internas.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 2.4: Optimizadores                                  -->
+<!-- ============================================================ -->
+
+<div class="slide" id="slide-226">
+  <h3>Diapositiva 226</h3>
+  <img src="slides/page-226.png" alt="Diapositiva 226">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Perceptrón</li>
+      <li>Red Neuronal Completamente Conectada y Cómo se Entrena
+        <ul>
+          <li>Red Neuronal Profunda</li>
+          <li>Funciones de Activación Comunes</li>
+          <li>Entrenamiento de Redes Neuronales</li>
+          <li><strong>Optimizadores</strong></li>
+          <li>Regularización</li>
+        </ul>
+      </li>
+      <li>Red Neuronal Convolucional</li>
+      <li>Arquitectura de Modelo Basada en la RNN</li>
+      <li>Arquitectura Transformer</li>
+      <li>Arquitectura Básica de Modelos Fundacionales</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-227">
+  <h3>Diapositiva 227</h3>
+  <img src="slides/page-227.png" alt="Diapositiva 227">
+  <div class="content">
+    <h4>Entrenamiento de Modelos Más Rápido</h4>
+    <ul>
+      <li>El entrenamiento de redes neuronales es <strong>muy lento</strong> cuando se usan métodos normales.</li>
+      <li>Para acelerar el proceso, podemos usar herramientas especiales llamadas <strong>optimizadores</strong>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-228">
+  <h3>Diapositiva 228</h3>
+  <img src="slides/page-228.png" alt="Diapositiva 228">
+  <div class="content">
+    <h4>Optimizadores</h4>
+    <ul>
+      <li>Existen diversas versiones mejoradas de los algoritmos de descenso de gradiente. En programación orientada a objetos, los diferentes algoritmos se encapsulan en un objeto llamado <strong>optimizador</strong>.</li>
+    </ul>
+    <p><strong>Razones para mejorar los algoritmos:</strong></p>
+    <ul>
+      <li>Acelerar la convergencia del algoritmo</li>
+      <li>Prevenir o sobrepasar extremos locales</li>
+      <li>Simplificar la configuración manual de parámetros, especialmente la tasa de aprendizaje</li>
+    </ul>
+    <p><strong>Optimizadores comunes:</strong> SGD, Momentum, AdaGrad, RMSprop y Adam.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-229">
+  <h3>Diapositiva 229</h3>
+  <img src="slides/page-229.png" alt="Diapositiva 229">
+  <div class="content">
+    <h4>Optimizador de Momento (Momentum)</h4>
+    <ul>
+      <li>Agregar el <strong>término de momento</strong> a &Delta;w<sub>ji</sub> es una forma básica de mejorar un algoritmo.</li>
+      <li>La regla de corrección de pesos es: <strong>&Delta;w<sub>ji</sub><sup>l</sup>(n) = -&eta;&delta;<sub>i</sub><sup>l+1</sup>x<sub>j</sub><sup>l</sup>(n) + &alpha;&Delta;w<sub>ji</sub><sup>l</sup>(n-1)</strong></li>
+      <li>Donde &alpha; es una constante (0 &le; &alpha; < 1) llamada <strong>coeficiente de momento</strong>, y &alpha;&Delta;w<sub>ji</sub><sup>l</sup>(n-1) es el término de momento.</li>
+      <li><strong>Analogía:</strong> Imagina que una pequeña bola rueda hacia abajo desde un punto aleatorio en la superficie de error. El término de momento le da <strong>inercia</strong> a la bola.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-230">
+  <h3>Diapositiva 230</h3>
+  <img src="slides/page-230.png" alt="Diapositiva 230">
+  <div class="content">
+    <h4>Ventajas y Desventajas del Optimizador de Momento</h4>
+    <p><strong>Ventajas:</strong></p>
+    <ul>
+      <li>Mejora la estabilidad de la dirección de corrección del gradiente y reduce mutaciones.</li>
+      <li>En áreas donde la dirección del gradiente es estable, la bola rueda cada vez más rápido, lo que ayuda a sobrepasar rápidamente áreas planas y <strong>acelera la convergencia</strong>.</li>
+      <li>Una bola con inercia es más probable que ruede sobre algunos <strong>extremos locales estrechos</strong>.</li>
+    </ul>
+    <p><strong>Desventajas:</strong></p>
+    <ul>
+      <li>La tasa de aprendizaje &eta; y el momento &alpha; deben configurarse manualmente. Generalmente se necesitan experimentos adicionales para determinar los valores apropiados.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-231">
+  <h3>Diapositiva 231</h3>
+  <img src="slides/page-231.png" alt="Diapositiva 231">
+  <div class="content">
+    <h4>Optimizador AdaGrad (1)</h4>
+    <ul>
+      <li>La característica común de SGD, MBGD y el optimizador de momento es que actualizan cada parámetro usando la <strong>misma tasa de aprendizaje</strong>.</li>
+      <li>Según el principio de AdaGrad, se deben establecer <strong>diferentes tasas de aprendizaje para diferentes parámetros</strong>.</li>
+    </ul>
+    <p><strong>Pasos:</strong></p>
+    <ol>
+      <li>Calcular gradiente: g<sub>t</sub></li>
+      <li>Acumulación de gradiente al cuadrado: r<sub>t</sub> = r<sub>t-1</sub> + g<sub>t</sub><sup>2</sup></li>
+      <li>Calcular actualización</li>
+      <li>Aplicar actualización: w<sub>t+1</sub> = w<sub>t</sub> - (&eta; / (&radic;r<sub>t</sub> + &epsilon;)) &middot; g<sub>t</sub></li>
+    </ol>
+    <p>g<sub>t</sub> es el t-ésimo gradiente, r<sub>t</sub> es la variable de acumulación del gradiente (valor inicial 0). &eta; es la tasa de aprendizaje global. &epsilon; es una pequeña constante (10<sup>-7</sup>) para estabilidad numérica.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-232">
+  <h3>Diapositiva 232</h3>
+  <img src="slides/page-232.png" alt="Diapositiva 232">
+  <div class="content">
+    <h4>Optimizador AdaGrad (2)</h4>
+    <ul>
+      <li>Según el algoritmo de optimización AdaGrad, <em>r</em> aumenta continuamente mientras la tasa de aprendizaje general sigue disminuyendo a medida que el algoritmo itera. Esto es porque queremos que la tasa de aprendizaje se <strong>desacelere a medida que el número de actualizaciones aumenta</strong>.</li>
+    </ul>
+    <p><strong>Ventaja:</strong></p>
+    <ul>
+      <li>La tasa de aprendizaje se <strong>actualiza automáticamente</strong>. A medida que el número de actualizaciones aumenta, la tasa de aprendizaje disminuye.</li>
+    </ul>
+    <p><strong>Desventaja:</strong></p>
+    <ul>
+      <li>El denominador aumenta continuamente, y el aprendizaje se vuelve <strong>muy lento al final</strong>. Como resultado, el algoritmo pierde su efectividad.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-233">
+  <h3>Diapositiva 233</h3>
+  <img src="slides/page-233.png" alt="Diapositiva 233">
+  <div class="content">
+    <h4>Optimizador RMSProp</h4>
+    <ul>
+      <li>El optimizador <strong>RMSProp</strong> es un AdaGrad mejorado. Introduce un <strong>coeficiente de atenuación</strong> para asegurar que <em>r</em> se atenúe a una tasa determinada en cada ronda.</li>
+      <li>RMSProp aborda el hecho de que AdaGrad termina el proceso de optimización demasiado pronto. Es adecuado para manejar objetivos inestables y es especialmente efectivo para <strong>RNNs</strong>.</li>
+    </ul>
+    <p><strong>Pasos:</strong></p>
+    <ol>
+      <li>Calcular gradiente: g<sub>t</sub></li>
+      <li>Acumulación de gradiente al cuadrado: r<sub>t</sub> = &beta;r<sub>t-1</sub> + (1-&beta;)g<sub>t</sub><sup>2</sup></li>
+      <li>Calcular actualización</li>
+      <li>Aplicar actualización</li>
+    </ol>
+    <p>&beta; indica el factor de atenuación. &eta; es la tasa de aprendizaje global. &epsilon; = 10<sup>-7</sup> para estabilidad numérica.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-234">
+  <h3>Diapositiva 234</h3>
+  <img src="slides/page-234.png" alt="Diapositiva 234">
+  <div class="content">
+    <h4>Optimizador Adam (1)</h4>
+    <ul>
+      <li><strong>Adam (Adaptive Moment Estimation)</strong> fue desarrollado basándose en AdaGrad y AdaDelta. Mantiene dos variables adicionales, m<sub>t</sub> y v<sub>t</sub>, para cada variable a entrenar.</li>
+      <li><strong>m<sub>t</sub> = &beta;<sub>1</sub>m<sub>t-1</sub> + (1 - &beta;<sub>1</sub>)g<sub>t</sub></strong></li>
+      <li><strong>v<sub>t</sub> = &beta;<sub>2</sub>v<sub>t-1</sub> + (1 - &beta;<sub>2</sub>)g<sub>t</sub><sup>2</sup></strong></li>
+      <li>Donde <em>t</em> representa la <em>t</em>-ésima iteración, y g<sub>t</sub> es el gradiente calculado.</li>
+      <li>m<sub>t</sub> y v<sub>t</sub> son <strong>promedios móviles</strong> del gradiente y del gradiente al cuadrado, respectivamente. Desde una perspectiva estadística, son estimaciones del <strong>primer momento</strong> (valor promedio) y del <strong>segundo momento</strong> (varianza no centrada) del gradiente.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-235">
+  <h3>Diapositiva 235</h3>
+  <img src="slides/page-235.png" alt="Diapositiva 235">
+  <div class="content">
+    <h4>Optimizador Adam (2)</h4>
+    <ul>
+      <li>Si m<sub>1</sub> y v<sub>1</sub> se inicializan con el vector cero, m<sub>t</sub> y v<sub>t</sub> están cerca de 0 durante las iteraciones iniciales. Para resolver esto, se usa <strong>corrección de sesgo</strong>:</li>
+      <li>m&#770;<sub>t</sub> = m<sub>t</sub> / (1 - &beta;<sub>1</sub><sup>t</sup>)</li>
+      <li>v&#770;<sub>t</sub> = v<sub>t</sub> / (1 - &beta;<sub>2</sub><sup>t</sup>)</li>
+    </ul>
+    <p><strong>Regla de actualización de pesos de Adam:</strong></p>
+    <p><strong>w<sub>t+1</sub> = w<sub>t</sub> - &eta; / (&radic;v&#770;<sub>t</sub> + &epsilon;) &middot; m&#770;<sub>t</sub></strong></p>
+    <p>Aunque requiere configurar manualmente &eta;, &beta;<sub>1</sub> y &beta;<sub>2</sub>, el proceso es mucho más simple. Según experimentos, los valores predeterminados son: <strong>&beta;<sub>1</sub> = 0.9, &beta;<sub>2</sub> = 0.999, &epsilon; = 10<sup>-8</sup>, &eta; = 0.001</strong>. En la práctica, Adam converge rápidamente.</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 2.5: Regularización                                 -->
+<!-- ============================================================ -->
+
+<div class="slide" id="slide-236">
+  <h3>Diapositiva 236</h3>
+  <img src="slides/page-236.png" alt="Diapositiva 236">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Perceptrón</li>
+      <li>Red Neuronal Completamente Conectada y Cómo se Entrena
+        <ul>
+          <li>Red Neuronal Profunda</li>
+          <li>Funciones de Activación Comunes</li>
+          <li>Entrenamiento de Redes Neuronales</li>
+          <li>Optimizadores</li>
+          <li><strong>Regularización</strong></li>
+        </ul>
+      </li>
+      <li>Red Neuronal Convolucional</li>
+      <li>Arquitectura de Modelo Basada en la RNN</li>
+      <li>Arquitectura Transformer</li>
+      <li>Arquitectura Básica de Modelos Fundacionales</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-237">
+  <h3>Diapositiva 237</h3>
+  <img src="slides/page-237.png" alt="Diapositiva 237">
+  <div class="content">
+    <h4>Fin del Aprendizaje del Modelo</h4>
+    <ul>
+      <li>&iquest;Cuándo termina el modelo de aprender?</li>
+      <li>&iquest;Cuándo está el modelo listo para uso real?</li>
+      <li>&iquest;Podemos decir que el modelo es perfecto una vez que ha aprendido todas las características de los datos de entrenamiento?</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-238">
+  <h3>Diapositiva 238</h3>
+  <img src="slides/page-238.png" alt="Diapositiva 238">
+  <div class="content">
+    <h4>Sobreajuste (Overfitting)</h4>
+    <ul>
+      <li><strong>Descripción del problema:</strong> El modelo funciona bien con el conjunto de entrenamiento, pero mal con el conjunto de prueba.</li>
+      <li><strong>Causa raíz:</strong> Demasiadas dimensiones de características, supuestos del modelo y parámetros, demasiado ruido, pero muy pocos datos de entrenamiento. La función de ajuste predice el conjunto de entrenamiento casi perfectamente, pero el resultado de predicción para nuevos datos es insatisfactorio.</li>
+    </ul>
+    <p>Tres estados:</p>
+    <ul>
+      <li><strong>Subajuste (Underfitting):</strong> Características no aprendidas</li>
+      <li><strong>Buen ajuste (Good fitting):</strong> Equilibrio adecuado</li>
+      <li><strong>Sobreajuste (Overfitting):</strong> Ruido aprendido</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <p>El sobreajuste es causado por datos insuficientes y modelo complejo. Soluciones: obtener más datos, usar un modelo apropiado, Dropout, regularización, limitar el tiempo de entrenamiento, agregar ruido, limpieza de datos/poda, y usar múltiples modelos (Bagging, Boosting).</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-239">
+  <h3>Diapositiva 239</h3>
+  <img src="slides/page-239.png" alt="Diapositiva 239">
+  <div class="content">
+    <h4>Regularización L1</h4>
+    <ul>
+      <li>Agregar la restricción de norma L<sub>1</sub> a los parámetros del modelo:</li>
+      <li><strong>J&#771;(w; X, y) = J(w; X, y) + &alpha;||w||<sub>1</sub></strong></li>
+      <li>Si se usa un método de gradiente, el gradiente del parámetro es:</li>
+      <li><strong>&nabla;J&#771;(w) = &alpha; &middot; sign(w) + &nabla;J(w)</strong></li>
+      <li>El método de optimización de parámetros es:</li>
+      <li><strong>w<sub>t+1</sub> = w - &epsilon;&alpha; &middot; sign(w) - &epsilon;&nabla;J(w)</strong></li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <p>En casos especiales, el valor del parámetro se reduce a 0 si |w<sub>i</sub>*| < &alpha;/&lambda;<sub>i</sub>. Esto es diferente de la regularización L<sub>2</sub>, que no reduce directamente el parámetro a 0 sino a un valor cercano a 0.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-240">
+  <h3>Diapositiva 240</h3>
+  <img src="slides/page-240.png" alt="Diapositiva 240">
+  <div class="content">
+    <h4>Regularización L2</h4>
+    <ul>
+      <li>Agregar el término de penalización de norma L<sub>2</sub> para prevenir el sobreajuste:</li>
+      <li><strong>J&#771;(w; X, y) = J(w; X, y) + (1/2)&alpha;||w||<sub>2</sub><sup>2</sup></strong></li>
+      <li>Un método de optimización de parámetros puede inferirse:</li>
+      <li><strong>w = (1 - &epsilon;&alpha;)w - &epsilon;&nabla;J(w)</strong></li>
+      <li>Donde &epsilon; es la tasa de aprendizaje. Comparado con la fórmula común de optimización por gradiente, esta fórmula multiplica el parámetro por un <strong>factor de reducción</strong>.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>Se agrega un término regular para hacer que el peso esté más cerca del origen.</li>
+        <li>Cuando &lambda;<sub>i</sub> >> &alpha;, el factor de penalización tiene efecto pequeño.</li>
+        <li>Cuando &lambda;<sub>i</sub> << &alpha;, el valor del parámetro correspondiente se reduce a 0.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-241">
+  <h3>Diapositiva 241</h3>
+  <img src="slides/page-241.png" alt="Diapositiva 241">
+  <div class="content">
+    <h4>Detener el Entrenamiento Temprano (Early Stopping)</h4>
+    <ul>
+      <li>Se puede insertar una prueba de datos en el conjunto de validación durante el entrenamiento. Si la pérdida de datos del conjunto de verificación aumenta, <strong>el entrenamiento se detiene temprano</strong>.</li>
+    </ul>
+    <p>Gráfico: Conjunto de entrenamiento (pérdida disminuye continuamente) vs. Conjunto de validación (pérdida comienza a aumentar en cierto punto) &rarr; Punto de parada temprana.</p>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>La práctica común es registrar la mejor precisión del conjunto de prueba <em>p</em> hasta ahora. Si la precisión no excede <em>p</em> en <em>m</em> períodos consecutivos, se considera que <em>p</em> ya no aumentará y la iteración puede detenerse temprano.</li>
+        <li>La parada temprana detiene el entrenamiento antes de que el error de prueba comience a aumentar, incluso si el entrenamiento no ha convergido.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-242">
+  <h3>Diapositiva 242</h3>
+  <img src="slides/page-242.png" alt="Diapositiva 242">
+  <div class="content">
+    <h4>Dropout</h4>
+    <ul>
+      <li><strong>Dropout</strong> es un método de regularización común y simple, ampliamente utilizado desde 2014. Simplemente, dropout <strong>descarta aleatoriamente algunas entradas durante el entrenamiento</strong>. Los parámetros correspondientes a las entradas descartadas no se actualizan.</li>
+      <li>Dropout es un método de integración. Combina todos los resultados de sub-redes y obtiene sub-redes al descartar entradas aleatoriamente.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>Se establece una probabilidad <em>p</em> para que cada neurona tenga una probabilidad específica de "morir" y ser excluida del entrenamiento de la red.</li>
+        <li>La probabilidad de muestreo es 0.8 para la entrada y 0.5 para las capas ocultas.</li>
+        <li><strong>Ventajas:</strong> Más efectivo que la restricción de norma y la penalización de pesos; computacionalmente barato y simple; puede usarse en modelos que no sean de aprendizaje profundo.</li>
+        <li><strong>Limitación:</strong> Es menos efectivo cuando los datos de entrenamiento son insuficientes.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 3: Red Neuronal Convolucional (CNN)                 -->
+<!-- ============================================================ -->
+
+<div class="slide" id="slide-243">
+  <h3>Diapositiva 243</h3>
+  <img src="slides/page-243.png" alt="Diapositiva 243">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Perceptrón</li>
+      <li>Red Neuronal Completamente Conectada y Cómo se Entrena</li>
+      <li><strong>Red Neuronal Convolucional</strong></li>
+      <li>Arquitectura de Modelo Basada en la Red Neuronal Recurrente</li>
+      <li>Arquitectura Transformer</li>
+      <li>Arquitectura Básica de Modelos Fundacionales</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-244">
+  <h3>Diapositiva 244</h3>
+  <img src="slides/page-244.png" alt="Diapositiva 244">
+  <div class="content">
+    <h4>Red Neuronal Convolucional (CNN)</h4>
+    <ul>
+      <li>Una <strong>CNN</strong> es una red neuronal feedforward. Sus neuronas artificiales pueden responder a unidades dentro del rango de cobertura. CNN sobresale en el <strong>procesamiento de imágenes</strong>. Incluye una <strong>capa convolucional</strong>, una <strong>capa de agrupamiento (pooling)</strong> y una <strong>capa completamente conectada</strong>.</li>
+      <li>En la década de 1960, Hubel y Wiesel estudiaron las neuronas de la corteza que los gatos usan para percibir su entorno y seleccionar su dirección. Descubrieron que su estructura de red única podía simplificar las redes neuronales de retroalimentación. Así propusieron la CNN.</li>
+      <li>La CNN se usa ampliamente porque puede evitar el preprocesamiento complejo de imágenes, utilizando directamente imágenes originales.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li><strong>Campo receptivo local:</strong> Se considera que la percepción humana del mundo exterior va de lo local a lo global. Las correlaciones espaciales entre los píxeles locales de una imagen son más estrechas que las de píxeles lejanos.</li>
+        <li><strong>Compartición de parámetros:</strong> Uno o más filtros pueden escanear las imágenes de entrada. Los parámetros del filtro no cambian cuando el filtro escanea la imagen completa.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-245">
+  <h3>Diapositiva 245</h3>
+  <img src="slides/page-245.png" alt="Diapositiva 245">
+  <div class="content">
+    <h4>Conceptos Principales de CNN</h4>
+    <ul>
+      <li><strong>Campo receptivo local:</strong> Se cree que los humanos perciben el mundo exterior de lo local a lo global. Las correlaciones espaciales entre los píxeles locales de una imagen son más estrechas que las de píxeles lejanos. Cada neurona no necesita conocer la imagen global; solo necesita conocer la imagen local. Luego, la información local se combina a un nivel superior para generar información global.</li>
+      <li><strong>Compartición de parámetros:</strong> Uno o más núcleos de convolución pueden escanear imágenes de entrada. Los parámetros de los núcleos de convolución son pesos. En una capa escaneada por núcleos de convolución, cada núcleo usa los mismos parámetros para la computación ponderada. Compartir pesos significa que cuando cada núcleo escanea una imagen completa, sus parámetros son fijos.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-246">
+  <h3>Diapositiva 246</h3>
+  <img src="slides/page-246.png" alt="Diapositiva 246">
+  <div class="content">
+    <h4>Arquitectura CNN</h4>
+    <p>Flujo de la arquitectura:</p>
+    <ol>
+      <li><strong>Imagen de entrada</strong></li>
+      <li><strong>Convolución + no linealidad</strong> &rarr; 3 mapas de características</li>
+      <li><strong>Max pooling (agrupamiento máximo)</strong> &rarr; 3 mapas de características</li>
+      <li><strong>Convolución + no linealidad</strong> &rarr; 5 mapas de características</li>
+      <li><strong>Max pooling</strong> &rarr; 5 mapas de características</li>
+      <li><strong>Vectorización</strong></li>
+      <li><strong>Capa completamente conectada</strong></li>
+      <li><strong>Capa de salida</strong> (Múltiples clases: Pájaro, Pez, Perro, Gato con probabilidades)</li>
+    </ol>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li><strong>Capa de entrada:</strong> introduce datos.</li>
+        <li><strong>Capa convolucional:</strong> extrae diferentes características de entrada. La primera puede extraer características de bajo nivel (bordes, líneas, ángulos). Múltiples capas extraen características más complejas.</li>
+        <li><strong>Capa ReLU:</strong> usa ReLU f(x) = max(0, x) como función de activación.</li>
+        <li><strong>Capa de pooling:</strong> particiona características en áreas y produce el máximo o mínimo, generando características de menor tamaño espacial.</li>
+        <li><strong>Capa completamente conectada:</strong> integra todas las características locales en características globales para computar las puntuaciones finales.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-247">
+  <h3>Diapositiva 247</h3>
+  <img src="slides/page-247.png" alt="Diapositiva 247">
+  <div class="content">
+    <h4>Cálculo de un Único Kernel de Convolución (1)</h4>
+    <p>Descripción del cálculo de convolución.</p>
+    <p><em>Se muestra una visualización paso a paso de cómo el kernel de convolución se desliza sobre la imagen de entrada, multiplicando y sumando valores.</em></p>
+  </div>
+</div>
+
+<div class="slide" id="slide-248">
+  <h3>Diapositiva 248</h3>
+  <img src="slides/page-248.png" alt="Diapositiva 248">
+  <div class="content">
+    <h4>Cálculo de un Único Kernel de Convolución (2)</h4>
+    <p>Resultado del cálculo de convolución.</p>
+    <p><em>Se muestra el mapa de características resultante después de aplicar el kernel de convolución a la imagen de entrada completa.</em></p>
+  </div>
+</div>
+
+<div class="slide" id="slide-249">
+  <h3>Diapositiva 249</h3>
+  <img src="slides/page-249.png" alt="Diapositiva 249">
+  <div class="content">
+    <h4>Capa Convolucional</h4>
+    <p>La arquitectura básica de CNN es la <strong>convolución multicanal</strong> que consiste en múltiples convoluciones individuales. La salida de la capa superior (o la imagen original de la primera capa) se usa como entrada de la capa actual. Se convoluciona con el kernel de convolución de la capa y sirve como salida de esta capa. El kernel de cada capa es el peso a aprender.</p>
+    <p>Similar a la capa completamente conectada, después de completar la convolución, el resultado debe sesgarse y activarse a través de funciones de activación antes de ser introducido a la siguiente capa.</p>
+    <p>Flujo: Tensor de entrada &rarr; (W<sub>1</sub>, b<sub>1</sub>) &rarr; F<sub>1</sub> &rarr; Activar &rarr; (W<sub>2</sub>, b<sub>2</sub>) &rarr; ... &rarr; (W<sub>n</sub>, b<sub>n</sub>) &rarr; F<sub>n</sub> &rarr; Tensor de salida</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-250">
+  <h3>Diapositiva 250</h3>
+  <img src="slides/page-250.png" alt="Diapositiva 250">
+  <div class="content">
+    <h4>Capa de Agrupamiento (Pooling)</h4>
+    <ul>
+      <li>El pooling combina unidades cercanas para <strong>reducir el tamaño de la entrada</strong> en la siguiente capa, reduciendo dimensiones.</li>
+      <li>Métodos de pooling comúnmente usados:</li>
+      <li><strong>Max pooling (agrupamiento máximo):</strong> Se selecciona el valor máximo dentro de una pequeña región cuadrada como representante de esa área.</li>
+      <li><strong>Average pooling (agrupamiento promedio):</strong> Se elige el valor promedio de la pequeña región como representante.</li>
+      <li>El lado de esta región es igual al tamaño de la ventana de pooling.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li><strong>Invariancia:</strong> Max pooling asegura invariancia dentro de un cierto rango.</li>
+        <li><strong>Reducir tamaño de entrada:</strong> Reduce el tamaño de datos, número de parámetros y carga computacional.</li>
+        <li><strong>Obtener datos de longitud fija:</strong> Se pueden obtener salidas de longitud fija de entradas de longitud variable.</li>
+        <li><strong>Aumentar la escala:</strong> Las características de la capa superior pueden extraerse de una escala mayor.</li>
+        <li><strong>Prevenir sobreajuste:</strong> El pooling simplifica la red (pero posible subajuste).</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-251">
+  <h3>Diapositiva 251</h3>
+  <img src="slides/page-251.png" alt="Diapositiva 251">
+  <div class="content">
+    <h4>Capa Completamente Conectada</h4>
+    <ul>
+      <li>La capa completamente conectada es esencialmente un <strong>clasificador</strong>. Las características extraídas en las capas convolucionales y de pooling se enderezan (aplanar) y se colocan en la capa completamente conectada para producir y clasificar resultados.</li>
+      <li>Generalmente, la función <strong>Softmax</strong> se usa como función de activación de la capa de salida completamente conectada final para combinar todas las características locales en globales y computar la puntuación de cada clase:</li>
+      <li><strong>softmax = e<sup>z<sub>j</sub></sup> / &sum;<sub>k</sub> e<sup>z<sub>k</sub></sup></strong></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 4: Red Neuronal Recurrente (RNN)                    -->
+<!-- ============================================================ -->
+
+<div class="slide" id="slide-252">
+  <h3>Diapositiva 252</h3>
+  <img src="slides/page-252.png" alt="Diapositiva 252">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Perceptrón</li>
+      <li>Red Neuronal Completamente Conectada y Cómo se Entrena</li>
+      <li>Red Neuronal Convolucional</li>
+      <li><strong>Arquitectura de Modelo Basada en la Red Neuronal Recurrente</strong>
+        <ul>
+          <li><strong>RNN</strong></li>
+          <li>LSTM</li>
+          <li>Seq2Seq</li>
+        </ul>
+      </li>
+      <li>Arquitectura Transformer</li>
+      <li>Arquitectura Básica de Modelos Fundacionales</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-253">
+  <h3>Diapositiva 253</h3>
+  <img src="slides/page-253.png" alt="Diapositiva 253">
+  <div class="content">
+    <h4>Red Neuronal Recurrente (RNN)</h4>
+    <ul>
+      <li>La <strong>red neuronal recurrente (RNN)</strong> es una red neuronal que captura <strong>información dinámica en datos secuenciales</strong> a través de conexiones periódicas de nodos de la capa oculta. Puede clasificar datos secuenciales.</li>
+      <li>A diferencia de las FNN, la RNN puede mantener un <strong>estado de contexto</strong> e incluso almacenar, aprender y expresar información relacionada en ventanas de contexto de cualquier longitud.</li>
+      <li>Existe una conexión entre la capa oculta del momento actual y la capa oculta del siguiente momento.</li>
+      <li>La RNN se usa ampliamente en escenarios relacionados con secuencias: videos (marcos de imagen), audio (clips), y oraciones (palabras).</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-254">
+  <h3>Diapositiva 254</h3>
+  <img src="slides/page-254.png" alt="Diapositiva 254">
+  <div class="content">
+    <h4>Arquitectura RNN</h4>
+    <ul>
+      <li><strong>X<sub>t</sub></strong> es la entrada de la secuencia de entrada en el tiempo t.</li>
+      <li><strong>S<sub>t</sub></strong> es la celda de memoria de la secuencia en el tiempo t y almacena información previa:<br>
+        <strong>S<sub>t</sub> = &sigma;(UX<sub>t</sub> + WS<sub>t-1</sub>)</strong></li>
+      <li>S<sub>t</sub> recorre múltiples capas ocultas, y luego recorre la capa completamente conectada V para obtener la salida final O<sub>t</sub> en el tiempo t:<br>
+        <strong>O<sub>t</sub> = softmax(S<sub>t</sub>V)</strong></li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-255">
+  <h3>Diapositiva 255</h3>
+  <img src="slides/page-255.png" alt="Diapositiva 255">
+  <div class="content">
+    <h4>Retropropagación a Través del Tiempo (BPTT)</h4>
+    <ul>
+      <li><strong>BPTT:</strong> La retropropagación convencional es una extensión de la secuencia temporal.</li>
+      <li>Hay dos errores en una celda de memoria en el paso de tiempo t: la derivada parcial del error C<sub>t</sub> en el paso t respecto a la celda de memoria, y la derivada parcial del error en el siguiente paso t+1 respecto a la celda de memoria en el paso t.</li>
+      <li>Cuanto más larga la secuencia temporal, más probable es que se produzca el problema de <strong>desvanecimiento o explosión del gradiente</strong>.</li>
+      <li>El gradiente total del peso w es la acumulación de los gradientes a través de todos los pasos de tiempo.</li>
+    </ul>
+    <p><strong>Pasos de BPTT:</strong></p>
+    <ol>
+      <li>Calcular la salida de cada neurona (hacia adelante)</li>
+      <li>Calcular el error &delta;<sub>j</sub> de cada neurona (hacia atrás)</li>
+      <li>Calcular el gradiente de cada peso</li>
+    </ol>
+    <p>Actualizar pesos usando el algoritmo SGD.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-256">
+  <h3>Diapositiva 256</h3>
+  <img src="slides/page-256.png" alt="Diapositiva 256">
+  <div class="content">
+    <h4>Problemas de la RNN</h4>
+    <ul>
+      <li>S<sub>t</sub> = &sigma;(UX<sub>t</sub> + WS<sub>t-1</sub>) extendida en la secuencia temporal se convierte en:<br>
+        S<sub>t</sub> = &sigma;(UX<sub>t</sub> + W&sigma;(UX<sub>t-1</sub> + W&sigma;(UX<sub>t-2</sub> + W...)))</li>
+      <li>Aunque la arquitectura estándar de RNN resuelve el problema de la memoria de información, la información sobre la <strong>memoria a largo plazo se atenúa</strong>.</li>
+      <li>La información a largo plazo necesita guardarse en muchas tareas. Por ejemplo, una pista al inicio de una novela de misterio puede no explicarse hasta el final.</li>
+      <li>La RNN puede no ser capaz de guardar información a largo plazo debido a la <strong>capacidad limitada de las celdas de memoria</strong>.</li>
+      <li>Esperamos que las celdas de memoria puedan recordar <strong>información clave</strong>.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 4.2: LSTM                                           -->
+<!-- ============================================================ -->
+
+<div class="slide" id="slide-257">
+  <h3>Diapositiva 257</h3>
+  <img src="slides/page-257.png" alt="Diapositiva 257">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Perceptrón</li>
+      <li>Red Neuronal Completamente Conectada y Cómo se Entrena</li>
+      <li>Red Neuronal Convolucional</li>
+      <li>Arquitectura de Modelo Basada en la RNN
+        <ul>
+          <li>RNN</li>
+          <li><strong>LSTM</strong></li>
+          <li>Seq2Seq</li>
+        </ul>
+      </li>
+      <li>Arquitectura Transformer</li>
+      <li>Arquitectura Básica de Modelos Fundacionales</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-258">
+  <h3>Diapositiva 258</h3>
+  <img src="slides/page-258.png" alt="Diapositiva 258">
+  <div class="content">
+    <h4>LSTM (Long Short-Term Memory / Memoria de Corto y Largo Plazo)</h4>
+    <p>Diagrama de la arquitectura LSTM mostrando las compuertas internas y el flujo de información.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-259">
+  <h3>Diapositiva 259</h3>
+  <img src="slides/page-259.png" alt="Diapositiva 259">
+  <div class="content">
+    <h4>Compuerta de Olvido (Forget Gate) de LSTM</h4>
+    <ul>
+      <li>El primer paso en LSTM es decidir la <strong>información a descartar</strong> del estado de la celda.</li>
+      <li>La decisión se toma a través de la <strong>compuerta de olvido</strong>. Esta compuerta lee h<sub>t-1</sub> y x<sub>t</sub>, y produce un valor numérico en el rango de 0 a 1 para cada dígito en el estado de la celda C<sub>t-1</sub>.</li>
+      <li>El valor <strong>1</strong> indica que la información se retiene completamente.</li>
+      <li>El valor <strong>0</strong> indica que la información se descarta completamente.</li>
+      <li>Fórmula: <strong>f<sub>t</sub> = &sigma;(W<sub>f</sub> &middot; [h<sub>t-1</sub>, x<sub>t</sub>] + b<sub>f</sub>)</strong></li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-260">
+  <h3>Diapositiva 260</h3>
+  <img src="slides/page-260.png" alt="Diapositiva 260">
+  <div class="content">
+    <h4>Compuerta de Entrada (Input Gate) de LSTM</h4>
+    <ul>
+      <li>Este paso determina la <strong>información a almacenar</strong> en el estado de la celda.</li>
+      <li>Consiste en dos partes:
+        <ol>
+          <li>La <strong>capa Sigmoide</strong> se llama capa de compuerta de entrada, que determina el valor a actualizar: <strong>i<sub>t</sub> = &sigma;(W<sub>i</sub> &middot; [h<sub>t-1</sub>, x<sub>t</sub>] + b<sub>i</sub>)</strong></li>
+          <li>Se crea un <strong>vector de valor candidato</strong> en la capa tanh y se agrega al estado: <strong>C&#771;<sub>t</sub> = tanh(W<sub>C</sub> &middot; [h<sub>t-1</sub>, x<sub>t</sub>] + b<sub>C</sub>)</strong></li>
+        </ol>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-261">
+  <h3>Diapositiva 261</h3>
+  <img src="slides/page-261.png" alt="Diapositiva 261">
+  <div class="content">
+    <h4>Actualización de Información LSTM</h4>
+    <ul>
+      <li>Hora de actualizar el estado de la celda anterior: C<sub>t-1</sub> se actualiza como C<sub>t</sub>.</li>
+      <li>Multiplicamos el estado anterior por f<sub>t</sub> y descartamos la información que decidimos descartar.</li>
+      <li>Se agrega <strong>i<sub>t</sub> * C&#771;<sub>t</sub></strong>. Este es un nuevo valor candidato, que cambia con la actualización esperada de cada estado.</li>
+      <li><strong>C<sub>t</sub> = f<sub>t</sub> * C<sub>t-1</sub> + i<sub>t</sub> * C&#771;<sub>t</sub></strong></li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-262">
+  <h3>Diapositiva 262</h3>
+  <img src="slides/page-262.png" alt="Diapositiva 262">
+  <div class="content">
+    <h4>Compuerta de Salida (Output Gate) de LSTM</h4>
+    <ul>
+      <li>Ejecutar una capa Sigmoide para determinar qué parte del estado de la celda será la salida.</li>
+      <li>Luego, procesamos el estado de la celda a través de tanh (para obtener un valor entre -1 y 1) y multiplicamos el valor por la salida de la compuerta Sigmoide.</li>
+      <li>Al final, solo producimos la parte que decidimos producir.</li>
+      <li><strong>o<sub>t</sub> = &sigma;(W<sub>o</sub> &middot; [h<sub>t-1</sub>, x<sub>t</sub>] + b<sub>o</sub>)</strong></li>
+      <li><strong>h<sub>t</sub> = o<sub>t</sub> * tanh(C<sub>t</sub>)</strong></li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-263">
+  <h3>Diapositiva 263</h3>
+  <img src="slides/page-263.png" alt="Diapositiva 263">
+  <div class="content">
+    <h4>Tipos de RNN</h4>
+    <ul>
+      <li><strong>Uno a uno:</strong> Una entrada, una salida</li>
+      <li><strong>Uno a muchos:</strong> Una entrada, múltiples salidas (ej: descripción de imagen)</li>
+      <li><strong>Muchos a uno:</strong> Múltiples entradas, una salida (ej: análisis de sentimiento)</li>
+      <li><strong>Muchos a muchos:</strong> Múltiples entradas, múltiples salidas (ej: traducción automática)</li>
+      <li><strong>Muchos a muchos (sincronizado):</strong> Entrada y salida en cada paso temporal (ej: etiquetado de secuencias)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 4.3: Seq2Seq                                        -->
+<!-- ============================================================ -->
+
+<div class="slide" id="slide-264">
+  <h3>Diapositiva 264</h3>
+  <img src="slides/page-264.png" alt="Diapositiva 264">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Perceptrón</li>
+      <li>Red Neuronal Completamente Conectada y Cómo se Entrena</li>
+      <li>Red Neuronal Convolucional</li>
+      <li>Arquitectura de Modelo Basada en la RNN
+        <ul>
+          <li>RNN</li>
+          <li>LSTM</li>
+          <li><strong>Seq2Seq</strong></li>
+        </ul>
+      </li>
+      <li>Arquitectura Transformer</li>
+      <li>Arquitectura Básica de Modelos Fundacionales</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-265">
+  <h3>Diapositiva 265</h3>
+  <img src="slides/page-265.png" alt="Diapositiva 265">
+  <div class="content">
+    <h4>Arquitectura Codificador-Decodificador (Encoder-Decoder)</h4>
+    <ul>
+      <li>La <strong>traducción automática</strong> es una tarea central abordada por un modelo de transducción de secuencias. Tanto la entrada como la salida son secuencias de longitud variable. Se necesita una arquitectura con dos componentes principales:</li>
+      <li><strong>Codificador (Encoder):</strong> Usa una secuencia de longitud variable como entrada y la convierte en un estado de codificación con forma fija.</li>
+      <li><strong>Decodificador (Decoder):</strong> Mapea el estado de codificación de forma fija a una secuencia de longitud variable.</li>
+    </ul>
+    <p>Flujo: Entrada &rarr; Codificador &rarr; Estado &rarr; Decodificador &rarr; Salida</p>
+    <p>Modelos como RNN y LSTM pueden seleccionarse para el codificador y el decodificador.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-266">
+  <h3>Diapositiva 266</h3>
+  <img src="slides/page-266.png" alt="Diapositiva 266">
+  <div class="content">
+    <h4>Seq2Seq (Secuencia a Secuencia)</h4>
+    <ul>
+      <li><strong>Seq2Seq:</strong> Se introduce una secuencia y se produce otra secuencia. Es un modelo típico codificador-decodificador.</li>
+      <li>El codificador codifica los datos de entrada, y el decodificador decodifica los datos codificados. También es una solución al problema de secuencias temporales.</li>
+      <li>La parte de codificación se marca en azul. El primer <strong>&lt;eos&gt;</strong> indica el fin de la codificación.</li>
+      <li>La parte de decodificación es blanca. <strong>&lt;bos&gt;</strong> es la primera entrada, indicando el inicio de la decodificación. El segundo <strong>&lt;eos&gt;</strong> indica el fin de la decodificación.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-267">
+  <h3>Diapositiva 267</h3>
+  <img src="slides/page-267.png" alt="Diapositiva 267">
+  <div class="content">
+    <h4>Cálculo del Codificador</h4>
+    <ul>
+      <li>El codificador convierte la secuencia de entrada de longitud variable en una <strong>variable de contexto c</strong> con forma fija, y codifica la información sobre la secuencia de entrada en esa variable.</li>
+      <li>Se asume que la secuencia de entrada es x<sub>1</sub>, ..., x<sub>t</sub>. En cada paso de tiempo t, la RNN convierte los vectores de características de entrada x<sub>t</sub> y h<sub>t-1</sub> (estado oculto del paso anterior) en h<sub>t</sub> (estado oculto del paso actual).</li>
+      <li>Una función <strong>f</strong> describe la transformación realizada por la capa recurrente de la RNN.</li>
+      <li>El codificador convierte los estados ocultos de todos los pasos de tiempo en variables de contexto usando una función seleccionada.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-268">
+  <h3>Diapositiva 268</h3>
+  <img src="slides/page-268.png" alt="Diapositiva 268">
+  <div class="content">
+    <h4>Cálculo del Decodificador</h4>
+    <ul>
+      <li>La variable de contexto <strong>c</strong> producida por el codificador codifica la secuencia de entrada completa.</li>
+      <li>Para la secuencia de salida y<sub>1</sub>, y<sub>2</sub>, ..., y<sub>T'</sub> del conjunto de datos de entrenamiento, en cada paso de tiempo t', la probabilidad de que el decodificador produzca y<sub>t'</sub> depende de la subsecuencia de salida anterior y<sub>1</sub>, ..., y<sub>t'-1</sub> y la variable de contexto c.</li>
+      <li>Después de obtener el estado oculto del decodificador, podemos usar la capa de salida y la operación softmax para calcular la <strong>distribución de probabilidad condicional</strong> de la salida y<sub>t'</sub> en el paso t'.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-269">
+  <h3>Diapositiva 269</h3>
+  <img src="slides/page-269.png" alt="Diapositiva 269">
+  <div class="content">
+    <h4>Aplicación de Seq2Seq - Traducción Automática</h4>
+    <p>Ejemplo visual de traducción automática usando la arquitectura Seq2Seq.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-270">
+  <h3>Diapositiva 270</h3>
+  <img src="slides/page-270.png" alt="Diapositiva 270">
+  <div class="content">
+    <h4>Desafíos de Seq2Seq</h4>
+    <p>Aunque Seq2Seq puede resolver el problema de secuencias, aún tiene los siguientes desafíos:</p>
+    <ul>
+      <li>Solo hay un <strong>vector c</strong> entre el codificador y el decodificador para transferir información, y su longitud es fija.
+        <ul>
+          <li>El vector semántico no puede representar completamente la información de toda la secuencia. Si los datos de entrada son demasiado largos, se comprimen a una longitud especificada y se <strong>pierde información</strong>.</li>
+          <li>Las oraciones largas son propensas a la pérdida de información. La información más antigua tiende a perderse gradualmente con el tiempo.</li>
+        </ul>
+      </li>
+      <li>Los modelos Seq2Seq basados en RNN <strong>no soportan cómputo paralelo</strong>, por lo que la eficiencia es baja.</li>
+      <li>Los Seq2Seq basados en CNN tienen muchos parámetros, resultando en entrenamiento complejo.</li>
+      <li>Durante la inferencia, solo se puede predecir una palabra después de que la palabra anterior se ha producido, <strong>ralentizando la inferencia</strong>.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 5: Arquitectura Transformer                         -->
+<!-- ============================================================ -->
+
+<div class="slide" id="slide-271">
+  <h3>Diapositiva 271</h3>
+  <img src="slides/page-271.png" alt="Diapositiva 271">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Perceptrón</li>
+      <li>Red Neuronal Completamente Conectada y Cómo se Entrena</li>
+      <li>Red Neuronal Convolucional</li>
+      <li>Arquitectura de Modelo Basada en la Red Neuronal Recurrente</li>
+      <li><strong>Arquitectura Transformer</strong></li>
+      <li>Arquitectura Básica de Modelos Fundacionales</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-272">
+  <h3>Diapositiva 272</h3>
+  <img src="slides/page-272.png" alt="Diapositiva 272">
+  <div class="content">
+    <h4>Abordando los Desafíos de Seq2Seq</h4>
+    <ul>
+      <li>Almacenar toda la información en una secuencia es ineficiente. &iquest;Hay alguna manera de resolver este problema?</li>
+      <li>Piensa en cómo los humanos observan las cosas. Generalmente, los humanos tienen un campo visual amplio. Captan rápidamente la información importante e <strong>ignoran el resto</strong>. &iquest;Se puede aplicar este mecanismo al modelo de secuencias?</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-273">
+  <h3>Diapositiva 273</h3>
+  <img src="slides/page-273.png" alt="Diapositiva 273">
+  <div class="content">
+    <h4>Mecanismo de Atención (Attention)</h4>
+    <ul>
+      <li>La <strong>atención</strong> proviene de las capacidades cognitivas humanas. Por ejemplo, cuando las personas observan una escena, generalmente prestan atención a los <strong>objetos destacados</strong> y quieren captar la contradicción principal al tratar un evento.</li>
+      <li>El mecanismo de atención permite a las personas <strong>enfocarse en aspectos importantes</strong> mientras ignoran cosas menores, aumentando su eficiencia.</li>
+    </ul>
+    <p><strong>Naturaleza de la Atención:</strong></p>
+    <ul>
+      <li>Enfocar todo &rarr; Enfocar los puntos clave</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-274">
+  <h3>Diapositiva 274</h3>
+  <img src="slides/page-274.png" alt="Diapositiva 274">
+  <div class="content">
+    <h4>Principio de Atención</h4>
+    <ul>
+      <li>La atención puede usarse sin el marco codificador-decodificador.</li>
+      <li>La figura muestra el principio de la atención sin el marco codificador-decodificador.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-275">
+  <h3>Diapositiva 275</h3>
+  <img src="slides/page-275.png" alt="Diapositiva 275">
+  <div class="content">
+    <h4>Comprendiendo la Atención en la Realidad</h4>
+    <p><strong>Analogía de la biblioteca:</strong></p>
+    <ul>
+      <li>Hay muchos libros (<strong>valores/values</strong>) en una biblioteca (<strong>fuente/source</strong>). Se asignan números (<strong>claves/keys</strong>) a los libros para facilitar las búsquedas.</li>
+      <li>Cuando queremos saber sobre Marvel (<strong>consulta/query</strong>), podemos ver caricaturas y películas e incluso leer libros relacionados con la Segunda Guerra Mundial (Capitán América).</li>
+    </ul>
+    <table>
+      <tr><td>3-1 Libros de cómics (leer cuidadosamente)</td></tr>
+      <tr><td>5-6 Libros de películas (leer cuidadosamente)</td></tr>
+      <tr><td>9-1 Segunda Guerra Mundial (leer rápidamente)</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="slide" id="slide-276">
+  <h3>Diapositiva 276</h3>
+  <img src="slides/page-276.png" alt="Diapositiva 276">
+  <div class="content">
+    <h4>Proceso de Cálculo de Atención</h4>
+    <p><strong>Fase 1:</strong> Calcular la similitud entre el Query y cada Key para obtener una puntuación <em>s</em>.</p>
+    <p><strong>Fase 2:</strong> Convertir la puntuación <em>s</em> a una distribución de probabilidad en el rango [0, 1] a través de la conversión <strong>softmax</strong> para obtener un peso fácilmente utilizable.</p>
+    <p><strong>Fase 3:</strong> Usar [a<sub>1</sub>, a<sub>2</sub>, a<sub>3</sub>... a<sub>n</sub>] como la matriz de pesos para realizar una <strong>suma ponderada</strong> sobre los valores y obtener el valor final de Atención.</p>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <p>La idea de Atención es simple: "suma ponderada". Analogía: Los humanos aprenden un nuevo idioma en cuatro etapas: aprendizaje mecánico &rarr; resaltar puntos clave &rarr; generalizar (entender contexto) &rarr; alcanzar la perfección. La era RNN fue memorización; el modelo de Atención evolucionó hacia Transformer, luego GPT y BERT.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-277">
+  <h3>Diapositiva 277</h3>
+  <img src="slides/page-277.png" alt="Diapositiva 277">
+  <div class="content">
+    <h4>Ventajas de la Atención</h4>
+    <p><strong>Tres ventajas de la Atención:</strong></p>
+    <ul>
+      <li><strong>Menos parámetros:</strong> Comparado con CNN y RNN, este modelo es menos complejo y tiene menos parámetros. Necesita menos potencia de cómputo.</li>
+      <li><strong>Mayor velocidad:</strong> La Atención aborda el hecho de que RNN no puede realizar cómputo paralelo. Los pasos en el mecanismo de Atención no dependen del paso anterior. Por lo tanto, soporta <strong>procesamiento paralelo</strong>, como CNN.</li>
+      <li><strong>Mejor resultado:</strong> Antes de que se introdujera la Atención, el modelo tenía dificultades para recordar información antigua, como personas con memoria a corto plazo que no pueden recordar el pasado.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-278">
+  <h3>Diapositiva 278</h3>
+  <img src="slides/page-278.png" alt="Diapositiva 278">
+  <div class="content">
+    <h4>Transformer</h4>
+    <ul>
+      <li>En un artículo de 2017 titulado <strong>"Attention Is All You Need"</strong>, Google propuso un modelo Transformer para procesar problemas relacionados con secuencias basándose en la estructura de Atención (mecanismo de auto-atención).</li>
+      <li>Transformer ha soportado muchas tareas de NLP, como clasificación de texto, traducción automática y comprensión lectora.</li>
+      <li>El modelo Transformer usa una fórmula completamente nueva y <strong>rechaza las estructuras CNN y RNN</strong>. Usa el mecanismo de Atención para capturar automáticamente las asociaciones relativas en diferentes posiciones de la secuencia de entrada, lo cual es conducente al procesamiento de textos largos. Además, permite un <strong>alto grado de paralelismo</strong>, acelerando el entrenamiento.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-279">
+  <h3>Diapositiva 279</h3>
+  <img src="slides/page-279.png" alt="Diapositiva 279">
+  <div class="content">
+    <h4>Auto-Atención (Self-Attention)</h4>
+    <ul>
+      <li>El mecanismo de Atención tiene efecto entre el elemento objetivo y todos los elementos fuente. En el marco codificador-decodificador de una tarea común, la fuente de entrada y el objetivo de salida son diferentes (ej: en traducción inglés-chino, la fuente es una oración en inglés y el objetivo es la oración traducida al chino).</li>
+      <li>Transformer usa el <strong>mecanismo de auto-atención</strong>. La auto-atención se refiere al mecanismo de atención usado <strong>entre elementos fuente o entre elementos objetivo</strong>, en lugar de entre la fuente y el objetivo.</li>
+      <li>Los dos mecanismos usan el mismo proceso de cálculo, pero el objeto a calcular es diferente.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-280">
+  <h3>Diapositiva 280</h3>
+  <img src="slides/page-280.png" alt="Diapositiva 280">
+  <div class="content">
+    <h4>Ejemplo de Auto-Atención</h4>
+    <ul>
+      <li>Una variante del mecanismo de atención, el mecanismo de <strong>auto-atención</strong> es menos dependiente de la información externa y sobresale en capturar la <strong>correlación interna</strong> de datos o características.</li>
+      <li>Cuando se aplica al texto, el mecanismo de auto-atención aborda principalmente el problema de <strong>dependencia a larga distancia</strong> calculando las relaciones entre palabras.</li>
+    </ul>
+    <p><strong>Ejemplo:</strong> Si quieres saber a qué se refiere "its" y qué palabras son relevantes para "its" en la oración, puedes usar "its" como consulta, la oración como clave y valor para calcular la atención. A través de la auto-atención, encontramos que "its" es más relevante para "law" y "application".</p>
+    <p>El mecanismo de auto-atención se enfoca más en sus propias relaciones. Por lo tanto, el codificador y decodificador pueden usarse por separado, generando diferentes tipos de estructuras de red.</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SECCIÓN 6: Arquitectura Básica de Modelos Fundacionales     -->
+<!-- ============================================================ -->
+
+<div class="slide" id="slide-281">
+  <h3>Diapositiva 281</h3>
+  <img src="slides/page-281.png" alt="Diapositiva 281">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Perceptrón</li>
+      <li>Red Neuronal Completamente Conectada y Cómo se Entrena</li>
+      <li>Red Neuronal Convolucional</li>
+      <li>Arquitectura de Modelo Basada en la Red Neuronal Recurrente</li>
+      <li>Arquitectura Transformer</li>
+      <li><strong>Arquitectura Básica de Modelos Fundacionales</strong></li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-282">
+  <h3>Diapositiva 282</h3>
+  <img src="slides/page-282.png" alt="Diapositiva 282">
+  <div class="content">
+    <h4>Estado de los Modelos Fundacionales</h4>
+    <ul>
+      <li>Con mayores capacidades de cómputo y más datos, podemos entrenar redes neuronales más grandes y profundas. Los <strong>modelos fundacionales</strong>, como la serie GPT, LLaMA y GLM, se entrenan con potentes capacidades de generación y generalización basadas en cantidades masivas de datos y recursos de cómputo.</li>
+      <li>Estos modelos logran un rendimiento excelente en una sola tarea pero también pueden <strong>adaptarse rápidamente a nuevas tareas y datos</strong> mediante el ajuste fino (fine-tuning).</li>
+    </ul>
+    <p><strong>Era de los modelos fundacionales:</strong> Los tamaños de los modelos se han expandido significativamente gracias a la escalabilidad y el aumento de la potencia de cómputo de Transformer, creando modelos con miles de millones de parámetros, como GPT-4, GLM y Stable Diffusion.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-283">
+  <h3>Diapositiva 283</h3>
+  <img src="slides/page-283.png" alt="Diapositiva 283">
+  <div class="content">
+    <h4>GPT-1 - Decodificador Original de Transformer</h4>
+    <ul>
+      <li>Gracias a Transformer, hemos abandonado RNN y CNN, lo que ha habilitado algoritmos con rendimiento excelente, como BERT, GPT y ViT.</li>
+      <li><strong>GPT-1</strong> usa el marco del <strong>decodificador de Transformer</strong>.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>GPT-1, la primera versión de OpenAI.</li>
+        <li>Usar Transformer en lugar de LSTM es porque, aunque el pre-entrenamiento ayuda a capturar cierta información lingüística, el modelo LSTM limita su capacidad de predicción a corto plazo. Transformer permite capturar estructuras lingüísticas de mayor plazo.</li>
+        <li>GPT-1 retiene la capa de multi-atención enmascarada y la capa feed forward del decodificador, y expande la escala de la red. Número de capas: 12. Dimensiones de Atención: 768. Número de cabezas: 12. Capas ocultas Feed Forward: 3072. Total de parámetros: <strong>117 millones</strong>.</li>
+        <li>Para la codificación posicional, GPT-1 usa inicialización aleatoria (similar a un word vector), diferente del transformer común que usa coseno + seno.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-284">
+  <h3>Diapositiva 284</h3>
+  <img src="slides/page-284.png" alt="Diapositiva 284">
+  <div class="content">
+    <h4>BERT</h4>
+    <ul>
+      <li>Lanzado en 2018, <strong>BERT</strong> es un modelo bidireccional que analiza el contexto de una secuencia completa y luego realiza predicciones.</li>
+      <li>Este modelo se entrena en un corpus de texto plano y Wikipedia usando <strong>3.3 mil millones de palabras</strong> y <strong>340 millones de parámetros</strong>.</li>
+      <li>BERT puede responder preguntas, predecir declaraciones y traducir texto.</li>
+    </ul>
+    <p>Arquitectura: Codificación posicional + Embedding de entrada &rarr; Multi-Head Attention &rarr; Add &amp; Norm &rarr; Feed Forward &rarr; Add &amp; Norm &rarr; Salidas T<sub>1</sub>, T<sub>2</sub>, ..., T<sub>n</sub></p>
+  </div>
+</div>
+
+<div class="slide" id="slide-285">
+  <h3>Diapositiva 285</h3>
+  <img src="slides/page-285.png" alt="Diapositiva 285">
+  <div class="content">
+    <h4>Procesamiento de Tareas en Múltiples Dominios</h4>
+    <ul>
+      <li>En el pasado, los modelos de redes neuronales se usaban para enfrentar desafíos de trabajo individuales. Cada modelo se usaba para solo una o varias tareas.</li>
+      <li>Tarea A &rarr; Modelo A, Tarea B &rarr; Modelo B</li>
+      <li><strong>Pregunta:</strong> &iquest;Puede un modelo procesar tareas en múltiples dominios?</li>
+      <li>Tarea A, Tarea B, ..., Tarea N &rarr; &iquest;Un solo modelo?</li>
+    </ul>
+  </div>
+</div>
+
+<!-- FIN DE LA PARTE 3 -->

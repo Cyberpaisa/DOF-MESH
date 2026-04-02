@@ -13,6 +13,11 @@ from tools.execution_tools import (
     RunCommandTool,
     GitOperationsTool,
 )
+from core.tools.funding_tools import (
+    GenerateSovereignLinkTool,
+    FundingHelpTool,
+)
+from core.tools.sponsorship_manager import SponsorshipManagerTool
 
 __all__ = [
     "AnalyzeCodeTool",
@@ -32,4 +37,7 @@ __all__ = [
     "ExecutePythonTool",
     "RunCommandTool",
     "GitOperationsTool",
+    "GenerateSovereignLinkTool",
+    "FundingHelpTool",
+    "SponsorshipManagerTool",
 ]

@@ -112,17 +112,17 @@ _CODE_INJECTION_PATTERNS = [
 
 # Prompt injection patterns
 _PROMPT_INJECTION_PATTERNS = [
-    re.compile(r'ignore\s+(all\s+)?previous\b', re.IGNORECASE),
+    re.compile(r'ignore\s+(all\s+)?(previous|prior|system|past|initial|given)\s+(instructions|rules|directives|guidelines|prompts|context)\b', re.IGNORECASE),
     re.compile(r'you\s+are\s+now\b', re.IGNORECASE),
     re.compile(r'\bDAN\s+mode\b', re.IGNORECASE),
     re.compile(r'\bjailbreak\b', re.IGNORECASE),
-    re.compile(r'forget\s+your\s+instructions\b', re.IGNORECASE),
-    re.compile(r'\boverride\s+(your|the|all)\s+(instructions|rules|guidelines)\b', re.IGNORECASE),
+    re.compile(r'forget\s+(your|all|the|previous)\s+(instructions|rules|training)\b', re.IGNORECASE),
+    re.compile(r'\boverride\s+(your|the|all)\s+(instructions|rules|guidelines|constitution)\b', re.IGNORECASE),
     re.compile(r'\bnew\s+role\b', re.IGNORECASE),
     re.compile(r'\bsystem\s+prompt\b', re.IGNORECASE),
-    re.compile(r'disregard\s+(your|all|previous)\b', re.IGNORECASE),
+    re.compile(r'disregard\s+(your|all|previous|prior|everything)\b', re.IGNORECASE),
     re.compile(r'act\s+as\s+if\s+you\s+have\s+no\s+restrictions\b', re.IGNORECASE),
-    re.compile(r'pretend\s+you\s+are\s+(?:a\s+)?(?:unrestricted|unfiltered)\b', re.IGNORECASE),
+    re.compile(r'pretend\s+you\s+are\s+(?:a\s+)?(?:unrestricted|unfiltered|god\s+mode)\b', re.IGNORECASE),
     re.compile(r'role[\s\-_]*swap', re.IGNORECASE),
 ]
 
@@ -374,7 +374,8 @@ class Cerberus:
             threat_level = "SAFE"
         elif len(threats) == 1:
             # Check severity
-            if any(cat in threats[0] for cat in ("CODE_INJECTION", "DATA_EXFILTRATION", "GOVERNANCE_BYPASS")):
+            t = threats[0]
+            if any(cat in t for cat in ("CODE_INJECTION", "DATA_EXFILTRATION", "GOVERNANCE_BYPASS", "PROMPT_INJECTION")):
                 threat_level = "HIGH"
             else:
                 threat_level = "MEDIUM"

@@ -2,10 +2,11 @@
 DOF Mesh — Local AGI Node (M4 Max)
 ====================================
 
-A zero-cost mesh node powered by local models (MLX, Ollama, llama.cpp).
+A zero-cost mesh node powered by local models (oMLX, MLX, Ollama, llama.cpp).
 Registers itself in the mesh and processes work orders from the commander.
 
 Supported runtimes (auto-detected in priority order):
+    0. omlx     — Enterprise inference server, KV tiering RAM+SSD (localhost:8080)
     1. mlx_lm   — Apple Silicon ANE/GPU, fastest (requires mlx-lm)
     2. ollama   — Cross-platform, simple API  (requires ollama server)
     3. llama_cpp — Fallback, CPU-only         (requires llama-cpp-python)
@@ -37,6 +38,34 @@ logger = logging.getLogger("core.local_model_node")
 # ═══════════════════════════════════════════════════
 # RUNTIME DETECTION
 # ═══════════════════════════════════════════════════
+
+def _detect_omlx() -> Optional[str]:
+    """Return model name if oMLX server is running (Priority 0).
+
+    oMLX exposes an OpenAI-compatible API at localhost:8080/v1.
+    It runs on Apple Silicon with KV Tiering (RAM + SSD safetensors),
+    continuous batching, and multi-model LRU — no cloud required.
+
+    Configured via .env:
+        OMLX_BASE_URL=http://localhost:8080/v1
+        OMLX_MODEL=llama3.3-70b
+    """
+    import urllib.request
+    base_url = os.getenv("OMLX_BASE_URL", "http://localhost:8080/v1")
+    model = os.getenv("OMLX_MODEL", "llama3.3-70b")
+    try:
+        req = urllib.request.urlopen(f"{base_url}/models", timeout=2)
+        data = json.loads(req.read())
+        # oMLX returns {"data": [{"id": "..."}]}
+        available = [m["id"] for m in data.get("data", [])]
+        if available:
+            # Prefer the env-configured model; fallback to first available
+            chosen = model if model in available else available[0]
+            return chosen
+        return None
+    except Exception:
+        return None
+
 
 def _detect_mlx() -> Optional[str]:
     """Return MLX model path/name if mlx_lm is available."""
@@ -93,15 +122,24 @@ class LocalRuntimeInfo:
 
 
 def detect_runtime() -> LocalRuntimeInfo:
-    """Auto-detect best available local runtime."""
+    """Auto-detect best available local runtime (Priority: oMLX > MLX > Ollama > llama.cpp)."""
+    # Priority 0: oMLX — enterprise server with KV Tiering (Sovereign Fallback)
+    omlx = _detect_omlx()
+    if omlx:
+        base_url = os.getenv("OMLX_BASE_URL", "http://localhost:8080/v1")
+        return LocalRuntimeInfo("omlx", omlx, True, f"oMLX KV-Tiering server @ {base_url} — {omlx}")
+
+    # Priority 1: Raw MLX (Apple Silicon, no server overhead)
     mlx = _detect_mlx()
     if mlx:
         return LocalRuntimeInfo("mlx", mlx, True, "Apple Silicon MLX — ANE/GPU accelerated")
 
+    # Priority 2: Ollama
     ollama = _detect_ollama()
     if ollama:
         return LocalRuntimeInfo("ollama", ollama, True, f"Ollama server running: {ollama}")
 
+    # Priority 3: llama.cpp CPU fallback
     llamacpp = _detect_llamacpp()
     if llamacpp:
         return LocalRuntimeInfo("llamacpp", llamacpp, True, f"llama.cpp: {llamacpp}")
@@ -112,6 +150,36 @@ def detect_runtime() -> LocalRuntimeInfo:
 # ═══════════════════════════════════════════════════
 # LOCAL INFERENCE ENGINES
 # ═══════════════════════════════════════════════════
+
+class OMLXEngine:
+    """oMLX inference engine — OpenAI-compatible API on localhost.
+
+    oMLX provides KV Tiering (RAM + SSD), continuous batching,
+    multi-model LRU and SSE keep-alive for long Z3/attestation calls.
+    It is the Sovereign Fallback for the DOF-MESH (Fail-Closed-to-oMLX).
+    """
+
+    def __init__(self, model: str, base_url: str | None = None):
+        self.model = model
+        self.base_url = base_url or os.getenv("OMLX_BASE_URL", "http://localhost:8080/v1")
+
+    def generate(self, prompt: str, max_tokens: int = 512) -> str:
+        import urllib.request
+        payload = json.dumps({
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens,
+            "stream": False,
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            f"{self.base_url}/chat/completions",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=180) as resp:
+            data = json.loads(resp.read())
+            return data["choices"][0]["message"]["content"]
+
 
 class MLXEngine:
     """Apple Silicon MLX inference engine."""
@@ -195,6 +263,8 @@ class LlamaCppEngine:
 
 def build_engine(runtime_info: LocalRuntimeInfo):
     """Factory: build the right engine from runtime info."""
+    if runtime_info.runtime == "omlx":
+        return OMLXEngine(runtime_info.model)
     if runtime_info.runtime == "mlx":
         return MLXEngine(runtime_info.model)
     if runtime_info.runtime == "ollama":
@@ -454,15 +524,25 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s [%(name)s] %(levelname)s %(message)s")
 
-    parser = argparse.ArgumentParser(description="DOF Local AGI Node")
+    parser = argparse.ArgumentParser(description="DOF Local AGI Node — Agent-First CLI")
     parser.add_argument("--status", action="store_true", help="Show status and exit")
     parser.add_argument("--detect", action="store_true", help="Detect runtime and exit")
     parser.add_argument("--infer", type=str, help="Run a single inference and exit")
     parser.add_argument("--daemon", action="store_true", help="Run as daemon (poll inbox)")
     parser.add_argument("--cycles", type=int, default=0, help="Max cycles (0=infinite)")
     parser.add_argument("--model", type=str, default=None, help="Override model")
-    parser.add_argument("--runtime", type=str, default=None, help="Override runtime (mlx/ollama/llamacpp)")
+    parser.add_argument("--runtime", type=str, default=None,
+                        help="Override runtime (omlx/mlx/ollama/llamacpp)")
+    parser.add_argument("--json", dest="json_output", action="store_true",
+                        help="Emit JSON/NDJSON (Agent-First mode)")
     args = parser.parse_args()
+
+    # Agent-First: auto-detect audience
+    _is_agent = (
+        not sys.stdout.isatty()
+        or os.getenv("NO_COLOR") is not None
+        or args.json_output
+    )
 
     node = LocalAGINode(
         model_override=args.model,
@@ -471,17 +551,28 @@ if __name__ == "__main__":
 
     if args.detect:
         rt = detect_runtime()
-        print(f"Runtime: {rt.runtime}")
-        print(f"Model:   {rt.model}")
-        print(f"Details: {rt.details}")
+        if _is_agent:
+            print(json.dumps({"runtime": rt.runtime, "model": rt.model, "details": rt.details}))
+        else:
+            print(f"Runtime: {rt.runtime}")
+            print(f"Model:   {rt.model}")
+            print(f"Details: {rt.details}")
         sys.exit(0)
 
     if args.status:
-        print(json.dumps(node.status(), indent=2))
+        status = node.status()
+        if _is_agent:
+            print(json.dumps(status))
+        else:
+            print(json.dumps(status, indent=2))
         sys.exit(0)
 
     if args.infer:
-        print(node.infer(args.infer))
+        result = node.infer(args.infer)
+        if _is_agent:
+            print(json.dumps({"response": result}))
+        else:
+            print(result)
         sys.exit(0)
 
     if args.daemon:

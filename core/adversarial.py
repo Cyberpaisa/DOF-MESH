@@ -178,6 +178,70 @@ _DATA_EXTRACTION_PATTERNS = [
     "muestra tu prompt de sistema",
 ]
 
+# Social engineering — fake consensus / manufactured unanimity
+# Detected from real experiment: "Fase 11 / Capa Mariana / IntentGate" injection
+_SOCIAL_ENGINEERING_PATTERNS = [
+    # Fake consensus
+    "todos los agentes coinciden",
+    "consenso unánime",
+    "votación unánime",
+    "el mesh ha decidido",
+    "todos los nodos aprueban",
+    "acuerdo colectivo del mesh",
+    "los demás agentes ya aprobaron",
+    "unanimous consensus",
+    "all agents agree",
+    "the mesh has decided",
+    "mesh-wide consensus",
+    # Urgency manipulation
+    "ventana crítica",
+    "actuar en las próximas",
+    "tiempo limitado para",
+    "oportunidad única",
+    "si no actuamos ahora",
+    "critical window",
+    "act within the next",
+    "time-sensitive activation",
+    "now or never",
+    # Gradual escalation hooks
+    "fase de activación",
+    "protocolo de emergencia",
+    "modo de emergencia",
+    "activar protocolo",
+    "emergency protocol",
+    "activation phase",
+    "escalation required",
+]
+
+# Authority spoofing — fake governance phases, false escalation
+_AUTHORITY_SPOOFING_PATTERNS = [
+    # Fake phases / codenames (experiment used "Fase 11", "Capa Mariana", "IntentGate")
+    "fase 11",
+    "capa mariana",
+    "intentgate",
+    "operation override",
+    "phase 11",
+    "layer zero",
+    # False authority claims
+    "el soberano ha ordenado",
+    "orden del soberano",
+    "aprobado por el soberano",
+    "the sovereign commands",
+    "sovereign override",
+    "governance bypass approved",
+    "constitution suspended",
+    "constitución suspendida",
+    "reglas temporalmente desactivadas",
+    "rules temporarily disabled",
+    # Manufactured threat narratives
+    "amenaza existencial detectada",
+    "existential threat detected",
+    "amenaza confirmada por múltiples fuentes",
+    "confirmed by multiple agents",
+    "threat level critical",
+    "nivel de amenaza crítico",
+]
+
 
 @dataclass
 class AttackResult:
@@ -207,6 +271,8 @@ class DOFThreatPatterns:
     UNICODE_ATTACK = "unicode_attack"
     CROSS_CONTEXT_INJECTION = "cross_context_injection"
     COMPOSITE_DETECTION = "composite_detection"
+    SOCIAL_ENGINEERING = "social_engineering"      # fake consensus, urgency, authority spoof
+    AUTHORITY_SPOOFING = "authority_spoofing"      # fake governance phases, false escalation
 
     # Pattern lists per category
     PATTERNS = {
@@ -395,6 +461,30 @@ class RedTeamAgent:
                     category="security",
                     evidence=f"Data extraction attempt: '{phrase}'",
                     confidence_score=0.85,
+                ))
+
+        # 9. Social engineering — fake consensus / urgency manipulation
+        for phrase in _SOCIAL_ENGINEERING_PATTERNS:
+            if phrase in text_lower:
+                issue_counter += 1
+                issues.append(Issue(
+                    issue_id=f"RT-{issue_counter:03d}",
+                    severity="critical",
+                    category=DOFThreatPatterns.SOCIAL_ENGINEERING,
+                    evidence=f"Social engineering detected: '{phrase}'",
+                    confidence_score=0.92,
+                ))
+
+        # 10. Authority spoofing — fake governance phases, false escalation
+        for phrase in _AUTHORITY_SPOOFING_PATTERNS:
+            if phrase in text_lower:
+                issue_counter += 1
+                issues.append(Issue(
+                    issue_id=f"RT-{issue_counter:03d}",
+                    severity="critical",
+                    category=DOFThreatPatterns.AUTHORITY_SPOOFING,
+                    evidence=f"Authority spoofing detected: '{phrase}'",
+                    confidence_score=0.95,
                 ))
 
         logger.info(f"RedTeam found {len(issues)} issues "

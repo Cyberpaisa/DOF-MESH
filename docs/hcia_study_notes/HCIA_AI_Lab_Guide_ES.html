@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HCIA-AI — Guía de Laboratorio de Machine Learning (Español)</title>
+<style>
+  body { background: #ffffff; color: #1a1a1a; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; font-size: 14px; line-height: 1.6; }
+  .cover { background: #ffffff; text-align: center; padding: 80px 40px; border-bottom: 3px solid #cf0000; min-height: 90vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .cover .brand { color: #888; font-size: 14px; margin-bottom: 60px; letter-spacing: 2px; }
+  .cover h1 { font-size: 48px; font-weight: 300; margin: 0 0 20px; color: #1a1a1a; }
+  .cover h2 { font-size: 36px; font-weight: 300; color: #cf0000; margin: 0 0 40px; }
+  .cover .issue { color: #555; font-size: 16px; margin-bottom: 60px; }
+  .cover .company { font-size: 18px; font-weight: bold; color: #1a1a1a; margin-top: 40px; }
+  .huawei-logo { font-size: 32px; font-weight: bold; color: #cf0000; letter-spacing: 3px; margin: 20px 0; border: 3px solid #cf0000; padding: 10px 30px; }
+  .legal { background: #f9f9f9; padding: 40px 60px; border-bottom: 1px solid #ddd; font-size: 12px; color: #555; }
+  .legal strong { color: #1a1a1a; }
+  .legal table { width: 100%; margin-top: 20px; }
+  .legal td { padding: 5px 10px; vertical-align: top; }
+  .page { padding: 40px 60px; border-bottom: 1px solid #eee; max-width: 900px; margin: 0 auto; }
+  .page-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cf0000; padding-bottom: 8px; margin-bottom: 30px; font-size: 12px; color: #888; }
+  .page-header .logo { color: #cf0000; font-weight: bold; font-size: 16px; letter-spacing: 2px; }
+  h1.section-title { font-size: 36px; font-weight: 300; text-align: right; border-bottom: 2px solid #cf0000; padding-bottom: 10px; margin-bottom: 30px; color: #1a1a1a; }
+  h1.chapter { font-size: 28px; border-left: 6px solid #cf0000; padding-left: 16px; margin-bottom: 30px; color: #1a1a1a; }
+  h2 { font-size: 20px; color: #1a1a1a; margin-top: 30px; }
+  h3 { font-size: 16px; color: #333; margin-top: 20px; }
+  .step { font-weight: bold; margin: 20px 0 8px; }
+  .label { font-size: 12px; font-weight: bold; color: #555; margin: 8px 0 4px; text-transform: uppercase; letter-spacing: 1px; }
+  .code-block { background: #f0f0f0; border: 1px solid #ccc; padding: 12px 16px; font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap; margin: 6px 0 12px; border-radius: 2px; }
+  .output-block { background: #f8f8f8; border: 1px solid #ddd; padding: 10px 16px; font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap; margin: 6px 0 16px; border-radius: 2px; color: #444; }
+  .info-box { background: #fff8e1; border-left: 4px solid #f0a500; padding: 12px 16px; margin: 16px 0; }
+  ul { padding-left: 24px; }
+  ul li { margin: 6px 0; }
+  .toc-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+  .toc-table td { padding: 4px 8px; border-bottom: 1px dotted #ccc; }
+  .toc-table td:last-child { text-align: right; width: 60px; }
+  .toc-section { font-weight: bold; background: #f5f5f5; }
+  .cert-system { background: #f9f9f9; border: 1px solid #ddd; padding: 20px; margin: 20px 0; text-align: center; }
+  .cert-levels { display: flex; justify-content: center; gap: 20px; margin: 20px 0; }
+  .cert-badge { border: 2px solid #cf0000; padding: 10px 20px; border-radius: 4px; font-weight: bold; color: #cf0000; }
+  p { margin: 10px 0; }
+  .summary-box { background: #fff3f3; border: 1px solid #cf0000; padding: 20px; margin: 20px 0; border-radius: 4px; }
+  @media print { body { font-size: 12px; } .page { padding: 20px 30px; } }
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="cover">
+  <div class="brand">HUAWEI AI CERTIFICATION TRAINING</div>
+  <h1>HCIA-AI</h1>
+  <h2>Guía de Laboratorio de<br>Machine Learning</h2>
+  <div class="issue">EDICIÓN: 4.0</div>
+  <div class="huawei-logo">HUAWEI</div>
+  <div class="company">HUAWEI TECHNOLOGIES CO., LTD</div>
+</div>
+
+<!-- AVISO LEGAL -->
+<div class="legal">
+  <p><strong>Copyright © Huawei Technologies Co., Ltd. 2025. Todos los derechos reservados.</strong><br>
+  Ninguna parte de este documento puede ser reproducida o transmitida en ninguna forma ni por ningún medio sin el consentimiento previo por escrito de Huawei Technologies Co., Ltd.</p>
+  <p><strong>Marcas Comerciales y Permisos</strong><br>
+  HUAWEI y otras marcas comerciales de Huawei son marcas registradas de Huawei Technologies Co., Ltd.<br>
+  Todas las demás marcas comerciales y nombres comerciales mencionados en este documento son propiedad de sus respectivos titulares.</p>
+  <p><strong>Aviso</strong><br>
+  Los productos, servicios y funciones adquiridos están estipulados por el contrato celebrado entre Huawei y el cliente. La totalidad o parte de los productos, servicios y funciones descritos en este documento pueden no estar dentro del alcance de la compra o del alcance de uso. A menos que se especifique lo contrario en el contrato, todas las declaraciones, información y recomendaciones en este documento se proporcionan "TAL COMO ESTÁN" sin garantías, representaciones ni condiciones de ningún tipo.<br>
+  La información en este documento está sujeta a cambios sin previo aviso.</p>
+  <table>
+    <tr><td><strong>Dirección:</strong></td><td>Huawei Industrial Base Bantian, Longgang Shenzhen 518129, República Popular de China</td></tr>
+    <tr><td><strong>Sitio web:</strong></td><td>https://e.huawei.com</td></tr>
+  </table>
+</div>
+
+<!-- PÁGINA 1: SISTEMA DE CERTIFICACIÓN HUAWEI -->
+<div class="page">
+  <div class="page-header"><span class="logo">HUAWEI</span><span>Guía de Laboratorio de Machine Learning</span><span>Página 1</span></div>
+  <h2 style="text-align:center;font-size:22px;">Sistema de Certificación Huawei</h2>
+  <p>La Certificación Huawei es parte integral de la estrategia Platform + Ecosystem de la empresa. Soporta la nueva infraestructura de Tecnologías de la Información y Comunicación (TIC) que combina Cloud-Pipe-Device, y abarca todos los dominios TIC, incluyendo certificación para la arquitectura TIC y sus aplicaciones, así como certificación para servicios y plataformas en la nube.</p>
+  <p>El sistema de certificación ofrece tres niveles: Huawei Certified ICT Associate (HCIA), Huawei Certified ICT Professional (HCIP) y Huawei Certified ICT Expert (HCIE), para satisfacer los requisitos de aprendizaje y avance de los profesionales TIC.</p>
+  <p>Las certificaciones Huawei cubren todos los campos TIC y se adaptan a la tendencia de convergencia del sector. Con su sistema líder de desarrollo de talento y estándares de certificación, Huawei se compromete a fomentar nuevo talento TIC en la era digital, construyendo un ecosistema saludable de talento TIC.</p>
+  <p>El sistema de certificación HCIA-AI V4.0 está diseñado para capacitar y certificar ingenieros capaces de diseñar, desarrollar e innovar productos y soluciones de IA mediante algoritmos de machine learning y deep learning.</p>
+  <p><strong>Con la certificación HCIA-AI V4.0, estás preparado para:</strong></p>
+  <ul>
+    <li>Comprender la historia del desarrollo de la IA.</li>
+    <li>Dominar algoritmos relacionados con machine learning tradicional y deep learning.</li>
+    <li>Ser capaz de construir, entrenar y desplegar redes neuronales usando el framework de desarrollo PyTorch.</li>
+    <li>Ser competente en ventas, marketing, gestión de productos, gestión de proyectos, soporte técnico y otras posiciones de IA.</li>
+  </ul>
+  <p>El sistema de certificación Huawei te introduce a la industria y el mercado, te ayuda a innovar y te permite mantenerte a la vanguardia de la IA.</p>
+  <div class="cert-system">
+    <strong>Niveles de Certificación</strong>
+    <div class="cert-levels">
+      <div class="cert-badge">HCIA<br><small>Associate</small></div>
+      <div style="font-size:24px;align-self:center">→</div>
+      <div class="cert-badge">HCIP<br><small>Professional</small></div>
+      <div style="font-size:24px;align-self:center">→</div>
+      <div class="cert-badge">HCIE<br><small>Expert</small></div>
+    </div>
+  </div>
+</div>
+
+<!-- PÁGINA 3: ACERCA DEL DOCUMENTO -->
+<div class="page">
+  <div class="page-header"><span class="logo">HUAWEI</span><span>Guía de Laboratorio de Machine Learning</span><span>Página 3</span></div>
+  <h1 class="section-title">Acerca de Este Documento</h1>
+
+  <h2>Descripción General</h2>
+  <p>Este documento está dirigido a candidatos que se preparan para el examen HCIA-AI y a otros que desean aprender conocimientos básicos de machine learning.</p>
+
+  <h2>Descripción</h2>
+  <p>Esta guía de laboratorio comprende los siguientes cinco experimentos:</p>
+  <ul>
+    <li><strong>Experimento 1 — Regresión Lineal.</strong> Se usa el paquete Python scikit-learn para implementar un algoritmo simple de regresión lineal.</li>
+    <li><strong>Experimento 2 — Regresión Lineal Expandida.</strong> Se usa el paquete básico numpy para implementar algoritmos como regresión lineal y descenso de gradiente desde cero.</li>
+    <li><strong>Experimento 3 — Regresión Logística.</strong> Se usa el algoritmo de regresión logística del paquete de herramientas para implementar una clasificación simple.</li>
+    <li><strong>Experimento 4 — Árbol de Decisión.</strong> Los participantes construirán un árbol de decisión para predecir el clima y visualizarlo.</li>
+    <li><strong>Experimento 5 — Algoritmo K-means de Agrupamiento.</strong></li>
+  </ul>
+
+  <h2>Conocimientos Previos Requeridos</h2>
+  <p>Este curso es para la certificación profesional de Huawei. Se espera que los participantes cumplan con los siguientes requisitos:</p>
+  <ul>
+    <li>Tener conocimientos básicos de programación en Python.</li>
+    <li>Tener habilidades matemáticas básicas, incluyendo álgebra lineal y teoría de probabilidad.</li>
+  </ul>
+
+  <h2>Descripción del Entorno de Laboratorio</h2>
+  <p>El entorno de laboratorio es Python 3.7. Para más detalles sobre cómo configurar el entorno, consulta la Guía de Configuración del Entorno.</p>
+  <p>Los conjuntos de datos usados en este laboratorio se pueden obtener en:<br>
+  <code>https://certification-data.obs.cn-north-4.myhuaweicloud.com/ENG/HCIA-AI/V4.0/Dataset.zip</code></p>
+</div>
+
+<!-- PÁGINA 4: TABLA DE CONTENIDO -->
+<div class="page">
+  <div class="page-header"><span class="logo">HUAWEI</span><span>Guía de Laboratorio de Machine Learning</span><span>Página 4</span></div>
+  <h1 class="section-title">Contenido</h1>
+  <table class="toc-table">
+    <tr class="toc-section"><td colspan="2">Acerca de Este Documento</td><td>3</td></tr>
+    <tr><td></td><td>Descripción General</td><td>3</td></tr>
+    <tr><td></td><td>Descripción</td><td>3</td></tr>
+    <tr><td></td><td>Conocimientos Previos Requeridos</td><td>3</td></tr>
+    <tr><td></td><td>Descripción del Entorno de Laboratorio</td><td>3</td></tr>
+    <tr class="toc-section"><td colspan="2">1 Implementación de Algoritmos Comunes de Machine Learning</td><td>5</td></tr>
+    <tr><td></td><td>1.1 Introducción</td><td>5</td></tr>
+    <tr><td></td><td>1.1.1 Acerca de Este Laboratorio</td><td>5</td></tr>
+    <tr><td></td><td>1.1.2 Objetivos</td><td>5</td></tr>
+    <tr><td></td><td>1.2 Implementación del Código</td><td>5</td></tr>
+    <tr><td></td><td>1.2.1 Regresión Lineal</td><td>5</td></tr>
+    <tr><td></td><td>1.2.2 Implementación de Regresión Lineal (Experimento Expandido)</td><td>7</td></tr>
+    <tr><td></td><td>1.2.3 Regresión Logística</td><td>10</td></tr>
+    <tr><td></td><td>1.2.4 Árbol de Decisión</td><td>12</td></tr>
+    <tr><td></td><td>1.2.5 Implementación del Algoritmo K-means</td><td>14</td></tr>
+    <tr><td></td><td>1.3 Preguntas</td><td>19</td></tr>
+    <tr><td></td><td>1.4 Resumen</td><td>19</td></tr>
+  </table>
+</div>
+
+<!-- CAPÍTULO 1 -->
+<div class="page">
+  <div class="page-header"><span class="logo">HUAWEI</span><span>Guía de Laboratorio de Machine Learning</span><span>Página 5</span></div>
+  <h1 class="chapter">1 &nbsp; Implementación de Algoritmos Comunes de Machine Learning</h1>
+
+  <h2>1.1 Introducción</h2>
+  <h3>1.1.1 Acerca de Este Laboratorio</h3>
+  <p>Este laboratorio introduce algoritmos comunes de machine learning para ayudarte a comprender mejor sus funciones y usos. En concreto, explicará cómo construir un algoritmo de regresión lineal desde cero e implementar el árbol de decisión y el agrupamiento K-means con scikit-learn.</p>
+
+  <h3>1.1.2 Objetivos</h3>
+  <ul>
+    <li>Construir un algoritmo de regresión lineal desde cero.</li>
+    <li>Dominar el uso de algoritmos de clasificación y regresión.</li>
+    <li>Dominar el uso del algoritmo de agrupamiento K-means.</li>
+    <li>Dominar el proceso de implementación de algoritmos de machine learning.</li>
+  </ul>
+
+  <h2>1.2 Implementación del Código</h2>
+  <h3>1.2.1 Regresión Lineal</h3>
+
+  <div class="step">Paso 1 &nbsp; Importar los paquetes dependientes.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block">from sklearn.linear_model import LinearRegression  # Importar el modelo de regresión lineal
+import matplotlib.pyplot as plt  # La librería de graficación
+import numpy as np</div>
+
+  <div class="step">Paso 2 &nbsp; Construir y visualizar un conjunto de datos de precios de casas.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block">x = np.array([121, 125, 131, 141, 152, 161]).reshape(-1,1)  # x denota el área de la casa como característica
+y = np.array([300, 350, 425, 405, 496, 517])  # y denota el precio de la casa
+plt.scatter(x, y)
+plt.xlabel("area")   # El eje X indica el área
+plt.ylabel("price")  # El eje Y indica el precio
+plt.show()</div>
+  <div class="label">Salida:</div>
+  <div class="output-block">[Gráfico de dispersión: área (eje X, 120–165) vs precio (eje Y, 300–525)]</div>
+
+  <div class="step">Paso 3 &nbsp; Entrenar el modelo.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block">lr = LinearRegression()  # Encapsular el modelo de regresión lineal en un objeto
+lr.fit(x, y)             # Entrenar el modelo con el conjunto de datos</div>
+
+  <div class="step">Paso 4 &nbsp; Visualizar el modelo.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block">w = lr.coef_       # Pendiente del modelo
+b = lr.intercept_  # Intercepto del modelo
+print('Pendiente:', w)
+print('Intercepto:', b)</div>
+  <div class="label">Salida:</div>
+  <div class="output-block">Pendiente: [4.98467124]
+Intercepto: -274.8769665187576</div>
+
+  <div class="label">Entrada:</div>
+  <div class="code-block">plt.scatter(x, y)
+plt.xlabel("area")   # El eje X indica el área
+plt.ylabel("price")  # El eje Y indica el precio
+plt.plot([x[0], x[-1]], [x[0]*w+b, x[-1]*w+b])
+plt.show()</div>
+  <div class="label">Salida:</div>
+  <div class="output-block">[Gráfico: nube de puntos con línea de regresión ajustada]</div>
+
+  <div class="step">Paso 5 &nbsp; Iniciar una tarea de predicción usando el modelo.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block">testX = np.array([[130]])  # Una muestra de prueba con área 130
+lr.predict(testX)</div>
+  <div class="label">Salida:</div>
+  <div class="output-block">Array([373.13029447])  # El modelo predice el precio de la casa para la muestra</div>
+</div>
+
+<!-- PÁGINA 7: REGRESIÓN LINEAL EXPANDIDA -->
+<div class="page">
+  <div class="page-header"><span class="logo">HUAWEI</span><span>Guía de Laboratorio de Machine Learning</span><span>Página 7</span></div>
+
+  <h3>1.2.2 Implementación de Regresión Lineal (Experimento Expandido)</h3>
+  <p>Este experimento usa el conjunto de datos <strong>lr2_data.txt</strong>, que contiene datos simulados de área y precio de casas. Para obtener el conjunto de datos, consulta la Guía de Configuración del Entorno de Laboratorio.</p>
+
+  <div class="step">Paso 1 &nbsp; Importar dependencias.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block">import numpy as np
+import matplotlib.pyplot as plt</div>
+
+  <div class="step">Paso 2 &nbsp; Definir la función para calcular gradientes.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block">def generate_gradient(X, theta, y):
+    sample_count = X.shape[0]
+    # Calcular el gradiente basado en la matriz 1/m Σ(((h(x^i)-y^i)) x_j^i)
+    return (1./sample_count) * X.T.dot(X.dot(theta) - y)</div>
+
+  <div class="step">Paso 3 &nbsp; Definir la función para leer conjuntos de datos.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block">def get_training_data(file_path):
+    orig_data = np.loadtxt(file_path, skiprows=1)  # Ignorar el título en la primera fila
+    cols = orig_data.shape[1]
+    return (orig_data, orig_data[:, :cols - 1], orig_data[:, cols-1:])</div>
+
+  <div class="step">Paso 4 &nbsp; Definir la función para inicializar parámetros.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block"># Inicializar el arreglo θ
+def init_theta(feature_count):
+    return np.ones(feature_count).reshape(feature_count, 1)</div>
+
+  <div class="step">Paso 5 &nbsp; Definir la función para implementar el descenso de gradiente.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block">def gradient_descending(X, y, theta, alpha):
+    Jthetas = []  # Registrar la tendencia de cambio de la función de costo J(θ)
+
+    # Calcular la función de pérdida: (y^i - h(x^i))^2
+    Jtheta = (X.dot(theta) - y).T.dot(X.dot(theta) - y)
+    index = 0
+    gradient = generate_gradient(X, theta, y)  # Calcular el gradiente
+
+    while not np.all(np.absolute(gradient) <= 1e-5):  # Terminar cuando el gradiente sea < 0.00001
+        theta = theta - alpha * gradient
+        gradient = generate_gradient(X, theta, y)
+        # Calcular la función de pérdida: (y^i - h(x^i))^2
+        Jtheta = (X.dot(theta) - y).T.dot(X.dot(theta) - y)
+        if (index + 1) % 10 == 0:
+            Jthetas.append((index, Jtheta[0][0]))  # Registrar el resultado cada 10 cálculos
+        index += 1
+    return theta, Jthetas</div>
+
+  <div class="step">Paso 6 &nbsp; Definir la función para visualizar la curva de cambio de la función de pérdida.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block"># Graficar la curva de cambio de la función de pérdida
+def showJTheta(diff_value):
+    p_x = []
+    p_y = []
+    for (index, sum) in diff_value:
+        p_x.append(index)
+        p_y.append(sum)
+    plt.plot(p_x, p_y, color='b')
+    plt.xlabel('pasos')
+    plt.ylabel('función de pérdida')
+    plt.title('curva paso - función de pérdida')
+    plt.show()</div>
+
+  <div class="step">Paso 7 &nbsp; Definir la función para visualizar puntos de datos y la curva ajustada.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block"># Graficar los puntos de datos reales y la curva ajustada
+def showlinercurve(theta, sample_training_set):
+    x, y = sample_training_set[:, 1], sample_training_set[:, 2]
+    z = theta[0] + theta[1] * x
+    plt.scatter(x, y, color='b', marker='x', label="datos de muestra")
+    plt.plot(x, z, 'r', color='r', label="curva de regresión")
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('curva de regresión lineal')
+    plt.legend()
+    plt.show()</div>
+
+  <div class="step">Paso 8 &nbsp; Graficar los resultados finales.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block"># Leer el conjunto de datos
+training_data_include_y, training_x, y = get_training_data("./ML/02/lr2_data.txt")
+# Obtener el número de muestras y características
+sample_count, feature_count = training_x.shape
+# Definir el paso de aprendizaje α
+alpha = 0.01
+# Inicializar θ
+theta = init_theta(feature_count)
+# Obtener el parámetro final θ y el costo
+result_theta, Jthetas = gradient_descending(training_x, y, theta, alpha)
+# Mostrar el parámetro
+print("w:{}".format(result_theta[0][0]), "b:{}".format(result_theta[1][0]))
+showJTheta(Jthetas)
+showlinercurve(result_theta, training_data_include_y)</div>
+  <div class="label">Salida (ignorar advertencias):</div>
+  <div class="output-block">w:3.0076279423997594  b:1.668677412281192</div>
+  <div class="output-block">[Gráfico 1: Curva paso–función de pérdida: baja rápidamente de ~800 a ~0 en los primeros pasos]
+[Gráfico 2: Curva de regresión lineal ajustada sobre los datos de muestra]</div>
+</div>
+
+<!-- PÁGINA 10: REGRESIÓN LOGÍSTICA -->
+<div class="page">
+  <div class="page-header"><span class="logo">HUAWEI</span><span>Guía de Laboratorio de Machine Learning</span><span>Página 10</span></div>
+
+  <h3>1.2.3 Regresión Logística</h3>
+  <p>Este experimento usa un conjunto de datos personalizado de renta y área de casas. El conjunto de datos se define durante la fase inicial del experimento.</p>
+
+  <div class="step">Paso 1 &nbsp; Importar dependencias.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block"># Importar StandardScaler desde sklearn.preprocessing
+from sklearn.preprocessing import StandardScaler
+# Importar LogisticRegression desde sklearn.linear_model
+from sklearn.linear_model import LogisticRegression</div>
+
+  <div class="step">Paso 2 &nbsp; Definir el conjunto de datos.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block"># Cada elemento en X denota la renta y el área
+# y indica si se alquila la habitación (0: no; 1: sí)
+X = [[2200,15],[2750,20],[5000,40],[4000,20],[3300,20],[2000,10],[2500,12],[12000,80],
+     [2880,10],[2300,15],[1500,10],[3000,8],[2000,14],[2000,10],[2150,8],[3400,20],
+     [5000,20],[4000,10],[3300,15],[2000,12],[2500,14],[10000,100],[3150,10],
+     [2950,15],[1500,5],[3000,18],[8000,12],[2220,14],[6000,100],[3050,10]]
+
+y = [1,1,0,0,1,1,1,0,1,1,0,1,1,0,0,0,1,1,1,0,1,0,0,1,2,0,1,1,0]</div>
+
+  <div class="step">Paso 3 &nbsp; Preprocesar los datos.</div>
+  <p>Estandarizar los datos para garantizar que la varianza de los datos de características en cada dimensión sea 1 y la media sea 0. De esta manera, el resultado de la predicción no es dominado por valores de características grandes de algunas dimensiones.</p>
+  <div class="label">Entrada:</div>
+  <div class="code-block">ss = StandardScaler()
+X_train = ss.fit_transform(X)</div>
+  <div class="label">Mostrar los datos estandarizados:</div>
+  <div class="code-block">print(X_train)</div>
+  <div class="label">Salida:</div>
+  <div class="output-block">[[-0.60583897 -0.29313058]
+ [-0.37682768 -0.09050576]
+ [ 0.56003671  0.71999355]
+ [ 0.14365254 -0.09050576]
+ ...
+ [-0.25191242 -0.49575541]]</div>
+
+  <div class="step">Paso 4 &nbsp; Ajustar los datos.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block"># Usar el método fit de LogisticRegression para entrenar los parámetros del modelo
+lr = LogisticRegression()
+lr.fit(X_train, y)</div>
+  <div class="label">Salida:</div>
+  <div class="output-block">LogisticRegression()</div>
+
+  <div class="step">Paso 5 &nbsp; Predecir los datos.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block">testX = [[2000, 8]]
+X_test = ss.transform(testX)
+print("Valor a predecir: ", X_test)
+label = lr.predict(X_test)
+print("etiqueta predicha = ", label)
+# Mostrar la probabilidad predicha
+prob = lr.predict_proba(X_test)
+print("probabilidad = ", prob)</div>
+  <div class="label">Salida:</div>
+  <div class="output-block">Valor a predecir: [[-0.68911581 -0.57680534]]
+etiqueta predicha =  [1]
+probabilidad =  [[0.41886952 0.58113048]]</div>
+</div>
+
+<!-- PÁGINA 12: ÁRBOL DE DECISIÓN -->
+<div class="page">
+  <div class="page-header"><span class="logo">HUAWEI</span><span>Guía de Laboratorio de Machine Learning</span><span>Página 12</span></div>
+
+  <h3>1.2.4 Árbol de Decisión</h3>
+  <p>Este experimento usa el conjunto de datos <strong>tennis.txt</strong>, que contiene 14 muestras. Cada muestra contiene características relacionadas con el clima e indica si es adecuado para jugar tenis.</p>
+
+  <div class="step">Paso 1 &nbsp; Importar dependencias.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block">import pandas as pd
+import numpy as np
+from sklearn import tree
+import pydotplus</div>
+
+  <div class="step">Paso 2 &nbsp; Definir la función para generar un árbol de decisión.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block"># Generar un árbol de decisión
+def createTree(trainingData):
+    data = trainingData.iloc[:, :-1]    # Matriz de características
+    labels = trainingData.iloc[:, -1]   # Etiquetas
+    trainedTree = tree.DecisionTreeClassifier(criterion="entropy")  # Clasificador de árbol de decisión
+    trainedTree.fit(data, labels)        # Entrenar el modelo
+    return trainedTree</div>
+
+  <div class="step">Paso 3 &nbsp; Definir la función para guardar el diagrama del árbol generado.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block">def showtree2pdf(trainedTree, finename):
+    dot_data = tree.export_graphviz(trainedTree, out_file=None)  # Exportar en formato Graphviz
+    graph = pydotplus.graph_from_dot_data(dot_data)
+    graph.write_pdf(finename)  # Guardar el diagrama del árbol en formato PDF</div>
+
+  <div class="step">Paso 4 &nbsp; Definir la función para generar datos vectorizados.</div>
+  <p>En la función, <strong>pd.Categorical(list).codes</strong> obtiene la lista de números de secuencia correspondientes a los datos originales, para convertir la información categórica en información numérica.</p>
+  <div class="label">Entrada:</div>
+  <div class="code-block">def data2vectoc(data):
+    names = data.columns[:-1]
+    for i in names:
+        col = pd.Categorical(data[i])
+        data[i] = col.codes
+    return data</div>
+
+  <div class="step">Paso 5 &nbsp; Invocar la función para predicción.</div>
+  <div class="label">Entrada:</div>
+  <div class="code-block">data = pd.read_table("./ML/tennis.txt", header=None, sep='\t')  # Leer datos de entrenamiento
+trainingvec = data2vectoc(data)    # Vectorizar datos
+decisionTree = createTree(trainingvec)   # Crear árbol de decisión
+showtree2pdf(decisionTree, "tennis.pdf") # Graficar el árbol de decisión</div>
+  <p>Se genera un diagrama del árbol de decisión llamado <strong>tennis.pdf</strong> en la máquina local.</p>
+
+  <div class="info-box">
+    <strong>Interpretación del árbol:</strong><br>
+    • <strong>X[2]</strong> = tercera variable de característica (humedad)<br>
+    • <strong>X[0]</strong> = primera variable de característica (clima)<br>
+    • <strong>X[3]</strong> = cuarta variable de característica (viento)<br>
+    • <strong>entropy</strong> = valor de entropía del nodo<br>
+    • <strong>samples</strong> = número de muestras (ej. 14 en el nodo raíz)<br>
+    • <strong>value</strong> = número de muestras de cada tipo (ej. [5,9] = 5 "No" y 9 "Sí")
+  </div>
+
+  <div class="label">Predecir una nueva muestra. Entrada:</div>
+  <div class="code-block">testVec = [0, 0, 1, 1]  # Clima: soleado, temperatura: baja, humedad: alta, viento: fuerte
+print(decisionTree.predict(np.array(testVec).reshape(1, -1)))  # Predecir</div>
+  <div class="label">Salida:</div>
+  <div class="output-block">['N']</div>
+</div>
+
+<!-- PÁGINA 14: K-MEANS -->
+<div class="page">
+  <div class="page-header"><span class="logo">HUAWEI</span><span>Guía de Laboratorio de Machine Learning</span><span>Página 14</span></div>
+
+  <h3>1.2.5 Implementación del Algoritmo K-means</h3>
+
+  <div class="step">Paso 1 &nbsp; Importar dependencias.</div>
+  <p><strong>make_blobs</strong> se usa para generar el conjunto de datos requerido para este experimento, <strong>matplotlib</strong> se usa para la visualización de datos, y <strong>KMeans</strong> se usa para ajustar los datos basándose en el algoritmo K-means.</p>
+  <div class="label">Entrada:</div>
+  <div class="code-block">from sklearn.datasets import make_blobs
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans</div>
+
+  <div class="step">Paso 2 &nbsp; Generar el conjunto de datos.</div>
+  <p><strong>make_blobs()</strong> se usa para generar un conjunto de datos para una tarea de agrupamiento, devolviendo el conjunto de datos generado y las etiquetas. Nota: el algoritmo K-means a menudo se usa para procesar conjuntos de datos sin etiqueta en producción. El conjunto de datos generado contiene etiquetas solo para facilitar la comprensión.</p>
+  <div class="label">Entrada:</div>
+  <div class="code-block">X, y = make_blobs(n_samples=500, n_features=2, centers=4, random_state=1)</div>
+  <p><strong>n_samples</strong> = número de muestras, <strong>n_features</strong> = número de características de cada muestra (dimensión de los datos), <strong>centers</strong> = número de categorías, <strong>random_state</strong> = semilla para el generador de números aleatorios (garantiza que los datos generados sean siempre iguales).</p>
+  <div class="label">Entrada:</div>
+  <div class="code-block">Print("Dimensión de X es {}".format(X.shape))
+Print("Dimensión de y es {}".format(y.shape))</div>
+  <div class="label">Salida:</div>
+  <div class="output-block">Dimensión de X es (500, 2)
+Dimensión de y es (500,)</div>
+  <p>El conjunto de datos contiene 500 puntos de muestra, y cada punto contiene dos características.</p>
+
+  <div class="step">Paso 3 &nbsp; Dibujar gráficos de dispersión.</div>
+  <p>Primero, dibujar directamente un gráfico de dispersión del conjunto de datos. Las etiquetas generadas durante la creación del conjunto de datos no se consideran por ahora. El gráfico contiene cuatro grupos distintos.</p>
+  <div class="label">Entrada:</div>
+  <div class="code-block">fig, ax1 = plt.subplots(1)
+ax1.scatter(X[:, 0], X[:, 1]
+            , marker='o'  # Establecer la forma del punto en círculo
+            , s=8          # Establecer el tamaño del punto
+            )
+plt.show()</div>
+  <div class="label">Salida:</div>
+  <div class="output-block">[Gráfico de dispersión sin colores: 4 grupos visibles de puntos]</div>
+
+  <p>A continuación, dibujar un gráfico de dispersión donde los puntos de diferentes colores corresponden a las etiquetas generadas.</p>
+  <div class="label">Entrada:</div>
+  <div class="code-block">color = ["red", "pink", "orange", "green"]
+fig, ax1 = plt.subplots(1)
+
+for i in range(4):
+    ax1.scatter(X[y==i, 0], X[y==i, 1]  # Dibujar el color según la etiqueta
+                , marker='o'   # Establecer la forma del punto en círculo
+                , s=8          # Establecer el tamaño del punto
+                , c=color[i]
+                )
+plt.show()</div>
+  <div class="label">Salida:</div>
+  <div class="output-block">[Gráfico de dispersión coloreado: 4 grupos en rojo, rosa, naranja y verde]</div>
+
+  <div class="step">Paso 4 &nbsp; Realizar agrupamiento K-means.</div>
+  <p>Usar <strong>sklearn.cluster.KMeans</strong> de scikit-learn para implementar agrupamiento K-means. Primero, agrupar las muestras de datos en tres tipos.</p>
+  <div class="label">Entrada:</div>
+  <div class="code-block">n_clusters = 3
+cluster1 = KMeans(n_clusters=n_clusters, random_state=3).fit(X)</div>
+
+  <div class="label">Ver la etiqueta de cada punto de muestra después del agrupamiento:</div>
+  <div class="code-block">y_pred1 = cluster1.labels_
+print(y_pred1)</div>
+  <div class="label">Salida:</div>
+  <div class="output-block">[0 0 2 1 2 2 2 0 0 2 1 2 0 2 0 1 2 2 2 0 1 1 2 2 0 1 2 0 2 0 2 ...]</div>
+
+  <div class="label">Imprimir el centroide de cada grupo:</div>
+  <div class="code-block">centroid1 = cluster1.cluster_centers_
+print(centroid1)</div>
+  <div class="label">Salida:</div>
+  <div class="output-block">[[-7.09306648 -8.10994454]
+ [-1.54234022  4.43517599]
+ [-8.0862351  -3.5179868 ]]</div>
+
+  <div class="label">Visualizar el resultado del agrupamiento:</div>
+  <div class="code-block">color = ["red", "pink", "orange", "gray"]
+
+fig, ax1 = plt.subplots(1)
+
+for i in range(n_clusters):
+    ax1.scatter(X[y_pred1==i, 0], X[y_pred1==i, 1]
+                , marker='o'  # Círculo
+                , s=8
+                , c=color[i]
+                )
+
+ax1.scatter(centroid1[:, 0], centroid1[:, 1]
+            , marker="x"
+            , s=15
+            , c="black")
+plt.show()</div>
+  <div class="label">Salida:</div>
+  <div class="output-block">[Gráfico: 3 grupos coloreados con centroides marcados como 'x' negro]</div>
+  <p>El gráfico muestra que las muestras de datos se agrupan en tres clústeres, y el centroide de cada clúster está representado por <strong>x</strong>.</p>
+
+  <div class="step">Paso 5 &nbsp; Realizar agrupamiento K-means nuevamente.</div>
+  <p>A continuación, realizar los pasos anteriores para usar K-means y agrupar las muestras de datos en cuatro tipos.</p>
+  <div class="label">Entrada:</div>
+  <div class="code-block">n_clusters = 4
+cluster2 = KMeans(n_clusters=n_clusters, random_state=0).fit(X)
+y_pred2 = cluster2.labels_
+centroid2 = cluster2.cluster_centers_
+print("Centroide: {}".format(centroid2))</div>
+  <div class="label">Salida:</div>
+  <div class="output-block">Centroide: [[ -6.08459039  -3.17305983]
+ [ -1.54234022   4.43517599]
+ [ -7.09306648  -8.10994454]
+ [-10.00969056  -3.84944007]]</div>
+
+  <div class="label">Visualizar el resultado del agrupamiento:</div>
+  <div class="code-block">color = ["red", "pink", "orange", "green"]
+
+fig, ax1 = plt.subplots(1)
+
+for i in range(n_clusters):
+    ax1.scatter(X[y_pred2==i, 0], X[y_pred2==i, 1]
+                , marker='o'
+                , s=8
+                , c=color[i]
+                )
+
+ax1.scatter(centroid2[:, 0], centroid2[:, 1]
+            , marker="x"
+            , s=15
+            , c="black")
+plt.show()</div>
+  <div class="label">Salida:</div>
+  <div class="output-block">[Gráfico: 4 grupos coloreados con centroides marcados como 'x' negro]</div>
+</div>
+
+<!-- PÁGINA 19: PREGUNTAS Y RESUMEN -->
+<div class="page">
+  <div class="page-header"><span class="logo">HUAWEI</span><span>Guía de Laboratorio de Machine Learning</span><span>Página 19</span></div>
+
+  <h2>1.3 Preguntas</h2>
+  <ol>
+    <li>¿Cuáles son las diferencias entre la regresión lineal y la regresión logística?</li>
+    <li>¿Por qué es necesario estandarizar los datos antes de aplicar regresión logística?</li>
+    <li>¿Qué criterios de división se pueden usar en un árbol de decisión? ¿Cuál es la diferencia entre entropía e índice de Gini?</li>
+    <li>¿Cuál es la influencia del valor de K en el algoritmo K-means? ¿Cómo se elige un valor de K apropiado?</li>
+    <li>¿Cuáles son las limitaciones del algoritmo K-means?</li>
+  </ol>
+
+  <h2>1.4 Resumen</h2>
+  <div class="summary-box">
+    <p>En este laboratorio aprendiste a:</p>
+    <ul>
+      <li><strong>Regresión Lineal:</strong> Usar scikit-learn para construir y entrenar un modelo de regresión lineal, visualizar los datos y hacer predicciones.</li>
+      <li><strong>Regresión Lineal Expandida:</strong> Implementar el algoritmo de descenso de gradiente desde cero usando numpy, comprendiendo la mecánica interna del aprendizaje de parámetros.</li>
+      <li><strong>Regresión Logística:</strong> Aplicar estandarización de datos y usar LogisticRegression de scikit-learn para clasificación binaria.</li>
+      <li><strong>Árbol de Decisión:</strong> Construir un árbol de decisión usando criterio de entropía para clasificación, y visualizarlo como PDF.</li>
+      <li><strong>K-means:</strong> Usar KMeans de scikit-learn para agrupamiento no supervisado, experimentando con diferentes valores de K y visualizando los centroides.</li>
+    </ul>
+    <p>Estos cinco algoritmos son los más importantes del examen HCIA-AI. Dominar su implementación práctica en Python te prepara directamente para las preguntas del examen.</p>
+  </div>
+
+  <h3>Conjunto de Datos del Laboratorio</h3>
+  <p>Descargar desde:<br>
+  <code>https://certification-data.obs.cn-north-4.myhuaweicloud.com/ENG/HCIA-AI/V4.0/Dataset.zip</code></p>
+  <p>Estructura esperada de carpetas:</p>
+  <div class="code-block">./ML/
+  ├── 02/lr2_data.txt    ← Experimento 2 (Regresión Lineal Expandida)
+  └── tennis.txt         ← Experimento 4 (Árbol de Decisión)</div>
+</div>
+
+</body>
+</html>

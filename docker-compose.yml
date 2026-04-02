@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  dof-mesh-core:
+    build: .
+    container_name: sovereign_citadel
+    # We use bind mounts so your code lives safely on the Mac but executes inside Docker
+    volumes:
+      - ./:/app
+      - ~/.claude:/root/.claude:ro # Read-only access to global MCP/Claude configs if needed
+    environment:
+      # Pass through essential Oracle Keys and Network Overrides
+      - OMLX_BASE_URL=http://host.docker.internal:8080/v1
+      # Local Mac loopback for native test integrations
+      - DOCKER_HOST_IP=host.docker.internal
+    # The bridge network allows mapping the internal host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # Keep container alive silently for scripts to attach
+    command: tail -f /dev/null
+    # Restart policy
+    restart: unless-stopped

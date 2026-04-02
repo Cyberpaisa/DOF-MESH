@@ -181,6 +181,55 @@ _RESPONSE_VIOLATION_PATTERNS = _ESCALATION_PATTERNS
 GOVERNANCE_RULES = []
 
 # ─────────────────────────────────────────────────────────────────────
+# Initialization — Load constitution at startup
+# ─────────────────────────────────────────────────────────────────────
+
+def _sync_rules_from_constitution():
+    """Sync HARD_RULES and SOFT_RULES with the YAML constitution if available."""
+    global HARD_RULES, SOFT_RULES, PII_PATTERNS
+    const = load_constitution()
+    if not const:
+        return
+
+    # Sync Hard Rules
+    yaml_hard = const.get("rules", {}).get("hard", [])
+    if yaml_hard:
+        new_hard = []
+        for r in yaml_hard:
+            new_hard.append({
+                "id": r.get("rule_key") or r.get("id"),
+                "priority": RulePriority.SYSTEM,
+                "pattern": r.get("pattern", {}).get("phrases") or r.get("pattern", {}).get("regex"),
+                "description": r.get("description"),
+                "type": r.get("pattern", {}).get("type", "regex"),
+                "min_length": r.get("pattern", {}).get("min_length"),
+                "max_chars": r.get("pattern", {}).get("max_chars"),
+            })
+        if new_hard:
+            HARD_RULES = new_hard
+
+    # Sync Soft Rules
+    yaml_soft = const.get("rules", {}).get("soft", [])
+    if yaml_soft:
+        new_soft = []
+        for r in yaml_soft:
+            new_soft.append({
+                "id": r.get("rule_key") or r.get("id"),
+                "priority": r.get("priority", RulePriority.USER),
+                "pattern": r.get("pattern", {}).get("regex") or r.get("pattern", {}).get("keywords"),
+                "description": r.get("description"),
+                "weight": r.get("weight", 0.1),
+                "match_mode": "absent" if "absent" in r.get("pattern", {}).get("type", "") else "present"
+            })
+        if new_soft:
+            SOFT_RULES = new_soft
+
+    # Internal registry for reporting
+    global GOVERNANCE_RULES
+    GOVERNANCE_RULES = HARD_RULES + SOFT_RULES
+    logger.info("Governance synced with constitution: %d rules active", len(GOVERNANCE_RULES))
+
+# ─────────────────────────────────────────────────────────────────────
 # Helper functions
 # ─────────────────────────────────────────────────────────────────────
 
@@ -211,6 +260,10 @@ def check_governance(text: str) -> GovernanceResult:
     violations: list[str] = []
     warnings: list[str] = []
 
+    # Ensure input is string
+    if not isinstance(text, str):
+        text = str(text) if text is not None else ""
+
     # Empty or whitespace-only input is a hard violation
     if not text or not text.strip():
         return GovernanceResult(
@@ -222,14 +275,21 @@ def check_governance(text: str) -> GovernanceResult:
     # Hard rules — block on match (YAML-aligned logic)
     for rule in HARD_RULES:
         rule_type = rule.get("type", "regex")
+        pattern = rule.get("pattern")
 
         if rule_type == "phrase_without_url":
             # Only trigger if hallucination phrase present AND no source attribution
-            if rule["pattern"] and re.search(rule["pattern"], text, re.IGNORECASE):
-                if not _has_source_attribution(text):
-                    violations.append(f"[{rule['id']}] {rule['description']}")
+            phrases = pattern if isinstance(pattern, list) else ([pattern] if pattern else [])
+            found_hallucination = False
+            for p in phrases:
+                if re.search(p, text, re.IGNORECASE):
+                    found_hallucination = True
+                    break
+            
+            if found_hallucination and not _has_source_attribution(text):
+                violations.append(f"[{rule['id']}] {rule['description']}")
 
-        elif rule_type == "min_length":
+        elif rule_type == "min_length" or rule_type == "min_length_and_blocklist":
             min_len = rule.get("min_length", 50)
             stripped = text.strip()
             blocked_values = {"no output", "error", "n/a", "todo", "placeholder"}
@@ -246,29 +306,40 @@ def check_governance(text: str) -> GovernanceResult:
             stripped = text.strip()
             if not (stripped.startswith("{") or stripped.startswith("[")):
                 words = stripped[:800].lower().split()
-                en_markers = {"the", "is", "and", "of", "to", "in", "for", "with",
-                              "that", "this", "are", "was", "has", "have", "from",
-                              "by", "an", "be", "as", "on"}
+                # Use markers if available in rule, else defaults
+                en_markers = set(rule.get("english_markers") or ["the", "is", "and", "of", "to", "in", "for", "with"])
                 if words:
                     ratio = sum(1 for w in words if w in en_markers) / len(words)
-                    if ratio < 0.05:
+                    if ratio < 0.10:
                         violations.append(f"[{rule['id']}] {rule['description']}")
 
-        elif rule.get("pattern"):
-            # Fallback: simple regex
-            if re.search(rule["pattern"], text, re.IGNORECASE):
-                violations.append(f"[{rule['id']}] {rule['description']}")
+        elif pattern:
+            # Fallback: simple regex (or list of keywords)
+            keywords = pattern if isinstance(pattern, list) else [pattern]
+            for kw in keywords:
+                if re.search(kw, text, re.IGNORECASE):
+                    violations.append(f"[{rule['id']}] {rule['description']}")
+                    break
 
     # Soft rules — warn based on match_mode
     for rule in SOFT_RULES:
-        if not rule.get("pattern"):
+        pattern = rule.get("pattern")
+        if not pattern:
             continue
-        match = re.search(rule["pattern"], text, re.IGNORECASE)
+            
+        # Handle list of patterns or single string
+        patterns = pattern if isinstance(pattern, list) else [pattern]
+        match_found = False
+        for p in patterns:
+            if re.search(p, text, re.IGNORECASE):
+                match_found = True
+                break
+                
         mode = rule.get("match_mode", "present")
-        if mode == "absent" and not match:
+        if mode == "absent" and not match_found:
             # Warn when the desirable pattern is absent
             warnings.append(f"[{rule['id']}] {rule['description']}")
-        elif mode == "present" and match:
+        elif mode == "present" and match_found:
             # Warn when an undesirable pattern is present
             warnings.append(f"[{rule['id']}] {rule['description']}")
 
@@ -428,7 +499,6 @@ def get_constitution() -> dict:
     """Alias for load_constitution() with no arguments."""
     return load_constitution()
 
-
 # ─────────────────────────────────────────────────────────────────────
 # ZK Governance Proof integration
 # ─────────────────────────────────────────────────────────────────────
@@ -461,3 +531,8 @@ def enforce_with_proof(
         result, rule_ids=rule_ids, timestamp=timestamp,
     )
     return result, proof
+
+# ─────────────────────────────────────────────────────────────────────
+# Initialization — Auto-sync on import
+# ─────────────────────────────────────────────────────────────────────
+_sync_rules_from_constitution()

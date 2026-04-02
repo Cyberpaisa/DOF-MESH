@@ -1,0 +1,1553 @@
+<!-- HCIA-AI V4.0 — PARTE 4: Modelos Fundacionales (cont.) + Frameworks de Desarrollo de IA + PyTorch + Proceso de Desarrollo de Aplicaciones IA -->
+<!-- Diapositivas 286–378 (pages 286–378 del PDF) -->
+
+<!-- ============================================================ -->
+<!--  SECCIÓN: Modelos Fundacionales (continuación)               -->
+<!--  MoE, Cuestionarios, Resumen del capítulo DL                 -->
+<!-- ============================================================ -->
+
+<div class="slide" id="slide-286">
+  <h3>Diapositiva 286</h3>
+  <img src="slides/page-286.png" alt="Diapositiva 286">
+  <div class="content">
+    <h4>MoE (Mezcla de Expertos)</h4>
+    <ul>
+      <li><strong>Mezcla de Expertos (MoE)</strong> es una estrategia de diseño de modelos que combina múltiples modelos ("expertos") para lograr un mejor rendimiento de predicción.</li>
+      <li>MoE puede mejorar efectivamente la capacidad y eficiencia de un modelo fundacional. Generalmente, MoE utiliza un mecanismo de compuerta junto con un conjunto de mecanismos de salida para combinar y equilibrar la selección de expertos, determinando finalmente la predicción final para cada experto. El mecanismo de selección de expertos elige expertos específicos para la predicción según la salida del mecanismo de compuerta.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-287">
+  <h3>Diapositiva 287</h3>
+  <img src="slides/page-287.png" alt="Diapositiva 287">
+  <div class="content">
+    <h4>MoE — Notas del Instructor</h4>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>El tamaño del modelo es uno de los factores clave para mejorar el rendimiento del modelo. Por eso los modelos fundacionales actuales son tan efectivos. Con un presupuesto limitado de recursos computacionales, entrenar un modelo más grande con menos pasos de entrenamiento suele ser mejor que entrenar un modelo más pequeño con más pasos.</li>
+        <li>Una ventaja significativa de MoE es que se puede realizar un pre-entrenamiento efectivo con muchos menos recursos computacionales de los que requiere el modelo Denso. Esto significa que se puede escalar significativamente el modelo o el conjunto de datos bajo el mismo presupuesto computacional. Especialmente en la fase de pre-entrenamiento, el modelo de mezcla de expertos puede alcanzar el mismo nivel de calidad más rápidamente que el modelo Denso.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-288">
+  <h3>Diapositiva 288</h3>
+  <img src="slides/page-288.png" alt="Diapositiva 288">
+  <div class="content">
+    <h4>Cuestionario</h4>
+    <p><strong>1.</strong> (Pregunta de selección única) ¿Cuál de las siguientes NO es una red neuronal de aprendizaje profundo? ( )</p>
+    <ol type="A">
+      <li>CNN</li>
+      <li>RNN</li>
+      <li>LSTM</li>
+      <li>Logistic</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-289">
+  <h3>Diapositiva 289</h3>
+  <img src="slides/page-289.png" alt="Diapositiva 289">
+  <div class="content">
+    <h4>Respuesta del Cuestionario 1</h4>
+    <p><strong>Respuesta: D.</strong> Logistic (regresión logística) no es una red neuronal de aprendizaje profundo.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-290">
+  <h3>Diapositiva 290</h3>
+  <img src="slides/page-290.png" alt="Diapositiva 290">
+  <div class="content">
+    <h4>Cuestionario</h4>
+    <p><strong>2.</strong> (Pregunta de selección múltiple) ¿Cuáles de los siguientes son componentes de la CNN? ( )</p>
+    <ol type="A">
+      <li>Función de activación</li>
+      <li>Kernel de convolución</li>
+      <li>Pooling</li>
+      <li>Capa completamente conectada</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-291">
+  <h3>Diapositiva 291</h3>
+  <img src="slides/page-291.png" alt="Diapositiva 291">
+  <div class="content">
+    <h4>Respuesta del Cuestionario 2</h4>
+    <p><strong>Respuesta: A, B, C, D.</strong> Todos son componentes de la CNN.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-292">
+  <h3>Diapositiva 292</h3>
+  <img src="slides/page-292.png" alt="Diapositiva 292">
+  <div class="content">
+    <h4>Cuestionario</h4>
+    <p><strong>3.</strong> (Verdadero o falso) Comparada con la RNN, la CNN es más adecuada para el reconocimiento de imágenes. ( )</p>
+    <ol type="A">
+      <li>Verdadero</li>
+      <li>Falso</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-293">
+  <h3>Diapositiva 293</h3>
+  <img src="slides/page-293.png" alt="Diapositiva 293">
+  <div class="content">
+    <h4>Respuesta del Cuestionario 3</h4>
+    <p><strong>Respuesta: A. Verdadero.</strong></p>
+  </div>
+</div>
+
+<div class="slide" id="slide-294">
+  <h3>Diapositiva 294</h3>
+  <img src="slides/page-294.png" alt="Diapositiva 294">
+  <div class="content">
+    <h4>Cuestionario</h4>
+    <p><strong>4.</strong> (Verdadero o falso) Transformer utiliza la arquitectura codificador-decodificador. Por lo tanto, tiene características similares a Seq2Seq. ( )</p>
+    <ol type="A">
+      <li>Verdadero</li>
+      <li>Falso</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-295">
+  <h3>Diapositiva 295</h3>
+  <img src="slides/page-295.png" alt="Diapositiva 295">
+  <div class="content">
+    <h4>Respuesta del Cuestionario 4</h4>
+    <p><strong>Respuesta: B. Falso.</strong> Aunque Transformer tiene un codificador y un decodificador, su mecanismo interno (auto-atención) difiere significativamente de Seq2Seq basado en RNN.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-296">
+  <h3>Diapositiva 296</h3>
+  <img src="slides/page-296.png" alt="Diapositiva 296">
+  <div class="content">
+    <h4>Resumen</h4>
+    <p>Este capítulo analiza el proceso de entrenamiento de redes neuronales profundas, incluyendo múltiples arquitecturas de red desarrolladas a partir de redes neuronales artificiales convencionales. Finalmente, describe la infraestructura para construir modelos grandes.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-297">
+  <h3>Diapositiva 297</h3>
+  <img src="slides/page-297.png" alt="Diapositiva 297">
+  <div class="content">
+    <h4>Gracias</h4>
+    <p>Llevar lo digital a cada persona, cada hogar y cada organización, construyendo un mundo inteligente totalmente conectado.</p>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!--  CAPÍTULO: Framework de Desarrollo de Inteligencia Artificial -->
+<!-- ============================================================ -->
+
+<div class="slide" id="slide-298">
+  <h3>Diapositiva 298</h3>
+  <img src="slides/page-298.png" alt="Diapositiva 298">
+  <div class="content">
+    <h4>Aviso Legal</h4>
+    <p>La información de este documento puede contener declaraciones predictivas, incluidas, entre otras, declaraciones sobre los resultados financieros y operativos futuros, la cartera futura de productos, nueva tecnología, etc. Hay una serie de factores que podrían causar que los resultados y desarrollos reales difieran materialmente de los expresados o implícitos en las declaraciones predictivas.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-299">
+  <h3>Diapositiva 299</h3>
+  <img src="slides/page-299.png" alt="Diapositiva 299">
+  <div class="content">
+    <h2>Framework de Desarrollo de Inteligencia Artificial</h2>
+    <p>Portada del capítulo.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-300">
+  <h3>Diapositiva 300</h3>
+  <img src="slides/page-300.png" alt="Diapositiva 300">
+  <div class="content">
+    <h4>Prólogo</h4>
+    <ul>
+      <li>Las últimas décadas han visto un crecimiento explosivo en la investigación y aplicación del aprendizaje profundo. Esto ha dado lugar a la tercera ola del desarrollo de la Inteligencia Artificial (IA), logrando un éxito particular en reconocimiento de imágenes, reconocimiento y síntesis de voz, conducción autónoma y visión artificial. Estos avances requieren algoritmos más avanzados y frameworks subyacentes.</li>
+      <li>El desarrollo continuo de frameworks de aprendizaje profundo ha facilitado el uso de recursos computacionales extensos para entrenar modelos de redes neuronales en grandes conjuntos de datos. Esta sección describe el uso de frameworks de IA y el proceso de desarrollo de aplicaciones de IA.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-301">
+  <h3>Diapositiva 301</h3>
+  <img src="slides/page-301.png" alt="Diapositiva 301">
+  <div class="content">
+    <h4>Objetivos</h4>
+    <p>Al completar este curso, serás capaz de comprender:</p>
+    <ul>
+      <li>Frameworks de desarrollo principales</li>
+      <li>Cómo se desarrollan las aplicaciones de IA</li>
+      <li>Cómo usar el framework PyTorch</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-302">
+  <h3>Diapositiva 302</h3>
+  <img src="slides/page-302.png" alt="Diapositiva 302">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li><strong>Framework de IA</strong>
+        <ul>
+          <li>Funciones de los Frameworks de Desarrollo de IA</li>
+          <li>Introducción a los Frameworks de Desarrollo de IA Principales</li>
+        </ul>
+      </li>
+      <li>Fundamentos de los Frameworks de Desarrollo de IA</li>
+      <li>PyTorch</li>
+      <li>Proceso de Desarrollo de Aplicaciones de IA</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-303">
+  <h3>Diapositiva 303</h3>
+  <img src="slides/page-303.png" alt="Diapositiva 303">
+  <div class="content">
+    <h4>Framework de Desarrollo de IA</h4>
+    <p>Capa de aplicación de algoritmos: Visión por computadora, Procesamiento de lenguaje natural, Recomendación y búsqueda, Computación científica, etc.</p>
+    <p>Framework de IA: PyTorch, TensorFlow</p>
+    <p>Suite de desarrollo de modelos + Suite de aceleración de modelos:</p>
+    <ul>
+      <li>Procesamiento de datos</li>
+      <li>APIs de desarrollo</li>
+      <li>Depuración visualizada</li>
+      <li>Compilación y ejecución</li>
+      <li>Despliegue eficiente</li>
+    </ul>
+    <p>Habilitación de hardware</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-304">
+  <h3>Diapositiva 304</h3>
+  <img src="slides/page-304.png" alt="Diapositiva 304">
+  <div class="content">
+    <h4>Funciones del Framework de Desarrollo de IA</h4>
+    <ol>
+      <li><strong>Pre-procesamiento de datos:</strong> Pre-procesa diversos datos de audio, video, imágenes y texto (conversión y mejora de datos).</li>
+      <li><strong>APIs de desarrollo:</strong> Proporciona a los desarrolladores APIs integradas de proceso completo para el desarrollo de IA, acelerando la investigación y desarrollo.</li>
+      <li><strong>Depuración y ajuste:</strong> Proporciona capacidades de depuración y ajuste visualizados para ayudar a ver y rastrear el entrenamiento del modelo.</li>
+      <li><strong>Compilación y ejecución:</strong> Compila el código del usuario e implementa entrenamiento de alto rendimiento mediante sinergia completa hardware-software.</li>
+      <li><strong>Despliegue de inferencia:</strong> Implementa la entrega del modelo y la programación computacional, soporta despliegue rápido y maximiza la potencia de los chips de IA.</li>
+    </ol>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>La aparición de frameworks de aprendizaje profundo reduce los requisitos para los desarrolladores. Ya no necesitan compilar código comenzando desde redes neuronales complejas y algoritmos de retropropagación. En su lugar, pueden usar modelos existentes para configurar parámetros según sea necesario, donde los parámetros del modelo se entrenan automáticamente.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-305">
+  <h3>Diapositiva 305</h3>
+  <img src="slides/page-305.png" alt="Diapositiva 305">
+  <div class="content">
+    <h4>Funciones del Framework de Desarrollo de IA — Proceso</h4>
+    <table>
+      <tr>
+        <th>Fase</th>
+        <th>Descripción</th>
+      </tr>
+      <tr>
+        <td>Preparación</td>
+        <td>Preparación y procesamiento de datos</td>
+      </tr>
+      <tr>
+        <td>Desarrollo del modelo</td>
+        <td>Construcción del modelo, depuración del modelo</td>
+      </tr>
+      <tr>
+        <td>Evaluación de entrenamiento</td>
+        <td>Entrenamiento del modelo, evaluación de precisión</td>
+      </tr>
+      <tr>
+        <td>Despliegue de inferencia</td>
+        <td>Conversión del modelo, despliegue de inferencia</td>
+      </tr>
+    </table>
+    <ul>
+      <li><strong>Acelera la investigación:</strong> Proporciona APIs de programación fáciles de usar y extensas.</li>
+      <li><strong>Entrenamiento de alto rendimiento:</strong> Permite sinergia completa software-hardware, diferenciación automática y paralelización automática.</li>
+      <li><strong>Facilita el despliegue:</strong> Proporciona capacidades de acceso al hardware y simplifica los detalles técnicos del hardware subyacente.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-306">
+  <h3>Diapositiva 306</h3>
+  <img src="slides/page-306.png" alt="Diapositiva 306">
+  <div class="content">
+    <h4>Interfaz de Programación Front-end</h4>
+    <ul>
+      <li>Con el framework de IA, los desarrolladores pueden enfocarse en la lógica de servicio de las aplicaciones sin preocuparse por los detalles matemáticos y computacionales subyacentes.</li>
+      <li>Interfaces con múltiples lenguajes de programación con estilos que cumplen con las características del lenguaje, como PyTorch-Python.</li>
+      <li>Proporciona APIs encapsuladas, como CNN y RNN. Proporciona módulos comunes y componentes de aprendizaje profundo.</li>
+    </ul>
+    <p>Computación hacia adelante &rarr; Algoritmo de aprendizaje profundo &rarr; Framework de desarrollo de IA &rarr; Computación hacia atrás &rarr; Estructura del modelo</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-307">
+  <h3>Diapositiva 307</h3>
+  <img src="slides/page-307.png" alt="Diapositiva 307">
+  <div class="content">
+    <h4>Optimización Computacional y Programación</h4>
+    <ul>
+      <li>El framework de IA abstrae la computación de la estructura del modelo en <strong>grafos computacionales</strong>. Entiende, expresa y ejecuta un modelo de red neuronal a través de una estructura de datos común (<strong>tensor</strong>). También diferencia automáticamente basándose en grafos computacionales.</li>
+      <li>El framework generalmente optimiza aún más el grafo computacional para mejorar la eficiencia computacional.</li>
+      <li>También programa el grafo y gestiona la memoria a través del proceso de ejecución del grafo computacional.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>Después de construir la estructura del modelo, el framework de IA convierte el modelo en un grafo computacional y optimiza aún más el grafo antes de la ejecución.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-308">
+  <h3>Diapositiva 308</h3>
+  <img src="slides/page-308.png" alt="Diapositiva 308">
+  <div class="content">
+    <h4>Entrenamiento y Despliegue del Modelo</h4>
+    <ul>
+      <li>El entrenamiento distribuido se utiliza típicamente para entrenar modelos grandes. Algunos frameworks de IA proporcionan funciones como segmentación de modelos y políticas distribuidas.</li>
+      <li>El framework de IA proporciona herramientas de despliegue de inferencia.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-309">
+  <h3>Diapositiva 309</h3>
+  <img src="slides/page-309.png" alt="Diapositiva 309">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Framework de IA
+        <ul>
+          <li>Funciones de los Frameworks de Desarrollo de IA</li>
+          <li><strong>Frameworks de Desarrollo de IA Principales</strong></li>
+        </ul>
+      </li>
+      <li>Fundamentos de los Frameworks de Desarrollo de IA</li>
+      <li>PyTorch</li>
+      <li>Proceso de Desarrollo de Aplicaciones de IA</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-310">
+  <h3>Diapositiva 310</h3>
+  <img src="slides/page-310.png" alt="Diapositiva 310">
+  <div class="content">
+    <h4>Frameworks de IA</h4>
+    <ul>
+      <li>Hoy en día existen muchos frameworks de desarrollo de IA, cada uno con sus propias características únicas y sirviendo a diferentes dominios y escenarios.</li>
+      <li><strong>PyTorch</strong> es un framework de desarrollo popular para modelos fundacionales.</li>
+    </ul>
+    <p>Frameworks mencionados: PyTorch, TensorFlow, PaddlePaddle, JAX, OneFlow, MXNet</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-311">
+  <h3>Diapositiva 311</h3>
+  <img src="slides/page-311.png" alt="Diapositiva 311">
+  <div class="content">
+    <h4>PyTorch</h4>
+    <ul>
+      <li>PyTorch es un framework de computación de aprendizaje automático lanzado por <strong>Meta</strong>. Fue desarrollado basándose en Torch, un framework de computación científica que soporta muchos algoritmos de aprendizaje automático. Torch es una biblioteca de operaciones con tensores similar a NumPy, altamente flexible. Sin embargo, NumPy es menos popular porque usa el nicho lenguaje de programación Lua. Por eso se desarrolló PyTorch.</li>
+      <li>PyTorch es una <strong>biblioteca de tensores optimizada para aprendizaje profundo</strong> usando GPUs y NPUs. Es uno de los frameworks de aprendizaje profundo más comunes.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-312">
+  <h3>Diapositiva 312</h3>
+  <img src="slides/page-312.png" alt="Diapositiva 312">
+  <div class="content">
+    <h4>Características de PyTorch</h4>
+    <ul>
+      <li><strong>Python primero:</strong> PyTorch no simplemente vincula Python al framework C++. En su lugar, soporta directamente el acceso a Python a nivel granular. Los desarrolladores pueden usar PyTorch tan fácilmente como usar NumPy o SciPy.</li>
+      <li><strong>Red neuronal dinámica:</strong> Por defecto, PyTorch usa grafos computacionales dinámicos. Los programas pueden construir o ajustar dinámicamente los grafos computacionales durante la ejecución.</li>
+      <li><strong>Fácil depuración:</strong> PyTorch puede generar grafos dinámicos durante la ejecución, y los desarrolladores pueden detener el intérprete en el depurador y ver la salida de un nodo específico.</li>
+      <li><strong>Ecosistema rico:</strong> PyTorch tiene una comunidad activa con muchos documentos, tutoriales, modelos y herramientas.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-313">
+  <h3>Diapositiva 313</h3>
+  <img src="slides/page-313.png" alt="Diapositiva 313">
+  <div class="content">
+    <h4>TensorFlow</h4>
+    <ul>
+      <li>TensorFlow es una plataforma de aprendizaje automático de código abierto de extremo a extremo diseñada por <strong>Google</strong>. Actualmente, la versión principal es TensorFlow 2.X.</li>
+      <li>Proporciona múltiples niveles de APIs. Por ejemplo, se pueden usar APIs de alto nivel de Keras para construir y entrenar modelos rápidamente.</li>
+      <li>Para tareas de entrenamiento de aprendizaje profundo grandes, se puede usar la API de Estrategia de Distribución (para entrenamiento distribuido entre unidades de procesamiento) para realizar entrenamiento distribuido en diferentes configuraciones de hardware sin cambiar la definición del modelo.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-314">
+  <h3>Diapositiva 314</h3>
+  <img src="slides/page-314.png" alt="Diapositiva 314">
+  <div class="content">
+    <h4>Herramientas de Producción de TensorFlow</h4>
+    <ul>
+      <li><strong>TensorFlow.js:</strong> una biblioteca para desarrollar y entrenar modelos de aprendizaje automático en JavaScript. Puede desplegarse en navegadores o Node.js.</li>
+      <li><strong>TensorFlow Lite:</strong> un framework de aprendizaje profundo de código abierto para inferencia en dispositivo. Se puede usar para desplegar modelos de aprendizaje automático en dispositivos móviles e IoT.</li>
+      <li><strong>TensorFlow Extended (TFX):</strong> una plataforma de extremo a extremo para desplegar pipelines de aprendizaje automático en producción. Cuando estés listo para mover modelos entrenados de investigación a producción, usa TFX para crear y gestionar un pipeline de producción.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-315">
+  <h3>Diapositiva 315</h3>
+  <img src="slides/page-315.png" alt="Diapositiva 315">
+  <div class="content">
+    <h4>JAX</h4>
+    <ul>
+      <li>JAX es una biblioteca de computación numérica de alto rendimiento desarrollada por <strong>Google</strong>. Combina APIs similares a NumPy, la función de diferenciación automática de Autograd y el compilador XLA de TensorFlow, implementando computación eficiente a través de CPUs, GPUs y TPUs.</li>
+      <li>Comparado con TensorFlow 2.x, proporciona:
+        <ul>
+          <li>APIs de programación funcional</li>
+          <li>Mayor eficiencia computacional</li>
+        </ul>
+      </li>
+    </ul>
+    <pre><code>pip install jax
+# Linux, Windows y macOS
+
+pip install -U "jax[cuda12]"
+# GPU</code></pre>
+  </div>
+</div>
+
+<div class="slide" id="slide-316">
+  <h3>Diapositiva 316</h3>
+  <img src="slides/page-316.png" alt="Diapositiva 316">
+  <div class="content">
+    <h4>Ventajas y Desventajas de JAX</h4>
+    <p><strong>Ventajas:</strong></p>
+    <ul>
+      <li><strong>Simplicidad y facilidad de uso:</strong> JAX está diseñado para minimizar la encapsulación y operaciones redundantes, haciendo sus APIs simples y fáciles de usar.</li>
+      <li><strong>Alto rendimiento:</strong> JAX ofrece excelente rendimiento computacional a través de la optimización basada en XLA y ejecución acelerada en GPUs y TPUs.</li>
+      <li><strong>Flexibilidad:</strong> El estilo de programación funcional y las transformaciones de funciones componibles hacen a JAX altamente flexible y fácil de integrar con otras bibliotecas.</li>
+    </ul>
+    <p><strong>Desventajas:</strong></p>
+    <ul>
+      <li><strong>Ecosistema comunitario débil:</strong> Comparado con frameworks como PyTorch, JAX tiene un ecosistema comunitario relativamente pequeño y menos recursos de documentación.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-317">
+  <h3>Diapositiva 317</h3>
+  <img src="slides/page-317.png" alt="Diapositiva 317">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Framework de IA</li>
+      <li><strong>Fundamentos de los Frameworks de Desarrollo de IA</strong>
+        <ul>
+          <li><strong>Fundamentos</strong></li>
+          <li>Grafo Computacional</li>
+        </ul>
+      </li>
+      <li>PyTorch</li>
+      <li>Proceso de Desarrollo de Aplicaciones de IA</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-318">
+  <h3>Diapositiva 318</h3>
+  <img src="slides/page-318.png" alt="Diapositiva 318">
+  <div class="content">
+    <h4>Tensor</h4>
+    <ul>
+      <li>Un tensor es la estructura de datos más básica en un framework de desarrollo de IA. Todos los datos se encapsulan en tensores.</li>
+      <li><strong>Definición:</strong> un arreglo multidimensional</li>
+    </ul>
+    <ul>
+      <li>Tensor de orden cero: escalar</li>
+      <li>Tensor de primer orden: vector</li>
+      <li>Tensor de segundo orden: matriz</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-319">
+  <h3>Diapositiva 319</h3>
+  <img src="slides/page-319.png" alt="Diapositiva 319">
+  <div class="content">
+    <h4>Atributos del Tensor</h4>
+    <table>
+      <tr><th>Atributo</th><th>Función</th></tr>
+      <tr><td>Forma (Shape)</td><td>Tamaño de cada dimensión del tensor, por ejemplo, [N,C,H,W].</td></tr>
+      <tr><td>Rango o dimensión (dim)</td><td>Número de dimensiones del tensor; el valor es 0 para un escalar y 1 para un vector.</td></tr>
+      <tr><td>Tipo de dato (dtype)</td><td>Tipo de dato del tensor, por ejemplo, bool, uint8, int16, float32 y float64.</td></tr>
+      <tr><td>Posición de almacenamiento (device)</td><td>Posición del dispositivo donde se encuentra el tensor, por ejemplo, NPU o GPU.</td></tr>
+      <tr><td>Nombre</td><td>Identificador del tensor.</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="slide" id="slide-320">
+  <h3>Diapositiva 320</h3>
+  <img src="slides/page-320.png" alt="Diapositiva 320">
+  <div class="content">
+    <h4>Tipos de Datos</h4>
+    <ul>
+      <li>Actualmente, los frameworks de desarrollo de IA soportan los siguientes tipos de datos: numérico (como float32, float16, int8 y bf16), bool y complejo. (Algunos frameworks también pueden soportar tipos de datos de cierto hardware.)</li>
+      <li>Los tipos de datos y lenguajes de programación se pueden usar a través de diferentes frameworks de desarrollo de IA.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-321">
+  <h3>Diapositiva 321</h3>
+  <img src="slides/page-321.png" alt="Diapositiva 321">
+  <div class="content">
+    <h4>Carga de Datos</h4>
+    <ul>
+      <li>Los frameworks de desarrollo de IA proporcionan módulos de carga de datos que pueden cargar directamente algunos conjuntos de datos de código abierto, como MNIST, CIFAR-10, CIFAR-100, VOC, COCO e ImageNet.</li>
+      <li>Por ejemplo, <code>torchvision.datasets.CIFAR10</code> en PyTorch puede cargar directamente los datos de CIFAR-10. (Los datos se descargan automáticamente si no existen localmente.)</li>
+    </ul>
+    <pre><code># Descargar y cargar el conjunto de entrenamiento (cuando no está almacenado localmente).
+# Transform es la operación de transformación realizada sobre los datos.
+trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)</code></pre>
+  </div>
+</div>
+
+<div class="slide" id="slide-322">
+  <h3>Diapositiva 322</h3>
+  <img src="slides/page-322.png" alt="Diapositiva 322">
+  <div class="content">
+    <h4>Formato de Datos Después de la Carga</h4>
+    <ul>
+      <li>Un conjunto de datos cargado generalmente toma la forma de un tensor multidimensional.</li>
+      <li><strong>Datos de secuencia:</strong> usualmente un tensor 3D en formato [batch_size, sequence_length, feature_length]. Por ejemplo, embeddings de oraciones en NLP se expresan como [tamaño de lote, longitud de oración, dimensión de embedding de palabra].</li>
+      <li><strong>Datos de imagen:</strong> usualmente un tensor 4D en formato [N,H,W,C]. N = tamaño del lote, H y W = altura y ancho en píxeles, C = número de canales.</li>
+      <li>En <strong>PyTorch</strong>, el formato predeterminado de tensores de datos de imagen recibidos es <strong>[N,C,H,W]</strong>.</li>
+      <li>En <strong>TensorFlow</strong>, el formato predeterminado es <strong>[N,H,W,C]</strong>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-323">
+  <h3>Diapositiva 323</h3>
+  <img src="slides/page-323.png" alt="Diapositiva 323">
+  <div class="content">
+    <h4>TFRecord</h4>
+    <ul>
+      <li>Si un conjunto de datos tiene muchos datos, puede ser más eficiente serializar los datos y almacenarlos en un grupo de archivos que pueden leerse linealmente. Este método es particularmente adecuado para transmitir datos por la red. También es útil para pre-procesamiento al almacenar en búfer cualquier dato.</li>
+      <li><strong>Ejemplo:</strong> TFRecord en TensorFlow.</li>
+      <li>Estos formatos de datos reducen la sobrecarga de E/S de disco y de red.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-324">
+  <h3>Diapositiva 324</h3>
+  <img src="slides/page-324.png" alt="Diapositiva 324">
+  <div class="content">
+    <h4>Archivo de Modelo</h4>
+    <p>Los frameworks de desarrollo de IA pueden ejecutar tareas de inferencia en diferentes plataformas de hardware usando modelos entrenados. Los archivos de modelo de inferencia soportan dos tipos de datos: parámetros de entrenamiento y modelos de red.</p>
+    <table>
+      <tr><th>Formato</th><th>Descripción</th><th>Escenario</th></tr>
+      <tr><td>Checkpoint (.ckpt)</td><td>Usa formato Protocol Buffers y almacena todos los valores de parámetros de la red por defecto.</td><td>Generalmente usado para reanudar entrenamiento o fine-tuning.</td></tr>
+      <tr><td>ONNX (.onnx)</td><td>Open Neural Network Exchange, expresión general para modelos ML.</td><td>Migración de modelos entre frameworks o en motor de inferencia (TensorRT).</td></tr>
+      <tr><td>bin (.bin)</td><td>Formato binario común para guardar y cargar modelos.</td><td>Modelo PyTorch convertido a formato binario.</td></tr>
+      <tr><td>.pt o .pth</td><td>Formato de archivo de modelo predeterminado de PyTorch, incluye estructura y parámetros.</td><td>Guardar el modelo óptimo durante entrenamiento o cargar modelo entrenado para despliegue.</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="slide" id="slide-325">
+  <h3>Diapositiva 325</h3>
+  <img src="slides/page-325.png" alt="Diapositiva 325">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Framework de IA</li>
+      <li>Fundamentos de los Frameworks de Desarrollo de IA
+        <ul>
+          <li>Fundamentos</li>
+          <li><strong>Grafo Computacional</strong></li>
+        </ul>
+      </li>
+      <li>PyTorch</li>
+      <li>Proceso de Desarrollo de Aplicaciones de IA</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-326">
+  <h3>Diapositiva 326</h3>
+  <img src="slides/page-326.png" alt="Diapositiva 326">
+  <div class="content">
+    <h4>Grafo Computacional</h4>
+    <ul>
+      <li>Un grafo computacional proporciona una forma intuitiva de describir el proceso de computación en un modelo de aprendizaje profundo. Cada nodo representa una operación de computación, por ejemplo, suma, multiplicación y función de activación. Una arista representa un flujo de datos entre estas operaciones. Este método de representación estructurado hace que la computación compleja sea fácil de entender y analizar.</li>
+      <li>Realiza rápidamente la diferenciación automática.</li>
+      <li>Ayuda a encontrar el paralelismo de la red y los puntos de optimización.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-327">
+  <h3>Diapositiva 327</h3>
+  <img src="slides/page-327.png" alt="Diapositiva 327">
+  <div class="content">
+    <h4>Composición del Grafo Computacional</h4>
+    <ul>
+      <li>Un grafo computacional contiene <strong>tensores</strong> (estructura de datos básica) y <strong>operadores</strong> (unidades de operación básicas).</li>
+      <li>Los nodos operadores en un grafo están conectados con aristas dirigidas, que indican el estado de cada tensor y las dependencias entre las operaciones.</li>
+    </ul>
+    <p>Ejemplo: Tensor X &rarr; Matmul &rarr; Sigmoid &rarr; Tensor Y (con Tensor W como entrada a Matmul)</p>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>Un nodo representa una variable u operación. Los nodos de entrada representan datos de entrada o parámetros, y los nodos intermedios y de salida representan el resultado del cálculo.</li>
+        <li>Los nodos están conectados con aristas, indicando el flujo de datos o dependencias computacionales.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-328">
+  <h3>Diapositiva 328</h3>
+  <img src="slides/page-328.png" alt="Diapositiva 328">
+  <div class="content">
+    <h4>Del Lenguaje Front-end al Grafo Computacional</h4>
+    <ul>
+      <li>Un grafo computacional es una forma de representar funciones matemáticas con el lenguaje de la teoría de grafos. Es un método estandarizado utilizado por los frameworks de aprendizaje profundo para expresar modelos de redes neuronales.</li>
+    </ul>
+    <pre><code>class _DenseLayer(nn.Module):
+    def __init__(
+        self, num_input_features: int, growth_rate: int, bn_size:
+        int, drop_rate: float, memory_efficient: bool = False
+    ) -> None:
+        super().__init__()
+        self.norm1 = nn.Linear()
+        self.relu1 = nn.ReLU(inplace=True)
+        ...
+
+    def forward(self, x):
+        ...</code></pre>
+  </div>
+</div>
+
+<div class="slide" id="slide-329">
+  <h3>Diapositiva 329</h3>
+  <img src="slides/page-329.png" alt="Diapositiva 329">
+  <div class="content">
+    <h4>Pipeline del Grafo Computacional</h4>
+    <p>Lenguajes de programación front-end e interfaces: Construir modelo &rarr; Representación intermedia del modelo: Grafo computacional IR (DAG) &rarr; Diferenciación automática + Optimización del grafo &rarr; Optimización, programación y compilación &rarr; Hardware computacional: Ejecución eficiente</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-330">
+  <h3>Diapositiva 330</h3>
+  <img src="slides/page-330.png" alt="Diapositiva 330">
+  <div class="content">
+    <h4>Grafo Computacional Dinámico/Estático</h4>
+    <p>Los frameworks de aprendizaje profundo actuales pueden generar dos tipos de grafos computacionales: <strong>estáticos</strong> y <strong>dinámicos</strong>.</p>
+    <table>
+      <tr><th></th><th>Grafo Estático</th><th>Grafo Dinámico</th></tr>
+      <tr><td><strong>Ejecución</strong></td><td>Se genera primero la estructura del grafo, luego las operaciones de computación.</td><td>Se ejecuta en secuencia de codificación; durante la ejecución hacia adelante, se genera dinámicamente el diagrama de ejecución inversa.</td></tr>
+      <tr><td><strong>Ventajas</strong></td><td>El compilador usa tecnologías como optimización de grafos para un mayor rendimiento.</td><td>El compilador entrega y ejecuta operadores uno por uno, facilitando la construcción y depuración.</td></tr>
+      <tr><td><strong>Desventajas</strong></td><td>No amigable para desarrolladores, difícil de depurar.</td><td>Ineficiente y difícil de optimizar.</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="slide" id="slide-331">
+  <h3>Diapositiva 331</h3>
+  <img src="slides/page-331.png" alt="Diapositiva 331">
+  <div class="content">
+    <h4>Grafo Computacional Dinámico</h4>
+    <p>Un grafo computacional dinámico se construye durante la ejecución.</p>
+    <p><strong>Ventajas:</strong></p>
+    <ul>
+      <li><strong>Ejecución instantánea:</strong> Las operaciones se computan en tiempo real. La estructura del grafo se puede ajustar en cualquier momento.</li>
+      <li><strong>Flexibilidad:</strong> Fácil de procesar diversos tamaños de datos. Soporta operaciones de flujo de control complejas.</li>
+      <li><strong>Fácil depuración:</strong> Los desarrolladores pueden usar fácilmente herramientas de depuración de lenguajes como Python para verificar errores.</li>
+      <li><strong>Amigable para investigación:</strong> Los investigadores pueden probar diferentes ideas e iterar modelos rápidamente.</li>
+      <li><strong>Intuitividad:</strong> Los grafos dinámicos son más fáciles de entender y usar para principiantes.</li>
+    </ul>
+    <p><strong>Desventajas:</strong></p>
+    <ul>
+      <li>El grafo puede causar sobrecarga extra durante la ejecución, resultando en menor rendimiento que los grafos estáticos.</li>
+      <li>No se pueden optimizar tan exhaustivamente como los grafos estáticos.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-332">
+  <h3>Diapositiva 332</h3>
+  <img src="slides/page-332.png" alt="Diapositiva 332">
+  <div class="content">
+    <h4>Uso de Grafos Dinámicos en TensorFlow</h4>
+    <pre><code>import tensorflow as tf
+import time
+
+# Inicialización de datos
+x = tf.Variable(tf.random.normal([512, 1024])) # Tamaño de lote 512
+W = tf.Variable(tf.random.normal([1024, 1024]))
+
+# Configuración de prueba de rendimiento
+iterations = 1000
+
+# Medición de tiempo de ejecución
+start_time = time.perf_counter()
+for _ in range(iterations):
+    _ = tf.matmul(x, W)  # Modo de ejecución inmediata
+dynamic_duration = time.perf_counter() - start_time
+
+print(f"[Grafo Dinámico] {iterations} iteraciones tomaron {dynamic_duration:.4f} segundos")
+
+# [Grafo Dinámico] 1000 iteraciones tomaron 1.2873 segundos</code></pre>
+  </div>
+</div>
+
+<div class="slide" id="slide-333">
+  <h3>Diapositiva 333</h3>
+  <img src="slides/page-333.png" alt="Diapositiva 333">
+  <div class="content">
+    <h4>Grafo Computacional Estático</h4>
+    <p>Un grafo computacional estático se define antes de la ejecución.</p>
+    <p><strong>Ventajas:</strong></p>
+    <ul>
+      <li><strong>Predefinición:</strong> El grafo computacional completo necesita definirse antes de la ejecución.</li>
+      <li><strong>Optimización:</strong> Como la estructura del grafo es fija, el framework puede optimizar aún más, como asignación de memoria y computación paralela.</li>
+      <li><strong>Amigable para despliegue:</strong> Los grafos estáticos son adecuados para entornos de producción y dispositivos móviles.</li>
+      <li><strong>Portabilidad:</strong> Los grafos estáticos pueden exportarse en un formato independiente del framework.</li>
+    </ul>
+    <p><strong>Desventajas:</strong></p>
+    <ul>
+      <li>Requieren codificación más compleja, especialmente con flujos de control complejos.</li>
+      <li>La depuración puede ser menos intuitiva que los grafos dinámicos.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-334">
+  <h3>Diapositiva 334</h3>
+  <img src="slides/page-334.png" alt="Diapositiva 334">
+  <div class="content">
+    <h4>Uso de Grafos Estáticos en TensorFlow</h4>
+    <pre><code>import tensorflow.compat.v1 as tf
+import time
+tf.disable_v2_behavior()
+# Construcción del grafo computacional
+x = tf.placeholder(tf.float32, shape=[None, 1024], name='input')
+W = tf.Variable(tf.random_normal([1024, 1024]), name='weights')
+y = tf.matmul(x, W) # Multiplicación de matrices
+
+# Configuración de prueba de rendimiento
+iterations = 1000
+input_data = tf.random.normal([512, 1024])  # Tamaño de lote 512
+
+# Medición de tiempo de ejecución
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    start_time = time.perf_counter()
+    for _ in range(iterations):
+        sess.run(y, feed_dict={x: input_data.eval()})
+    static_duration = time.perf_counter() - start_time
+
+print(f"[Grafo Estático] {iterations} iteraciones tomaron {static_duration:.4f} segundos")
+
+# [Grafo Estático] 1000 iteraciones tomaron 0.3214 segundos</code></pre>
+  </div>
+</div>
+
+<div class="slide" id="slide-335">
+  <h3>Diapositiva 335</h3>
+  <img src="slides/page-335.png" alt="Diapositiva 335">
+  <div class="content">
+    <h4>Grafos Computacionales en TensorFlow y PyTorch</h4>
+    <table>
+      <tr><th>PyTorch</th><th>TensorFlow</th></tr>
+      <tr><td>Modo de grafo dinámico usado por defecto.</td><td>En TF2.x, modo de grafo dinámico por defecto. También se puede ejecutar <code>tf.enable_eager_execution()</code> para habilitar manualmente el modo dinámico.</td></tr>
+      <tr><td>Se pueden usar las funciones <code>torch.jit.trace</code> y <code>torch.jit.script</code> para mejorar la eficiencia con grafos estáticos.</td><td>En TF1.x, modo de grafo estático por defecto. En TF2.x, se puede usar <code>tf.function</code> para implementar grafos estáticos.</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="slide" id="slide-336">
+  <h3>Diapositiva 336</h3>
+  <img src="slides/page-336.png" alt="Diapositiva 336">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Framework de IA</li>
+      <li>Fundamentos de los Frameworks de Desarrollo de IA</li>
+      <li><strong>PyTorch</strong>
+        <ul>
+          <li><strong>Módulos Básicos</strong></li>
+          <li>Implementación de la Estructura de Red LeNet</li>
+        </ul>
+      </li>
+      <li>Proceso de Desarrollo de Aplicaciones de IA</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-337">
+  <h3>Diapositiva 337</h3>
+  <img src="slides/page-337.png" alt="Diapositiva 337">
+  <div class="content">
+    <h4>Módulos Comunes de PyTorch</h4>
+    <table>
+      <tr><th>Módulo</th><th>Función</th></tr>
+      <tr><td><code>torch</code></td><td>Módulo central de PyTorch, proporciona funciones como operaciones con tensores y álgebra lineal.</td></tr>
+      <tr><td><code>torch.nn</code></td><td>Construye redes neuronales y proporciona capas de red, funciones de pérdida y funciones de activación.</td></tr>
+      <tr><td><code>torch.utils.data</code></td><td>Proporciona herramientas para carga y pre-procesamiento de datos.</td></tr>
+      <tr><td><code>torch.autograd</code></td><td>Motor de diferenciación automática de PyTorch, soporta cálculo de gradientes.</td></tr>
+      <tr><td><code>torch.optim</code></td><td>Proporciona múltiples algoritmos de optimización para actualización de parámetros del modelo.</td></tr>
+      <tr><td><code>torch.device</code></td><td>Especifica el dispositivo donde se ejecutan los tensores y modelos (CPU/GPU).</td></tr>
+      <tr><td><code>torch.distributions</code></td><td>Clases para muestrear diferentes distribuciones y generar grafos computacionales.</td></tr>
+      <tr><td><code>torch.jit</code></td><td>Compilador instantáneo de PyTorch, convierte grafos dinámicos en estáticos para optimización.</td></tr>
+      <tr><td><code>torch.random</code></td><td>Métodos para guardar y establecer el estado del generador de números aleatorios.</td></tr>
+      <tr><td><code>torch.onnx</code></td><td>Define archivos de descripción de modelos exportados y cargados por PyTorch en formato ONNX.</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="slide" id="slide-338">
+  <h3>Diapositiva 338</h3>
+  <img src="slides/page-338.png" alt="Diapositiva 338">
+  <div class="content">
+    <h4>torchvision</h4>
+    <p><code>torchvision</code> es una biblioteca diseñada específicamente para visión por computadora en el ecosistema PyTorch.</p>
+    <table>
+      <tr><th>Módulo</th><th>Función</th></tr>
+      <tr><td><code>torchvision.datasets</code></td><td>Proporciona múltiples conjuntos de datos ampliamente usados como MNIST, CIFAR10/100, Fashion-MNIST, ImageNet y COCO.</td></tr>
+      <tr><td><code>torchvision.transforms</code></td><td>Soporta varias operaciones de aumento de datos y pre-procesamiento: recorte, rotación, volteo, normalización, redimensionamiento y conversión de color.</td></tr>
+      <tr><td><code>torchvision.models</code></td><td>Encapsula muchas estructuras de modelos pre-entrenados como AlexNet, VGG, ResNet, Inception, DenseNet y SqueezeNet.</td></tr>
+      <tr><td><code>torchvision.utils</code></td><td>Proporciona métodos prácticos como guardar tensores como archivos de imagen y crear cuadrículas de imágenes.</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="slide" id="slide-339">
+  <h3>Diapositiva 339</h3>
+  <img src="slides/page-339.png" alt="Diapositiva 339">
+  <div class="content">
+    <h4>Carga de Datos</h4>
+    <ul>
+      <li>Los datos de PyTorch se cargan a través de <code>Dataset</code> y <code>DataLoader</code>. Dataset define el formato de datos y cómo se transforman. DataLoader lee continuamente datos por lotes.</li>
+      <li><code>torch.utils.data.Dataset</code> es la clase base para construir conjuntos de datos. Heredando esta clase y reescribiendo los métodos <code>__init__</code>, <code>__len__</code> y <code>__getitem__</code>, puedes proporcionar tus propios datos y etiquetas.</li>
+      <li><code>torch.utils.data.DataLoader</code> es un iterador para cargar conjuntos de datos. Proporciona carga por lotes, aleatorización de datos y carga de datos multiproceso.</li>
+    </ul>
+    <pre><code># Definir un Dataset. Ejemplo con datos open source de PyTorch.
+trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+# Usar DataLoader para cargar el conjunto de datos.
+trainloader = DataLoader(trainset, batch_size=64, shuffle=True)</code></pre>
+  </div>
+</div>
+
+<div class="slide" id="slide-340">
+  <h3>Diapositiva 340</h3>
+  <img src="slides/page-340.png" alt="Diapositiva 340">
+  <div class="content">
+    <h4>Otros Métodos de Construcción de Datasets</h4>
+    <ul>
+      <li><code>torchvision.datasets.ImageFolder</code>: clase para cargar datasets de imágenes desde una carpeta. Asume que todos los archivos están almacenados en carpetas, y los archivos en cada carpeta pertenecen a la misma categoría.</li>
+    </ul>
+    <p><strong>Otros datasets de código abierto:</strong></p>
+    <table>
+      <tr><th>API</th><th>Descripción</th></tr>
+      <tr><td><code>torchvision.datasets.MNIST</code></td><td>Clase para cargar el dataset de dígitos escritos a mano MNIST.</td></tr>
+      <tr><td><code>torchvision.datasets.CIFAR10</code></td><td>Dataset estándar CIFAR-10: 60,000 imágenes a color de 32x32 divididas en 10 categorías.</td></tr>
+      <tr><td><code>torchvision.datasets.CIFAR100</code></td><td>Similar a CIFAR10, con 100 categorías y 600 imágenes cada una.</td></tr>
+      <tr><td><code>torchvision.datasets.ImageNet</code></td><td>Gran dataset de imágenes con millones de imágenes en miles de categorías.</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="slide" id="slide-341">
+  <h3>Diapositiva 341</h3>
+  <img src="slides/page-341.png" alt="Diapositiva 341">
+  <div class="content">
+    <h4>Construcción del Modelo</h4>
+    <ul>
+      <li><code>torch.nn.Module</code> es una clase de construcción de modelos en PyTorch. Es la clase base de todos los módulos de redes neuronales y puede heredarse para definir modelos.</li>
+      <li>Al definir un modelo, se recargan las funciones <code>__init__</code> y <code>forward</code>, que se usan para crear parámetros del modelo y definir la computación hacia adelante (propagación hacia adelante), respectivamente.</li>
+    </ul>
+    <pre><code>import torch
+from torch import nn
+
+class MLP(nn.Module):
+    # Declarar una capa con parámetros del modelo.
+    # Aquí se declaran dos capas completamente conectadas.
+    def __init__(self, **kwargs):
+        super(MLP, self).__init__(**kwargs)
+        self.hidden = nn.Linear(784, 256)
+        self.act = nn.ReLU()
+        self.output = nn.Linear(256, 10)</code></pre>
+  </div>
+</div>
+
+<div class="slide" id="slide-342">
+  <h3>Diapositiva 342</h3>
+  <img src="slides/page-342.png" alt="Diapositiva 342">
+  <div class="content">
+    <h4>Computación Hacia Adelante</h4>
+    <pre><code>class MLP(nn.Module):
+    # Declarar una capa con parámetros del modelo.
+    def __init__(self, **kwargs):
+        ...
+
+    # Computación hacia adelante del modelo, es decir,
+    # cómo computar y devolver la salida requerida basada en la entrada x.
+    def forward(self, x):
+        o = self.act(self.hidden(x))
+        return self.output(o)</code></pre>
+    <p>No es necesario definir una función de retropropagación. El sistema genera automáticamente la función <code>backward</code> requerida para la retropropagación calculando automáticamente el gradiente.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-343">
+  <h3>Diapositiva 343</h3>
+  <img src="slides/page-343.png" alt="Diapositiva 343">
+  <div class="content">
+    <h4>Capa Convolucional Bidimensional</h4>
+    <p><code>torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, ...)</code></p>
+    <ul>
+      <li>Clase para implementar la operación de convolución bidimensional.</li>
+      <li><strong>in_channels:</strong> número de canales de entrada de la imagen. Para una imagen RGB a color, el valor es 3.</li>
+      <li><strong>out_channels:</strong> número de canales de salida (número de kernels de convolución).</li>
+      <li><strong>kernel_size:</strong> tamaño del kernel de convolución.</li>
+      <li><strong>stride:</strong> paso de la convolución.</li>
+      <li><strong>padding:</strong> número de capas de relleno con ceros.</li>
+    </ul>
+    <pre><code># Definir una capa convolucional bidimensional
+conv_layer = nn.Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, bias=True)
+
+# Datos de entrada
+input_tensor = torch.randn(batch_size, in_channels, height, width)
+
+# Pasar por la capa convolucional
+output_tensor = conv_layer(input_tensor)</code></pre>
+  </div>
+</div>
+
+<div class="slide" id="slide-344">
+  <h3>Diapositiva 344</h3>
+  <img src="slides/page-344.png" alt="Diapositiva 344">
+  <div class="content">
+    <h4>Max Pooling (Agrupamiento Máximo)</h4>
+    <p><code>torch.nn.MaxPool2d(kernel_size, stride=None, padding=0, ...)</code></p>
+    <ul>
+      <li>Implementa el agrupamiento máximo bidimensional.</li>
+      <li><strong>kernel_size</strong> (int o tuple): tamaño de la ventana de agrupamiento.</li>
+      <li><strong>stride</strong> (int o tuple, opcional): paso durante el agrupamiento. El valor predeterminado es kernel_size.</li>
+      <li><strong>padding</strong> (int o tuple, opcional): número de capas de relleno con ceros en cada borde del mapa de características de entrada.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-345">
+  <h3>Diapositiva 345</h3>
+  <img src="slides/page-345.png" alt="Diapositiva 345">
+  <div class="content">
+    <h4>Red Neuronal Recurrente</h4>
+    <p><code>torch.nn.RNN(input_size, hidden_size, num_layers=1, nonlinearity='tanh', bias=True, batch_first=False, dropout=0.0, bidirectional=False)</code></p>
+    <ul>
+      <li>Define la red neuronal recurrente (RNN) básica.</li>
+      <li><strong>input_size:</strong> dimensión de la característica de entrada.</li>
+      <li><strong>hidden_size:</strong> dimensión de la característica de la capa oculta.</li>
+      <li><strong>num_layers:</strong> número de capas RNN.</li>
+      <li><strong>nonlinearity:</strong> función de activación no lineal (tanh o relu).</li>
+      <li><strong>batch_first:</strong> si es True, la primera dimensión de entrada y salida es el tamaño del lote.</li>
+    </ul>
+    <pre><code># Definir el modelo RNN.
+rnn = nn.RNN(input_size=10, hidden_size=20, num_layers=1, batch_first=True)
+
+# Crear datos de entrada.
+inputs = torch.randn(5, 3, 10) # Longitud de secuencia 5, batch_size 3, dimensión de entrada 10
+h0 = torch.zeros(1, 3, 20) # Estado oculto inicial
+
+# Propagación hacia adelante.
+output, hn = rnn(inputs, h0)</code></pre>
+  </div>
+</div>
+
+<div class="slide" id="slide-346">
+  <h3>Diapositiva 346</h3>
+  <img src="slides/page-346.png" alt="Diapositiva 346">
+  <div class="content">
+    <h4>Funciones de Activación en PyTorch</h4>
+    <p>Se usan las clases de función de activación en el módulo <code>nn</code> y las funciones en <code>nn.functional</code>.</p>
+    <table>
+      <tr><th>Función</th><th>Método de Llamada (nn)</th><th>Método de Llamada (F)</th></tr>
+      <tr><td>Sigmoid</td><td><code>nn.Sigmoid()</code></td><td><code>F.sigmoid(input)</code></td></tr>
+      <tr><td>Tanh</td><td><code>nn.Tanh()</code></td><td><code>F.tanh(input)</code></td></tr>
+      <tr><td>ReLU</td><td><code>nn.ReLU()</code></td><td><code>F.relu(input)</code></td></tr>
+      <tr><td>LeakyReLU</td><td><code>nn.LeakyReLU(negative_slope=0.01)</code></td><td><code>F.leaky_relu(input, negative_slope=0.01)</code></td></tr>
+      <tr><td>ELU</td><td><code>nn.ELU()</code></td><td><code>F.elu(input)</code></td></tr>
+      <tr><td>PReLU</td><td><code>nn.PReLU()</code></td><td><code>F.prelu(input)</code></td></tr>
+      <tr><td>Softmax</td><td><code>nn.Softmax(dim=None)</code></td><td><code>F.softmax(input, dim=None)</code></td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="slide" id="slide-347">
+  <h3>Diapositiva 347</h3>
+  <img src="slides/page-347.png" alt="Diapositiva 347">
+  <div class="content">
+    <h4>Ejemplo de Uso de Sigmoid</h4>
+    <p>Se usa <code>nn.Sigmoid()</code> para construir la capa Sigmoid (objeto instanciado) y luego llamar a esta capa. O se usa <code>F.sigmoid(input)</code> para aplicar directamente la función Sigmoid a la entrada.</p>
+    <pre><code>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+# Crear un tensor de entrada.
+input_tensor = torch.tensor([[-1.0, 0.0, 1.0], [-2.0, -1.0, 0.0]])
+
+# Crear una instancia de la capa Sigmoid.
+sigmoid_layer = nn.Sigmoid()
+
+# Transferir los datos de entrada a la capa Sigmoid.
+output_tensor = sigmoid_layer(input_tensor)
+
+# Aplicar directamente la función de activación Sigmoid a los datos de entrada.
+output_tensor = F.sigmoid(input_tensor)</code></pre>
+  </div>
+</div>
+
+<div class="slide" id="slide-348">
+  <h3>Diapositiva 348</h3>
+  <img src="slides/page-348.png" alt="Diapositiva 348">
+  <div class="content">
+    <h4>Funciones de Pérdida</h4>
+    <p>PyTorch proporciona múltiples funciones de pérdida.</p>
+    <table>
+      <tr><th>Nombre</th><th>Método de Llamada</th><th>Descripción</th></tr>
+      <tr><td>Pérdida L1 (error absoluto medio)</td><td><code>torch.nn.L1Loss(reduction='mean')</code></td><td>Calcula el promedio de las diferencias absolutas entre el valor predicho y el valor real.</td></tr>
+      <tr><td>Pérdida de error cuadrático medio</td><td><code>torch.nn.MSELoss(reduction='mean')</code></td><td>Calcula el cuadrado promedio de las diferencias.</td></tr>
+      <tr><td>Pérdida de entropía cruzada</td><td><code>torch.nn.CrossEntropyLoss(...)</code></td><td>Combina LogSoftMax y NLLLoss para clasificación multiclase.</td></tr>
+      <tr><td>Pérdida de entropía cruzada binaria</td><td><code>torch.nn.BCELoss(...)</code></td><td>Calcula la entropía cruzada binaria para clasificación binaria.</td></tr>
+      <tr><td>Pérdida CTC</td><td><code>torch.nn.CTCLoss(blank=0, reduction='mean')</code></td><td>Alinea automáticamente datos no alineados para entrenamiento de datos serializados.</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="slide" id="slide-349">
+  <h3>Diapositiva 349</h3>
+  <img src="slides/page-349.png" alt="Diapositiva 349">
+  <div class="content">
+    <h4>Optimizadores de PyTorch</h4>
+    <table>
+      <tr><th>Nombre</th><th>Método de Llamada</th><th>Descripción</th></tr>
+      <tr><td>SGD</td><td><code>torch.optim.SGD(params, lr=0.01, momentum=0, ...)</code></td><td>params: parámetros a optimizar; lr: tasa de aprendizaje; momentum: factor de momentum para acelerar la convergencia.</td></tr>
+      <tr><td>Adam</td><td><code>torch.optim.Adam(params, lr=0.001, betas=(0.9, 0.999), ...)</code></td><td>betas: coeficiente para calcular el promedio móvil de gradientes y cuadrados de gradientes.</td></tr>
+      <tr><td>AdaGrad</td><td><code>torch.optim.Adagrad(params, lr=0.01, ...)</code></td><td>lr_decay: decaimiento de la tasa de aprendizaje; initial_accumulator_value: valor inicial del acumulador.</td></tr>
+      <tr><td>AdamW</td><td><code>torch.optim.AdamW(params, lr=0.001, ...)</code></td><td>Similar a Adam con decaimiento de peso desacoplado.</td></tr>
+      <tr><td>RMSProp</td><td><code>torch.optim.RMSprop(params, lr=0.001, alpha=0.99, ...)</code></td><td>alpha: coeficiente del término de suavizado; centered: indica si se calcula el RMSprop centralizado.</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="slide" id="slide-350">
+  <h3>Diapositiva 350</h3>
+  <img src="slides/page-350.png" alt="Diapositiva 350">
+  <div class="content">
+    <h4>Agregando Funciones de Pérdida y Optimizadores para Entrenamiento</h4>
+    <pre><code># Instanciar una estructura de modelo.
+model = MLP()
+# Crear una función de pérdida.
+criterion = nn.CrossEntropyLoss()
+# Crear un optimizador.
+optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+# Ingresar datos al modelo.
+output = model(trainset)
+# Calcular la pérdida.
+loss = criterion(output, target)
+loss.backward()
+optimizer.step()</code></pre>
+  </div>
+</div>
+
+<div class="slide" id="slide-351">
+  <h3>Diapositiva 351</h3>
+  <img src="slides/page-351.png" alt="Diapositiva 351">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Framework de IA</li>
+      <li>Fundamentos de los Frameworks de Desarrollo de IA</li>
+      <li>PyTorch
+        <ul>
+          <li>Módulos Básicos</li>
+          <li><strong>Implementación de la Estructura de Red LeNet</strong></li>
+        </ul>
+      </li>
+      <li>Proceso de Desarrollo de Aplicaciones de IA</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-352">
+  <h3>Diapositiva 352</h3>
+  <img src="slides/page-352.png" alt="Diapositiva 352">
+  <div class="content">
+    <h4>Construcción de una Red Neuronal Completa (1)</h4>
+    <p>Usar PyTorch para construir una red completa <strong>LeNet</strong> y usar MNIST para entrenamiento.</p>
+    <ul>
+      <li>Construir una red LeNet:
+        <ul>
+          <li>Tiene dos capas convolucionales. La primera usa seis kernels de convolución 5x5 con paso de 1 y relleno de 2, y produce seis mapas de características. La segunda usa 16 kernels 5x5 con paso de 1 y sin relleno, produciendo 16 mapas de características.</li>
+          <li>La capa de agrupamiento promedio se usa para reducir las dimensiones de los mapas de características.</li>
+          <li>ReLU se usa después de las capas convolucionales, y sigmoid o softmax (en la capa de salida) se usa después de la capa completamente conectada.</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-353">
+  <h3>Diapositiva 353</h3>
+  <img src="slides/page-353.png" alt="Diapositiva 353">
+  <div class="content">
+    <h4>Construcción de una Red Neuronal Completa (2) — Definición de LeNet</h4>
+    <pre><code>import torch
+import torch.nn as nn
+import torch.optim as optim
+import torchvision
+import torchvision.transforms as transforms
+
+# Definir la estructura de red LeNet.
+class LeNet(nn.Module):
+    def __init__(self):
+        super(LeNet, self).__init__()
+        # Definir una capa convolucional bidimensional.
+        self.conv1 = nn.Conv2d(1, 6, kernel_size=5, stride=1, padding=2)
+        self.conv2 = nn.Conv2d(6, 16, kernel_size=5, stride=1)
+        # Definir la capa completamente conectada.
+        self.fc1 = nn.Linear(16*5*5, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 10)
+        # Definir la capa de pooling.
+        self.pool = nn.AvgPool2d(kernel_size=2, stride=2)
+        # Función de activación
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()</code></pre>
+    <p><strong>Arquitectura de LeNet:</strong> Conv1 (6 kernels 5x5) &rarr; Pool (2x2) &rarr; Conv2 (16 kernels 5x5) &rarr; Pool &rarr; FC1 (120) &rarr; FC2 (84) &rarr; FC3 (10 salidas)</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-354">
+  <h3>Diapositiva 354</h3>
+  <img src="slides/page-354.png" alt="Diapositiva 354">
+  <div class="content">
+    <h4>Construcción de una Red Neuronal Completa (3) — Computación Hacia Adelante de LeNet</h4>
+    <pre><code># Definir la estructura de red LeNet.
+class LeNet(nn.Module):
+    def __init__(self):
+        ...
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.relu(x)
+        x = self.pool(x)
+        x = self.conv2(x)
+        x = self.sigmoid(x)
+        x = self.pool(x)
+        x = x.view(-1, 16*5*5)
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.fc2(x)
+        x = self.relu(x)
+        x = self.fc3(x)
+        return x</code></pre>
+  </div>
+</div>
+
+<div class="slide" id="slide-355">
+  <h3>Diapositiva 355</h3>
+  <img src="slides/page-355.png" alt="Diapositiva 355">
+  <div class="content">
+    <h4>Construcción de una Red Neuronal Completa — Dataset y Pre-procesamiento</h4>
+    <p>Definir el dataset con datos del dataset de código abierto MNIST. Definir el modo de pre-procesamiento de datos usando <code>transforms.Compose</code>.</p>
+    <pre><code># Pre-procesamiento de datos
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.1307,), (0.3081,))
+])
+
+# Cargar el dataset MNIST.
+trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True,
+    transform=transform)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True)
+
+testset = torchvision.datasets.MNIST(root='./data', train=False, download=True,
+    transform=transform)
+testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False)</code></pre>
+  </div>
+</div>
+
+<div class="slide" id="slide-356">
+  <h3>Diapositiva 356</h3>
+  <img src="slides/page-356.png" alt="Diapositiva 356">
+  <div class="content">
+    <h4>Construcción de una Red Neuronal Completa (4) — Entrenamiento</h4>
+    <p>Inicializar la red, función de pérdida y optimizador. Usar el bucle for para entrenamiento. Realizar una prueba después de que el entrenamiento esté completo.</p>
+    <pre><code># Inicializar la red, función de pérdida y optimizador.
+net = LeNet()
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
+
+# Entrenar la red.
+for epoch in range(10):  # Entrenar 10 épocas.
+    running_loss = 0.0
+    for i, data in enumerate(trainloader, 0):
+        inputs, labels = data
+        optimizer.zero_grad()
+        outputs = net(inputs)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+
+        running_loss += loss.item()
+        if i % 100 == 99:  # Imprimir la pérdida cada 100 lotes.
+            print(f'[Epoca {epoch+1}, Lote {i+1}] perdida: {running_loss/100:.3f}')
+            running_loss = 0.0</code></pre>
+  </div>
+</div>
+
+<div class="slide" id="slide-357">
+  <h3>Diapositiva 357</h3>
+  <img src="slides/page-357.png" alt="Diapositiva 357">
+  <div class="content">
+    <h4>Construcción de una Red Neuronal Completa (5) — Guardar Modelo</h4>
+    <p>En PyTorch, guardar y cargar un modelo involucra dos partes principales: el <strong>diccionario de estado</strong> del modelo y la <strong>arquitectura</strong>. El diccionario de estado contiene parámetros del modelo (pesos y sesgos), y la arquitectura define la jerarquía del modelo.</p>
+    <pre><code># Guardar los parámetros del modelo.
+torch.save(net.state_dict(), 'lenet_mnist.pth')
+
+# Guardar el modelo completo.
+torch.save(net, 'lenet_mnist.pth')
+
+# Re-instanciar el modelo al cargar.
+net = LeNet()
+net.load_state_dict(torch.load('lenet_mnist.pth'))
+net.eval()  # Cambiar al modo eval si se requiere inferencia.
+
+# Cargar el modelo completo.
+net = torch.load('lenet_mnist.pth')
+model.eval()  # Cambiar al modo eval si se requiere inferencia.</code></pre>
+  </div>
+</div>
+
+<div class="slide" id="slide-358">
+  <h3>Diapositiva 358</h3>
+  <img src="slides/page-358.png" alt="Diapositiva 358">
+  <div class="content">
+    <h4>Contenidos</h4>
+    <ol>
+      <li>Framework de IA</li>
+      <li>Fundamentos de los Frameworks de Desarrollo de IA</li>
+      <li>PyTorch</li>
+      <li><strong>Proceso de Desarrollo de Aplicaciones de IA</strong></li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-359">
+  <h3>Diapositiva 359</h3>
+  <img src="slides/page-359.png" alt="Diapositiva 359">
+  <div class="content">
+    <h4>Proceso de Desarrollo de Aplicaciones de IA</h4>
+    <p>El proceso incluye las siguientes fases:</p>
+    <ol>
+      <li><strong>Análisis de requisitos</strong></li>
+      <li><strong>Configuración del entorno:</strong> Instalación del framework, uso de entorno en la nube</li>
+      <li><strong>Preparación de datos:</strong> Recolección de datos, pre-procesamiento de datos</li>
+      <li><strong>Construcción de la red:</strong> Definición de hiperparámetros, construcción de la estructura del modelo</li>
+      <li><strong>Entrenamiento del modelo:</strong> Entrenamiento, guardado y prueba del modelo</li>
+      <li><strong>Despliegue de la aplicación:</strong> Despliegue del modelo, predicción del modelo</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-360">
+  <h3>Diapositiva 360</h3>
+  <img src="slides/page-360.png" alt="Diapositiva 360">
+  <div class="content">
+    <h4>Aplicación ResNet-50 para Clasificación de Imágenes</h4>
+    <p>La clasificación de imágenes es la aplicación de visión por computadora más básica y pertenece a la categoría de aprendizaje supervisado. Por ejemplo, la aplicación debe determinar el tipo de una imagen dada, como un gato, un perro, un avión o un auto.</p>
+    <p>Aquí presentamos cómo la aplicación usa la red <strong>ResNet-50</strong> para clasificar flores en un dataset de flores.</p>
+    <p><em>¿Cuáles son estas flores?</em></p>
+  </div>
+</div>
+
+<div class="slide" id="slide-361">
+  <h3>Diapositiva 361</h3>
+  <img src="slides/page-361.png" alt="Diapositiva 361">
+  <div class="content">
+    <h4>Configuración del Entorno</h4>
+    <p>Elegir un entorno adecuado (Python 3 en este ejemplo), obtener el comando e instalarlo según la guía.</p>
+    <p>El siguiente ejemplo usa PyTorch.</p>
+    <p><a href="https://pytorch.org/get-started/locally/">https://pytorch.org/get-started/locally/</a></p>
+  </div>
+</div>
+
+<div class="slide" id="slide-362">
+  <h3>Diapositiva 362</h3>
+  <img src="slides/page-362.png" alt="Diapositiva 362">
+  <div class="content">
+    <h4>Preparación del Entorno en la Nube (Opcional)</h4>
+    <ul>
+      <li>Si no hay un entorno de desarrollo disponible, usa <strong>ModelArts</strong> para desarrollo, entrenamiento de modelos o despliegue.</li>
+      <li>ModelArts ayuda a los usuarios a crear y desplegar modelos rápidamente y gestionar el flujo de trabajo completo de IA.</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>Comparado con un entorno local, el entorno en la nube proporciona abundante potencia de cómputo y espacio de almacenamiento, siendo una buena opción para el desarrollo.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-363">
+  <h3>Diapositiva 363</h3>
+  <img src="slides/page-363.png" alt="Diapositiva 363">
+  <div class="content">
+    <h4>Preparación de Datos</h4>
+    <p>El dataset de imágenes de flores se usa como datos de entrenamiento. Es un dataset de código abierto que contiene un total de <strong>3,670 imágenes</strong> de cinco tipos de flores:</p>
+    <ul>
+      <li>Margaritas (633 imágenes)</li>
+      <li>Dientes de león (898 imágenes)</li>
+      <li>Rosas (641 imágenes)</li>
+      <li>Girasoles (699 imágenes)</li>
+      <li>Tulipanes (799 imágenes)</li>
+    </ul>
+    <p>Las imágenes están almacenadas en cinco carpetas. La estructura de archivos consiste en dos partes: <code>flower_photos_train</code> y <code>flower_photos_test</code>.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-364">
+  <h3>Diapositiva 364</h3>
+  <img src="slides/page-364.png" alt="Diapositiva 364">
+  <div class="content">
+    <h4>Pre-procesamiento de Datos</h4>
+    <p>Para mejorar la precisión del modelo y asegurar la capacidad de generalización, se necesita realizar aumento de datos y estandarización antes de usar los datos para entrenar el modelo.</p>
+    <p>Cargar y procesar el dataset, incluyendo:</p>
+    <ul>
+      <li>Lectura del dataset</li>
+      <li>Definición de parámetros requeridos para el aumento y procesamiento de datos</li>
+      <li>Generación de operaciones de aumento de datos según los parámetros</li>
+      <li>Procesamiento del dataset generado</li>
+    </ul>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>Esta aplicación usa datasets de código abierto, por lo que no necesitan ser procesados. Si se usan datos de servicio recolectados, necesitas limpiar y ordenar los datos.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-365">
+  <h3>Diapositiva 365</h3>
+  <img src="slides/page-365.png" alt="Diapositiva 365">
+  <div class="content">
+    <h4>Introducción a ResNet</h4>
+    <ul>
+      <li>Kaiming He de Microsoft Labs propuso <strong>ResNet50</strong> en 2015 y ganó el primer lugar en la competencia de clasificación de imágenes ILSVRC 2015.</li>
+      <li>La <strong>Red Residual</strong> es un punto destacado de ResNet. Mitiga efectivamente la degradación y permite un diseño de estructura de red más profundo.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-366">
+  <h3>Diapositiva 366</h3>
+  <img src="slides/page-366.png" alt="Diapositiva 366">
+  <div class="content">
+    <h4>Entrenamiento del Modelo</h4>
+    <p>Iniciar el entrenamiento del modelo después de pre-procesar los datos y construir el modelo de red.</p>
+    <p>Hay dos formas de entrenar un modelo:</p>
+    <ul>
+      <li><strong>Entrenar desde cero</strong> basándose en el dataset (para experimentos con PyTorch).</li>
+      <li><strong>Fine-tuning</strong> del dataset sobre un modelo ya entrenado:
+        <ul>
+          <li>Modelo pre-entrenado: archivo de modelo ResNet entrenado en el dataset ImageNet.</li>
+          <li>Modificar los parámetros de la última capa del modelo pre-entrenado. (El modelo pre-entrenado es la tarea de clasificación de 1001 clases entrenada en ImageNet; la tarea es la clasificación de 5 clases del dataset de flores.)</li>
+          <li>Realizar entrenamiento basado en el conjunto de entrenamiento.</li>
+        </ul>
+      </li>
+    </ul>
+    <p>Ajuste de parámetros: Se pueden ajustar diferentes combinaciones de hiperparámetros durante el entrenamiento.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-367">
+  <h3>Diapositiva 367</h3>
+  <img src="slides/page-367.png" alt="Diapositiva 367">
+  <div class="content">
+    <h4>Carga y Predicción del Modelo</h4>
+    <ul>
+      <li>Probar los datos de prueba basándose en el peso del modelo entrenado.</li>
+      <li>Después de completar el entrenamiento de PyTorch, realizar la prueba de inferencia (<code>torch.no_grad</code>) cuando el cálculo del gradiente está deshabilitado.</li>
+      <li>En caso de inferencia después del despliegue, se necesita habilitar el modo eval (<code>model.eval()</code>).</li>
+      <li>Cargar el archivo de pesos y realizar la predicción. Para cargar el peso del modelo, primero se necesita crear la instancia del modelo.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-368">
+  <h3>Diapositiva 368</h3>
+  <img src="slides/page-368.png" alt="Diapositiva 368">
+  <div class="content">
+    <h4>Despliegue del Modelo</h4>
+    <ul>
+      <li>La figura muestra el proceso simplificado de entrenamiento e inferencia del modelo. Nota que la inferencia del modelo no requiere actualizar los parámetros de peso del modelo. Por lo tanto, los requisitos de hardware son menores que los del entrenamiento.</li>
+      <li>Los modelos generalmente se despliegan en servidores de inferencia dedicados. Después de la optimización, como la compresión del modelo, los modelos también pueden desplegarse en dispositivos como teléfonos móviles y cámaras.</li>
+    </ul>
+    <p><strong>Entrenamiento:</strong> Datos &rarr; Modelo &rarr; Resultado de predicción &harr; Resultado correcto</p>
+    <p><strong>Inferencia:</strong> Datos &rarr; Modelo &rarr; Resultado de predicción</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-369">
+  <h3>Diapositiva 369</h3>
+  <img src="slides/page-369.png" alt="Diapositiva 369">
+  <div class="content">
+    <h4>Compresión del Modelo</h4>
+    <p>Aumentar el número de parámetros del modelo tiene el siguiente impacto:</p>
+    <p><strong>Rendimiento de inferencia:</strong></p>
+    <ul>
+      <li>Cuando el ancho de banda de acceso a memoria del hardware es limitado, la sobrecarga de transferencia de datos aumenta con el incremento del peso.</li>
+      <li>Cuando no hay suficiente capacidad de VRAM, el modelo solo puede desplegarse en la CPU, reduciendo el rendimiento de inferencia.</li>
+    </ul>
+    <p><strong>Costo de despliegue:</strong></p>
+    <ul>
+      <li>Un peso mayor requiere más capacidad de almacenamiento, sobrecarga de recursos computacionales y capacidad de VRAM.</li>
+    </ul>
+    <p>Actualmente, los dispositivos con gran VRAM y alto ancho de banda de acceso a memoria son costosos. Por lo tanto, la compresión del modelo es esencial para desplegar y promover aplicaciones de IA en dispositivos de consumo.</p>
+    <div class="notes">
+      <strong>Notas del instructor:</strong>
+      <ul>
+        <li>A medida que el tamaño del lote y la longitud de la secuencia aumentan, la caché KV también aumenta, causando gran presión en el acceso a memoria.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-370">
+  <h3>Diapositiva 370</h3>
+  <img src="slides/page-370.png" alt="Diapositiva 370">
+  <div class="content">
+    <h4>Método de Compresión — Poda del Modelo</h4>
+    <p>La poda es una tecnología importante de compresión de modelos. La idea básica es eliminar pesos y ramas menos importantes de un modelo y esparcir la estructura de la red para obtener un modelo con menos parámetros. Sin embargo, la poda también puede causar deterioro del rendimiento del modelo. Por lo tanto, se debe encontrar un equilibrio entre el tamaño del modelo y el rendimiento.</p>
+    <p>Las conexiones neuronales en una red neuronal se representan matemáticamente como una matriz de pesos. Esto significa que la poda cambia algunos elementos en la matriz de pesos a elementos cero. El propósito es eliminar sinapsis o neuronas menos importantes.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-371">
+  <h3>Diapositiva 371</h3>
+  <img src="slides/page-371.png" alt="Diapositiva 371">
+  <div class="content">
+    <h4>Método de Compresión — Destilación de Conocimiento</h4>
+    <ul>
+      <li>La destilación de conocimiento es una tecnología de compresión de modelos basada en <strong>aprendizaje por transferencia</strong>.</li>
+      <li>Una red grande y compleja generalmente proporciona buen rendimiento, pero también contiene mucha información redundante, lo que aumenta la complejidad computacional y el consumo de recursos.</li>
+      <li>La destilación extrae información útil de una red compleja y la migra a una red más pequeña. Después del aprendizaje, la red pequeña puede ofrecer un rendimiento similar a la red grande mientras requiere menos recursos computacionales.</li>
+      <li>La red compleja puede verse como un <strong>profesor</strong>, y la red pequeña como un <strong>estudiante</strong>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-372">
+  <h3>Diapositiva 372</h3>
+  <img src="slides/page-372.png" alt="Diapositiva 372">
+  <div class="content">
+    <h4>Herramienta Común de Despliegue</h4>
+    <p><strong>Llama.cpp</strong></p>
+    <ul>
+      <li>Implementado con código C++; ayuda a implementar inferencia de LLM con una configuración mínima y un rendimiento excelente en varios dispositivos de hardware (locales y en la nube) sin necesidad de un framework de IA.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide" id="slide-373">
+  <h3>Diapositiva 373</h3>
+  <img src="slides/page-373.png" alt="Diapositiva 373">
+  <div class="content">
+    <h4>Resumen</h4>
+    <p>Esta sección describe los frameworks de desarrollo de IA, incluyendo los fundamentos de los frameworks comunes de IA y el framework PyTorch. También aborda el proceso de desarrollo de aplicaciones de IA.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-374">
+  <h3>Diapositiva 374</h3>
+  <img src="slides/page-374.png" alt="Diapositiva 374">
+  <div class="content">
+    <h4>Cuestionario</h4>
+    <p><strong>1.</strong> (Pregunta de selección múltiple) ¿Cuáles de los siguientes dispositivos de hardware se pueden usar para el entrenamiento con PyTorch?</p>
+    <ol type="A">
+      <li>CPU</li>
+      <li>GPU</li>
+      <li>TensorFlow</li>
+      <li>CUDA</li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide" id="slide-375">
+  <h3>Diapositiva 375</h3>
+  <img src="slides/page-375.png" alt="Diapositiva 375">
+  <div class="content">
+    <h4>Respuesta del Cuestionario</h4>
+    <p><strong>Respuesta: A, B.</strong> CPU y GPU son dispositivos de hardware. TensorFlow es un framework de software y CUDA es una plataforma de computación paralela, no dispositivos de hardware en sí.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-376">
+  <h3>Diapositiva 376</h3>
+  <img src="slides/page-376.png" alt="Diapositiva 376">
+  <div class="content">
+    <h4>Recomendaciones</h4>
+    <p>Recurso de referencia: <a href="https://pytorch.org/">https://pytorch.org/</a></p>
+  </div>
+</div>
+
+<div class="slide" id="slide-377">
+  <h3>Diapositiva 377</h3>
+  <img src="slides/page-377.png" alt="Diapositiva 377">
+  <div class="content">
+    <h4>Gracias</h4>
+    <p>Llevar lo digital a cada persona, cada hogar y cada organización, construyendo un mundo inteligente totalmente conectado.</p>
+  </div>
+</div>
+
+<div class="slide" id="slide-378">
+  <h3>Diapositiva 378</h3>
+  <img src="slides/page-378.png" alt="Diapositiva 378">
+  <div class="content">
+    <h4>Aviso Legal</h4>
+    <p>La información de este documento puede contener declaraciones predictivas, incluidas, entre otras, declaraciones sobre los resultados financieros y operativos futuros, la cartera futura de productos, nueva tecnología, etc.</p>
+  </div>
+</div>
+
+
+<!-- FIN DE LA PARTE 4 -->

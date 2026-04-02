@@ -338,23 +338,13 @@ class AutonomousExecutor:
             return f"[ERROR] {exc}", False
 
     def _run_python(self, code: str) -> tuple[str, bool]:
-        stdout_buf = io.StringIO()
-        stderr_buf = io.StringIO()
-        namespace = {
-            "__name__": "__agent__",
-            "REPO_ROOT": REPO_ROOT,
-        }
-        try:
-            with redirect_stdout(stdout_buf), redirect_stderr(stderr_buf):
-                exec(compile(code, "<agent>", "exec"), namespace)  # noqa: S102
-            out = stdout_buf.getvalue()
-            err = stderr_buf.getvalue()
-            combined = (out + err).strip()
-            return combined[:4000] if combined else "[OK — no output]", True
-        except Exception:
-            err = traceback.format_exc()
-            out = stdout_buf.getvalue()
-            return (f"{out}\n[EXCEPTION]\n{err}").strip()[:4000], False
+        """
+        [HARDENED PHASE 4.3]
+        The local <python> exec() tag has been permanently disabled to prevent 
+        Remote Code Execution (RCE) and adversarial prompt injection.
+        All agentic logic must be executed via bounded bash scripts inside the Citadel.
+        """
+        return "[BLOCKED BY SOVEREIGN AIR-GAP] Naked Python exec() is disabled. Write your logic to a file via <write_file> and execute it mathematically via <bash> python3 filename.py</bash>.", False
 
     def _read_file(self, path: str) -> tuple[str, bool]:
         # Resolve relative paths against repo root

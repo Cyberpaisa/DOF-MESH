@@ -27,10 +27,23 @@ logger = logging.getLogger("q_aion.voice")
 # ═══════════════════════════════════════════════════════
 
 def transcribe_audio(audio_path: str, language: str = "es") -> str | None:
-    """Transcribe un archivo de audio usando Groq Whisper API."""
+    """Transcribe un archivo de audio — local primero (WhisperTranscriber), Groq como fallback."""
+    # ── Primario: Whisper local (M4 Max Neural Engine, sin internet) ──
+    try:
+        from core.qaion_audio import WhisperTranscriber
+        transcriber = WhisperTranscriber()
+        result = transcriber.transcribe(audio_path, language=language)
+        text = result.get("text", "").strip()
+        if text:
+            logger.info(f"[STT local] {text[:80]}...")
+            return text
+    except Exception as e:
+        logger.warning(f"[STT local] Falló ({e}), intentando Groq...")
+
+    # ── Fallback: Groq Whisper API (cloud) ──
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
-        logger.error("GROQ_API_KEY no configurada para STT")
+        logger.error("[STT] Sin GROQ_API_KEY y Whisper local falló")
         return None
     try:
         from groq import Groq
@@ -42,13 +55,10 @@ def transcribe_audio(audio_path: str, language: str = "es") -> str | None:
                 language=language,
             )
         text = transcription.text
-        logger.info(f"Transcripcion: {text[:80]}...")
+        logger.info(f"[STT Groq] {text[:80]}...")
         return text
-    except ImportError:
-        logger.error("Instala groq: pip install groq")
-        return None
     except Exception as e:
-        logger.error(f"Error transcribiendo: {e}")
+        logger.error(f"[STT Groq] Error: {e}")
         return None
 
 

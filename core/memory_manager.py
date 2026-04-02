@@ -3,13 +3,18 @@ Memory Manager — Cross-session memory with TTL and compression.
 
 Uses JSONL for persistence (no OpenAI dependency).
 Memory types: short-term (session), long-term (persisted), episodic (run results).
+
+Search strategy (hybrid, inspired by S+Memory):
+  score = fisher_rao(0.4) + bm25(0.4) + temporal_decay(0.2)
+  Temporal tiers: recent(0-7d)×2.0 | medium(7-30d)×1.0 | old(30-90d)×0.5 | archived(90+d)×0.1
 """
 
+import math
 import os
 import json
 import time
 import logging
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, field, asdict
 
 logger = logging.getLogger("core.memory_manager")
 
@@ -27,6 +32,62 @@ class MemoryEntry:
     ttl_seconds: float = 0.0  # 0 = no expiry
     source: str = ""  # which agent/crew created it
     tags: list[str] | None = None
+    access_count: int = 0       # S+Memory: how many times retrieved
+    last_accessed: float = 0.0  # S+Memory: timestamp of last retrieval
+
+
+# ─────────────────────────────────────────────────────────────────────
+# S+Memory: Temporal Decay + BM25 (pure Python, zero deps)
+# λ=0.05, tiers: recent(0-7d)×2.0 | medium(7-30d)×1.0 | old(30-90d)×0.5 | archived(90+d)×0.1
+# ─────────────────────────────────────────────────────────────────────
+
+def _temporal_multiplier(created_at: float) -> float:
+    """Return recency boost multiplier based on age of memory."""
+    age_days = (time.time() - created_at) / 86400
+    if age_days <= 7:
+        return 2.0
+    elif age_days <= 30:
+        return 1.0
+    elif age_days <= 90:
+        return 0.5
+    return 0.1
+
+
+def _bm25_score(query: str, text: str, corpus_texts: list[str],
+                k1: float = 1.5, b: float = 0.75) -> float:
+    """Pure-Python BM25 score for (query, text) given a corpus.
+
+    No external dependencies — implements Okapi BM25 from scratch.
+    """
+    query_terms = query.lower().split()
+    if not query_terms:
+        return 0.0
+
+    # Tokenize corpus
+    tokenized = [t.lower().split() for t in corpus_texts]
+    N = len(tokenized)
+    if N == 0:
+        return 0.0
+
+    avg_dl = sum(len(d) for d in tokenized) / N
+    doc_tokens = text.lower().split()
+    dl = len(doc_tokens)
+    score = 0.0
+
+    for term in query_terms:
+        # Term frequency in document
+        tf = doc_tokens.count(term)
+        if tf == 0:
+            continue
+        # Document frequency across corpus
+        df = sum(1 for d in tokenized if term in d)
+        # IDF (Robertson-Spärck Jones)
+        idf = math.log((N - df + 0.5) / (df + 0.5) + 1)
+        # BM25 term score
+        tf_norm = (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * dl / avg_dl))
+        score += idf * tf_norm
+
+    return score
 
 
 class MemoryManager:
@@ -87,31 +148,46 @@ class MemoryManager:
         logger.info(f"Long-term memory stored: {key}")
 
     def search_long_term(self, query: str, max_results: int = 5) -> list[MemoryEntry]:
-        """Search long-term memory using Fisher-Rao similarity.
+        """Search long-term memory using hybrid scoring.
 
-        Uses information geometry (Fisher-Rao distance on term frequency
-        distributions) for semantic-aware retrieval. Falls back to keyword
-        matching if Fisher-Rao module is unavailable.
+        Hybrid score = fisher_rao(0.4) + bm25(0.4) + temporal_decay(0.2)
+
+        Fisher-Rao captures semantic similarity via information geometry.
+        BM25 captures lexical/keyword relevance (pure Python, zero deps).
+        Temporal decay boosts recent memories, fades archived ones.
+
+        Falls back to keyword matching if all scoring fails.
         """
         entries = self._load_jsonl(self._long_term_file)
         if not entries:
             return []
 
+        corpus_texts = [f"{e.key} {e.value}" for e in entries]
+
+        # Try Fisher-Rao for semantic component
+        fisher_scores: dict[int, float] = {}
         try:
             from core.fisher_rao import fisher_rao_similarity
-            # Rank by Fisher-Rao similarity (higher = better)
-            scored = []
-            for e in entries:
-                full_text = f"{e.key} {e.value}"
-                sim = fisher_rao_similarity(query, full_text)
-                scored.append((sim, e))
-            scored.sort(key=lambda x: x[0], reverse=True)
-            # Filter: minimum similarity threshold 0.05
-            results = [e for sim, e in scored[:max_results] if sim > 0.05]
-            if results:
-                return results
+            for i, e in enumerate(entries):
+                fisher_scores[i] = fisher_rao_similarity(query, corpus_texts[i])
         except ImportError:
             pass
+
+        scored = []
+        for i, e in enumerate(entries):
+            fr = fisher_scores.get(i, 0.0)
+            bm25 = _bm25_score(query, corpus_texts[i], corpus_texts)
+            # Normalize BM25 to [0,1] range (cap at 20 for practical texts)
+            bm25_norm = min(bm25 / 20.0, 1.0)
+            temporal = _temporal_multiplier(e.created_at) / 2.0  # normalize 0.05–1.0
+            hybrid = fr * 0.4 + bm25_norm * 0.4 + temporal * 0.2
+            scored.append((hybrid, e))
+
+        scored.sort(key=lambda x: x[0], reverse=True)
+        results = [e for score, e in scored[:max_results] if score > 0.05]
+        if results:
+            logger.debug(f"Hybrid search '{query[:40]}': top score={scored[0][0]:.3f}, {len(results)} results")
+            return results
 
         # Fallback: keyword matching
         query_lower = query.lower()

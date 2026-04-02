@@ -29,10 +29,10 @@ LOG_FILE = os.path.join(BASE_DIR, "logs", "ast_verification.jsonl")
 # ─────────────────────────────────────────────────────────────────────
 
 BLOCKED_IMPORTS = [
-    "subprocess", "os.system", "shutil.rmtree", "__import__",
+    "subprocess", "os.system", "shutil.rmtree", "__import__", "pty", "os.popen",
 ]
 
-UNSAFE_CALLS = ["eval", "exec", "compile"]
+UNSAFE_CALLS = ["eval", "exec", "compile", "getattr", "setattr"]
 
 SECRET_PATTERNS = [
     re.compile(r"sk-[a-zA-Z0-9]{20,}"),        # OpenAI
@@ -42,6 +42,35 @@ SECRET_PATTERNS = [
     re.compile(r"glpat-[a-zA-Z0-9\-]{20,}"),    # GitLab PAT
     re.compile(r"xox[baprs]-[a-zA-Z0-9\-]{10,}"),  # Slack token
 ]
+
+def _sync_ast_rules():
+    """Sync AST rules with the YAML constitution if available."""
+    global BLOCKED_IMPORTS, UNSAFE_CALLS, SECRET_PATTERNS
+    try:
+        from core.governance import load_constitution
+        const = load_constitution()
+        if not const:
+            return
+        
+        ast_rules = const.get("rules", {}).get("ast", [])
+        for rule in ast_rules:
+            if rule.get("rule_key") == "BLOCKED_IMPORTS":
+                BLOCKED_IMPORTS = list(set(BLOCKED_IMPORTS + rule.get("pattern", {}).get("blocked", [])))
+            elif rule.get("rule_key") == "UNSAFE_CALLS":
+                UNSAFE_CALLS = list(set(UNSAFE_CALLS + rule.get("pattern", {}).get("blocked_calls", [])))
+            elif rule.get("rule_key") == "SECRET_PATTERNS":
+                new_patterns = rule.get("pattern", {}).get("patterns", [])
+                for p in new_patterns:
+                    try:
+                        SECRET_PATTERNS.append(re.compile(p))
+                    except:
+                        pass
+        logger.info("AST Verifier synced with constitution")
+    except Exception as e:
+        logger.warning(f"AST Verifier sync failed: {e}")
+
+# Run sync
+_sync_ast_rules()
 
 
 # ─────────────────────────────────────────────────────────────────────
