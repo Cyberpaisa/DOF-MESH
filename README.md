@@ -300,7 +300,7 @@ equipo-de-agentes/
 
 ## Built By
 
-**Juan Carlos Quiceno** ([@Cyber_paisa](https://t.me/Cyber_paisa)) -- Blockchain developer, Avalanche Ambassador, Medellín, Colombia.
+**@Cyber_paisa** · [Telegram](https://t.me/Cyber_paisa)
 
 **DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,157 tests. 7 chains. 142 modules. Mathematics, not promises.
 
