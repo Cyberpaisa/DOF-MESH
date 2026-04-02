@@ -28,13 +28,15 @@
 
 ## The Problem
 
-Autonomous AI agents are managing real money — DeFi treasuries, automated payments, enterprise decisions. When something goes wrong, you get logs the agent wrote about itself.
+AI agents are black boxes. They act, but nobody can prove _what_ they did, _why_ they did it, or whether their governance was actually enforced. When something goes wrong — a credit approved in error, a fraudulent transfer not blocked, a wrong protocol executed — you get logs the agent wrote about itself.
 
 That's not proof. That's testimony.
 
-**685 projects** were analyzed at the largest autonomous agent hackathon in the world (Synthesis 2026, $100K in prizes, 1,500 participants). **Zero use formal verification for governance.** Every single one trusts another LLM to watch the first LLM.
+The obvious answer is using AI to watch AI. It sounds logical — until your watchdog LLM hallucinates that everything is fine while an attacker manipulates your agent with a prompt injection. An LLM can't prove anything. It can only guess.
 
-That's like hiring the thief's cousin as the security guard.
+The **Winston Experiment** validated this gap: 10 frontier models evaluated across 9 mega-prompts designed to maximize governance quality. Even the best model (DeepSeek-V3: +50.0, Claude Sonnet: +34.0) required external deterministic scaffolding to produce verifiable outputs. No model can self-certify its own correctness.
+
+> The formal verification engine Z3 — the same technology used to certify nuclear reactors and commercial aviation — now certifies your agents. Not statistically. Mathematically.
 
 ## Our Solution
 
