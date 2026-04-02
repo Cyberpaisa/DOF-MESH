@@ -1,0 +1,17 @@
+# Docker Citadel — requirements compatibles para Python 3.12
+# crewai 0.11.2 requiere litellm ~1.44.x — no compatible con 1.55.x
+# Usamos crewai sin pin de litellm para que pip resuelva la versión correcta
+
+crewai[tools]==0.11.2
+python-dotenv==1.2.2
+pandas==2.2.3
+openpyxl==3.1.5
+sqlalchemy==2.0.48
+psycopg2-binary==2.9.11
+rich==13.9.4
+pyyaml==6.0.3
+z3-solver==4.16.0.0
+blake3==1.0.8
+# Interfaces (opcionales en Docker — sin audio)
+pyTelegramBotAPI==4.32.0
+groq==1.1.2

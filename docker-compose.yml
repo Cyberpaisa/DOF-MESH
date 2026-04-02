@@ -22,10 +22,19 @@ services:
       # The .env Secrets (READ-ONLY)
       - ./.env:/app/.env:ro
     
+    # Override CMD: A2A Server como proceso persistente
+    command: ["python3", "a2a_server.py", "--port", "8080"]
+
+    # Puerto expuesto al host
+    ports:
+      - "8080:8080"
+
     # Environment
     environment:
       - CITADEL_MODE=SOVEREIGN
       - PYTHONUNBUFFERED=1
+
+    restart: unless-stopped
 
 networks:
   mesh-internal:

@@ -25,8 +25,8 @@ RUN groupadd -r citadel && useradd -r -g citadel citadel
 WORKDIR /app
 
 # Copy and install dependencies first (caching)
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.docker.txt .
+RUN pip install --no-cache-dir -r requirements.docker.txt
 
 # Initial code copy (Structure only)
 # Note: At runtime, we mount the real codebase as READ-ONLY for security
