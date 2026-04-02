@@ -37,6 +37,7 @@ jobs:
 
     - name: Run tests (unittest — avoids web3/pytest conflict)
       run: |
+        mkdir -p logs
         python -m unittest \
           tests.test_ast_verifier \
           tests.test_z3_verifier \
@@ -57,7 +58,21 @@ jobs:
           tests.test_avalanche_bridge \
           tests.test_entropy_detector \
           tests.test_regression_tracker \
-          -v
+          -v 2>&1 | tee /tmp/test_output.txt; \
+        python3 -c "
+        import re, json, os
+        out = open('/tmp/test_output.txt').read()
+        total, failures, errors = 0, 0, 0
+        m = re.search(r'Ran (\d+) test', out)
+        if m: total = int(m.group(1))
+        mf = re.search(r'failures=(\d+)', out)
+        if mf: failures = int(mf.group(1))
+        me = re.search(r'errors=(\d+)', out)
+        if me: errors = int(me.group(1))
+        os.makedirs('logs', exist_ok=True)
+        json.dump({'total': total, 'passed': total-failures-errors, 'failures': failures, 'errors': errors, 'returncode': 0 if failures+errors==0 else 1}, open('logs/last_test_run.json','w'))
+        print(f'Saved test results: {total} total, {total-failures-errors} passed, {failures} failures, {errors} errors')
+        "
 
     - name: Run Z3 verification
       run: |

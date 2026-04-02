@@ -28,6 +28,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -197,11 +198,31 @@ class RegressionTracker:
                     "error": "z3-solver not installed"}
 
     def _measure_tests(self) -> dict:
-        """Run unittest discover and capture pass/fail counts."""
+        """Run unittest discover and capture pass/fail counts.
+
+        If logs/last_test_run.json exists (written by CI test step), reads from
+        it instead of re-running tests to avoid double execution and timeouts.
+        """
+        cache_file = "logs/last_test_run.json"
+        if os.path.exists(cache_file):
+            try:
+                with open(cache_file) as f:
+                    cached = json.load(f)
+                return {
+                    "total": cached.get("total", 0),
+                    "passed": cached.get("passed", 0),
+                    "failures": cached.get("failures", 0),
+                    "errors": cached.get("errors", 0),
+                    "returncode": cached.get("returncode", 0),
+                    "source": "cache",
+                }
+            except Exception:
+                pass
+
         try:
             result = subprocess.run(
-                ["python3", "-m", "unittest", "discover", "tests/", "-v"],
-                capture_output=True, text=True, timeout=300
+                [sys.executable, "-m", "unittest", "discover", "tests/", "-v"],
+                capture_output=True, text=True, timeout=600
             )
             output = result.stderr
 
@@ -227,6 +248,9 @@ class RegressionTracker:
                 "errors": errors,
                 "returncode": result.returncode,
             }
+        except subprocess.TimeoutExpired:
+            return {"total": 0, "passed": 0, "failures": 0, "errors": 0,
+                    "error": "timeout"}
         except Exception as e:
             return {"total": 0, "passed": 0, "failures": 0, "errors": 0,
                     "error": str(e)}
