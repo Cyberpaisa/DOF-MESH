@@ -27,6 +27,7 @@ class TestHyperionHTTP(unittest.TestCase):
     def setUp(self):
         """Drain queue before each test to ensure isolation."""
         time.sleep(0.2)  # let any async enqueues from prior test commit first
+        # Drain numeric shards (0-4)
         for _ in range(50):
             drained = False
             for shard in range(5):
@@ -34,10 +35,17 @@ class TestHyperionHTTP(unittest.TestCase):
                     drained = True
             if not drained:
                 break
+        # Drain string-keyed shards (e.g. 'a','b','c' from broadcast tests)
+        for _ in range(20):
+            if not self.client.dequeue():
+                break
         time.sleep(0.1)  # final settle
         # Fix v4: catch tasks that committed during the settle sleep
         for shard in range(5):
             self.client.dequeue(shard_id=shard)
+        for _ in range(5):
+            if not self.client.dequeue():
+                break
 
     def test_health(self):
         self.assertTrue(self.client.health())
