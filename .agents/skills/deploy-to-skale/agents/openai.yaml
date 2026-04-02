@@ -1,0 +1,10 @@
+interface:
+  display_name: "Deploy to SKALE"
+  short_description: "Deploy smart contracts to SKALE chains with proper setup"
+  icon_small: "./assets/skale-logo-small.svg"
+  icon_large: "./assets/skale-logo.png.svg"
+  brand_color: "#7B42E6"
+  default_prompt: "Help deploy contracts to SKALE with chain selection, RNG integration, and bridge configuration"
+
+policy:
+  allow_implicit_invocation: true

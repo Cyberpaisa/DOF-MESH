@@ -1,0 +1,10 @@
+interface:
+  display_name: "x402 on SKALE"
+  short_description: "Build AI agent payments with x402 protocol on SKALE"
+  icon_small: "./assets/skale-logo-small.svg"
+  icon_large: "./assets/skale-logo.png.svg"
+  brand_color: "#7B42E6"
+  default_prompt: "Implement x402 payment flows for AI agent monetization on SKALE"
+
+policy:
+  allow_implicit_invocation: true

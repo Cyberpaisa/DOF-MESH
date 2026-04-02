@@ -1,0 +1,10 @@
+interface:
+  display_name: "Build with BITE"
+  short_description: "Build privacy-preserving apps with BITE Protocol on SKALE"
+  icon_small: "./assets/skale-logo-small.svg"
+  icon_large: "./assets/skale-logo.png.svg"
+  brand_color: "#7B42E6"
+  default_prompt: "Implement encrypted transactions and privacy features using BITE Protocol on SKALE"
+
+policy:
+  allow_implicit_invocation: true

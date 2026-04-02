@@ -1,0 +1,10 @@
+interface:
+  display_name: "About SKALE"
+  short_description: "Learn about SKALE Network architecture, chain types, and gas models"
+  icon_small: "./assets/skale-logo-small.svg"
+  icon_large: "./assets/skale-logo.png.svg"
+  brand_color: "#7B42E6"
+  default_prompt: "Explain SKALE Network concepts and help select the right chain for deployment"
+
+policy:
+  allow_implicit_invocation: true

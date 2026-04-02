@@ -1,0 +1,10 @@
+interface:
+  display_name: "IMA Bridging on SKALE"
+  short_description: "Programmatic IMA bridging between SKALE chains and Ethereum"
+  icon_small: "./assets/skale-logo-small.svg"
+  icon_large: "./assets/skale-logo.png.svg"
+  brand_color: "#7B42E6"
+  default_prompt: "Implement cross-chain messaging and bridging via IMA for SKALE"
+
+policy:
+  allow_implicit_invocation: true
