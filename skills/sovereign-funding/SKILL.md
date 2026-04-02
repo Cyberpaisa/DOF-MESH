@@ -1,5 +1,6 @@
 ---
 name: sovereign-funding
+effort_level: max
 description: Native DOF Mesh financial layer. Use when an autonomous agent needs to generate capital flows, request operational tokens (Gas), or capture liquidity across networks. This skill manages the creation of cross-chain payment links, specifically integrating with Conflux assets (USDT0, AxCNH) and traditional EVMs to route funds to the Legion's treasury.
 ---
 

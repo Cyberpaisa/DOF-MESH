@@ -7,12 +7,12 @@ El sistema DOF-MESH ha completado su transición a la **Fase 4: Soberanía Absol
 
 ---
 
-## 1. EL ESCUDO EDR (Guardián oMLX)
-El equipo ha desplegado un proceso residente en el Kernel de macOS (`com.dof.mesh.guardian` vía LaunchAgent).  
+## 1. EL ESCUDO EDR (Guardián Ollama)
+El equipo ha desplegado un proceso residente en el Kernel de macOS (`com.dof.mesh.sovereign.guardian` vía LaunchAgent).  
 Este guardián EDR (Endpoint Detection and Response) consta de dos capas críticas para proteger a la Mac M4 Max sin agotar batería:
 
 *   **Capa Base (Sensórica 24/7):** Un proceso monitor que escanea la integridad criptográfica (SHA-256) de nuestro código núcleo (`governance.py`, `cerberus.py`, `dof.constitution.yml`) y del esquema de paquetes (`requirements.txt`).
-*   **Capa Analítica Invocada (oMLX):** Si el guardián detecta cambios en las dependencias (ataques *Supply Chain* en PyPI) o detecta *Prompt Injections / Unicode Glassworms*, despertará de forma urgente al modelo de IA Local (`oMLX`) para un análisis táctico. Inmediatamente despues, activará un bloqueo (`Fail-Closed`) a nivel sistema.
+*   **Capa Analítica Invocada (Ollama):** Si el guardián detecta cambios en las dependencias (ataques *Supply Chain* en PyPI) o detecta *Prompt Injections / Unicode Glassworms*, despertará de forma urgente al modelo de IA Local (`Ollama`) para un análisis táctico. Inmediatamente despues, activará un bloqueo (`Fail-Closed`) a nivel sistema.
 
 **Instrucción al Commander:** Si detectas que se aborta una ejecución, asume que fue un bloqueo de supervivencia por amenaza externa.
 
@@ -25,7 +25,7 @@ El corazón de nuestra propiedad intelectual, los registros de auditoría empres
 ## 3. AISLAMIENTO GUBERNAMENTAL (Dockerización)
 El clúster operativo ya no correrá libre en la máquina local (host). Todos los agentes vivirán y actuarán dentro de la Ciudadela Docker (`dof-mesh-citadel`).
 *   No tendrán acceso no autorizado a internet (Red interna).
-*   El modelo de inteligencia primario y de contingencia para este enjambre es estrictamente local y gratuito (oMLX/Llama/Apple Silicon).
+*   El modelo de inteligencia primario y de contingencia para este enjambre es estrictamente local y gratuito (Ollama/Llama/Apple Silicon).
 
 ## 4. METODOLOGÍA FAIL-CLOSED
 La política de supervivencia del escuadrón dictamina que: **ANTE LA DUDA, MUERTE SUBITA**. 

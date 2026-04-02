@@ -102,8 +102,13 @@ def read_task(task_file: Path) -> tuple[str, str, str] | None:
     try:
         data = json.loads(task_file.read_text(encoding="utf-8"))
         # Support both flat and nested formats
-        task_data = data.get("content", {}).get("task") or data
-        task_id   = task_data.get("task_id") or task_file.stem
+        content_val = data.get("content", {})
+        if isinstance(content_val, str):
+            task_data = {"prompt": content_val}
+        else:
+            task_data = content_val.get("task") or data
+
+        task_id   = task_data.get("task_id") or data.get("msg_id") or task_file.stem
         prompt    = task_data.get("prompt") or task_data.get("task") or ""
         task_type = task_data.get("task_type", "default")
 

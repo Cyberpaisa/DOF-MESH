@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import json
 import logging
@@ -7,14 +8,16 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Configuración de Rutas
-BASE_DIR = "/Users/jquiceva/equipo-de-agentes"
-ENV_PATH = os.path.join(BASE_DIR, ".env")
-VAULT_KEY_PATH = os.path.join(BASE_DIR, "scripts/.q_aion_vault.key")
-MESH_INBOX_DIR = os.path.join(BASE_DIR, "logs/mesh/inbox")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(BASE_DIR)
 
-load_dotenv(ENV_PATH)
+from core.local_model_node import LocalAGINode
+
+load_dotenv(os.path.join(BASE_DIR, ".env"))
+VAULT_KEY_PATH = os.path.join(BASE_DIR, "scripts/.q_aion_vault.key")
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
-logger = logging.getLogger("Phase4.SovereignTrader")
+logger = logging.getLogger("Phase5.SovereignTrader")
 
 # ABIs Mínimos
 ROUTER_ABI = [
@@ -24,97 +27,70 @@ ROUTER_ABI = [
 
 class SovereignTradingEngine:
     """
-    Motor de Trading de Fase 4: Soberanía de AGI Local.
-    Usa Llama 3B (MLX) para triage y Qwen 14B (Ollama) para decisiones.
+    Motor de Trading de Fase 5: Soberanía de AGI Local MoE.
+    Utiliza el ruteador inteligente para asignar tareas a dof-reasoner o dof-coder.
     """
     def __init__(self):
         self.rpc_url = os.getenv("AVALANCHE_RPC_URL", "https://api.avax.network/ext/bc/C/rpc")
         self.w3 = Web3(Web3.HTTPProvider(self.rpc_url))
         
-        with open(VAULT_KEY_PATH, "r") as f:
-            self.private_key = f.read().strip()
+        # Intentamos cargar la llave del Vault
+        try:
+            with open(VAULT_KEY_PATH, "r") as f:
+                self.private_key = f.read().strip()
+            self.account = self.w3.eth.account.from_key(self.private_key)
+            self.address = self.account.address
+        except Exception as e:
+            logger.warning(f"Vault key not found or invalid: {e}. Running in VIEW-ONLY mode.")
+            self.address = "0x0000000000000000000000000000000000000000"
+            self.private_key = None
         
-        self.account = self.w3.eth.account.from_key(self.private_key)
-        self.address = self.account.address
+        # Inicializar Nodo MoE Local
+        self.brain = LocalAGINode(node_id="SAM-BRAIN-MOE")
         
-        # Tokens y Routers (Fase 13 Legacy)
+        # Tokens y Routers
         self.usdc = Web3.to_checksum_address("0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E")
-        self.usdc_e = Web3.to_checksum_address("0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664")
         self.routers = {
             "TraderJoe": Web3.to_checksum_address("0x60aE616a2155Ee3d9A68541Ba4544862310933d4")
         }
 
-    def _send_to_mesh(self, node_id: str, content: str) -> str:
-        """Envía una tarea al Mesh y espera la respuesta del nodo local."""
-        msg_id = f"TX-{int(time.time()*1000)}"
-        inbox_path = Path(MESH_INBOX_DIR) / node_id
-        inbox_path.mkdir(parents=True, exist_ok=True)
+    def analyze_opportunity(self, context: str) -> str:
+        """
+        Usa el ruteador MoE para analizar una oportunidad.
+        El ruteador asignará esto a dof-reasoner automáticamente por las keywords.
+        """
+        prompt = f"""
+        Actúa como el Oráculo de Riesgo SAM. Evalúa la siguiente oportunidad de arbitraje:
+        CONTEXTO: {context}
         
-        task = {
-            "msg_id": msg_id,
-            "from_node": "commander",
-            "to_node": node_id,
-            "content": content,
-            "msg_type": "task",
-            "timestamp": time.time(),
-            "read": False
-        }
-        
-        # Guardar en inbox del nodo
-        with open(inbox_path / f"{msg_id}.json", "w") as f:
-            json.dump(task, f)
-        
-        logger.info(f"  [🧠] Tarea enviada a {node_id}: {msg_id}")
-        
-        # Esperar respuesta (polling simple para el piloto)
-        commander_inbox = Path(MESH_INBOX_DIR) / "commander"
-        commander_inbox.mkdir(parents=True, exist_ok=True)
-        
-        for _ in range(30): # 30 segundos timeout
-            for resp_file in commander_inbox.glob("*.json"):
-                with open(resp_file, "r") as f:
-                    resp = json.load(f)
-                    if resp.get("reply_to") == msg_id:
-                        os.remove(resp_file)
-                        return resp.get("content", "")
-            time.sleep(1)
-        return "TIMEOUT"
+        Responde en JSON con:
+        - "decision": "SI" o "NO"
+        - "confidence": 0-1
+        - "reason": Breve explicación técnica.
+        """
+        logger.info(f"  [🧠] Solicitando análisis MoE para SAM...")
+        result = self.brain.infer(prompt)
+        logger.info(f"  [🛡] Respuesta MoE: {result}")
+        return result
 
-    def analyze_sentiment(self, data: str) -> bool:
-        """Usa Llama 3B (MLX) para un triage rápido del sentimiento de mercado."""
-        prompt = f"Analiza este contexto de mercado y responde solo con POSITIVO, NEGATIVO o NEUTRAL: {data}"
-        result = self._send_to_mesh("local-agi-m4max", prompt)
-        logger.info(f"  [📊] Sentimiento (3B): {result}")
-        return "POSITIVO" in result.upper()
-
-    def confirm_strategy(self, context: str) -> bool:
-        """Usa Qwen 14B (Ollama) para la aprobación estratégica final."""
-        prompt = f"Como estratega soberano, ¿autorizas este swap basado en: {context}? Responde solo con SI o NO y una razón corta."
-        result = self._send_to_mesh("strategic-brain-14b", prompt)
-        logger.info(f"  [🛡] Decisión Soberana (14B): {result}")
-        return "SI" in result.upper()
-
-    def run_cycle(self):
-        logger.info(f"[💠] Q-AION SOVEREIGN TRADER: Fase 4 Activa")
+    def run_cycle(self, external_signals: list = None):
+        logger.info(f"[💠] Q-AION SOVEREIGN TRADER: Fase 5 MoE Activa")
         
-        # 1. Simular captura de noticias (Tavily/RSS Mock)
-        market_news = "Avalanche DEX volume spikes 20% in the last hour. Bullish sentiment."
+        # Consolidar señales
+        context = " ".join(external_signals) if external_signals else "No signals provided."
         
-        # 2. Triage Local (3B)
-        if self.analyze_sentiment(market_news):
-            # 3. Datos de On-Chain
-            spread = 0.006 # 0.6% detectado
-            context = f"Noticias alcistas y spread de {spread*100}% en Trader Joe."
-            
-            # 4. Decisión Crítica (14B)
-            if self.confirm_strategy(context):
-                logger.info("  [🚀] ESTRATEGIA CONFIRMADA. EJECUTANDO SWAP...")
-                # Aquí iría la ejecución real (Phase 13 legacy)
-                # self.execute_swap(...)
-            else:
-                logger.info("  [🛑] Estrategia rechazada por el Cerebro Estratégico.")
+        # Análisis MoE (Ruteo dinámico a dof-reasoner)
+        analysis_raw = self.analyze_opportunity(context)
+        
+        # Lógica de decisión
+        if "SI" in analysis_raw.upper() and ("CONFIDENCE" not in analysis_raw.upper() or "0.8" in analysis_raw or "0.9" in analysis_raw):
+            logger.info("  [🚀] ESTRATEGIA CONFIRMADA POR MOE. PREPARANDO OPERACIÓN...")
+            # En modo Soberano, esto dispara el log en el Vault
+            return True
         else:
-            logger.info("  [💤] Sentimiento insuficiente para operar.")
+            logger.info("  [🛑] Operación abortada o insuficiente confianza.")
+            return False
+
 
 if __name__ == "__main__":
     engine = SovereignTradingEngine()

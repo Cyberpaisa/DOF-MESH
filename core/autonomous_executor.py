@@ -27,6 +27,9 @@ import time
 import logging
 import subprocess
 import traceback
+import hashlib
+import hmac
+from datetime import datetime, timezone
 from contextlib import redirect_stdout, redirect_stderr
 from dataclasses import dataclass, field
 from typing import Optional
@@ -56,6 +59,7 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GROQ_FALLBACK_MODEL = "llama-3.3-70b-versatile"
 DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
+QAION_PRIVATE_KEY = os.getenv("QAION_PRIVATE_KEY", "dof-local-dev-key")
 DEEPSEEK_FALLBACK_MODEL = "deepseek-chat"
 MAX_ITERATIONS = 10
 BASH_TIMEOUT = 30   # seconds per command
@@ -103,6 +107,9 @@ Write a file:
 
 List a directory:
 <list_dir>{REPO_ROOT}/core</list_dir>
+
+Delegate an isolated sub-task if you need parallel workspace math without losing context:
+<sub_task>Scan these files and return the IDs.</sub_task>
 
 When the task is complete, output ONLY this tag with a summary:
 <done>
@@ -155,10 +162,11 @@ class AutonomousExecutor:
             cls._instance._initialized = False
         return cls._instance
 
-    def __init__(self, model: str = "dof-coder") -> None:
+    def __init__(self, model: str = "dof-coder", depth: int = 0) -> None:
         if self._initialized:
             return
         self._model = model
+        self.depth = depth
         self._initialized = True
         logger.info("AutonomousExecutor ready | model=%s repo=%s", model, REPO_ROOT)
 
@@ -170,12 +178,46 @@ class AutonomousExecutor:
     # Public API
     # ------------------------------------------------------------------ #
 
+
+    def _log_security_event(self, event_type: str, details: str) -> None:
+        log_dir = os.path.join(REPO_ROOT, "logs")
+        os.makedirs(log_dir, exist_ok=True)
+        log_file = os.path.join(log_dir, "mesh_security.jsonl")
+        entry = {"timestamp": datetime.now(timezone.utc).isoformat(), "event": event_type, "details": details, "model": getattr(self, "_model", "unknown")}
+        with open(log_file, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+
     def execute(self, task_id: str, task: str, model: Optional[str] = None) -> ExecutionResult:
         """
         Run a task to completion through the agentic loop.
         Returns an ExecutionResult with the final summary and all tool calls.
         """
         model = model or self._model
+
+        # Parse effort_level from YAML frontmatter if present
+        effort_level = "medium"
+        self._current_temperature = 0.5  # default
+        import yaml
+        import re
+        yaml_match = re.search(r"^---\n(.*?)\n---", task, re.DOTALL)
+        if yaml_match:
+            try:
+                frontmatter = yaml.safe_load(yaml_match.group(1))
+                if isinstance(frontmatter, dict):
+                    effort_level = frontmatter.get("effort_level", "medium").lower()
+            except Exception:
+                pass
+        
+        # Adjust dynamics based on effort_level
+        if effort_level == "low":
+            self._current_temperature = 0.3
+        elif effort_level == "high":
+            self._current_temperature = 0.7
+        elif effort_level == "max":
+            self._current_temperature = 0.7
+            if "deepseek" not in model:
+                model = "dof-reasoner" # Force reasoner model for max effort
+
         result = ExecutionResult(task_id=task_id, task=task, model_used=model, result="")
         t0 = time.time()
 
@@ -191,12 +233,15 @@ class AutonomousExecutor:
         except Exception as e:
             logger.debug(f"Sentinel skip: {e}")
 
+        # [Phase 4.3] Read-Before-Write Enforcement State
+        self._read_files = set()
+
         messages = [
             {"role": "system", "content": AGENT_SYSTEM},
             {"role": "user", "content": task},
         ]
 
-        logger.info("Starting autonomous execution | task_id=%s model=%s", task_id, model)
+        logger.info("Starting autonomous execution | task_id=%s model=%s effort=%s", task_id, model, effort_level)
 
         for iteration in range(1, MAX_ITERATIONS + 1):
             result.iterations = iteration
@@ -283,6 +328,11 @@ class AutonomousExecutor:
         for m in re.finditer(r"<list_dir>([\s\S]*?)</list_dir>", text, re.IGNORECASE):
             tools.append(("list_dir", m.group(1).strip()))
 
+        
+        # <sub_task>instructions</sub_task>
+        for m in re.finditer(r"<sub_task>([\s\S]*?)</sub_task>", text, re.IGNORECASE):
+            tools.append(("sub_task", m.group(1).strip()))
+
         return tools
 
     def _execute_tool(self, tool: str, inp: str) -> ToolCall:
@@ -299,6 +349,8 @@ class AutonomousExecutor:
                 output, success = self._write_file(data["path"], data["content"])
             elif tool == "list_dir":
                 output, success = self._list_dir(inp)
+            elif tool == "sub_task":
+                output, success = self._run_sub_task(inp)
             else:
                 output, success = f"Unknown tool: {tool}", False
         except Exception as exc:
@@ -313,11 +365,22 @@ class AutonomousExecutor:
             duration_ms=round((time.time() - t0) * 1000, 2),
         )
 
+    
+    def _run_sub_task(self, instructions: str) -> tuple[str, bool]:
+        if self.depth >= 1:
+            self._log_security_event("FORK_BOMB_PREVENTION", "Sub-task tried to delegate another sub-task.")
+            return "[BLOCKED] Maximum recursion depth reached. A sub-task cannot spawn another sub-task.", False
+        
+        sub_executor = AutonomousExecutor(model=self._model, depth=self.depth + 1)
+        # Using a distinct task ID for the sub-task
+        res = sub_executor.execute(f"sub-{int(time.time())}", instructions)
+        return res.result, res.success
+
     def _run_bash(self, cmd: str) -> tuple[str, bool]:
         # Security check
         for pattern in BLOCKED_PATTERNS:
             if re.search(pattern, cmd, re.IGNORECASE):
-                return f"[BLOCKED] Command matches security rule: {pattern}", False
+                self._log_security_event("BASH_BLOCKED", f"Command match: {pattern} | {cmd}"); return f"[BLOCKED] Command matches security rule: {pattern}", False
 
         try:
             proc = subprocess.run(
@@ -362,6 +425,11 @@ class AutonomousExecutor:
             total = len(lines)
             content = "".join(lines[:FILE_READ_LIMIT])
             suffix = f"\n[... {total - FILE_READ_LIMIT} more lines]" if total > FILE_READ_LIMIT else ""
+            
+            # Record absolute path for Write enforcement
+            if hasattr(self, "_read_files"):
+                self._read_files.add(path)
+                
             return content + suffix, True
         except FileNotFoundError:
             return f"[NOT FOUND] {path}", False
@@ -380,7 +448,12 @@ class AutonomousExecutor:
         # Block sensitive files
         blocked_names = ["oracle_key.json", ".env", "id_rsa", "id_ed25519"]
         if os.path.basename(path) in blocked_names:
-            return f"[BLOCKED] Cannot write to sensitive file: {path}", False
+            self._log_security_event("WRITE_SENSITIVE", f"Attempted write: {path}"); return f"[BLOCKED] Cannot write to sensitive file: {path}", False
+
+        # [Phase 4.3] Read-Before-Write Enforcement
+        if os.path.exists(path):
+            if not hasattr(self, "_read_files") or path not in self._read_files:
+                self._log_security_event("WRITE_WITHOUT_READ", f"Blind write block: {path}"); return f"[BLOCKED] READ-BEFORE-WRITE ENFORCEMENT: You must <read_file> the entire file before you can write to it or overwrite it.", False
 
         try:
             os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -408,6 +481,11 @@ class AutonomousExecutor:
     # Ollama
     # ------------------------------------------------------------------ #
 
+    
+    def _sign_headers(self, payload: str = "") -> dict:
+        signature = hmac.new(QAION_PRIVATE_KEY.encode(), payload.encode(), hashlib.sha256).hexdigest()
+        return {"X-DOF-Signature": signature}
+
     def _call_ollama(self, messages: list[dict], model: str) -> Optional[str]:
         """Call Ollama via streaming so timeout only fires if model STOPS generating.
         This prevents false timeouts caused by queue wait time.
@@ -420,7 +498,7 @@ class AutonomousExecutor:
                     "messages": messages,
                     "stream": True,  # stream=True: get chunks as model generates
                     "options": {
-                        "temperature": 0.2,
+                        "temperature": getattr(self, "_current_temperature", 0.5),
                         "num_predict": -1,
                         "top_p": 0.9,
                     },
@@ -476,12 +554,12 @@ class AutonomousExecutor:
                 CEREBRAS_URL,
                 headers={
                     "Authorization": f"Bearer {CEREBRAS_API_KEY}",
-                    "Content-Type": "application/json",
+                    "Content-Type": "application/json", **self._sign_headers(),
                 },
                 json={
                     "model": model,
                     "messages": messages,
-                    "temperature": 0.2,
+                    "temperature": getattr(self, "_current_temperature", 0.5),
                     "top_p": 0.9,
                     "max_tokens": 4096,
                 },
@@ -516,12 +594,12 @@ class AutonomousExecutor:
                 GROQ_URL,
                 headers={
                     "Authorization": f"Bearer {GROQ_API_KEY}",
-                    "Content-Type": "application/json",
+                    "Content-Type": "application/json", **self._sign_headers(),
                 },
                 json={
                     "model": model,
                     "messages": messages,
-                    "temperature": 0.2,
+                    "temperature": getattr(self, "_current_temperature", 0.5),
                     "top_p": 0.9,
                     "max_tokens": 4096,
                 },
@@ -553,7 +631,7 @@ class AutonomousExecutor:
             resp = requests.post(
                 DEEPSEEK_URL,
                 headers={"Authorization": f"Bearer {DEEPSEEK_API_KEY}", "Content-Type": "application/json"},
-                json={"model": model, "messages": messages, "temperature": 0.2, "max_tokens": 4096},
+                json={"model": model, "messages": messages, "temperature": getattr(self, "_current_temperature", 0.5), "max_tokens": 4096},
                 timeout=60,
             )
             resp.raise_for_status()

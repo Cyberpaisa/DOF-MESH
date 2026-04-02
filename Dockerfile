@@ -33,7 +33,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Set permissions
-RUN chown -r citadel:citadel /app
+RUN chown -R citadel:citadel /app
 USER citadel
 
 # Expose internal port (Proxy or local models)

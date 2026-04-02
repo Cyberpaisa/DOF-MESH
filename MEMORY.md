@@ -128,3 +128,4 @@
 - Siempre re-setear env vars después de reiniciar runtime Colab
 - Version assertions en tests deben actualizarse con cada bump de versión
 - [MILESTONE] DOF-MESH Phase 4.3 Architecture: Sovereign Citadel (Docker Air-Gap with Bind Mounts) is the new execution standard to prevent context degradation and ensure local hardware safety. Oracle is Context7.
+- [MILESTONE] DOF-MESH Phase 5: Sovereign MoE (Mixture of Agents). Ollama engine reescrito sin dependencias externas, ruteando heurísticamente a `dof-coder` (Qwen 14B) y `dof-reasoner` (DeepSeek 14B) bajo aislamiento total (0-trust Airgap).

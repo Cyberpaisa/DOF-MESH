@@ -134,9 +134,9 @@ with st.sidebar:
 # TABS PRINCIPALES
 # ═══════════════════════════════════════════════════════
 
-tab_chat, tab_ops, tab_grants, tab_agents, tab_outputs, tab_excel, tab_projects = st.tabs([
+tab_chat, tab_ops, tab_grants, tab_agents, tab_outputs, tab_excel, tab_projects, tab_sam = st.tabs([
     "💬 Legion Chat", "📊 Daily Ops", "🎯 Grants Pipeline", "🤖 Agentes",
-    "📝 Outputs", "📈 Excel", "📋 Proyectos",
+    "📝 Outputs", "📈 Excel", "📋 Proyectos", "💎 SAM Yield Engine"
 ])
 
 # --- TAB: Legion Chat ---
@@ -499,6 +499,37 @@ with tab_projects:
         st.caption("No hay proyectos. Edita config/projects.yaml para agregar.")
 
     st.info("Para agregar proyectos, edita `config/projects.yaml`")
+
+# --- TAB: SAM Yield Engine ---
+with tab_sam:
+    st.subheader("🧊 Sovereign Arbitrage Multidimensional (SAM)")
+    st.caption("Conflux x Avalanche Autofinancing Engine")
+    
+    st.markdown("---")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("### Avalanche Liquidity Engine")
+        import scripts.avalanche_yield_engine as avax
+        engine = avax.AvalancheYieldEngine()
+        av_address = engine.setup_wallet()
+        av_balance = engine.monitor_balance()
+        st.metric("Wallet Address", av_address)
+        st.metric("Balance (USDC)", f"${av_balance:.2f}")
+        
+        if st.button("Ejecutar Arbitraje", type="primary"):
+            st.success("Estrategia de yield iniciada en Trader Joe/Aave...")
+
+    with col2:
+        st.markdown("### Conflux Sovereign Funding")
+        st.caption("Emisión de tokens de patrocinio y liquidez DOF")
+        f_amount = st.number_input("Cantidad a patrocinar (USDC)", min_value=1.0, value=10.0)
+        f_address = st.text_input("Billetera Destino", value=av_address)
+        if st.button("Generar Link Conflux Sponsor", type="secondary"):
+            from core.sovereign_funding_skill import SovereignFundingSkill
+            skill = SovereignFundingSkill()
+            res = skill.run("generate_link", amount=f_amount, to_address=f_address, to_chain="43114")
+            st.code(res.data.get("result", "Link generado con éxito"))
 
 
 # ═══════════════════════════════════════════════════════

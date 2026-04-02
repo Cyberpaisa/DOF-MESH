@@ -12,7 +12,7 @@ if ! docker info >/dev/null 2>&1; then
 fi
 
 # Ensure the container is up
-CONTAINER_NAME="sovereign_citadel"
+CONTAINER_NAME="dof-mesh-citadel"
 if [ ! "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
     echo "🛡️ Citadel is sleeping. Waking up the Sovereign Container..."
     docker-compose up -d

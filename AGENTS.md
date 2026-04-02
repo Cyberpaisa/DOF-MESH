@@ -43,13 +43,12 @@ Todo script o herramienta nueva del repositorio debe ser invocable tanto por hum
 - **Stateless:** El CLI es transporte puro. El estado vive en el backend (IDs de referencia, no sesiones en memoria del proceso).
 
 ### Proveedor de Inferencia Local
-El fallback soberano del equipo es **oMLX** (`localhost:8080/v1`), no Ollama standalone.
+El fallback soberano del equipo es **Ollama** (`localhost:11434`), que es un motor de inferencia masivo, independiente y verificado.
 Variables obligatorias en `.env` para activar el fallback:
 ```
-OMLX_BASE_URL=http://localhost:8080/v1
-OMLX_MODEL=llama3.3-70b
+OLLAMA_MODEL=llama3.2
 ```
-Ningún componente del MESH debe hacer Fail-Open hacia una API externa si oMLX está disponible.
+Ningún componente del MESH debe hacer Fail-Open hacia una API externa si Ollama está disponible.
 
 ## 7. Prevención de Context Rot (Capa 7 Oracle)
 Todo agente debe consultar **Context7** (vía MCP) cuando trabaje con APIs externas como Conflux, Adaline, etc. Está PROHIBIDO alucinar parámetros de APIs modernas o asumir información posterior a la fecha de corte del modelo. 

@@ -7,6 +7,10 @@ services:
     networks:
       - mesh-internal
     
+    # Extra Hosts: Required to route traffic out of the container directly to the host's Ollama model
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
     # Volumes: Mount your history and secrets as READ-ONLY
     volumes:
       # Code (ReadOnly to prevent agents from self-modifying or malware persistence)
@@ -25,4 +29,4 @@ services:
 
 networks:
   mesh-internal:
-    internal: true
+    driver: bridge

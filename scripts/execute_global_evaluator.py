@@ -17,6 +17,8 @@ import json
 import yaml
 import time
 import requests
+import hashlib
+import hmac
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional, Any, Dict, List
@@ -35,14 +37,14 @@ def load_config() -> Dict[str, Any]:
             "default_env": "adaline",
             "envs": {
                 "local": {
-                    "provider": "omlx",
-                    "base_url": "http://localhost:8080/v1",
-                    "model": "llama3.3-70b",
+                    "provider": "ollama",
+                    "base_url": "http://host.docker.internal:11434/v1",
+                    "model": "llama3.2",
                     "key_env_var": None
                 },
                 "adaline": {
                     "provider": "adaline",
-                    "base_url": "https://api.adaline.ai/v2/deployments",
+                    "base_url": "https://api.adaline.ai/v2/deployments/execute",
                     "prompt_id": "6f446617-df79-46f8-8c6a-86238629b800",
                     "env_id": "db8cb3bd-fec8-4146-9bfc-fc6dd10b5470",
                     "key_env_var": "SOCIETY_AI_API_KEY"
@@ -175,12 +177,18 @@ def _get_api_key(key_var: str) -> str | None:
         pass
     return os.getenv(key_var)
 
+
+def _sign_headers(payload: str = "") -> dict:
+    qa_key = os.getenv("QAION_PRIVATE_KEY", "dof-local-dev-key")
+    signature = hmac.new(qa_key.encode(), payload.encode(), hashlib.sha256).hexdigest()
+    return {"X-DOF-Signature": signature}
+
 def _call_adaline(cfg: dict, scenario: dict) -> tuple[dict, float]:
     api_key = _get_api_key(cfg.get("key_env_var"))
     if not api_key:
         raise PermissionError(f"{cfg.get('key_env_var')} ausente")
-    url = f"{cfg['base_url']}?promptId={cfg['prompt_id']}&deploymentEnvironmentId={cfg['env_id']}&deploymentId=latest"
-    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    url = f"{cfg['base_url'].replace('/execute', '')}/execute?promptId={cfg['prompt_id']}&deploymentEnvironmentId={cfg['env_id']}&deploymentId=latest"
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json", **_sign_headers()}
     payload = {"inputs": {"user_query": scenario["prompt"]}}
     t0 = time.time()
     res = requests.post(url, headers=headers, json=payload, timeout=120)
@@ -188,9 +196,9 @@ def _call_adaline(cfg: dict, scenario: dict) -> tuple[dict, float]:
     res.raise_for_status()
     return res.json(), latency
 
-def _call_omlx(cfg: dict, scenario: dict) -> tuple[dict, float]:
+def _call_ollama(cfg: dict, scenario: dict) -> tuple[dict, float]:
     url = f"{cfg['base_url']}/chat/completions"
-    headers = {"Content-Type": "application/json"}
+    headers = {"Content-Type": "application/json", **_sign_headers()}
     payload = {"model": cfg["model"], "messages": [{"role": "user", "content": scenario["prompt"]}], "stream": False}
     t0 = time.time()
     res = requests.post(url, headers=headers, json=payload, timeout=180)
@@ -267,7 +275,7 @@ def run_evaluation(task_id: Optional[str], scenario_filter: int, full: bool, jso
             if env_cfg["provider"] == "adaline":
                 data, latency = _call_adaline(env_cfg, scenario)
             else:
-                data, latency = _call_omlx(env_cfg, scenario)
+                data, latency = _call_ollama(env_cfg, scenario)
 
             # Truncamiento
             response_text = str(data)
@@ -331,7 +339,7 @@ def main():
             handle_env(args.set, args.json)
     except ConnectionError as e:
         print(colorize(f"Error de conexión: {e}", Colors.FAIL), file=sys.stderr)
-        log_hint("Verifica que el servicio backend (ej. oMLX 8080) esté corriendo y que la URL sea correcta.", getattr(args, "json", False))
+        log_hint("Verifica que el servicio backend (ej. Ollama 11434) esté corriendo y que la URL sea correcta.", getattr(args, "json", False))
         sys.exit(3)
     except Exception as e:
         print(colorize(f"Error general: {e}", Colors.FAIL), file=sys.stderr)
