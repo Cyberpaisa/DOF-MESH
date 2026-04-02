@@ -433,7 +433,8 @@ def tool_mesh_consensus(params: dict) -> dict:
 def resource_constitution() -> dict:
     """Return the DOF constitution as structured data."""
     import yaml
-    path = os.path.join(BASE_DIR, "dof.constitution.yml")
+    project_root = os.path.dirname(BASE_DIR)
+    path = os.path.join(project_root, "dof.constitution.yml")
     try:
         with open(path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
