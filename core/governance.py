@@ -186,7 +186,7 @@ GOVERNANCE_RULES = []
 
 def _sync_rules_from_constitution():
     """Sync HARD_RULES and SOFT_RULES with the YAML constitution if available."""
-    global HARD_RULES, SOFT_RULES, PII_PATTERNS
+    global HARD_RULES, SOFT_RULES
     const = load_constitution()
     if not const:
         return

@@ -53,30 +53,32 @@ class TestToolExecution(unittest.TestCase):
         self.assertIn("TIMEOUT", out)
 
     # ------------------------------------------------------------------ python
+    # Phase 4.3: _run_python blocked by Sovereign Air-Gap (RCE prevention)
     def test_python_simple(self):
         out, ok = self.ex._run_python("print('dof_test_42')")
-        self.assertTrue(ok)
-        self.assertIn("dof_test_42", out)
+        self.assertFalse(ok)
+        self.assertIn("BLOCKED", out)
 
     def test_python_captures_stderr(self):
         out, ok = self.ex._run_python("import sys; sys.stderr.write('err_output')")
-        self.assertIn("err_output", out)
+        self.assertFalse(ok)
+        self.assertIn("BLOCKED", out)
 
     def test_python_exception(self):
         out, ok = self.ex._run_python("raise ValueError('test_error')")
         self.assertFalse(ok)
-        self.assertIn("ValueError", out)
-        self.assertIn("test_error", out)
+        self.assertIn("BLOCKED", out)
 
     def test_python_no_output_ok(self):
         out, ok = self.ex._run_python("x = 1 + 1")
-        self.assertTrue(ok)
-        self.assertIn("OK", out)
+        self.assertFalse(ok)
+        self.assertIn("BLOCKED", out)
 
     def test_python_accesses_repo_root(self):
+        # Air-Gap blocks exec() — path check irrelevant
         out, ok = self.ex._run_python("print(REPO_ROOT)")
-        self.assertTrue(ok)
-        self.assertIn("DOF-MESH", out)
+        self.assertFalse(ok)
+        self.assertIn("BLOCKED", out)
 
     # ------------------------------------------------------------------ read_file
     def test_read_file_existing(self):
@@ -225,14 +227,15 @@ class TestAgentLoop(unittest.TestCase):
 
     @patch.object(AutonomousExecutor, "_call_llm")
     def test_python_tool_then_done(self, mock_llm):
-        """Model uses python execution."""
+        """Phase 4.3: python exec blocked by Air-Gap — executor continues to done."""
         mock_llm.side_effect = [
             "<python>print('result_42')</python>",
             "<done>Python ran.</done>",
         ]
         result = self.ex.execute("t4", "Run python")
         self.assertTrue(result.success)
-        self.assertIn("result_42", result.tool_calls[0].output)
+        # Air-Gap blocks exec — output contains BLOCKED message, not result_42
+        self.assertIn("BLOCKED", result.tool_calls[0].output)
 
     @patch.object(AutonomousExecutor, "_call_llm")
     def test_ollama_none_returns_error(self, mock_llm):

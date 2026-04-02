@@ -22,8 +22,10 @@ import os
 import sys
 import unittest
 
-# Ensure project root is in path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Ensure project root and core/ are in path
+_BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, _BASE)
+sys.path.insert(0, os.path.join(_BASE, "core"))
 
 import mcp_server
 

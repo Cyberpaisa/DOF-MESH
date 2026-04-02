@@ -81,7 +81,7 @@
       "status": "mainnet",
       "gas_multiplier": 1,
       "native_token": "ETH",
-      "notes": "Coinbase L2. Strong for DeFi agents and AI agent economy."
+      "notes": "Coinbase L2. Strong for DeFi agents and AI agent economy. | Virtuals ACP: Base mainnet \u2014 DOFProofRegistry. DOF registrado como ACP Evaluator en Virtuals Protocol."
     },
     "base_sepolia": {
       "chain_id": 84532,
@@ -178,16 +178,6 @@
       "native_token": "TEMPO",
       "gas_multiplier": 1.2,
       "notes": "Stripe+Paradigm L1 para agentes. DOFIdentityRegistry deployado."
-    },
-    "virtuals": {
-      "chain_id": 8453,
-      "name": "Base (Virtuals ACP)",
-      "rpc_url": "https://mainnet.base.org",
-      "contract_address": "0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D",
-      "status": "mainnet",
-      "native_token": "ETH",
-      "gas_multiplier": 1.1,
-      "notes": "Base mainnet \u2014 DOFProofRegistry. DOF registrado como ACP Evaluator en Virtuals Protocol."
     }
   }
 }
