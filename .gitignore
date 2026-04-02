@@ -87,6 +87,7 @@ certs/
 # Security — never track secrets
 .env
 .env.*
+*.env.local
 *.key
 *.pem
 certs/
@@ -96,6 +97,15 @@ credentials.json
 data/extraction/*.jsonl
 data/extraction/coliseum_vault.jsonl
 data/extraction/due_diligence_vault.jsonl
+
+# Sovereign Vault — contains raw API keys in monitor exports
+Sovereign_Vault/
+*.vault
+vault_*/
+
+# Wallet files — NEVER commit
+wallet.env
+*.wallet
 
 # Private strategy docs (kept in ~/DOF-MESH-PRIVATE/)
 docs/04_strategy/PUBLICATION_REPORT_2026.md
