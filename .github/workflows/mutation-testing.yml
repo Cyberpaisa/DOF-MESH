@@ -22,7 +22,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install z3-solver pyyaml python-dotenv rich blake3 fastapi httpx sqlalchemy web3 psutil
+          pip install -e . --no-deps
           pip install mutmut
       - name: Run mutation testing on adversarial
         run: |

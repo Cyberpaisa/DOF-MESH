@@ -45,7 +45,7 @@ SECRET_PATTERNS = [
 
 def _sync_ast_rules():
     """Sync AST rules with the YAML constitution if available."""
-    global BLOCKED_IMPORTS, UNSAFE_CALLS, SECRET_PATTERNS
+    global BLOCKED_IMPORTS, UNSAFE_CALLS
     try:
         from core.governance import load_constitution
         const = load_constitution()
