@@ -8,11 +8,11 @@
 
 | Chain | Chain ID | RPC | Gas | DOFProofRegistry | Estado |
 |-------|----------|-----|-----|-----------------|--------|
-| SKALE Europa Hub | 2046399126 | `https://mainnet.skalenodes.com/v1/elated-tan-skat` | sFUEL (gratis) | `0x993399D9F8b8c5BF905367CeA6AB6317afDc9A1d` | ✅ ACTIVO |
-| SKALE Base (mainnet) | 1187947933 | `https://skale-base.skalenodes.com/v1/base` | CREDIT (pago) | pendiente | ⏳ requiere CREDIT |
-| SKALE Base Sepolia | 324705682 | `https://base-sepolia-testnet.skalenodes.com/v1/jubilant-horrible-ancha` | CREDIT (faucet) | pendiente | ⏳ faucet manual |
-
-**Para SKALE Base:** https://base-sepolia-faucet.skale.space (manual) o comprar CREDIT con USDC/SKL.
+| SKALE Europa | 2046399126 | `.../elated-tan-skat` | sFUEL gratis | `0x993399D9...9A1d` | ✅ deploy + attest |
+| SKALE Calypso | 1564830818 | `.../honorable-steel-rasalhague` | sFUEL gratis | `0x4e54634d...881D` | ✅ deploy + attest |
+| SKALE Nebula | 1482601649 | `.../green-giddy-denebola` | sFUEL gratis | `0x4e54634d...881D` | ✅ deploy + attest |
+| SKALE Base Sepolia | 324705682 | `.../jubilant-horrible-ancha` | CREDIT faucet | `0x4e54634d...881D` | ✅ deploy + attest |
+| SKALE Base Mainnet | 1187947933 | `skale-base.skalenodes.com/v1/base` | CREDIT pago | pendiente | ⏳ requiere CREDIT |
 
 ---
 
