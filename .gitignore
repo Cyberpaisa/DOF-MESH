@@ -118,3 +118,9 @@ docs/04_strategy/DOF_EVOLUTION_CLARITY.md
 docs/06_security/
 logs/security/
 SAFE_INJECTION.txt
+
+# Local-only — not for public repo
+docs/03_book/
+docs/evidence/
+docs/09_sessions/
+docs/08_agents/
