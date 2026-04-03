@@ -249,3 +249,18 @@ docs/06_security/SOVEREIGN_SECURITY.md
 
 # Internal agentic capabilities — local only
 _internal/
+
+# Claude skills — internal tools, never public
+.claude/
+.agents/
+
+# Internal research docs in 02_research
+docs/02_research/CLAUDE_COMMANDER_BREAKTHROUGH.md
+docs/02_research/CODE_ANALYSIS_MUSE.md
+docs/02_research/EXPERIMENTO_DATOS_FALTANTES.md
+docs/02_research/LESSONS_LEARNED.md
+docs/02_research/MESH_LEGION_LEARNINGS.md
+docs/02_research/REPO_EVALUATION.md
+docs/02_research/REPO_EVALUATION_2.md
+docs/02_research/RESEARCH_HUMANITY.md
+docs/02_research/articulo_x_dof.md
