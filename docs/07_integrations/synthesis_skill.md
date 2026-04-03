@@ -1,1 +1,0 @@
-Redirecting to https://synthesis.devfolio.co/skill.md
