@@ -12,7 +12,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-DOF--MESH-181717?style=for-the-badge&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
 [![On-Chain](https://img.shields.io/badge/Avalanche-0x0b65d10F...751c-e84142?style=for-the-badge&logo=avalanche)](https://snowtrace.io/address/0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c)
 
-[![Tests](https://img.shields.io/badge/Tests-4%2C157_passing-brightgreen?style=flat-square)]()
+[![Tests](https://img.shields.io/badge/Tests-4%2C191_passing-brightgreen?style=flat-square)]()
 [![PyPI](https://img.shields.io/pypi/v/dof-sdk?color=blue&style=flat-square)](https://pypi.org/project/dof-sdk/)
 [![Python](https://img.shields.io/badge/python-3.11+-blue?style=flat-square)](https://pypi.org/project/dof-sdk/)
 [![Modules](https://img.shields.io/badge/Modules-142-blue?style=flat-square)]()
@@ -190,7 +190,7 @@ A deterministic function does. Every time. Same answer.
 
 | Metric | Value |
 |:-------|------:|
-| Unit tests | **4,157** |
+| Unit tests | **4,191** |
 | Autonomous cycles | **238+** |
 | On-chain attestations | **30+** |
 | Chains (mainnets) | **7** |
@@ -200,6 +200,58 @@ A deterministic function does. Every time. Same answer.
 | Hierarchy patterns (Z3) | **42 PROVEN** |
 | LLM providers | **7+ (Cerebras, Groq, DeepSeek, Gemini, NVIDIA, SambaNova, Zhipu)** |
 | Governance mode | **100% deterministic, 0% LLM** |
+
+---
+
+## Pre-Execution Governance — The Architectural Leap
+
+Most AI governance frameworks check what happened.
+DOF checks what's *about to* happen.
+
+Every tool call passes through a 3-layer pipeline before
+execution is permitted:
+
+```
+Agent proposes action
+        │
+        ▼
+┌─────────────────────┐
+│  Layer 1            │   ConstitutionEnforcer
+│  HARD BLOCK         │   Blocked tools rejected instantly.
+│                     │   No LLM. No tokens. No exceptions.
+└─────────┬───────────┘
+          │ PASS
+          ▼
+┌─────────────────────┐
+│  Layer 2            │   Z3Gate (neurosymbolic)
+│  FORMAL VERIFY      │   4 invariants proven mathematically.
+│                     │   keccak256 proof hash generated.
+└─────────┬───────────┘
+          │ APPROVED
+          ▼
+┌─────────────────────┐
+│  Layer 3            │   PostToolUse
+│  ATTEST             │   Attestation written to JSONL + chain.
+│                     │   Immutable. Auditable. Verifiable.
+└─────────────────────┘
+```
+
+```python
+from core.tool_hooks import ToolHookPipeline, GovernanceViolation
+
+hook = ToolHookPipeline()
+
+# Before any tool executes:
+pre = hook.pre_tool_use("transfer", "amount=500 token=USDC", "apex-1687")
+if not pre.allowed:
+    raise GovernanceViolation(pre.reason)
+
+# After execution:
+post = hook.post_tool_use("transfer", result, "apex-1687", pre_result=pre)
+print(post.attestation_hash)  # 0x44b45cd026916c...
+```
+
+**34 tests. 0 failures. Every tool call governed before it runs.**
 
 ---
 
