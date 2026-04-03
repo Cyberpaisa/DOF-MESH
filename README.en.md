@@ -307,7 +307,7 @@ Full data: [`experiments/winston_vs_baseline/`](experiments/winston_vs_baseline/
 ## Repository Structure
 
 ```
-equipo-de-agentes/
+DOF-MESH/
   core/                     # 142 modules -- the framework engine
     governance.py            # ConstitutionEnforcer, HARD/SOFT rules
     z3_verifier.py           # 4 theorems formally PROVEN
@@ -337,16 +337,6 @@ equipo-de-agentes/
 
 ---
 
-<div align="center">
-
-**DOF-MESH -- Deterministic Observability Framework**
-
-*Verify. Prove. Attest. · Mathematics, not promises.*
-
-**Enigma Group · Medellín, Colombia**
-
 [![PyPI](https://img.shields.io/badge/Install-pip_install_dof--sdk-blue?style=for-the-badge&logo=pypi)](https://pypi.org/project/dof-sdk/)
 [![GitHub](https://img.shields.io/badge/GitHub-DOF--MESH-181717?style=for-the-badge&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
 [![On-Chain](https://img.shields.io/badge/On--Chain_Proof-7_chains-e84142?style=for-the-badge&logo=ethereum)](https://snowtrace.io/address/0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c)
-
-</div>

@@ -269,3 +269,13 @@ docs/02_research/REPO_EVALUATION.md
 docs/02_research/REPO_EVALUATION_2.md
 docs/02_research/RESEARCH_HUMANITY.md
 docs/02_research/articulo_x_dof.md
+
+# Runtime temp folders
+supabase/
+conversations/
+uploads/
+MEMORY.md
+
+# Misc test artifacts
+*.txt
+!requirements.txt
