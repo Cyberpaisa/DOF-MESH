@@ -28,7 +28,7 @@ BASE_DIR = Path("/Users/jquiceva")
 ADVERSARIAL_LOG    = BASE_DIR / "equipo-de-agentes/logs/adversarial.jsonl"
 SEC_HIERARCHY_LOG  = BASE_DIR / "equipo-de-agentes/logs/security_hierarchy.jsonl"
 ENIGMA_BRIDGE_LOG  = BASE_DIR / "equipo-de-agentes/logs/enigma_bridge.jsonl"
-SENTINEL_LOG       = BASE_DIR / "DOF-MESH/logs/sentinel/validations.jsonl"
+SENTINEL_LOG       = BASE_DIR / "equipo-de-agentes/logs/sentinel/validations.jsonl"
 
 # Pesos del evaluador combinado
 DATASET_WEIGHTS = {
