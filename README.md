@@ -56,6 +56,20 @@ Z3 is the theorem prover used in safety-critical systems where failure is not an
 
 ---
 
+## What DOF-MESH Is — and Is Not
+
+DOF-MESH is not an agent framework. You don't replace your agents with ours.
+
+It is a verification layer. Your agent runs. DOF intercepts the output, checks it against deterministic rules and Z3 formal proofs, and writes a cryptographic receipt on-chain before the result is accepted. One layer on top of whatever you already have.
+
+LangChain. CrewAI. AutoGen. A custom agent. It doesn't matter. DOF governs it.
+
+The agents in this repository are not the product. They are 15 agents we built to run on top of DOF and validate that the framework works under real conditions. Every test, every attestation, every Winston experiment result — produced by those agents, governed by this layer.
+
+The framework is what you install. The agents are the proof that it works.
+
+---
+
 ## Quick Install
 
 ```bash
