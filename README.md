@@ -28,29 +28,31 @@
 
 ## The Problem
 
-AI agents are black boxes. They act, but nobody can prove _what_ they did, _why_ they did it, or whether their governance was actually enforced. When something goes wrong — a credit approved in error, a fraudulent transfer not blocked, a wrong protocol executed — you get logs the agent wrote about itself.
+Your AI agent just made a decision. You have logs.
+Logs the agent wrote about itself.
 
-That's not proof. That's testimony.
+That is not proof. That is testimony.
 
-The obvious answer is using AI to watch AI. It sounds logical — until your watchdog LLM hallucinates that everything is fine while an attacker manipulates your agent with a prompt injection. An LLM can't prove anything. It can only guess.
+The industry's fix is AI watching AI — until your watchdog hallucinates that everything is fine while an attacker manipulates your agent. We tested 10 frontier models. None could reliably govern themselves. Every one improved 6% to 50% only when a deterministic layer enforced the rules from outside.
 
-We tested it. We ran 10 of the best AI models in the world — DeepSeek, Claude, GPT-4o, Gemini — and measured whether any of them could reliably govern themselves. None could. Every single one improved its output quality by 6% to 50% only when an external deterministic layer enforced the rules. Left alone, even the best model drifts, hallucinates, and produces unverifiable decisions.
-
-> The formal verification engine Z3 — the same technology used to certify nuclear reactors and commercial aviation — now certifies your agents. Not statistically. Mathematically.
+Regulators are already asking: *"How do you prove your AI made that decision correctly?"*
+Nobody has a standard answer yet.
 
 ## Our Solution
 
-DOF-MESH is a **deterministic governance and observability framework** for autonomous AI agents. Every decision passes through a mathematically verified pipeline -- no LLM in the governance loop, no probabilistic shortcuts, no trust assumptions.
+A deterministic verification layer for autonomous AI agents.
 
-The pipeline is simple and absolute:
+Every decision is translated into formal constraints, verified mathematically in under 30ms, and anchored on-chain as a cryptographic receipt. Not logs. Not monitoring. A proof.
 
 ```
-Identity --> Task --> LLM --> Governance --> Z3 Proof --> On-Chain --> Supervisor
+Identity → Task → LLM → Governance → Z3 Proof → On-Chain → Supervisor
 ```
 
-Every agent action produces a cryptographic receipt. Every governance decision is formally verified. Every proof is recorded on-chain. The result: an autonomous agent whose behavior is **provably correct, publicly auditable, and permanently recorded**.
+Z3 is the theorem prover used in safety-critical systems where failure is not an option. It doesn't estimate compliance. It proves it.
 
-> **DOF doesn't monitor. DOF proves.** Z3 — the same formal verification engine used to certify aircraft and nuclear reactors — now certifies your agents. Not statistically. Mathematically.
+**Verified** by formal constraints. **Auditable** by anyone. **Immutable** once recorded.
+
+> DOF doesn't monitor. DOF proves.
 
 ---
 
