@@ -19,7 +19,7 @@ import os
 import time
 import uuid
 import logging
-from typing import Any
+from typing import Any, Optional
 
 from core.providers import ProviderManager, BayesianProviderSelector
 from core.checkpointing import CheckpointManager
@@ -41,6 +41,19 @@ try:
 except ImportError:
     _Z3_GATE_AVAILABLE = False
 
+# Tool hooks integration (PreToolUse / PostToolUse governance pipeline)
+try:
+    from core.tool_hooks import ToolHookPipeline, GovernanceViolation
+    _TOOL_HOOKS_AVAILABLE = True
+except ImportError:
+    _TOOL_HOOKS_AVAILABLE = False
+
+    class ToolHookPipeline:  # type: ignore[no-redef]
+        pass
+
+    class GovernanceViolation(Exception):  # type: ignore[no-redef]
+        pass
+
 logger = logging.getLogger("core.crew_runner")
 
 _z3_gate = Z3Gate() if _Z3_GATE_AVAILABLE else None
@@ -54,7 +67,8 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
              adversarial_mode: bool = False,
              contract_path: str = "",
              governed_memory: bool = False,
-             oracle_mode: bool = False) -> dict:
+             oracle_mode: bool = False,
+             tool_hook: "Optional[ToolHookPipeline]" = None) -> dict:
     """Execute a crew with full FASE 0 + FASE 1 infrastructure.
 
     Args:
@@ -71,6 +85,10 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
         oracle_mode: When True, create an ERC-8004 attestation certificate
             after successful execution (ACCEPT). Only COMPLIANT attestations
             are published on-chain.
+        tool_hook: Optional ToolHookPipeline. When provided, pre_tool_use is
+            called on each kickoff attempt BEFORE execution and post_tool_use
+            is called AFTER. A GovernanceViolation from pre_tool_use aborts
+            the attempt and counts as a retriable failure.
 
     Returns dict with:
         status, output, run_id, summary, supervisor, governance,
@@ -203,11 +221,34 @@ def run_crew(crew_name: str, crew: Any, input_text: str = "",
             pass  # L0 triage not available, proceed normally
 
         try:
+            # ── PreToolUse governance check ───────────────────────────
+            pre_result = None
+            if tool_hook is not None:
+                pre_result = tool_hook.pre_tool_use(
+                    tool_name="crew_kickoff",
+                    tool_input=input_text,
+                    agent_id=crew_name,
+                )
+                if not pre_result.allowed:
+                    raise GovernanceViolation(
+                        f"[PreToolUse] {pre_result.reason}",
+                        hook_result=pre_result,
+                    )
+
             step_start = time.time()
             result = crew.kickoff()
             step_ms = (time.time() - step_start) * 1000
 
             output = result.raw if hasattr(result, "raw") else str(result)
+
+            # ── PostToolUse audit ────────────────────────────────────
+            if tool_hook is not None:
+                tool_hook.post_tool_use(
+                    tool_name="crew_kickoff",
+                    tool_output=output,
+                    agent_id=crew_name,
+                    pre_result=pre_result,
+                )
 
             # Guard: silent empty-output from provider — treat as retriable failure
             # Prevents "" from reaching governance and poisoning governance_compliance_rate
