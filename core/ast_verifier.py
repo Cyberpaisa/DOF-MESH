@@ -93,6 +93,7 @@ class VerificationResult:
     passed: bool
     violations: list[dict] = field(default_factory=list)
     score: float = 1.0  # 1.0 = clean, 0.0 = all rules violated
+    semantic_diff: dict = field(default_factory=dict)  # sem enrichment (optional)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -286,7 +287,58 @@ class ASTVerifier:
     """Static analysis verifier for agent-generated Python code.
 
     Zero LLM dependency — all checks are deterministic via ast + regex.
+    Optionally enriched with semantic entity-level diffs via sem_analyzer.
     """
+
+    def verify_diff(
+        self,
+        before_code: str,
+        after_code: str,
+        filename: str = "agent_code.py",
+        constitution_rules: dict | None = None,
+    ) -> VerificationResult:
+        """
+        Verify agent-generated code AND produce a semantic entity-level diff.
+
+        Runs two layers:
+          1. Standard AST verification on after_code (imports, calls, secrets, resources)
+          2. sem diff between before_code and after_code — reports which functions
+             and classes were added, modified, or deleted, and checks them against
+             constitution rules (e.g. blocked entity names, disallowed change types)
+
+        If sem is not installed, layer 2 is skipped and the result is identical
+        to calling verify(after_code) — no existing behaviour is broken.
+
+        Args:
+            before_code:        Source before the agent modified it.
+            after_code:         Source the agent produced.
+            filename:           Hint for language detection (must match the source lang).
+            constitution_rules: Optional dict — see sem_analyzer.sem_verify_entities().
+
+        Returns:
+            VerificationResult with .semantic_diff populated when sem is available.
+        """
+        # Layer 1 — standard AST check on the generated code
+        result = self.verify(after_code)
+
+        # Layer 2 — semantic diff (graceful fallback if sem not installed)
+        try:
+            from core.sem_analyzer import sem_diff, sem_verify_entities, sem_audit_entry
+            diff = sem_diff(before_code, after_code, filename=filename)
+            sem_passed, sem_violations = sem_verify_entities(diff, constitution_rules)
+            audit = sem_audit_entry(diff, agent_id="ast_verifier", action="verify_diff")
+
+            # Merge semantic violations into the result
+            for v in sem_violations:
+                result.violations.append(v)
+                if v["severity"] == "block":
+                    result.passed = False
+
+            result.semantic_diff = audit.get("semantic_diff", {})
+        except Exception as e:
+            logger.debug(f"sem enrichment skipped: {e}")
+
+        return result
 
     def verify(self, source_code: str) -> VerificationResult:
         """Verify Python source code. Returns VerificationResult."""
