@@ -1,6 +1,23 @@
-# DOF Live Attestations — v0.4.1
+# DOF Live Attestations — v0.5.1
 
-Total: **35 attestations** on 2 chains, 4 different wallets.
+**DOFProofRegistry — 8 chains activas (verificadas on-chain 03 abr 2026)**
+
+| Chain | Chain ID | Contrato | Tipo |
+|---|---|---|---|
+| Avalanche C-Chain | 43114 | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` | ✅ mainnet |
+| Base Mainnet | 8453 | `0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D` | ✅ mainnet |
+| Celo Mainnet | 42220 | `0x35B320A06DaBe2D83B8D39D242F10c6455cd809E` | ✅ mainnet |
+| Avalanche Fuji | 43113 | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | ✅ testnet |
+| Base Sepolia | 84532 | `0x7e0f0D0bC09D14Fa6C1F79ab7C0EF05b5e4F1f59` | ✅ testnet |
+| Conflux Testnet | 71 | `0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83` | ✅ testnet |
+| Polygon Amoy | 80002 | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | ✅ testnet |
+| SKALE Base Sepolia | 324705682 | `0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D` | ✅ testnet · zero gas |
+
+**DEPRECATED:** `0x88f6043B091055Bbd896Fc8D2c6234A47C02C052` — DOFValidationRegistry v1 (on-chain pero reemplazado)
+
+---
+
+Total: **30+ attestations** on 2 chains with TX records, 4 different wallets.
 
 ---
 

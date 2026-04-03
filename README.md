@@ -6,23 +6,23 @@
 
 ### Verify. Prove. Attest. · Mathematics, not promises.
 
-**DOF-MESH v0.5.0 | 7 Chains | Enigma Group · Medellín, Colombia**
+**DOF-MESH v0.5.1 | 8 Chains | Enigma Group · Medellín, Colombia**
 
 [![PyPI](https://img.shields.io/badge/PyPI-dof--sdk-blue?style=for-the-badge&logo=pypi)](https://pypi.org/project/dof-sdk/)
 [![GitHub](https://img.shields.io/badge/GitHub-DOF--MESH-181717?style=for-the-badge&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
-[![On-Chain](https://img.shields.io/badge/Avalanche-0x0b65d10F...751c-e84142?style=for-the-badge&logo=avalanche)](https://snowtrace.io/address/0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c)
+[![On-Chain](https://img.shields.io/badge/Avalanche-0x154a3F49...26F6-e84142?style=for-the-badge&logo=avalanche)](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6)
 
 [![Tests](https://img.shields.io/badge/Tests-4%2C191_passing-brightgreen?style=flat-square)]()
 [![PyPI](https://img.shields.io/pypi/v/dof-sdk?color=blue&style=flat-square)](https://pypi.org/project/dof-sdk/)
 [![Python](https://img.shields.io/badge/python-3.11+-blue?style=flat-square)](https://pypi.org/project/dof-sdk/)
 [![Modules](https://img.shields.io/badge/Modules-142-blue?style=flat-square)]()
 [![Z3](https://img.shields.io/badge/Z3-4_theorems_PROVEN-critical?style=flat-square)]()
-[![Chains](https://img.shields.io/badge/Chains-7-gold?style=flat-square)]()
+[![Chains](https://img.shields.io/badge/Chains-8-gold?style=flat-square)]()
 [![Attestations](https://img.shields.io/badge/Attestations-30%2B-orange?style=flat-square)]()
 [![LOC](https://img.shields.io/badge/LOC-57K%2B-lightgrey?style=flat-square)]()
 [![License](https://img.shields.io/badge/License-BSL--1.1-purple?style=flat-square)](LICENSE)
 
-[PyPI](https://pypi.org/project/dof-sdk/) | [Getting Started](docs/05_operations/GETTING_STARTED.md) | [Documentation](docs/INDEX.md) | [On-Chain Proof](https://snowtrace.io/address/0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c) | [@Cyber_paisa](https://t.me/Cyber_paisa)
+[PyPI](https://pypi.org/project/dof-sdk/) | [Getting Started](docs/05_operations/GETTING_STARTED.md) | [Documentation](docs/INDEX.md) | [On-Chain Proof](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6) | [@Cyber_paisa](https://t.me/Cyber_paisa)
 
 </div>
 
@@ -148,7 +148,7 @@ docker-compose up -d --build
 |  |                               |  DOFProofRegistry             |  |
 |  |      LangChain · CrewAI       |  Avalanche · Base · Celo      |  |
 |  |      AutoGen · Custom         |  Polygon · SKALE · Conflux    |  |
-|  |                               |  7 chains · 30+ attestations  |  |
+|  |                               |  8 chains · 30+ attestations  |  |
 |  +-------------------------------+-------------------------------+  |
 +=====================================================================+
 ```
@@ -163,7 +163,7 @@ docker-compose up -d --build
 | **Z3Verifier** | 4 mathematical theorems formally PROVEN every cycle. Generates keccak256 proof hashes for on-chain recording. |
 | **Z3Gate** | Neurosymbolic gate -- LLM proposes, Z3 verifies. APPROVED / REJECTED / TIMEOUT / FALLBACK. |
 | **MetaSupervisor** | Weighted quality scoring: Q(0.40) + A(0.25) + C(0.20) + F(0.15). Outputs ACCEPT, RETRY, or ESCALATE. |
-| **DOFProofRegistry** | Multi-chain attestation engine. Writes proof receipts to 7 chains. Verifiable by any third party. |
+| **DOFProofRegistry** | Multi-chain attestation engine. Writes proof receipts to 8 chains. Verifiable by any third party. |
 | **MeshDaemon** | 29 nodes + threshold consensus. Byzantine guard, CRDT memory, constitution hash beacon. |
 | **ProviderManager** | LiteLLM router across 7+ LLMs. TTL backoff, automatic failover, Thompson Sampling. |
 
@@ -174,7 +174,7 @@ docker-compose up -d --build
 We wrote 4,157 tests before calling it a framework.
 Most projects write them after something breaks.
 
-The proofs aren't in our database. They're on 7 public blockchains.
+The proofs aren't in our database. They're on 8 public blockchains.
 Go check — nobody has to take our word for it.
 
 We tested 10 of the best AI models in the world.
@@ -273,17 +273,20 @@ print(post.attestation_hash)  # 0x44b45cd026916c...
 
 ## On-Chain Attestation
 
-**DOFProofRegistry** deployed and attested on 7 chains. Every attestation publicly verifiable.
+**DOFProofRegistry** deployed on 8 chains (3 mainnet + 5 testnet). Verified on-chain 03 Apr 2026.
 
-| Chain | Contract | Block | Status |
-|:------|:---------|------:|:-------|
-| Avalanche C-Chain | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | 81,945,671 | ✅ mainnet |
-| Base Mainnet | `0x993399D9F8b8c5BF905367CeA6AB6317afDc9A1d` | 44,186,111 | ✅ mainnet |
-| Celo Mainnet | `0x35B320A06DaBe2D83B8D39D242F10c6455cd809E` | 63,262,268 | ✅ mainnet |
-| Polygon Mainnet | `0x1b65658A53CbB64BA4A93F644D7be3B67b237886` | 85,020,959 | ✅ mainnet |
-| SKALE Europa | `0x993399D9F8b8c5BF905367CeA6AB6317afDc9A1d` | 24,839,948 | ✅ mainnet · zero gas |
-| Conflux eSpace | `0x4e54634d1bD2480610b2A1b22F3a9e1727d9881D` | 248,014,025 | ✅ mainnet |
-| Avalanche Fuji | `0x4e54634d1bD2480610b2A1b22F3a9e1727d9881D` | 53,553,908 | ✅ testnet |
+| Chain | Contract | Status |
+|:------|:---------|:-------|
+| Avalanche C-Chain (43114) | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` | ✅ mainnet |
+| Base Mainnet (8453) | `0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D` | ✅ mainnet |
+| Celo Mainnet (42220) | `0x35B320A06DaBe2D83B8D39D242F10c6455cd809E` | ✅ mainnet |
+| Avalanche Fuji (43113) | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | ✅ testnet |
+| Base Sepolia (84532) | `0x7e0f0D0bC09D14Fa6C1F79ab7C0EF05b5e4F1f59` | ✅ testnet |
+| Conflux Testnet (71) | `0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83` | ✅ testnet |
+| Polygon Amoy (80002) | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | ✅ testnet |
+| SKALE Base Sepolia (324705682) | `0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D` | ✅ testnet · zero gas |
+
+**Roadmap:** Polygon mainnet · Conflux eSpace · SKALE Base mainnet
 
 ```
 ERC-8004 Agent:    #1687 (Apex) · #1686 (AvaBuilder)
@@ -311,7 +314,7 @@ Gas cost:          $0.01/tx · SKALE chains: zero gas · Merkle batch: 10K attes
 5. Z3 PROOF        Z3Verifier generates formal mathematical proof
                    4 invariants checked, proof hash = keccak256(proof)
                    |
-6. ON-CHAIN        DOFProofRegistry writes attestation to 7 chains
+6. ON-CHAIN        DOFProofRegistry writes attestation to 8 chains
                    ERC-8004 receipt with agent ID + proof hash
                    |
 7. SUPERVISOR      MetaSupervisor scores: Q(0.40)+A(0.25)+C(0.20)+F(0.15)
@@ -349,7 +352,7 @@ Full data: [`experiments/winston_vs_baseline/`](experiments/winston_vs_baseline/
 | [System Architecture](docs/01_architecture/SYSTEM_ARCHITECTURE.md) | Full governance pipeline with latency per layer |
 | [Case Study — Apex #1687](docs/02_research/CASE_STUDY_APEX_1687.md) | 238 autonomous cycles · 0 incidents · 30+ attestations |
 | [Winston Experiment](docs/02_research/EXPERIMENT_WINSTON_VS_BASELINE.md) | Raw data: +26.1% average across 10 frontier models |
-| [Multichain Deployment](docs/05_operations/MULTICHAIN.md) | Deploy DOFProofRegistry to 7 chains |
+| [Multichain Deployment](docs/05_operations/MULTICHAIN.md) | Deploy DOFProofRegistry to 8 chains |
 | [SKALE Integration](docs/04_strategy/SKALE_INTEGRATION.md) | Zero-gas chains · x402 · BITE · IMA bridge |
 | [Attestations](docs/05_operations/ATTESTATIONS.md) | On-chain proof records — publicly verifiable |
 | [Full Index](docs/INDEX.md) | All public documentation |
@@ -371,7 +374,7 @@ equipo-de-agentes/
     claude_commander.py      # 5 modes: SDK, Spawn, Team, Debate, Peers
     ...
   agents/                   # agents running on DOF (validation, not the product)
-  contracts/                # DOFProofRegistry.sol (deployed on 7 chains)
+  contracts/                # DOFProofRegistry.sol (deployed on 8 chains — 3 mainnet + 5 testnet)
   integrations/             # CrewAI, AgentKit, Virtuals, SKALE, Tempo
   tests/                    # 4,157 unit tests
   docs/                     # public documentation
@@ -385,7 +388,7 @@ equipo-de-agentes/
 
 **@Cyber_paisa** · [Telegram](https://t.me/Cyber_paisa)
 
-**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,157 tests. 7 chains. 142 modules. Mathematics, not promises.
+**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,157 tests. 8 chains (3 mainnet + 5 testnet). 142 modules. Mathematics, not promises.
 
 ---
 
@@ -399,6 +402,6 @@ equipo-de-agentes/
 
 [![PyPI](https://img.shields.io/badge/Install-pip_install_dof--sdk-blue?style=for-the-badge&logo=pypi)](https://pypi.org/project/dof-sdk/)
 [![GitHub](https://img.shields.io/badge/GitHub-DOF--MESH-181717?style=for-the-badge&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
-[![On-Chain](https://img.shields.io/badge/On--Chain_Proof-7_chains-e84142?style=for-the-badge&logo=ethereum)](https://snowtrace.io/address/0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c)
+[![On-Chain](https://img.shields.io/badge/On--Chain_Proof-8_chains-e84142?style=for-the-badge&logo=ethereum)](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6)
 
 </div>

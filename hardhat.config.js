@@ -2,6 +2,11 @@ require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 
 module.exports = {
+  paths: {
+    sources: "./contracts",
+    cache: "./cache",
+    artifacts: "./artifacts"
+  },
   solidity: {
     compilers: [
       { version: "0.8.19" },
@@ -74,6 +79,11 @@ module.exports = {
       url: "https://ethereum-sepolia-rpc.publicnode.com",
       chainId: 11155111,
       accounts: process.env.DOF_PRIVATE_KEY ? [process.env.DOF_PRIVATE_KEY] : []
+    },
+    skale_europa: {
+      url: "https://mainnet.skalenodes.com/v1/elated-tan-skat",
+      chainId: 2046399126,
+      accounts: process.env.DOF_DEPLOY_KEY ? [process.env.DOF_DEPLOY_KEY] : (process.env.DOF_PRIVATE_KEY ? [process.env.DOF_PRIVATE_KEY] : [])
     }
   },
 };

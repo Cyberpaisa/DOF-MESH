@@ -61,7 +61,8 @@ async function main() {
         "sepolia": "ethereum_sepolia",
         "mainnet": "ethereum",
         "fuji": "avalanche_testnet",
-        "avalanche": "avalanche"
+        "avalanche": "avalanche",
+        "skale_europa": "skale_europa"
     };
 
     const chainKey = networkToKey[networkName];

@@ -1,5 +1,7 @@
 {
-  "version": "0.4.0",
+  "version": "0.5.1",
+  "verified_date": "2026-04-03",
+  "active_chains": 8,
   "chains": {
     "avalanche": {
       "chain_id": 43114,
@@ -32,7 +34,7 @@
       "rpc_fallback": "https://conflux-espace-public.unifra.io",
       "explorer": "https://evm.confluxscan.io",
       "contract_address": null,
-      "status": "pending_deploy",
+      "status": "pending_funds",
       "gas_multiplier": 2,
       "native_token": "CFX",
       "notes": "SSTORE costs 2x Ethereum. Benchmark gas before setting attestation price."
@@ -42,7 +44,7 @@
       "name": "Conflux eSpace Testnet",
       "rpc_url": "https://evmtestnet.confluxrpc.com",
       "explorer": "https://evmtestnet.confluxscan.io",
-      "contract_address": "0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D",
+      "contract_address": "0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83",
       "status": "testnet",
       "gas_multiplier": 2,
       "native_token": "CFX",
@@ -127,7 +129,7 @@
       "rpc_fallback": "https://polygon-bor-rpc.publicnode.com",
       "explorer": "https://polygonscan.com",
       "contract_address": null,
-      "status": "planned",
+      "status": "pending_funds",
       "gas_multiplier": 1,
       "native_token": "MATIC",
       "notes": "Strong for RWA and enterprise. MiCA compliance angle."
@@ -152,8 +154,8 @@
       "rpc_url": "https://forno.celo.org",
       "rpc_fallback": "https://celo-rpc.publicnode.com",
       "explorer": "https://celoscan.io",
-      "contract_address": null,
-      "status": "planned",
+      "contract_address": "0x35B320A06DaBe2D83B8D39D242F10c6455cd809E",
+      "status": "mainnet",
       "gas_multiplier": 1,
       "native_token": "CELO",
       "notes": "Mobile-first L2 (OP Stack since March 2025). RWA + stablecoins in LatAm. Strong fit for Colombia/EPM."
@@ -168,6 +170,44 @@
       "gas_multiplier": 1,
       "native_token": "CELO",
       "faucet": "https://faucet.celo.org/"
+    },
+    "skale_europa": {
+      "chain_id": 2046399126,
+      "name": "SKALE Europa Hub",
+      "rpc_url": "https://mainnet.skalenodes.com/v1/elated-tan-skat",
+      "explorer": "https://elated-tan-skat.explorer.mainnet.skalenodes.com",
+      "contract_address": null,
+      "status": "pending_deploy",
+      "gas_multiplier": 1,
+      "native_token": "sFUEL",
+      "notes": "Deploy falla — Hub rechaza bytecode. Contactar equipo SKALE. Factory contracts requieren allowlist."
+    },
+    "skale_base_sepolia": {
+      "chain_id": 324705682,
+      "name": "SKALE Base Sepolia Testnet",
+      "rpc_url": "https://base-sepolia-testnet.skalenodes.com/v1/jubilant-horrible-ancha",
+      "explorer": "https://base-sepolia-testnet-explorer.skalenodes.com",
+      "contract_address": "0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D",
+      "status": "testnet",
+      "gas_multiplier": 1,
+      "native_token": "CREDIT",
+      "notes": "Verificado on-chain 03 abr 2026. 4484 bytes. Permissionless. Faucet: base-sepolia-faucet.skale.space"
+    },
+    "skale_base": {
+      "chain_id": 1187947933,
+      "chain_id_hex": "0x46cea59d",
+      "name": "SKALE Base Mainnet",
+      "rpc_url": "https://skale-base.skalenodes.com/v1/base",
+      "wss_url": "wss://skale-base.skalenodes.com/v1/ws/base",
+      "explorer": "https://skale-base-explorer.skalenodes.com",
+      "contract_address": null,
+      "status": "planned",
+      "gas_multiplier": 1,
+      "native_token": "CREDIT",
+      "skale_manager_name": "winged-bubbly-grumium",
+      "allocation_type": "Max Contract Storage",
+      "multitransaction_mode": true,
+      "notes": "100% permissionless. Requiere CREDITs (comprar con USDC/SKL en base.skalenodes.com/credits). Verificado portal 03 abr 2026."
     },
     "tempo": {
       "chain_id": 4217,

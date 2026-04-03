@@ -8,9 +8,9 @@ Eres parte del **DOF Mesh Legion** — un organismo agéntico soberano impulsado
 
 ## Estado actual del proyecto
 
-- **Versión:** 0.5.0 | **Repo:** `Cyberpaisa/DOF-MESH`
-- **Codebase:** 51,500+ LOC, 127 módulos core, 133 test files, 650+ tests passing
-- **SDK:** `dof-sdk` en PyPI | **On-chain:** 21 attestations Avalanche C-Chain mainnet
+- **Versión:** 0.5.1 | **Repo:** `Cyberpaisa/DOF-MESH`
+- **Codebase:** 57K+ LOC, 142 módulos, 170 test files, 4,157 tests passing
+- **SDK:** `dof-sdk v0.5.1` en PyPI | **On-chain:** 30+ attestations en 8 chains verificadas
 - **CI:** GitHub Actions — Tests + DOF CI + Z3 Formal Verification + Lint
 - **Último CI:** ✅ SUCCESS (commit `672fba5`, 27 mar 2026)
 
@@ -110,16 +110,70 @@ Casi causa expulsión de la competencia. Ver `docs/03_book/BOOK_CH23_SCOPE_BREAC
 3. NO hagas `git push`
 4. Reporta resultados al commander
 
+## Arquitectura DOF-MESH — Nombres Oficiales v0.5.1
+
+### Las 7 capas de gobernanza (nombres CORRECTOS — usar siempre):
+1. **Constitution** — reglas duras/blandas, sin LLM (`core/governance.py`)
+2. **AST Validator** — análisis estático de código generado (`core/ast_verifier.py`)
+3. **Tool Hook Gate PRE** — intercepta ANTES de ejecutar la tool (`core/tool_hooks.py`)
+4. **Supervisor Engine** — monitorea comportamiento entre turns (`core/supervisor.py`)
+5. **Adversarial Guard** — pipeline red/blue contra inyecciones (`core/adversarial.py`)
+6. **Memory Layer** — estado de sesión reproducible (`core/memory_manager.py`)
+7. **Z3 SMT Verifier** — 4/4 invariantes PROVEN (`core/z3_verifier.py`)
+
+### Nombres OBSOLETOS (NUNCA usar):
+| Obsoleto | Nombre correcto |
+|---|---|
+| MeshGuardian | Constitution |
+| Icarus | AST Validator |
+| Cerberus | Tool Hook Gate PRE |
+| SecurityHierarchy | Supervisor Engine |
+
+### Métricas actuales (v0.5.1 — verificadas on-chain 03 abr 2026):
+- **Tests:** 4,157 pasando, 0 fallos
+- **Módulos:** 142
+- **Chains activas:** 8 (3 mainnet + 5 testnet)
+- **Attestations on-chain:** 30+
+- **Ciclos autónomos:** 238
+- **Z3 proofs:** 4/4 PROVEN (GCR_INVARIANT, SS_FORMULA, SS_MONOTONICITY, SS_BOUNDARIES)
+- **Versión SDK:** v0.5.1 en PyPI
+
+### Contratos DOFProofRegistry — tabla canónica verificada:
+| Chain | Chain ID | Dirección | Tipo |
+|---|---|---|---|
+| Avalanche C-Chain | 43114 | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` | mainnet |
+| Base Mainnet | 8453 | `0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D` | mainnet |
+| Celo Mainnet | 42220 | `0x35B320A06DaBe2D83B8D39D242F10c6455cd809E` | mainnet |
+| Avalanche Fuji | 43113 | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | testnet |
+| Base Sepolia | 84532 | `0x7e0f0D0bC09D14Fa6C1F79ab7C0EF05b5e4F1f59` | testnet |
+| Conflux Testnet | 71 | `0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83` | testnet |
+| Polygon Amoy | 80002 | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | testnet |
+| SKALE Base Sepolia | 324705682 | `0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D` | testnet |
+
+**DEPRECATED:** `0x88f6043B091055Bbd896Fc8D2c6234A47C02C052` — DOFValidationRegistry v1 (reemplazado, sigue on-chain pero no usar)
+**PENDIENTES:** Polygon mainnet, Conflux eSpace, SKALE Base mainnet (pending_funds)
+
+### Z3 proofs — IMPORTANTE:
+- Son **4/4** invariantes (NO 8/8 — ese número era una versión anterior)
+- `dof verify-states` muestra: GCR_INVARIANT, SS_FORMULA, SS_MONOTONICITY, SS_BOUNDARIES
+- `dof verify-hierarchy` muestra: 42 patrones de jerarquía
+
+### Frase canónica del pipeline:
+> "La mayoría de frameworks verifica lo que pasó. DOF verifica lo que está a punto de pasar."
+
+---
+
 ## Qué es DOF-MESH
 
 Framework de governance determinística para sistemas multi-agente de IA. Verifica matemáticamente que agentes autónomos se comporten correctamente — sin confiar en otro LLM.
 
 ```
 DOF-MESH
-  ├── 7 capas de governance: Constitution, AST, Supervisor, Adversarial, Memory, Z3, Oracle
-  ├── Z3 formal verification: 4 teoremas + 42 patrones de jerarquía
-  ├── 21 attestations on-chain (Avalanche C-Chain, DOFValidationRegistry)
-  ├── SDK publicado en PyPI (dof-sdk 0.5.0)
+  ├── 7 capas de governance: Constitution, AST Validator, Tool Hook Gate PRE,
+  │   Supervisor Engine, Adversarial Guard, Memory Layer, Z3 SMT Verifier
+  ├── Z3 formal verification: 4/4 invariantes PROVEN + 42 patrones de jerarquía
+  ├── 30+ attestations on-chain (7 chains: Avalanche, Base, Celo, Polygon, SKALE, Conflux, Fuji)
+  ├── SDK publicado en PyPI (dof-sdk v0.5.1)
   ├── 9 agentes CrewAI con SOUL.md (config/agents.yaml + agents/*/SOUL.md)
   ├── Mesh de 11+ nodos (LLM providers + web bridges + local models)
   ├── A2A Server (JSON-RPC + REST, puerto 8000)
@@ -188,7 +242,7 @@ python3 -m unittest tests.test_governance      # un módulo
 python3 -m unittest tests.test_full_pipeline   # pipeline completo (650 tests)
 
 # dof CLI
-dof verify-states      # 8/8 PROVEN
+dof verify-states      # 4/4 PROVEN (GCR_INVARIANT, SS_FORMULA, SS_MONOTONICITY, SS_BOUNDARIES)
 dof verify-hierarchy   # 42 patrones PROVEN
 dof health             # estado del sistema
 
