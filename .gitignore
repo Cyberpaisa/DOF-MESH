@@ -72,9 +72,14 @@ data/test_dataset_*.json
 # Separate hackathon repo (has its own .git)
 deterministic-observability-framework/
 
-# SOUL files (internal agent identity — not public)
+# Agent identity and internal config — not public
 agents/*/SOUL.md
 agents/soul_*.md
+agents/*/HEARTBEAT.md
+agents/*/DRAFTS.md
+agents/*/DAILY-INTEL.md
+config/agents.yaml
+config/tasks.yaml
 
 # Backups & logs
 *.backup
