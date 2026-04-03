@@ -155,6 +155,22 @@ docker-compose up -d --build
 
 ## The Numbers
 
+We wrote 4,157 tests before calling it a framework.
+Most projects write them after something breaks.
+
+The proofs aren't in our database. They're on 7 public blockchains.
+Go check — nobody has to take our word for it.
+
+We tested 10 of the best AI models in the world.
+None could govern themselves. All improved 6% to 50% the moment
+a deterministic layer enforced the rules.
+
+The same verification engine used to certify aircraft
+now certifies your agents. Not statistically. Mathematically.
+
+No model decides if your agent broke a rule.
+A deterministic function does. Every time. Same answer.
+
 | Metric | Value |
 |:-------|------:|
 | Unit tests | **4,157** |
