@@ -64,9 +64,7 @@ It is a verification layer. Your agent runs. DOF intercepts the output, checks i
 
 LangChain. CrewAI. AutoGen. A custom agent. It doesn't matter. DOF governs it.
 
-The agents in this repository are not the product. They are 15 agents we built to run on top of DOF and validate that the framework works under real conditions. Every test, every attestation, every Winston experiment result — produced by those agents, governed by this layer.
-
-The framework is what you install. The agents are the proof that it works.
+The framework is what you install. Everything else in this repo is validation that it works.
 
 ---
 
