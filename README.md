@@ -91,49 +91,49 @@ docker-compose up -d --build
 +=====================================================================+
 |                        DOF-MESH  v0.5.0                             |
 |                                                                     |
-|  +-----------------------------------------------------------------+|
-|  |                      INTERFACE LAYER                            ||
-|  |    CLI | A2A Server | Telegram | Streamlit Dashboard | Voice    ||
-|  +-----------------------------------------------------------------+|
-|                                |                                    |
-|  +-----------------------------------------------------------------+|
-|  |                     EXPERIMENT LAYER                            ||
-|  |   ExperimentDataset | BatchRunner | Schema | Parametric Sweep   ||
-|  +-----------------------------------------------------------------+|
-|                                |                                    |
-|  +-----------------------------------------------------------------+|
-|  |                    OBSERVABILITY LAYER                          ||
-|  |     RunTrace | StepTrace | 5 Derived Metrics | JSONL Audit      ||
-|  +-----------------------------------------------------------------+|
-|                                |                                    |
-|  +------------------------------+--------------------------------+  |
-|  |       GOVERNANCE CORE        |       VERIFICATION CORE        |  |
-|  |                              |                                |  |
-|  |  ConstitutionEnforcer        |  Z3Verifier (4/4 PROVEN)      |  |
-|  |  HARD rules --> block        |  Formal invariant proofs       |  |
-|  |  SOFT rules --> warn         |  keccak256 proof hashes        |  |
-|  |  ZERO LLM in governance      |  ASTVerifier + Z3Gate          |  |
-|  +------------------------------+--------------------------------+  |
-|                                |                                    |
-|  +-----------------------------------------------------------------+|
-|  |                    CORE INFRASTRUCTURE                          ||
-|  |                                                                 ||
-|  |  crew_runner.py ----- Orchestration, retry x3, crew_factory    ||
-|  |  providers.py ------- TTL backoff (5/10/20m), provider chains  ||
-|  |  supervisor.py ------ MetaSupervisor weighted scoring           ||
-|  |  memory_manager.py -- ChromaDB + HuggingFace embeddings        ||
-|  |  autonomous_daemon.py  4 phases: Perceive→Decide→Execute       ||
-|  |  node_mesh.py -------- NodeRegistry + MessageBus + MeshDaemon  ||
-|  +-----------------------------------------------------------------+|
-|                                |                                    |
-|  +------------------------------+--------------------------------+  |
-|  |      9 SPECIALIZED AGENTS    |       ON-CHAIN LAYER           |  |
-|  |      (config/agents.yaml)    |                                |  |
-|  |                              |  DOFProofRegistry              |  |
-|  |      16 Tools                |  Avalanche · Base · Celo       |  |
-|  |      4 MCP Servers           |  Polygon · SKALE · Conflux     |  |
-|  |                              |  7 chains · 30+ attestations   |  |
-|  +------------------------------+--------------------------------+  |
+|  +---------------------------------------------------------------+  |
+|  |                      INTERFACE LAYER                          |  |
+|  |    CLI | A2A Server | Telegram | Streamlit Dashboard | Voice  |  |
+|  +---------------------------------------------------------------+  |
+|                                  |                                  |
+|  +---------------------------------------------------------------+  |
+|  |                     EXPERIMENT LAYER                          |  |
+|  |   ExperimentDataset | BatchRunner | Schema | Parametric Sweep |  |
+|  +---------------------------------------------------------------+  |
+|                                  |                                  |
+|  +---------------------------------------------------------------+  |
+|  |                    OBSERVABILITY LAYER                        |  |
+|  |    RunTrace | StepTrace | 5 Derived Metrics | JSONL Audit     |  |
+|  +---------------------------------------------------------------+  |
+|                                  |                                  |
+|  +-------------------------------+-------------------------------+  |
+|  |       GOVERNANCE CORE         |      VERIFICATION CORE        |  |
+|  |                               |                               |  |
+|  |  ConstitutionEnforcer         |  Z3Verifier (4/4 PROVEN)      |  |
+|  |  HARD rules: block            |  Formal invariant proofs      |  |
+|  |  SOFT rules: warn             |  keccak256 proof hashes       |  |
+|  |  Zero LLM in governance       |  ASTVerifier + Z3Gate         |  |
+|  +-------------------------------+-------------------------------+  |
+|                                  |                                  |
+|  +---------------------------------------------------------------+  |
+|  |                    CORE INFRASTRUCTURE                        |  |
+|  |                                                               |  |
+|  |  crew_runner.py       Orchestration, retry x3, crew_factory   |  |
+|  |  providers.py         TTL backoff (5/10/20m), provider chains |  |
+|  |  supervisor.py        MetaSupervisor weighted scoring         |  |
+|  |  memory_manager.py    ChromaDB + HuggingFace embeddings       |  |
+|  |  autonomous_daemon.py Perceive, Decide, Execute, Evaluate     |  |
+|  |  node_mesh.py         NodeRegistry + MessageBus + MeshDaemon  |  |
+|  +---------------------------------------------------------------+  |
+|                                  |                                  |
+|  +-------------------------------+-------------------------------+  |
+|  |      9 SPECIALIZED AGENTS     |       ON-CHAIN LAYER          |  |
+|  |      (config/agents.yaml)     |                               |  |
+|  |                               |  DOFProofRegistry             |  |
+|  |      16 Tools                 |  Avalanche · Base · Celo      |  |
+|  |      4 MCP Servers            |  Polygon · SKALE · Conflux    |  |
+|  |                               |  7 chains · 30+ attestations  |  |
+|  +-------------------------------+-------------------------------+  |
 +=====================================================================+
 ```
 
