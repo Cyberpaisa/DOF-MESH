@@ -246,3 +246,6 @@ docs/06_security/SECURITY_MESH_HARDENING.md
 docs/06_security/SECURITY_REPORT_2026-03-27.md
 docs/06_security/SECURITY_SCAN_URGENT.md
 docs/06_security/SOVEREIGN_SECURITY.md
+
+# Internal agentic capabilities — local only
+_internal/
