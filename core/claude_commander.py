@@ -685,7 +685,7 @@ class ClaudeCommander:
 async def _test():
     """Quick test of the commander."""
     commander = ClaudeCommander(
-        cwd="/Users/jquiceva/equipo-de-agentes",
+        cwd=str(Path(__file__).parent.parent),
         model="claude-sonnet-4-6",
         max_turns=5,
     )

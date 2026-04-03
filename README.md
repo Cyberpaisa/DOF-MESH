@@ -317,7 +317,7 @@ equipo-de-agentes/
     node_mesh.py             # NodeRegistry + MessageBus + MeshDaemon
     claude_commander.py      # 5 modes: SDK, Spawn, Team, Debate, Peers
     ...
-  agents/                   # 9 specialized agents with SOUL.md
+  agents/                   # agents running on DOF (examples, not the product)
   contracts/                # DOFProofRegistry.sol (deployed on 7 chains)
   integrations/             # CrewAI, AgentKit, Virtuals, SKALE, Tempo
   config/                   # Agent configs, LLM provider chains

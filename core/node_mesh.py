@@ -1184,7 +1184,7 @@ async def spawn_dof_mesh(dry_run: bool = False) -> NodeMesh:
 
     All nodes communicate through the message bus.
     """
-    mesh = NodeMesh(cwd="/Users/jquiceva/equipo-de-agentes")
+    mesh = NodeMesh(cwd=str(Path(__file__).parent.parent))
 
     # Register all nodes
     mesh.register_node("commander", "orchestrator",
@@ -1223,7 +1223,7 @@ async def _main():
 
     args = sys.argv[1:]
 
-    mesh = NodeMesh(cwd="/Users/jquiceva/equipo-de-agentes")
+    mesh = NodeMesh(cwd=str(Path(__file__).parent.parent))
 
     if not args or args[0] == "status":
         print(mesh.status_report())
