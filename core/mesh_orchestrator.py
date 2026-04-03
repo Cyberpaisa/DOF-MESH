@@ -654,7 +654,7 @@ if __name__ == "__main__":
             "researcher": {"role": "researcher", "status": "active", "active_tasks": 1, "context_window": 32000},
             "guardian":   {"role": "security",   "status": "active", "active_tasks": 0, "context_window": 32000},
             "narrator":   {"role": "narrator",   "status": "idle",   "active_tasks": 0, "context_window": 16000},
-            "local-qwen": {"role": "coder",      "status": "active", "active_tasks": 2, "context_window": 32000, "provider": "ollama"},
+            "local-agi-m4max": {"role": "coder", "status": "active", "active_tasks": 2, "context_window": 32000, "provider": "ollama"},
         }
         nodes_file = mesh_dir / "nodes.json"
         nodes_file.write_text(json.dumps(nodes), encoding="utf-8")

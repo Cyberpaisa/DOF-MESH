@@ -279,3 +279,6 @@ MEMORY.md
 # Misc test artifacts
 *.txt
 !requirements.txt
+
+# Phantom nodes — never re-create
+logs/mesh/inbox/local-qwen/

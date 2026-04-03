@@ -71,8 +71,8 @@ class CostOptimizer:
         """
         nodes = self._load_nodes()
         if not nodes:
-            # Fallback a local-qwen asumiendo que es soberano y siempre existirá
-            return "local-qwen"
+            # Fallback a local-agi-m4max asumiendo que es soberano y siempre existirá
+            return "local-agi-m4max"
             
         viable_nodes = []
         for node_id, data in nodes.items():
@@ -85,7 +85,7 @@ class CostOptimizer:
         if not viable_nodes:
             # Si ninguna ventana de contexto estricta coincide, usar el que tenga más
             sorted_by_max_ctx = sorted(nodes.items(), key=lambda x: x[1].get("context_window", 0), reverse=True)
-            return sorted_by_max_ctx[0][0] if sorted_by_max_ctx else "local-qwen"
+            return sorted_by_max_ctx[0][0] if sorted_by_max_ctx else "local-agi-m4max"
             
         # Puntuación combinada (Costo, Especialidad y Prioridad)
         # Buscamos MINIMIZAR el score.

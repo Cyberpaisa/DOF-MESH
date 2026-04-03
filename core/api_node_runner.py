@@ -54,8 +54,7 @@ PROVIDERS: dict[str, tuple[str, str, str]] = {
     "gemini-web":       ("GEMINI_NATIVE",                                       "gemini-2.5-flash",                     "GEMINI_API_KEY"),
     "minimax":          ("https://api.sambanova.ai/v1",                        "Meta-Llama-3.3-70B-Instruct",          "SAMBANOVA_API_KEY"),
     "groq-llama":       ("https://api.groq.com/openai/v1",                     "llama-3.3-70b-versatile",              "GROQ_API_KEY"),
-    "local-agi-m4max":  ("OLLAMA_LOCAL",                                        "qwen2.5-coder:14b",                    ""),
-    "local-qwen":       ("OLLAMA_LOCAL",                                        "qwen2.5-coder:14b",                    ""),
+    "local-agi-m4max":  ("OLLAMA_LOCAL",                                        "local-agi-m4max:latest",               ""),
 }
 
 POLL_INTERVAL = 15   # segundos entre polls
