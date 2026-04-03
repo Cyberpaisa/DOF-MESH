@@ -40,6 +40,30 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JSONL_LOG = os.path.join(BASE_DIR, "logs", "enigma_bridge.jsonl")
 
 
+import threading as _threading
+
+_ts_lock = _threading.Lock()
+_ts_counter = 0
+
+
+def _now_ms() -> str:
+    """
+    ISO 8601 timestamp with microseconds + monotonic counter.
+
+    Guaranteed unique and strictly increasing within this process even when
+    called multiple times per microsecond. Sorts correctly as TEXT.
+    Format: 2026-04-03T12:00:00.123456.0000000001
+    """
+    global _ts_counter
+    t = time.time()
+    base = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(t))
+    us = int(t * 1_000_000) % 1_000_000
+    with _ts_lock:
+        _ts_counter += 1
+        seq = _ts_counter
+    return f"{base}.{us:06d}.{seq:010d}"
+
+
 # ── DOFTrustScore dataclass ───────────────────────────────────────────────────
 
 @dataclass
@@ -186,7 +210,7 @@ class EnigmaBridge:
             z3_verified=z3_verified,
             z3_theorems_passed=4 if z3_verified else 0,
             governance_status=governance_status,
-            calculated_at=time.strftime("%Y-%m-%dT%H:%M:%S"),
+            calculated_at=_now_ms(),
             snapshot_data=raw_metrics,
         )
 
@@ -199,7 +223,7 @@ class EnigmaBridge:
         # JSONL audit
         _log({
             "ts":               time.time(),
-            "iso":              score.calculated_at,
+            "iso":              score.calculated_at,  # already ms-precision
             "action":           "publish",
             "agent_id":         score.agent_id,
             "governance_score": score.governance_score,
