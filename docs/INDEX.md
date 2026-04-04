@@ -10,6 +10,7 @@
 ### Research & Validation
 - [EXPERIMENT_WINSTON_VS_BASELINE.md](02_research/EXPERIMENT_WINSTON_VS_BASELINE.md) — Winston experiment: +26.1% average across 10 frontier models
 - [CASE_STUDY_APEX_1687.md](02_research/CASE_STUDY_APEX_1687.md) — Apex agent: 238 autonomous governance cycles
+- [LESSONS_LEARNED.md](02_research/LESSONS_LEARNED.md) — Lecciones técnicas L-1 → L-72 (backend, governance, blockchain, security)
 
 ### Strategy
 - [SKALE_INTEGRATION.md](04_strategy/SKALE_INTEGRATION.md) — SKALE zero-gas integration
@@ -26,9 +27,15 @@
 - [TEMPO_DEPLOY_GUIDE.md](07_integrations/TEMPO_DEPLOY_GUIDE.md) — Tempo blockchain agent payments
 - [SOCIETY_AI_INTEGRATION.md](07_integrations/SOCIETY_AI_INTEGRATION.md) — Society AI integration
 
+### Sessions
+- [09_sessions/](09_sessions/) — Bitácoras de sesiones de trabajo históricas
+
+### Documentation System
+- [DOC_SYSTEM.md](DOC_SYSTEM.md) — Constitución del sistema de documentación maestro (mapa canónico, protocolos)
+
 ### Diagrams
 See [diagrams/](diagrams/) for architecture diagrams in Mermaid format.
 
 ---
 
-*DOF-MESH v0.5.0 · 4,157 tests · 7 chains · Mathematics, not promises.*
+*DOF-MESH v0.5.1 · 4,157 tests · 8 chains · Mathematics, not promises.*
