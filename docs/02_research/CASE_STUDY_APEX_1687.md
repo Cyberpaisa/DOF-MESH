@@ -165,7 +165,7 @@ That has a specific value: **the 21 on-chain attestations are proof that the cre
 If you have an autonomous agent with real money at risk, this is the only type of verifiable guarantee that exists.
 
 ```bash
-pip install dof-sdk==0.5.0
+pip install dof-sdk==0.5.1
 ```
 
 ---

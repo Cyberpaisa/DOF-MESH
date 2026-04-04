@@ -116,7 +116,7 @@ class VoiceV4Config:
         "Arquitectura: 7 capas — Constitution (reglas), AST (codigo), Supervisor (scoring), "
         "Adversarial (red team), Memory (ChromaDB), Z3 (pruebas formales), Oracle (on-chain). "
         "Metricas actuales: 119K lineas de codigo, 3720 tests pasando, 21 attestations en Avalanche C-Chain. "
-        "SDK: dof-sdk 0.5.0 publicado en PyPI. CI verde en GitHub Actions. "
+        "SDK: dof-sdk 0.5.1 publicado en PyPI. CI verde en GitHub Actions. "
         "Agentes ERC-8004: Apex #1687 (arbitraje) y AvaBuilder #1686 (riesgo DeFi) en Railway. "
         "Contratos en Avalanche mainnet. Governance zero-LLM: todo determinístico (regex, AST, Z3). "
         "Proyectos paralelos: Enigma Trust Score, SnowRail Marketplace, Sentinel 27 checks, "

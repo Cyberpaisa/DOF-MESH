@@ -17,7 +17,7 @@
 | Interfaces | 4 (Dashboard, Telegram, Voice, Realtime Voice) |
 | Scripts | 13 |
 | CI Workflows | 3 (Tests, DOF CI, Z3 Verify) |
-| SDK | dof-sdk 0.5.0 (PyPI) |
+| SDK | dof-sdk 0.5.1 (PyPI) |
 | On-chain | 21+ attestations (Avalanche C-Chain) |
 | CrewAI Agents | 17 |
 | Mesh LLM Nodes | 11 |
