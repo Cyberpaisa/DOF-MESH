@@ -65,7 +65,7 @@ class TestMeshCostOptimizer(unittest.TestCase):
         self.optimizer._nodes_cache = {}
         
         res = self.optimizer.get_cheapest_node(2000, "general")
-        self.assertEqual(res, "local-qwen")
+        self.assertEqual(res, "local-agi-m4max")
 
     def test_get_cheapest_context_filter(self):
         """Testea seleccion filtrando x context_window estricta"""
