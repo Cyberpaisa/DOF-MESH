@@ -364,7 +364,7 @@ class EnigmaBridge:
         with Session(self._engine) as session:
             row = session.execute(text(
                 "SELECT * FROM dof_trust_scores WHERE agent_id = :aid "
-                "ORDER BY calculated_at DESC LIMIT 1"
+                "ORDER BY calculated_at DESC, rowid DESC LIMIT 1"
             ), {"aid": agent_id}).fetchone()
         return self._row_to_score(row) if row else None
 
@@ -375,7 +375,7 @@ class EnigmaBridge:
         with Session(self._engine) as session:
             rows = session.execute(text(
                 "SELECT * FROM dof_trust_scores WHERE agent_id = :aid "
-                "ORDER BY calculated_at DESC"
+                "ORDER BY calculated_at DESC, rowid DESC"
             ), {"aid": agent_id}).fetchall()
         return [self._row_to_score(r) for r in rows]
 
@@ -386,7 +386,7 @@ class EnigmaBridge:
         with Session(self._engine) as session:
             rows = session.execute(text(
                 "SELECT * FROM dof_trust_scores WHERE governance_status = 'COMPLIANT' "
-                "ORDER BY calculated_at DESC"
+                "ORDER BY calculated_at DESC, rowid DESC"
             )).fetchall()
         return [self._row_to_score(r) for r in rows]
 
@@ -396,7 +396,7 @@ class EnigmaBridge:
 
         with Session(self._engine) as session:
             rows = session.execute(text(
-                "SELECT * FROM dof_trust_scores ORDER BY calculated_at DESC"
+                "SELECT * FROM dof_trust_scores ORDER BY calculated_at DESC, rowid DESC"
             )).fetchall()
         # One per agent_id
         seen: set[str] = set()
