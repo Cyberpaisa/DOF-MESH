@@ -6,7 +6,7 @@
 
 ### Verify. Prove. Attest. · Mathematics, not promises.
 
-**DOF-MESH v0.5.1 | 8 Chains | Enigma Group · Medellín, Colombia**
+**DOF-MESH v0.6.0 | 8 Chains | Enigma Group · Medellín, Colombia**
 
 [![PyPI](https://img.shields.io/badge/PyPI-dof--sdk-blue?style=for-the-badge&logo=pypi)](https://pypi.org/project/dof-sdk/)
 [![GitHub](https://img.shields.io/badge/GitHub-DOF--MESH-181717?style=for-the-badge&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
@@ -171,7 +171,7 @@ docker-compose up -d --build
 
 ## The Numbers
 
-We wrote 4,157 tests before calling it a framework.
+We wrote 4,308 tests before calling it a framework.
 Most projects write them after something breaks.
 
 The proofs aren't in our database. They're on 8 public blockchains.
@@ -376,7 +376,7 @@ equipo-de-agentes/
   agents/                   # agents running on DOF (validation, not the product)
   contracts/                # DOFProofRegistry.sol (deployed on 8 chains — 3 mainnet + 5 testnet)
   integrations/             # CrewAI, AgentKit, Virtuals, SKALE, Tempo
-  tests/                    # 4,157 unit tests
+  tests/                    # 4,308 unit tests
   docs/                     # public documentation
   logs/                     # JSONL audit trails (append-only)
   experiments/              # Winston vs baseline raw data
@@ -388,7 +388,7 @@ equipo-de-agentes/
 
 **@Cyber_paisa** · [Telegram](https://t.me/Cyber_paisa)
 
-**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,157 tests. 8 chains (3 mainnet + 5 testnet). 142 modules. Mathematics, not promises.
+**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,308 tests. 8 chains (3 mainnet + 5 testnet). 142 modules. Mathematics, not promises.
 
 ---
 

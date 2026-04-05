@@ -1,5 +1,5 @@
 # DOF-MESH — Sistema de Documentación Maestro
-> Última actualización: 2026-04-04 | v0.5.1
+> Última actualización: 2026-04-04 | v0.6.0
 
 ## Regla de oro
 
@@ -51,7 +51,7 @@ Leer en este orden:
 
 | Repo | Propósito | CI | GitHub |
 |------|-----------|----|--------|
-| equipo-de-agentes | SDK, governance, multi-agent, tests | ✅ 4,157 tests | github.com/Cyberpaisa/DOF-MESH |
+| equipo-de-agentes | SDK, governance, multi-agent, tests | ✅ 4,308 tests | github.com/Cyberpaisa/DOF-MESH |
 | dof-landing | dofmesh.com, chat widget | ✅ Vercel auto-deploy | github.com/Cyberpaisa/dof-landing |
 | deterministic-observability-framework | Origen público v0.4.1 | — | github.com/Cyberpaisa/deterministic-observability-framework |
 
@@ -63,16 +63,16 @@ Leer en este orden:
 |---------|------|-------|------|
 | v0.3.3 | `dof-hackathon` branch | 2026-03-24 | Prototipo hackathon, 53 test files |
 | v0.4.1 | `deterministic-observability-framework` main | 2026-03-22 | Open source público, 69 test files |
-| v0.5.1 | `equipo-de-agentes` (DOF-MESH) | 2026-04-03 | PyPI live, 4,157 tests passing |
+| v0.6.0 | `equipo-de-agentes` (DOF-MESH) | 2026-04-04 | PyPI live, 4,308 tests — harness: mock_provider + session_resume + cost_tracker |
 | — | `dof-landing` | 2026-04-04 | dofmesh.com producción, chat widget |
 
 ---
 
 ## Estado actual (actualizar con cada fase)
 
-- **SDK version:** v0.5.1
+- **SDK version:** v0.6.0
 - **Módulos Python:** 231 archivos
-- **Tests:** 4,157 passing (583 en CI GitHub Actions)
+- **Tests:** 4,308 passing (583 en CI GitHub Actions)
 - **Lecciones:** L-1 → L-72
 - **Chains:** 8 (3 mainnet: Avalanche, Base, Celo + 5 testnet)
 - **Agentes especializados:** 15

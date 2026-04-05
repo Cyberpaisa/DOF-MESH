@@ -17,7 +17,7 @@
 | Interfaces | 4 (Dashboard, Telegram, Voice, Realtime Voice) |
 | Scripts | 13 |
 | CI Workflows | 3 (Tests, DOF CI, Z3 Verify) |
-| SDK | dof-sdk 0.5.1 (PyPI) |
+| SDK | dof-sdk 0.6.0 (PyPI) |
 | On-chain | 21+ attestations (Avalanche C-Chain) |
 | CrewAI Agents | 17 |
 | Mesh LLM Nodes | 11 |
@@ -260,6 +260,9 @@
 | Crew Runner | `core/crew_runner.py` | 580 |
 | Commander | `core/claude_commander.py` | 820 |
 | Daemon | `core/autonomous_daemon.py` | 750 |
+| Session Resume | `core/session_resume.py` | 286 |
+| Cost Tracker | `core/cost_tracker.py` | 368 |
+| Mock Provider | `tests/mocks/mock_provider.py` | 205 |
 | Competition Bible | `docs/COMPETITION_BIBLE.md` | 397 |
 
 ---
