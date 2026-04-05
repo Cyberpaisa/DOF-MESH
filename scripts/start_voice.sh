@@ -2,7 +2,7 @@
 # DOF Mesh Voice — Auto-start script
 # Se agrega como Login Item en System Settings > General > Login Items
 
-cd /Users/jquiceva/DOF-MESH
+cd /Users/jquiceva/equipo-de-agentes
 
 # Esperar a que Ollama esté listo
 echo "Esperando Ollama..."
@@ -13,5 +13,5 @@ done
 
 echo "Iniciando DOF Mesh Voice Realtime..."
 exec /Library/Frameworks/Python.framework/Versions/3.13/bin/python3 \
-    /Users/jquiceva/DOF-MESH/interfaces/voice_realtime.py \
+    /Users/jquiceva/equipo-de-agentes/interfaces/voice_realtime.py \
     --provider ollama
