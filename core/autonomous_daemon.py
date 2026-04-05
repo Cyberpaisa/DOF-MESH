@@ -108,21 +108,42 @@ class AutonomousDaemon:
                  budget_per_cycle: float = 0.50,  # was 2.0 — capped to prevent 4hr runaway cycles
                  max_agents_per_cycle: int = 3,
                  dry_run: bool = False,
+                 role: str = "default",
                  log_file: str = ""):
         self.cycle_interval = cycle_interval
         self.model = model
         self.budget_per_cycle = budget_per_cycle
         self.max_agents = max_agents_per_cycle
         self.dry_run = dry_run
+        self.role = role
         self.cycle_count = 0
         self.total_improvements = 0
         self.history: list[CycleResult] = []
         self._commander = None
+        self._session_store = None  # lazy — initialized via _get_session_store()
+        self._cost_tracker = None   # lazy — initialized via _get_cost_tracker()
         self.log_file = log_file if log_file else DAEMON_LOG
 
         # Ensure log dirs exist
         os.makedirs(os.path.dirname(self.log_file), exist_ok=True)
         os.makedirs(QUEUE_DIR, exist_ok=True)
+
+    def _get_session_store(self):
+        """Lazy-load SessionStore to avoid circular imports."""
+        if self._session_store is None:
+            from core.session_resume import SessionStore
+            self._session_store = SessionStore(daemon_type=self.role)
+        return self._session_store
+
+    def _get_cost_tracker(self):
+        """Lazy-load CostTracker, binding to the active session_id."""
+        if self._cost_tracker is None:
+            from core.cost_tracker import CostTracker
+            store = self._get_session_store()
+            session_id = (store.current_session.session_id
+                          if store.current_session else None)
+            self._cost_tracker = CostTracker(session_id=session_id)
+        return self._cost_tracker
 
     def _get_commander(self):
         """Lazy-load ClaudeCommander to avoid circular imports."""
@@ -476,6 +497,22 @@ class AutonomousDaemon:
 
         self.history.append(cycle_result)
 
+        # Persist session state after every cycle
+        self._get_session_store().save(
+            cycle_count=self.cycle_count,
+            total_improvements=self.total_improvements,
+        )
+
+        # Record estimated LLM cost for this cycle
+        _prompt_est = len(cycle_result.action.action) * 2
+        _completion_est = len(cycle_result.output_summary) // 4
+        self._get_cost_tracker().record(
+            role=cycle_result.action.mode,
+            model=self.model,
+            prompt_tokens=_prompt_est,
+            completion_tokens=_completion_est,
+        )
+
         # Auto-improvement: extraer lecciones del ciclo
         try:
             from core.self_improvement import SelfImprover
@@ -499,6 +536,16 @@ class AutonomousDaemon:
         logger.info("=" * 60)
         logger.info("DOF AUTONOMOUS DAEMON — STARTING")
         logger.info(f"  Model: {self.model}")
+        # ─── SESSION RESUME ───
+        _store = self._get_session_store()
+        _resumed = _store.load()
+        if _resumed:
+            self.cycle_count = _resumed.cycle_count
+            self.total_improvements = _resumed.total_improvements
+            logger.info(f"  Resumed session {_resumed.session_id[:8]} "
+                        f"from cycle {self.cycle_count} "
+                        f"({_resumed.total_improvements} improvements)")
+        self._get_cost_tracker()  # bind to session_id now that store is initialized
         logger.info(f"  Budget/cycle: ${self.budget_per_cycle}")
         logger.info(f"  Max agents/cycle: {self.max_agents}")
         logger.info(f"  Interval: {self.cycle_interval}s")
@@ -525,8 +572,17 @@ class AutonomousDaemon:
                 action = self.plan_next(state)
                 logger.info(f"  Decision: [{action.mode.upper()}] {action.action} (P{action.priority}, {action.agent_count} agents)")
 
-                # ─── EXECUTE ───
-                status, output, agents = await self.execute(action)
+                # ─── EXECUTE — budget check ───
+                _spent = self._get_cost_tracker().total_cost_usd()
+                if _spent >= self.budget_per_cycle:
+                    logger.warning(f"  Budget exhausted: ${_spent:.4f} >= ${self.budget_per_cycle:.2f} — skipping")
+                    status, output, agents = (
+                        "budget_exceeded",
+                        f"Budget ${_spent:.4f} >= limit ${self.budget_per_cycle:.2f}",
+                        0,
+                    )
+                else:
+                    status, output, agents = await self.execute(action)
                 elapsed = (time.time() - cycle_start) * 1000
                 logger.info(f"  Result: {status} ({elapsed:.0f}ms, {agents} agents)")
                 if output and len(output) < 200:
@@ -567,7 +623,9 @@ class AutonomousDaemon:
     # ═══════════════════════════════════════════════════
 
     def status(self) -> dict:
-        """Return current daemon status."""
+        """Return current daemon status including harness telemetry."""
+        _store = self._get_session_store()
+        _tracker = self._get_cost_tracker()
         return {
             "running": True,
             "cycle_count": self.cycle_count,
@@ -576,6 +634,34 @@ class AutonomousDaemon:
             "budget_per_cycle": self.budget_per_cycle,
             "history_size": len(self.history),
             "last_cycle": asdict(self.history[-1]) if self.history else None,
+            # harness telemetry
+            "session_id": (_store.current_session.session_id
+                           if _store.current_session else None),
+            "cost_usd_total": float(_tracker.total_cost_usd()),
+            "cost_by_mode": {r: s.total_cost_usd
+                             for r, s in _tracker.by_role().items()},
+        }
+
+    def harness_summary(self) -> dict:
+        """Resumen completo del harness — SessionStore + CostTracker.
+
+        Consumido por /daemon status en Telegram y por status()
+        sin cambios de interfaz externa.
+        """
+        _store = self._get_session_store()
+        _tracker = self._get_cost_tracker()
+        _session = _store.current_session
+        return {
+            "session_id":          _session.session_id    if _session else None,
+            "session_age_s":       _session.age_seconds() if _session else None,
+            "cycle_count":         self.cycle_count,
+            "total_improvements":  self.total_improvements,
+            "cost_usd_total":      float(_tracker.total_cost_usd()),
+            "cost_usd_budget":     self.budget_per_cycle,
+            "cost_by_mode":        {r: s.total_cost_usd
+                                    for r, s in _tracker.by_role().items()},
+            "most_expensive_mode": _tracker.most_expensive_role(),
+            "total_llm_calls":     _tracker.total_calls(),
         }
 
     def get_summary(self) -> dict:
@@ -623,11 +709,11 @@ class BuilderDaemon(AutonomousDaemon):
     """
 
     def __init__(self, **kwargs):
+        kwargs.setdefault("role", "builder")
         kwargs.setdefault("cycle_interval", 180)
         kwargs.setdefault("budget_per_cycle", 0.50)  # was 3.0 — capped to prevent hour-long build cycles
         kwargs.setdefault("log_file", os.path.join(BASE_DIR, "logs", "daemon", "cycles_builder.jsonl"))
         super().__init__(**kwargs)
-        self.role = "builder"
 
     def plan_next(self, state: SystemState) -> DaemonAction:
         # Builder prioritizes: pending orders > build tasks > improvements
@@ -674,11 +760,11 @@ class GuardianDaemon(AutonomousDaemon):
     """
 
     def __init__(self, **kwargs):
+        kwargs.setdefault("role", "guardian")
         kwargs.setdefault("cycle_interval", 300)
         kwargs.setdefault("budget_per_cycle", 0.50)  # was 2.0 — capped to match builder/default
         kwargs.setdefault("log_file", os.path.join(BASE_DIR, "logs", "daemon", "cycles_guardian.jsonl"))
         super().__init__(**kwargs)
-        self.role = "guardian"
 
     def plan_next(self, state: SystemState) -> DaemonAction:
         if state.recent_errors >= 3:
@@ -730,11 +816,11 @@ class ResearcherDaemon(AutonomousDaemon):
     """
 
     def __init__(self, **kwargs):
+        kwargs.setdefault("role", "researcher")
         kwargs.setdefault("cycle_interval", 600)
         kwargs.setdefault("budget_per_cycle", 0.50)  # was 2.0 — capped to match system-wide limit
         kwargs.setdefault("log_file", os.path.join(BASE_DIR, "logs", "daemon", "cycles_researcher.jsonl"))
         super().__init__(**kwargs)
-        self.role = "researcher"
 
     def plan_next(self, state: SystemState) -> DaemonAction:
         if self.cycle_count % 3 == 0:
