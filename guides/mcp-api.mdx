@@ -1,0 +1,110 @@
+---
+title: "MCP & API"
+description: "DOF MCP server (10 tools), REST API (14 endpoints), and 11 connected MCP servers."
+---
+
+## DOF MCP Server
+
+10 tools exposed via the DOF MCP server:
+
+```
+verify           → Constitution + AST + DataOracle check
+check_governance → Constitution only
+verify_ast       → AST only
+get_metrics      → Current governance metrics
+create_attestation → Write proof on-chain
+verify_code      → Code safety check
+check_facts      → DataOracle fact verification
+prove            → Z3 formal proofs
+benchmark        → Adversarial benchmark
+health           → Component status
+```
+
+---
+
+## REST API — 14 Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Component status (16/16) |
+| POST | `/verify` | Full governance check |
+| POST | `/governance/check` | Constitution only |
+| POST | `/ast/verify` | AST only |
+| GET | `/metrics` | Current metrics |
+| POST | `/attestation/create` | Write proof on-chain |
+| GET | `/attestation/registry` | List attestations |
+| POST | `/verify-code` | Code safety |
+| POST | `/check-facts` | Fact verification |
+| POST | `/prove` | Z3 formal proofs |
+| POST | `/benchmark` | Adversarial benchmark |
+| GET | `/version` | `{"version": "0.6.0"}` |
+| GET | `/constitution` | Active constitution rules |
+| GET | `/.well-known/agent-card.json` | ERC-8004 agent identity |
+
+Start the A2A server:
+
+```bash
+python3 a2a_server.py --port 8000
+curl http://localhost:8000/health
+```
+
+---
+
+## External MCP Servers (4 foundational)
+
+```bash
+@modelcontextprotocol/server-filesystem  # Filesystem access
+@pskill9/web-search                      # Web search — no API key required
+@anthropics/mcp-server-fetch             # URL to markdown
+@anthropics/mcp-server-memory           # Persistent knowledge graph
+```
+
+---
+
+## Additional MCP Servers (Guardian-audited 26 March 2026)
+
+| Server | Package | Purpose |
+|--------|---------|---------|
+| `context7` | `@upstash/context7-mcp` | Library documentation |
+| `sequential_thinking` | built-in | Step-by-step reasoning |
+| `playwright` | mcp-playwright | Browser automation |
+| `evm` | mcp-evm | 60+ EVM chains |
+| `tavily` | mcp-tavily | AI search (`TAVILY_API_KEY`) |
+| `brave_search` | mcp-brave | Brave search (`BRAVE_API_KEY`) |
+| `supabase` | mcp-supabase | Supabase (`SUPABASE_ACCESS_TOKEN`) |
+
+---
+
+## Example: REST API Usage
+
+```python
+import requests
+
+# Verify agent output
+response = requests.post("http://localhost:8000/verify", json={
+    "text": "The framework achieves 96.8% F1 score.",
+    "agent_id": "apex-1687"
+})
+print(response.json())
+# {"status": "pass", "violations": [], "latency_ms": 14.2}
+
+# Create on-chain attestation
+response = requests.post("http://localhost:8000/attestation/create", json={
+    "proof_hash": "0x44b45cd...",
+    "agent_id": "apex-1687",
+    "verdict": "APPROVED"
+})
+print(response.json())
+# {"tx_hash": "0x9f3a...", "chain": "avalanche", "block": 45823901}
+```
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Governance API" icon="code" href="/reference/governance-api">
+    GovernanceResult and HierarchyResult
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/reference/cli-overview">
+    All CLI commands
+  </Card>
+</CardGroup>

@@ -1,0 +1,128 @@
+---
+title: "Orchestrator API"
+description: "MeshOrchestrator — singleton, OrchestrationResult fields, and auto-scaling algorithm."
+---
+
+## MeshOrchestrator
+
+`core/mesh_orchestrator.py` — singleton that manages task routing, node selection,
+and horizontal scaling.
+
+```python
+from core.mesh_orchestrator import MeshOrchestrator
+
+orchestrator = MeshOrchestrator.get_instance()
+result = await orchestrator.dispatch(
+    task="Analyze this code for security issues",
+    task_type="security",
+    priority="HIGH"
+)
+```
+
+---
+
+## OrchestrationResult
+
+```python
+@dataclass
+class OrchestrationResult:
+    task_id: str
+    task_type: str
+    selected_node: str
+    cost_optimal_node: str
+    dispatched_to: str
+    circuit_state: str    # "CLOSED" | "OPEN" | "HALF_OPEN"
+    success: bool
+    error: str | None
+    latency_ms: float
+```
+
+```python
+print(result.task_id)           # "task-7f3a..."
+print(result.selected_node)     # "minimax"
+print(result.cost_optimal_node) # "cerebras-llama"
+print(result.dispatched_to)     # "minimax"
+print(result.circuit_state)     # "CLOSED"
+print(result.success)           # True
+print(result.latency_ms)        # 142.3
+```
+
+---
+
+## Auto-Scaling Algorithm
+
+`ScalingDecision` is computed every cycle:
+
+```python
+D_net = 0.6 × (queue_depth / 50) + 0.4 × (avg_latency / sla_ms)
+
+if D_net > 1.0:  # scale_up
+if D_net < 0.2:  # scale_down
+else:            # hold
+```
+
+| D_net | Decision |
+|-------|---------|
+| > 1.0 | `scale_up` — add node capacity |
+| 0.2–1.0 | `hold` — current capacity sufficient |
+| < 0.2 | `scale_down` — reduce idle capacity |
+
+---
+
+## Task Priority Queue
+
+Tasks are processed in this order:
+
+```
+CRITICAL > HIGH > NORMAL > LOW
+```
+
+```python
+result = await orchestrator.dispatch(
+    task="Emergency security check",
+    task_type="security",
+    priority="CRITICAL"
+)
+```
+
+---
+
+## Circuit Breaker States
+
+Each provider has its own circuit breaker:
+
+```
+CLOSED    → Normal operation
+OPEN      → Provider failed — requests skipped
+HALF_OPEN → Testing if provider recovered
+```
+
+Check current states:
+
+```python
+states = orchestrator.get_circuit_states()
+# {"minimax": "CLOSED", "groq": "CLOSED", "cerebras": "OPEN"}
+```
+
+---
+
+## Mesh Metrics
+
+```python
+metrics = orchestrator.get_metrics()
+print(metrics["nodes_active"])          # 11
+print(metrics["circuit_breakers_open"]) # 0
+print(metrics["queue_depth"])           # 0
+print(metrics["avg_latency_ms"])        # 142.3
+```
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Mesh Nodes" icon="network-wired" href="/concepts/mesh-nodes">
+    Node table and TTL backoff
+  </Card>
+  <Card title="Autonomous Operations" icon="robot" href="/guides/autonomous-operations">
+    Task routing and auto-scaling guide
+  </Card>
+</CardGroup>

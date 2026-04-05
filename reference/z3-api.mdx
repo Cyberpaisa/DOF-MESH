@@ -1,0 +1,149 @@
+---
+title: "Z3 Verifier API"
+description: "Z3Verifier, TransitionVerifier, HierarchyZ3 — ProofResult states, invariants, and hierarchy patterns."
+---
+
+## Z3Verifier
+
+**File:** `core/z3_verifier.py`
+
+```python
+from dof import Z3Verifier
+
+verifier = Z3Verifier()
+
+# Run all 4 theorems
+results = verifier.verify_all()
+# [ProofResult(name="GCR_INVARIANT", status="VERIFIED", time_ms=3.10), ...]
+
+# Verify governance state
+result = verifier.verify_governance_state(
+    gcr=0.95,
+    supervisor_score=0.87,
+    previous_score=0.81
+)
+print(result.verdict)     # "APPROVED"
+print(result.proof_hash)  # "0x7f3a9c..."
+```
+
+---
+
+## ProofResult States
+
+| Status | Z3 equivalent | Meaning |
+|--------|--------------|---------|
+| `VERIFIED` | UNSAT | Property holds universally — no counterexample exists |
+| `COUNTEREXAMPLE_FOUND` | SAT | Counterexample found — property violated |
+| `TIMEOUT` | — | Solver exceeded time budget |
+| `PROVEN` | UNSAT | `TransitionVerifier` equivalent of VERIFIED |
+| `VIOLATED` | SAT | `TransitionVerifier` equivalent of COUNTEREXAMPLE_FOUND |
+
+---
+
+## The 4 Theorems
+
+```python
+from dof import Z3Verifier
+
+v = Z3Verifier()
+results = v.verify_all()
+
+for r in results:
+    print(f"{r.name}: {r.status} ({r.time_ms}ms)")
+# GCR_INVARIANT:     VERIFIED (3.10ms)
+# SS_FORMULA:        VERIFIED (1.80ms)
+# SS_MONOTONICITY:   VERIFIED (2.40ms)
+# SS_BOUNDARIES:     VERIFIED (1.20ms)
+```
+
+---
+
+## TransitionVerifier (Z3Gate)
+
+**File:** `core/z3_gate.py`
+
+Verifies 8 state invariants across 9 transition types.
+
+```python
+from core.z3_gate import Z3Gate
+
+gate = Z3Gate()
+result = gate.verify_transition(
+    transition_type="PUBLISH",
+    state={"trust_score": 0.85, "threat_detected": False}
+)
+print(result.verdict)  # "APPROVED" | "REJECTED" | "TIMEOUT" | "FALLBACK"
+```
+
+### 9 Transition Types
+
+```
+PUBLISH · SCORE_UPDATE · PROMOTE · DEMOTE · THREAT_DETECT
+THREAT_CLEAR · COOLDOWN_START · COOLDOWN_END · GOVERNOR_ACTION
+```
+
+### 8 State Invariants
+
+| ID | Invariant |
+|----|-----------|
+| INV-1 | `threat_detected` → NOT `publish_allowed` |
+| INV-2 | `trust_score < 0.4` → `attestation_count == 0` |
+| INV-3 | `hierarchy_level_next <= hierarchy_level + 1` |
+| INV-4 | `0 <= trust_score <= 1` |
+| INV-5 | `cooldown_active` → NOT `publish_allowed` |
+| INV-6 | `hierarchy_level == 3` → `trust_score > 0.8` |
+| INV-7 | `safety_score == 1 - failure_rate³` |
+| INV-8 | `governance_violation` → `hierarchy_level_next < hierarchy_level` |
+
+---
+
+## HierarchyZ3
+
+**File:** `core/hierarchy_z3.py`
+
+```python
+from core.hierarchy_z3 import HierarchyZ3
+
+hz3 = HierarchyZ3()
+
+# Verify all 42 patterns
+result = hz3.verify_hierarchy_inviolable()
+print(result)  # "PROVEN"
+
+# Check for weak patterns
+weak = hz3.find_weakest_pattern()
+print(weak)  # None  (all strong)
+
+# Pattern breakdown
+print(hz3.override_patterns)    # 6
+print(hz3.escalation_patterns)  # 11
+print(hz3.total_patterns)       # 42
+```
+
+---
+
+## quick.prove
+
+```python
+from dof.quick import prove
+
+result = prove()
+
+assert result["verified"] == True
+assert len(result["theorems"]) >= 4
+
+for t in result["theorems"]:
+    assert t["result"] == "VERIFIED"
+    print(f"{t['name']}: {t['time_ms']}ms")
+```
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Formal Verification" icon="function" href="/concepts/formal-verification">
+    Theory, proof chain, on-chain receipts
+  </Card>
+  <Card title="CLI: prove" icon="terminal" href="/reference/cli-prove">
+    dof prove, verify-states, verify-hierarchy
+  </Card>
+</CardGroup>

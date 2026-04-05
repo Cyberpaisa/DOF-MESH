@@ -1,0 +1,109 @@
+---
+title: "LLM Config Reference"
+description: "Provider chains per role, temperatures, and llm_config.py configuration."
+---
+
+## Provider Chains per Role
+
+Defined in `core/llm_config.py`. Primary provider is `minimax` across all roles.
+Fallbacks are tried in order when the primary fails or rate-limits.
+
+```python
+PROVIDER_CHAINS = {
+    "code_architect":    ["minimax", "groq/kimi-k2", "cerebras", "zhipu", "nvidia/kimi-k2.5"],
+    "research_analyst":  ["minimax", "groq/llama-3.3", "cerebras", "zhipu", "nvidia/deepseek"],
+    "mvp_strategist":    ["minimax", "cerebras", "groq/llama-3.3", "zhipu", "nvidia/qwen3.5"],
+    "qa_reviewer":       ["minimax", "cerebras", "groq/llama-3.3", "zhipu", "nvidia/deepseek"],
+    "data_engineer":     ["minimax", "cerebras", "groq/llama-3.3", "zhipu", "nvidia/deepseek"],
+    "project_organizer": ["minimax", "groq/qwen3-32b", "cerebras", "zhipu", "nvidia/deepseek"],
+    "narrative_content": ["minimax", "cerebras", "groq/llama-3.3", "zhipu", "nvidia/deepseek"],
+    "verifier":          ["minimax", "cerebras", "groq/llama-3.3", "zhipu", "nvidia/deepseek"],
+}
+```
+
+---
+
+## Temperatures per Role
+
+```python
+TEMPERATURES = {
+    "code_architect":    0.2,  # deterministic
+    "qa_reviewer":       0.2,  # strict
+    "verifier":          0.2,  # deterministic
+    "data_engineer":     0.1,  # minimal variance
+    "project_organizer": 0.3,  # structured
+    "research_analyst":  0.5,  # balanced
+    "mvp_strategist":    0.6,  # creative
+    "narrative_content": 0.7,  # creative
+}
+```
+
+---
+
+## Provider Notes
+
+| Provider | Model | Limits | Special config |
+|----------|-------|--------|---------------|
+| MiniMax | MiniMax-M2.1 | 1,000 req/day free | Primary — no special config |
+| Groq | llama-3.3-70b, kimi-k2, qwen3-32b | 12K TPM | Key expires frequently |
+| NVIDIA NIM | qwen3.5-397b, kimi-k2.5, deepseek-v3.2 | 1,000 NIM credits | Prefix `nvidia_nim/` |
+| Cerebras | gpt-oss-120b | 1M tokens/day | — |
+| SambaNova | DeepSeek-V3.2 | 24K context | Backup only |
+| Gemini | gemini-2.5-flash | 20 req/day | 1M context |
+| Zhipu | glm-4.7-flash | — | `extra_body={"enable_thinking": False}` |
+| OpenRouter | hermes-3-llama-3.1-405b | Free tier | — |
+
+---
+
+## TTL Backoff
+
+When a provider fails:
+
+```python
+TTL_BACKOFF = [5, 10, 20]  # minutes: 1st, 2nd, 3rd+ failures
+```
+
+After the backoff period, the provider is retried with an exponential cooldown cap.
+Circuit breaker state: `CLOSED → OPEN → HALF_OPEN → CLOSED`.
+
+---
+
+## Using a Custom Provider Chain
+
+```python
+from core.llm_config import LLMConfig
+
+config = LLMConfig()
+config.set_chain("code_architect", [
+    "minimax",
+    "groq/llama-3.3",
+    "local-agi-m4max"
+])
+```
+
+---
+
+## Environment Variables
+
+```bash
+MINIMAX_API_KEY=
+GROQ_API_KEY=gsk_...
+NVIDIA_API_KEY=
+CEREBRAS_API_KEY=
+SAMBANOVA_API_KEY=
+OPENROUTER_API_KEY=
+GEMINI_API_KEY=
+```
+
+For local nodes: `LOCAL_MODEL_ENDPOINT=http://localhost:11434`
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Providers & Agents" icon="robot" href="/guides/providers-and-agents">
+    17 agents and 11 crews
+  </Card>
+  <Card title="Mesh Nodes" icon="network-wired" href="/concepts/mesh-nodes">
+    Local node table with system prompts
+  </Card>
+</CardGroup>

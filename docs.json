@@ -1,0 +1,73 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "DOF-MESH",
+  "logo": {
+    "light": "https://www.dofmesh.com/brand/dof-mesh-wordmark-cube-light.svg",
+    "dark": "https://www.dofmesh.com/brand/dof-mesh-wordmark-cube-dark.svg"
+  },
+  "favicon": "https://www.dofmesh.com/brand/dof-mesh-icon-cube-dark-32x32.png",
+  "colors": { "primary": "#0052FF", "light": "#00CC55", "dark": "#0052FF" },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "installation", "quickstart"]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "concepts/governance-layers",
+              "concepts/mesh-nodes",
+              "concepts/formal-verification"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/running-the-mesh",
+              "guides/autonomous-operations",
+              "guides/security-configuration",
+              "guides/on-chain-attestations",
+              "guides/providers-and-agents",
+              "guides/mcp-api"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "groups": [
+          {
+            "group": "CLI",
+            "pages": [
+              "reference/cli-overview",
+              "reference/cli-verify",
+              "reference/cli-prove",
+              "reference/cli-benchmark"
+            ]
+          },
+          {
+            "group": "Python API",
+            "pages": [
+              "reference/python-api",
+              "reference/governance-api",
+              "reference/orchestrator-api",
+              "reference/z3-api"
+            ]
+          },
+          {
+            "group": "Config",
+            "pages": [
+              "reference/constitution",
+              "reference/llm-config"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

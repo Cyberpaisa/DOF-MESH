@@ -1,0 +1,114 @@
+---
+title: "Multi-LLM Mesh"
+description: "How DOF-MESH coordinates heterogeneous LLM nodes — cloud API and local — into a single governed inference layer."
+---
+
+The mesh is a coordinated network of LLM nodes. DOF routes tasks to the optimal node based on task type, availability, cost, and latency — with TTL backoff, circuit breaking, and threshold consensus for critical decisions.
+
+---
+
+## Cloud API Nodes
+
+| Node ID | Provider | Speed | Cost | Best for |
+|---------|----------|-------|------|----------|
+| minimax | MiniMax M2.1 | — | 1,000 req/day free | **Primary provider** |
+| cerebras-llama | Cerebras | 868 tok/s | Free | Fast inference |
+| deepseek-coder | DeepSeek | 120 tok/s | $0.27/M | Code generation |
+| sambanova | SambaNova | 200 tok/s | Free | Large context |
+| nvidia-nim | NVIDIA NIM | 150 tok/s | Free tier | Complex reasoning |
+| glm-5 | Zhipu GLM | 100 tok/s | Free | Multilingual |
+| gemini-flash | Gemini | — | Free/web | Analysis |
+| groq | Groq | — | Free tier | Low-latency |
+
+## Local Nodes (Ollama)
+
+| Node ID | Base model | Role | Context | Size | Cost |
+|---------|-----------|------|---------|------|------|
+| local-agi-m4max | qwen2.5-coder:14b | Autonomous local AGI | 65K | 9.0 GB | $0.00 |
+| dof-coder | qwen2.5-coder:14b | Code implementation | 65K | 9.0 GB | $0.00 |
+| dof-analyst | qwen2.5-coder:14b | Data analysis | 65K | 9.0 GB | $0.00 |
+| dof-guardian | qwen2.5-coder:14b | Security (Cerberus Prime) | 65K | 9.0 GB | $0.00 |
+| dof-reasoner | deepseek-r1:14b | Strategic planning | 65K | 9.0 GB | $0.00 |
+| dof-voice | qwen2.5-coder:14b | Voice — long context Spanish | 65K | 9.0 GB | $0.00 |
+| dof-voice-fast | gemma2:9b | Voice — realtime Spanish | 8K | 5.4 GB | $0.00 |
+
+<Info>
+  `local-qwen` does not exist. Use `local-agi-m4max` for local sovereign compute.
+  Set `LOCAL_MODEL_ENDPOINT` in `.env` to your Ollama server URL.
+</Info>
+
+### Local Node System Prompts
+
+```
+local-agi-m4max: "You are local-agi-m4max — the autonomous local AGI node of the DOF Mesh"
+dof-coder:       "You are DOF-CODER — code intelligence node of the DOF Mesh"
+dof-analyst:     "You are DOF-ANALYST — the data intelligence node of the DOF Mesh"
+dof-guardian:    "You are CERBERUS PRIME — Active Defense Commander of the DOF Mesh"
+dof-reasoner:    "You are DOF-REASONER — strategic intelligence, orchestration, and planning"
+dof-voice:       "Eres la VOZ del DOF Mesh Legion. Tu creador es Cyber Paisa"
+dof-voice-fast:  "Eres la voz del DOF Mesh Legion"
+```
+
+---
+
+## Starting the Mesh
+
+```bash
+python3 core/api_node_runner.py \
+  --nodes deepseek-coder cerebras-llama gemini-flash local-agi-m4max \
+  --daemon
+```
+
+---
+
+## TTL Backoff
+
+When a provider fails or rate-limits:
+
+```
+1st failure → 5 min cooldown
+2nd failure → 10 min cooldown
+3rd failure → 20 min cooldown
+```
+
+The circuit breaker transitions: `CLOSED → OPEN → HALF_OPEN → CLOSED`
+
+---
+
+## Threshold Consensus
+
+For critical decisions, DOF requires N-of-M agreement across mesh nodes:
+
+```python
+from core.threshold_consensus import ThresholdConsensus
+
+consensus = ThresholdConsensus(threshold=3, total=5)
+result = consensus.vote(action="transfer_1000_USDC", voters=selected_nodes)
+# {"approved": True, "votes": {"approved": 4, "rejected": 1}}
+```
+
+---
+
+## Key Modules
+
+| Module | Responsibility |
+|--------|---------------|
+| `core/mesh_router_v2.py` | Smart routing by task type |
+| `core/mesh_scheduler.py` | Priority queue (CRITICAL > HIGH > NORMAL > LOW) |
+| `core/mesh_load_balancer.py` | Distribution across equivalent nodes |
+| `core/mesh_circuit_breaker.py` | CLOSED / OPEN / HALF_OPEN per provider |
+| `core/mesh_orchestrator.py` | Task routing + horizontal scaling |
+| `core/node_mesh.py` | NodeRegistry + MessageBus |
+| `core/threshold_consensus.py` | N-of-M voting for critical decisions |
+| `core/web_bridge.py` | Playwright — browser-accessible LLMs without API |
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Running the Mesh" icon="network-wired" href="/guides/running-the-mesh">
+    Launch the full mesh with Docker or CLI
+  </Card>
+  <Card title="Providers & Agents" icon="robot" href="/guides/providers-and-agents">
+    Configure provider chains and 17 agents
+  </Card>
+</CardGroup>

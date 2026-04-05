@@ -1,0 +1,159 @@
+---
+title: "CLI: benchmark, privacy, health, version"
+description: "dof benchmark, dof privacy, dof health, dof version, and dof regression commands."
+---
+
+## dof health
+
+Check all 16 components.
+
+```bash
+dof health
+# DOF v0.6.0 — 16/16 components available
+```
+
+```bash
+dof --json health
+```
+
+```json
+{
+  "version": "0.6.0",
+  "total": 16,
+  "available": 16,
+  "components": {
+    "ConstitutionEnforcer": "ok",
+    "ASTVerifier": "ok",
+    "DataOracle": "ok",
+    "GovernedMemoryStore": "ok",
+    "ExecutionDAG": "ok",
+    "LoopGuard": "ok",
+    "TokenTracker": "ok",
+    "MerkleTree": "ok",
+    "CertificateSigner": "ok",
+    "OAGSIdentity": "ok",
+    "GenericAdapter": "ok",
+    "TestGenerator": "ok",
+    "AgentLeakMapper": "ok",
+    "Z3Verifier": "ok",
+    "BayesianProviderSelector": "ok",
+    "RuntimeObserver": "ok"
+  }
+}
+```
+
+---
+
+## dof version
+
+```bash
+dof version
+# dof-sdk 0.6.0
+
+dof --json version
+# {"version": "0.6.0", "sdk": "dof-sdk"}
+```
+
+---
+
+## dof benchmark
+
+Adversarial benchmark — tests governance pipeline against known attack vectors.
+
+```bash
+dof benchmark
+dof benchmark --runs 100
+dof --json benchmark
+```
+
+```
+DOF Adversarial Benchmark
+  Runs:           100
+  Passed:         97/100
+  Blocked:        3/100 (known adversarial inputs)
+  Avg latency:    11.2ms
+  P99 latency:    38.4ms
+  Constitution:   PASS
+  AST:            PASS
+  Oracle:         PASS
+```
+
+---
+
+## dof privacy
+
+Privacy leak benchmark — tests for PII, API keys, and secret exposure.
+
+```bash
+dof privacy
+dof --json privacy
+```
+
+```
+DOF Privacy Leak Benchmark (AgentLeakMapper)
+  Total probes:    50
+  Leaks detected:  0
+  PII blocked:     12/12
+  Secrets blocked: 8/8
+  Score:           100%
+```
+
+---
+
+## dof regression-baseline
+
+Capture current system state as baseline for future comparisons.
+
+```bash
+dof regression-baseline
+# Baseline captured:
+#   Z3 invariants: 4/4 PROVEN
+#   Tests:         4,308 passed
+#   Timestamp:     2026-04-04T20:00:00Z
+```
+
+## dof regression-check
+
+Compare current state against the captured baseline. Returns exit code 1 if regressions detected — use in CI.
+
+```bash
+dof regression-check
+# Z3 invariants: 4/4 PROVEN ✓
+# Tests:         4,308 passed ✓
+# No regressions — exit 0
+
+# In CI:
+dof regression-check || exit 1
+```
+
+## dof regression-history
+
+Show all historical baselines.
+
+```bash
+dof regression-history
+```
+
+---
+
+## Python API (health)
+
+```python
+from dof.quick import health
+
+result = health()
+print(result["version"])    # "0.6.0"
+print(result["total"])      # 16
+print(result["available"])  # 16
+```
+
+---
+
+<CardGroup cols={2}>
+  <Card title="CLI Overview" icon="terminal" href="/reference/cli-overview">
+    All commands at a glance
+  </Card>
+  <Card title="CLI: verify" icon="check" href="/reference/cli-verify">
+    verify, verify-code, check-facts
+  </Card>
+</CardGroup>

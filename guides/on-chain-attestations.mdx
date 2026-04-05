@@ -1,0 +1,117 @@
+---
+title: "On-Chain Attestations"
+description: "DOFProofRegistry deployed on 9 chains. Write and verify cryptographic proof receipts on-chain."
+---
+
+## DOFProofRegistry
+
+Every governance decision generates a keccak256 proof hash that is batched into a
+Merkle tree and attested on-chain via `DOFProofRegistry`.
+
+<Warning>
+  The old contract `DOFValidationRegistry` at
+  `0x88f6043B091055Bbd896Fc8D2c6234A47C02C052` is **deprecated**. Do not use it.
+  The canonical contract is `DOFProofRegistry`.
+</Warning>
+
+**Current attestations: 30+**
+
+---
+
+## Deployment Table
+
+| Chain | Chain ID | Address | Type |
+|-------|----------|---------|------|
+| Avalanche C-Chain | 43114 | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` | mainnet |
+| Base Mainnet | 8453 | `0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D` | mainnet |
+| Celo Mainnet | 42220 | `0x35B320A06DaBe2D83B8D39D242F10c6455cd809E` | mainnet |
+| Tempo Chain | 4217 | — | mainnet |
+| Avalanche Fuji | 43113 | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | testnet |
+| Base Sepolia | 84532 | `0x7e0f0D0bC09D14Fa6C1F79ab7C0EF05b5e4F1f59` | testnet |
+| Conflux Testnet | 71 | `0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83` | testnet |
+| Polygon Amoy | 80002 | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | testnet |
+| SKALE Base Sepolia | 324705682 | `0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D` | testnet |
+
+---
+
+## Environment Setup
+
+```bash
+# Primary chain (Avalanche C-Chain)
+AVALANCHE_RPC_URL=https://api.avax.network/ext/bc/C/rpc
+EVM_PRIVATE_KEY=0x...
+VALIDATION_REGISTRY_ADDRESS=0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6
+```
+
+---
+
+## Writing an Attestation
+
+```python
+from core.avalanche_bridge import AvalancheBridge
+
+bridge = AvalancheBridge()
+tx_hash = bridge.attest(
+    proof_hash="0x44b45cd026916c...",
+    agent_id="apex-1687",
+    verdict="APPROVED"
+)
+print(tx_hash)  # 0x9f3a...
+```
+
+---
+
+## Verifying On-Chain (Anyone)
+
+No DOF installation required:
+
+```bash
+cast call 0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6 \
+  "verifyProof(bytes32)" 0x44b45cd026916c... \
+  --rpc-url https://api.avax.network/ext/bc/C/rpc
+# → true
+```
+
+Or via Snowtrace Explorer:
+`https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6`
+
+---
+
+## Agent Trust Scores
+
+Agents are identified by ERC-8004 token ID (not wallet address):
+
+| Token ID | Agent | Trust Score |
+|----------|-------|-------------|
+| #1686 | AvaBuilder | 0.85 |
+| #1687 | Apex | 0.85 |
+
+---
+
+## Proof Chain
+
+```
+Decision → keccak256 hash → GovernanceProof
+  → MerkleBatcher (batch accumulation)
+  → Merkle root
+  → DOFProofRegistry.attest() on target chain
+```
+
+| Module | Role |
+|--------|------|
+| `core/zk_governance_proof.py` | keccak256 per decision |
+| `core/zk_batch_prover.py` | Merkle tree + batch |
+| `core/avalanche_bridge.py` | Avalanche C-Chain attestations |
+| `core/chain_adapter.py` | Multi-chain abstraction |
+| `core/cross_chain_identity.py` | Bridge Avalanche/Base/Celo |
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Formal Verification" icon="function" href="/concepts/formal-verification">
+    How proof hashes are generated
+  </Card>
+  <Card title="Z3 API Reference" icon="code" href="/reference/z3-api">
+    ProofResult states and TransitionVerifier
+  </Card>
+</CardGroup>

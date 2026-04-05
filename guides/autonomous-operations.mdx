@@ -1,0 +1,112 @@
+---
+title: "Autonomous Operations"
+description: "MeshDaemon, autonomous planner, auto-scaling, and task routing by type."
+---
+
+## Autonomous Daemon
+
+`core/autonomous_daemon.py` runs a continuous Perceive → Decide → Execute → Evaluate loop:
+
+```bash
+python3 core/autonomous_daemon.py --multi --model claude-sonnet-4-6
+# → 3 daemons in parallel
+```
+
+Each cycle:
+1. **Perceive** — read environment state, pending tasks, provider health
+2. **Decide** — route task to optimal node via MeshRouter
+3. **Execute** — run crew or single agent with governance pipeline
+4. **Evaluate** — Supervisor scores result; retry or escalate if needed
+
+Cycle history: `logs/daemon/cycles.jsonl`
+
+---
+
+## Task Routing
+
+The mesh routes by task type to the primary node, with fallbacks in order:
+
+| Task type | Primary | Fallbacks |
+|-----------|---------|-----------|
+| `code` | deepseek-coder | minimax → sambanova-llama → nvidia-nim |
+| `tests` | sambanova-llama | cerebras-llama → groq-llama |
+| `docs` | cerebras-llama | gemini-flash → groq-llama |
+| `analysis` | minimax | cerebras-llama → groq-llama |
+| `security` | dof-guardian | local-agi-m4max → nvidia-nim |
+
+---
+
+## Supervisor Scoring
+
+Every task output is scored before acceptance:
+
+```
+score = Q(0.40) + A(0.25) + C(0.20) + F(0.15)
+```
+
+| Score | Verdict | Action |
+|-------|---------|--------|
+| ≥ 7.0 | `ACCEPT` | Output accepted |
+| 5.0–6.9 | `RETRY` | Re-run with different provider |
+| < 5.0 | `ESCALATE` | Halt task, notify Soberano |
+
+Max retries: 2 (configurable in `dof.constitution.yml`)
+
+---
+
+## Auto-Scaling
+
+`core/mesh_orchestrator.py` computes a scaling decision every cycle:
+
+```python
+D_net = 0.6 × (queue_depth / 50) + 0.4 × (avg_latency / sla_ms)
+
+if D_net > 1.0:  scale_up
+if D_net < 0.2:  scale_down
+else:            hold
+```
+
+---
+
+## MeshDaemon Configuration
+
+```python
+from core.autonomous_daemon import AutonomousDaemon
+
+daemon = AutonomousDaemon(
+    model="claude-sonnet-4-6",
+    max_cycles=100,
+    cycle_interval_seconds=30
+)
+daemon.run()
+```
+
+Session state is persisted via `core/session_resume.py` — cycle count and
+improvements survive restarts.
+
+---
+
+## Claude Commander — 5 Modes
+
+```bash
+python3 core/claude_commander.py
+```
+
+| Mode | Description |
+|------|-------------|
+| SDK | Direct Claude SDK calls |
+| Spawn | Spawn worker agents |
+| Team | Agent team with shared context |
+| Debate | Multi-agent debate |
+| Peers | Peer-to-peer coordination |
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Mesh Nodes" icon="network-wired" href="/concepts/mesh-nodes">
+    Node table and circuit breaker
+  </Card>
+  <Card title="Running the Mesh" icon="play" href="/guides/running-the-mesh">
+    Launch commands
+  </Card>
+</CardGroup>

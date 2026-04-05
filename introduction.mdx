@@ -1,0 +1,113 @@
+---
+title: "What is DOF-MESH?"
+description: "A pre-execution governance layer for autonomous AI agents. Every decision verified, proven, and attested on-chain."
+---
+
+DOF-MESH (Deterministic Observability Framework) is a pre-execution governance layer for autonomous AI agents. It intercepts every agent decision **before** it executes, converts it into mathematical constraints, and verifies it with Z3 theorem proving in milliseconds — then registers an immutable keccak256 hash on-chain.
+
+**Zero-LLM governance.** Every decision the framework makes — blocking policy violations, verifying code safety, proving formal invariants — is computed deterministically using Constitution rules, AST analysis, and Z3.
+
+> Most frameworks check what happened. DOF checks what is **about** to happen.
+
+---
+
+## Key Metrics (v0.6.0)
+
+| Metric | Value |
+|--------|-------|
+| Core modules | 142 |
+| Tests | 4,308 |
+| Import errors | 0 |
+| AI providers | 8+ |
+| Security layers | 7 |
+| Formal Z3 proofs | 4/4 PROVEN |
+| Chains deployed | 9 |
+| On-chain attestations | 30+ |
+| Autonomous cycles | 238 |
+| Security compliance | 100% |
+
+---
+
+## How It Works
+
+```
+Agent proposes action
+      ↓
+DOF intercepts BEFORE execution
+      ↓
+Constitution → AST → Tool Hook Gate → Supervisor → Adversarial → Memory → Z3
+      ↓
+keccak256 proof hash generated
+      ↓
+DOFProofRegistry.attest() on 9 chains
+      ↓
+Action approved or blocked — with proof
+```
+
+---
+
+## Quick Install
+
+```bash
+pip install dof-sdk
+```
+
+```python
+from dof import DOFVerifier
+
+verifier = DOFVerifier()
+result = verifier.verify_action(
+    agent_id="apex-1687",
+    action="transfer",
+    params={"amount": 500, "token": "USDC"}
+)
+# verdict:     "APPROVED"
+# z3_proof:    "4/4 VERIFIED"
+# latency_ms:  8.2
+# attestation: "0x44b45cd026916c..."
+```
+
+---
+
+## 7 Governance Layers
+
+| Layer | Module | Role |
+|-------|--------|------|
+| 1 — Constitution | `core/governance.py` | Hard rules block, soft rules warn |
+| 2 — AST Validator | `core/ast_verifier.py` | Static analysis of generated code |
+| 3 — Tool Hook Gate PRE | `core/tool_hooks.py` | Intercepts before execution |
+| 4 — Supervisor Engine | `core/supervisor.py` | Monitors behavior and drift |
+| 5 — Adversarial Guard | `core/adversarial.py` | Red/blue pipeline |
+| 6 — Memory Layer | `core/memory_governance.py` | Session state governance |
+| 7 — Z3 SMT Verifier | `core/z3_verifier.py` | 4/4 state invariants PROVEN |
+
+---
+
+## On-Chain Proof
+
+`DOFProofRegistry` is deployed on 9 chains (4 mainnet + 5 testnet):
+
+**Mainnets:** Avalanche C-Chain · Base · Celo · Tempo Chain 4217
+
+**Testnets:** Avalanche Fuji · Base Sepolia · Conflux · Polygon Amoy · SKALE
+
+Anyone can verify any proof. Nobody has to take our word for it.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    pip, Docker, environment variables
+  </Card>
+  <Card title="Quickstart" icon="bolt" href="/quickstart">
+    First verified proof in 5 minutes
+  </Card>
+  <Card title="7-Layer Governance" icon="shield" href="/concepts/governance-layers">
+    How each layer works
+  </Card>
+  <Card title="Formal Verification" icon="function" href="/concepts/formal-verification">
+    Z3 proofs and keccak256 receipts
+  </Card>
+</CardGroup>

@@ -1,0 +1,115 @@
+---
+title: "Python API Overview"
+description: "dof-sdk v0.6.0 — all public exports, quick functions, and entry points."
+---
+
+## Install
+
+```bash
+pip install dof-sdk==0.6.0
+```
+
+## Public Exports
+
+```python
+import dof
+print(dof.__version__)  # "0.6.0"
+print(dof.__all__)      # full list of exported names
+```
+
+### Governance
+
+```python
+from dof import (
+    Constitution, ConstitutionEnforcer, GovernanceResult,
+    load_constitution, get_constitution,
+    HARD_RULES, SOFT_RULES, PII_PATTERNS,
+)
+```
+
+### Observability
+
+```python
+from dof import (
+    RunTrace, StepTrace, RunTraceStore, ErrorClass,
+    classify_error, causal_trace, compute_derived_metrics,
+    estimate_tokens, set_deterministic, get_session_id,
+    reset_session, TokenTracker,
+)
+```
+
+### Verification
+
+```python
+from dof import ASTVerifier        # AST static analysis
+from dof import Z3Verifier         # Z3 SMT theorem prover
+from dof import DataOracle, OracleVerdict, FactClaim
+```
+
+### Agents & Security
+
+```python
+from dof import (
+    AdversarialEvaluator, RedTeamAgent,
+    GuardianAgent, DeterministicArbiter,
+)
+from dof import AgentLeakMapper, PrivacyLeakGenerator, PrivacyBenchmarkRunner
+```
+
+### Memory & Storage
+
+```python
+from dof import (
+    GovernedMemoryStore, TemporalGraph,
+    MemoryClassifier, ConstitutionalDecay,
+    MemoryEntry, ConflictError,
+)
+from dof import MerkleTree, MerkleBatcher, MerkleBatch
+from dof import ExecutionDAG, DAGNode, DAGEdge
+```
+
+---
+
+## Quick Functions (`dof.quick`)
+
+The fastest way to use DOF — single-call pipeline access:
+
+```python
+from dof.quick import verify, verify_code, check_facts, prove, health
+```
+
+| Function | Pipeline | Returns |
+|----------|---------|---------|
+| `verify(text)` | Constitution + AST + Oracle | `{"status", "violations", "layers", "latency_ms"}` |
+| `verify_code(code)` | AST only | `{"passed", "score", "violations", "blocked_patterns"}` |
+| `check_facts(text)` | Oracle only | `{"overall_status", "oracle_score", "strategies_used", ...}` |
+| `prove()` | Z3 4 theorems | `{"verified", "theorems": [{"name", "result", "time_ms"}]}` |
+| `health()` | Component check | `{"version", "total", "available", "components"}` |
+
+---
+
+## CLI Entry Point
+
+```python
+from dof.cli import main
+from dof.__main__ import main  # same entry point
+```
+
+---
+
+## Detailed References
+
+<CardGroup cols={2}>
+  <Card title="Governance API" icon="shield" href="/reference/governance-api">
+    ConstitutionEnforcer, GovernanceResult, HierarchyResult
+  </Card>
+  <Card title="Orchestrator API" icon="network-wired" href="/reference/orchestrator-api">
+    MeshOrchestrator, OrchestrationResult, auto-scaling
+  </Card>
+  <Card title="Z3 API" icon="function" href="/reference/z3-api">
+    Z3Verifier, TransitionVerifier, HierarchyZ3
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/reference/cli-overview">
+    All CLI commands
+  </Card>
+</CardGroup>

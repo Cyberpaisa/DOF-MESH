@@ -1,0 +1,94 @@
+---
+title: "CLI Reference"
+description: "Complete reference for all dof CLI commands — install dof-sdk==0.6.0 to get started."
+---
+
+## Installation
+
+```bash
+pip install dof-sdk==0.6.0
+dof version
+# dof-sdk 0.6.0
+```
+
+---
+
+## All Commands
+
+| Command | Description |
+|---------|-------------|
+| `dof verify <text>` | Constitution + AST + DataOracle |
+| `dof verify-code <code>` | AST only |
+| `dof check-facts <text>` | DataOracle only |
+| `dof prove` | Z3 formal verification — 4/4 theorems |
+| `dof verify-states` | Z3 state invariants |
+| `dof verify-hierarchy` | Z3 hierarchy — 42 patterns |
+| `dof benchmark` | Adversarial benchmark |
+| `dof privacy` | Privacy leak benchmark |
+| `dof health` | Component status 16/16 |
+| `dof regression-baseline` | Capture current baseline |
+| `dof regression-check` | Compare vs baseline (exit 1 if regressions) |
+| `dof regression-history` | Show history |
+| `dof version` | `v0.6.0` |
+
+---
+
+## Global Flags
+
+```bash
+dof --json <command>    # JSON output for any command
+dof --help             # Help text
+```
+
+---
+
+## Quick Examples
+
+```bash
+# Verify text
+dof verify "Bitcoin was created in 2009"
+# Status: PASS | Score: 0.95 | Latency: 12.4ms
+
+# Verify code
+dof verify-code "x = eval(input())"
+# Passed: False | UNSAFE_CALLS blocked
+
+# Check facts
+dof check-facts "Ethereum was launched in 2010."
+# Status: DISCREPANCY | expected=2015, got=2010
+
+# Run Z3 proofs
+dof prove
+# All verified: True | Total: 8.6ms
+
+# System health
+dof health
+# DOF v0.6.0 — 16/16 components available
+```
+
+---
+
+## 16 Components (dof health)
+
+```
+ConstitutionEnforcer    ASTVerifier         DataOracle
+GovernedMemoryStore     ExecutionDAG        LoopGuard
+TokenTracker            MerkleTree          CertificateSigner
+OAGSIdentity            GenericAdapter      TestGenerator
+AgentLeakMapper         Z3Verifier          BayesianProviderSelector
+RuntimeObserver
+```
+
+---
+
+<CardGroup cols={2}>
+  <Card title="CLI: verify" icon="check" href="/reference/cli-verify">
+    verify, verify-code, check-facts
+  </Card>
+  <Card title="CLI: prove" icon="function" href="/reference/cli-prove">
+    prove, verify-states, verify-hierarchy
+  </Card>
+  <Card title="CLI: benchmark" icon="gauge" href="/reference/cli-benchmark">
+    benchmark, privacy, health, regression
+  </Card>
+</CardGroup>

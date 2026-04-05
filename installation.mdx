@@ -1,0 +1,115 @@
+---
+title: "Installation"
+description: "Install DOF-MESH. Python 3.10+ supported. pip, Docker, or from source."
+---
+
+## Requirements
+
+Python 3.10 or later. Python 3.10, 3.11, 3.12, and 3.13 all supported.
+
+<Warning>
+  Use `python3 -m unittest discover -s tests` — not pytest. DOF uses unittest
+  internally; pytest conflicts with the `web3` dependency.
+</Warning>
+
+---
+
+## Option 1 — SDK (recommended)
+
+```bash
+pip install dof-sdk==0.6.0
+```
+
+### Optional extras
+
+```bash
+pip install "dof-sdk[agents]==0.6.0"     # CrewAI + LiteLLM
+pip install "dof-sdk[api]==0.6.0"        # FastAPI + Uvicorn
+pip install "dof-sdk[interfaces]==0.6.0" # Telegram, Streamlit, Groq, TTS
+pip install "dof-sdk[all]==0.6.0"        # Everything
+```
+
+---
+
+## Option 2 — Full Repository
+
+```bash
+git clone https://github.com/Cyberpaisa/DOF-MESH.git
+cd DOF-MESH
+pip install -r requirements.txt
+python3 -m unittest discover -s tests
+# → 4,308 tests, 0 failures
+```
+
+---
+
+## Option 3 — Docker
+
+```bash
+cp .env.example .env
+docker-compose up -d --build
+curl http://localhost:8000/
+# → {"status":"ok","agents":8,"crews":11}
+```
+
+---
+
+## Environment Variables
+
+```bash
+# Required — free at console.groq.com
+GROQ_API_KEY=gsk_your_key_here
+
+# Primary provider — 1,000 req/day free
+MINIMAX_API_KEY=
+
+# Additional providers (optional)
+GEMINI_API_KEY=
+NVIDIA_API_KEY=
+CEREBRAS_API_KEY=
+SAMBANOVA_API_KEY=
+OPENROUTER_API_KEY=
+
+# Database (optional — for production persistence)
+ENIGMA_DATABASE_URL=postgresql://...
+
+# Blockchain (required for on-chain attestations)
+EVM_PRIVATE_KEY=0x...
+```
+
+<Info>
+  Constitution, AST Validator, and Z3 work fully offline. API keys are only
+  required for LLM inference and on-chain writes.
+</Info>
+
+---
+
+## Verify Installation
+
+```bash
+dof health
+# DOF v0.6.0 — 16/16 components available
+
+dof prove
+# GCR_INVARIANT:     VERIFIED ✓
+# SS_FORMULA:        VERIFIED ✓
+# SS_MONOTONICITY:   VERIFIED ✓
+# SS_BOUNDARIES:     VERIFIED ✓
+# → 4/4 PROVEN
+
+dof verify "The DOF framework achieves deterministic governance."
+# status: pass | latency_ms: 12.4
+```
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="bolt" href="/quickstart">
+    First verified proof in 5 minutes
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/reference/cli-overview">
+    Full command reference
+  </Card>
+</CardGroup>

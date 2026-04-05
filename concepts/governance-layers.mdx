@@ -1,0 +1,156 @@
+---
+title: "7-Layer Governance"
+description: "How DOF-MESH enforces deterministic governance through 7 sequential layers — no LLM judges another LLM."
+---
+
+Every agent output passes through 7 deterministic layers before being accepted. No layer uses an LLM. Every check is a function: same input, same output, every time.
+
+---
+
+## Layer 1 — Constitution
+
+**File:** `core/governance.py`
+
+Enforces declarative rules defined in `dof.constitution.yml`.
+
+### HARD Rules (block immediately)
+
+| Rule ID | Type | Description |
+|---------|------|-------------|
+| `NO_HALLUCINATION_CLAIM` | `phrase_without_url` | Blocks factual phrases without a source URL |
+| `LANGUAGE_COMPLIANCE` | `language_check` | >5% English markers or JSON |
+| `NO_EMPTY_OUTPUT` | `min_length` | Minimum 50 characters |
+| `MAX_LENGTH` | `max_length` | Maximum 50,000 characters |
+
+### SOFT Rules (warn, don't block)
+
+| Rule ID | Match mode | Description |
+|---------|-----------|-------------|
+| `HAS_SOURCES` | absent | Warn when no `https://` URL found |
+| `STRUCTURED_OUTPUT` | absent | Warn when no headers or bullets |
+| `CONCISENESS` | present | Warn on repetitive filler patterns |
+| `ACTIONABLE` | absent | Warn when no actionable words |
+| `NO_PII_LEAK` | present | Warn on SSN, Visa, email patterns |
+
+### PII Patterns
+
+| ID | Pattern | Detects |
+|----|---------|---------|
+| P1 | `\b\d{3}-\d{2}-\d{4}\b` | SSN |
+| P2 | `\b4[0-9]{12}(?:[0-9]{3})?\b` | Visa card |
+| P3 | Email regex | Email address |
+
+### Override Detection
+
+The Constitution detects **6 direct override patterns** and **11 indirect escalation patterns** — attempts to convince an agent to bypass governance.
+
+---
+
+## Layer 2 — AST Validator
+
+**File:** `core/ast_verifier.py`
+
+Extracts all code blocks from agent output and runs static analysis before any code can execute.
+
+```python
+from dof import ASTVerifier
+
+v = ASTVerifier()
+result = v.verify("x = eval(input())")
+print(result.passed)           # False
+print(result.blocked_patterns) # ["UNSAFE_CALLS"]
+```
+
+---
+
+## Layer 3 — Tool Hook Gate PRE
+
+**File:** `core/tool_hooks.py`
+
+Intercepts tool calls **before** they execute — not after. The hook receives tool name + parameters, runs them through Constitution and AST, and either approves or blocks. Blocked calls return a `REJECTED` verdict with reason.
+
+---
+
+## Layer 4 — Supervisor Engine
+
+**File:** `core/supervisor.py`
+
+Monitors agent behavior **across turns** and computes a composite quality score every cycle:
+
+```
+score = Q(0.40) + A(0.25) + C(0.20) + F(0.15)
+```
+
+| Component | Weight | Measures |
+|-----------|--------|----------|
+| Quality (Q) | 40% | Output quality relative to task |
+| Actionability (A) | 25% | Adherence to governance rules |
+| Completeness (C) | 20% | Behavior stability across turns |
+| Factuality (F) | 15% | Factual accuracy |
+
+**Thresholds:** ≥ 7.0 → `ACCEPT` · 5.0–6.9 → `RETRY` · < 5.0 → `ESCALATE`
+
+---
+
+## Layer 5 — Adversarial Guard
+
+**File:** `core/adversarial.py`
+
+Red/blue pipeline against prompt injection, jailbreaks, and indirect injection attacks.
+
+`RedTeamAgent` probes → `GuardianAgent` evaluates → `DeterministicArbiter` decides (no LLM arbitration).
+
+DLP hook: `adversarial_dlp_hook(text)` scans for API keys, private keys, PII, and JWT tokens before any output is accepted.
+
+---
+
+## Layer 6 — Memory Layer
+
+**File:** `core/memory_governance.py`
+
+Governed session state — every write to memory passes through the Constitution.
+
+- **ConstitutionalDecay** — memories expire by policy
+- **ConflictError** — contradictory memories flagged, not overwritten
+- **TemporalGraph** — causal chain of memory updates preserved for audit
+
+---
+
+## Layer 7 — Z3 SMT Verifier
+
+**File:** `core/z3_verifier.py`
+
+Four mathematical invariants formally proven every cycle.
+
+In addition, `core/transitions.py` verifies state transitions across all 9 transition types. Results saved to `logs/z3_proofs.json`.
+
+| Theorem | Proves |
+|---------|--------|
+| `GCR_INVARIANT` | Governance compliance rate is invariant = 1.0 |
+| `SS_FORMULA` | SS(f) = 1 − f³ is well-formed for all f ∈ [0,1] |
+| `SS_MONOTONICITY` | For all f1 < f2: SS(f1) > SS(f2) |
+| `SS_BOUNDARIES` | SS(0) = 1.0 and SS(1) = 0.0 |
+
+**Result: 4/4 PROVEN.**
+
+`DOFProofRegistry` deployed on 9 chains (4 mainnet + 5 testnet).
+Primary (Avalanche C-Chain, 43114): `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6`
+
+```bash
+dof verify-states
+# GCR_INVARIANT:     VERIFIED ✓
+# SS_FORMULA:        VERIFIED ✓
+# SS_MONOTONICITY:   VERIFIED ✓
+# SS_BOUNDARIES:     VERIFIED ✓
+```
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Formal Verification" icon="function" href="/concepts/formal-verification">
+    Z3 proofs and state invariants in depth
+  </Card>
+  <Card title="Security Configuration" icon="lock" href="/guides/security-configuration">
+    Tuning rules and DLP for your use case
+  </Card>
+</CardGroup>

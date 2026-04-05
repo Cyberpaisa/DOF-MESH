@@ -1,0 +1,176 @@
+---
+title: "Quickstart"
+description: "From zero to your first verified, on-chain proof in under 5 minutes."
+---
+
+## 1. Install
+
+```bash
+pip install dof-sdk==0.6.0
+```
+
+---
+
+## 2. Verify an Agent Output
+
+```python
+from dof.quick import verify
+
+result = verify(
+    "## Analysis Report\n\n"
+    "The DOF framework achieves 96.8% F1 score on adversarial benchmarks. "
+    "The system processes requests in under 30 milliseconds.\n\n"
+    "We recommend continued monitoring."
+)
+print(result)
+# {"status": "pass", "violations": [], "layers": {"constitution": "pass",
+#  "ast": "pass", "oracle": "pass"}, "latency_ms": 14.2}
+```
+
+---
+
+## 3. Verify Generated Code
+
+```python
+from dof.quick import verify_code
+
+result = verify_code('API_KEY = "sk-abc123def456ghi789"')
+print(result["passed"])     # False
+print(result["violations"]) # ["PII/secret pattern detected"]
+```
+
+---
+
+## 4. Run Z3 Formal Proofs
+
+```python
+from dof.quick import prove
+
+result = prove()
+# {"verified": True, "theorems": [
+#   {"name": "GCR_INVARIANT",   "result": "VERIFIED", "time_ms": 3.10},
+#   {"name": "SS_FORMULA",      "result": "VERIFIED", "time_ms": 1.80},
+#   {"name": "SS_MONOTONICITY", "result": "VERIFIED", "time_ms": 2.40},
+#   {"name": "SS_BOUNDARIES",   "result": "VERIFIED", "time_ms": 1.20}
+# ]}
+```
+
+From the CLI:
+
+```bash
+dof prove
+# All verified: True | Total time: 8.6ms
+#   VERIFIED  GCR_INVARIANT    (3.10ms)
+#   VERIFIED  SS_FORMULA       (1.80ms)
+#   VERIFIED  SS_MONOTONICITY  (2.40ms)
+#   VERIFIED  SS_BOUNDARIES    (1.20ms)
+```
+
+---
+
+## 5. Check System Health
+
+```bash
+dof health
+# DOF v0.6.0 — 16/16 components available
+```
+
+```json
+{
+  "version": "0.6.0",
+  "total": 16,
+  "available": 16,
+  "components": {
+    "ConstitutionEnforcer": "ok",
+    "ASTVerifier": "ok",
+    "DataOracle": "ok",
+    "GovernedMemoryStore": "ok",
+    "ExecutionDAG": "ok",
+    "LoopGuard": "ok",
+    "TokenTracker": "ok",
+    "MerkleTree": "ok",
+    "CertificateSigner": "ok",
+    "OAGSIdentity": "ok",
+    "GenericAdapter": "ok",
+    "TestGenerator": "ok",
+    "AgentLeakMapper": "ok",
+    "Z3Verifier": "ok",
+    "BayesianProviderSelector": "ok",
+    "RuntimeObserver": "ok"
+  }
+}
+```
+
+---
+
+## 6. Full Pipeline — Verify an Action
+
+```python
+from dof import DOFVerifier
+
+verifier = DOFVerifier()
+result = verifier.verify_action(
+    agent_id="my-agent-001",
+    action="transfer",
+    params={"amount": 500, "token": "USDC", "to": "0xabc..."}
+)
+
+print(result.verdict)      # "APPROVED"
+print(result.z3_proof)     # "4/4 VERIFIED [GCR_INVARIANT:VERIFIED | ...]"
+print(result.latency_ms)   # 8.2
+print(result.proof_hash)   # "0x44b45cd026916c..."
+```
+
+The `proof_hash` is a keccak256 hash of the decision. With on-chain attestation enabled, it is recorded to `DOFProofRegistry` on your target chain.
+
+---
+
+## CLI Cheatsheet
+
+```bash
+dof verify "<text>"          # Constitution + AST + DataOracle
+dof verify-code <file>       # AST only
+dof check-facts "<text>"     # DataOracle only
+dof prove                    # Z3 formal proofs (4/4)
+dof verify-states            # Z3 state invariants
+dof verify-hierarchy         # Z3 hierarchy (42 patterns)
+dof benchmark                # Adversarial benchmark
+dof health                   # 16/16 components
+dof version                  # v0.6.0
+dof --json <command>         # JSON output
+```
+
+---
+
+## What Happened?
+
+```
+Input
+  → Constitution        (HARD/SOFT rules, zero LLM)
+  → AST Validator       (code block static analysis)
+  → Tool Hook Gate PRE  (intercepts before execution)
+  → Supervisor Engine   (cross-turn behavior scoring)
+  → Adversarial Guard   (prompt injection detection)
+  → Memory Layer        (reproducible session state)
+  → Z3 SMT Verifier     (4/4 invariants formally proven)
+  → Output + proof hash
+```
+
+No LLM decides if your agent broke a rule. A deterministic function does. Every time. Same answer.
+
+---
+
+<CardGroup cols={2}>
+  <Card title="7-Layer Governance" icon="shield" href="/concepts/governance-layers">
+    Deep dive into each layer
+  </Card>
+  <Card title="On-Chain Attestations" icon="link" href="/guides/on-chain-attestations">
+    Write proof receipts to 9 chains
+  </Card>
+  <Card title="Running the Mesh" icon="network-wired" href="/guides/running-the-mesh">
+    Launch the full multi-LLM mesh
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/reference/cli-overview">
+    Complete CLI command reference
+  </Card>
+</CardGroup>

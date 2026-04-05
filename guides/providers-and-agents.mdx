@@ -1,0 +1,117 @@
+---
+title: "Providers & Agents"
+description: "17 CrewAI agents, 11 crews, provider chains per role, and the research pipeline."
+---
+
+## 17 CrewAI Agents
+
+Defined in `config/agents.yaml` with individual `agents/*/SOUL.md` files.
+
+| # | Agent ID | Role | Delegation |
+|---|----------|------|-----------|
+| 1 | `lider_orquestador` | Orchestrator Lead | ✅ |
+| 2 | `organizador_archivos` | File & Structure Organizer | — |
+| 3 | `product_manager` | Product Manager | — |
+| 4 | `director_operaciones` | Operations Director | ✅ |
+| 5 | `bizdev` | Business Development | — |
+| 6 | `arquitecto` | Software Architect | — |
+| 7 | `developer` | Full-Stack Developer | — |
+| 8 | `qa_engineer` | QA Engineer | — |
+| 9 | `investigador` | Researcher | — |
+| 10 | `devops` | DevOps Engineer | — |
+| 11 | `seguridad_blockchain` | Blockchain Security Expert | — |
+| 12 | `experto_ideacion` | Ideation Expert | — |
+| 13 | `experto_multichain` | Multi-Chain Expert | — |
+| 14 | `experto_cuantico` | Quantum Computing Expert | — |
+| 15 | `seguridad_informatica` | Cybersecurity Expert | — |
+| 16 | `experto_metodologias` | Methodologies Expert | — |
+| 17 | `experto_bpm` | BPM Expert | — |
+
+---
+
+## 11 Crews
+
+| # | Crew | Agents |
+|---|------|--------|
+| 1 | `research` | Pre-research + 5 agents |
+| 2 | `code-review` | QA + Security |
+| 3 | `data` | Data Engineer |
+| 4 | `database` | Data Engineer + Architect |
+| 5 | `full-mvp` | 6 agents |
+| 6 | `enigma-audit` | Security + QA |
+| 7 | `grant-hunt` | Researcher + BizDev |
+| 8 | `content` | Narrative |
+| 9 | `daily-ops` | Organizer + PM |
+| 10 | `weekly-report` | Organizer + Researcher |
+| 11 | `build` | Developer + Architect |
+
+---
+
+## Research Crew Pipeline
+
+```
+Pre-research (5 web searches)
+  ↓ real data injected into context
+t1: Researcher    (Groq)        → analyzes data
+t2: Strategist v1 (Cerebras)   → drafts MVP plan
+t3: QA            (Groq)        → verifies with additional searches
+t4: Verifier      (Cerebras)   → scores + provides feedback
+t5: Strategist v2 (Cerebras)   → produces FINAL improved plan
+```
+
+---
+
+## Provider Chains per Role
+
+Primary provider is `minimax` across all roles. Fallbacks in order:
+
+| Role | Chain |
+|------|-------|
+| `code_architect` | minimax → groq/kimi-k2 → cerebras → zhipu → nvidia/kimi-k2.5 |
+| `research_analyst` | minimax → groq/llama-3.3 → cerebras → zhipu → nvidia/deepseek |
+| `mvp_strategist` | minimax → cerebras → groq/llama-3.3 → zhipu → nvidia/qwen3.5 |
+| `qa_reviewer` | minimax → cerebras → groq/llama-3.3 → zhipu → nvidia/deepseek |
+| `data_engineer` | minimax → cerebras → groq/llama-3.3 → zhipu → nvidia/deepseek |
+| `project_organizer` | minimax → groq/qwen3-32b → cerebras → zhipu → nvidia/deepseek |
+| `narrative_content` | minimax → cerebras → groq/llama-3.3 → zhipu → nvidia/deepseek |
+| `verifier` | minimax → cerebras → groq/llama-3.3 → zhipu → nvidia/deepseek |
+
+---
+
+## Provider Environment Variables
+
+```bash
+MINIMAX_API_KEY=         # Primary — 1,000 req/day free
+GROQ_API_KEY=gsk_...     # Required — free at console.groq.com
+CEREBRAS_API_KEY=        # 1M tokens/day
+NVIDIA_API_KEY=          # NIM credits
+SAMBANOVA_API_KEY=       # Free large context
+OPENROUTER_API_KEY=      # Hermes 405B
+GEMINI_API_KEY=          # 20 req/day
+```
+
+---
+
+## Temperatures per Role
+
+| Role | Temperature | Style |
+|------|-------------|-------|
+| `code_architect` | 0.2 | Deterministic |
+| `qa_reviewer` | 0.2 | Strict |
+| `data_engineer` | 0.1 | Minimal variance |
+| `project_organizer` | 0.3 | Structured |
+| `research_analyst` | 0.5 | Balanced |
+| `mvp_strategist` | 0.6 | Creative |
+| `narrative_content` | 0.7 | Creative |
+| `verifier` | 0.2 | Deterministic |
+
+---
+
+<CardGroup cols={2}>
+  <Card title="LLM Config Reference" icon="sliders" href="/reference/llm-config">
+    Full provider chain configuration
+  </Card>
+  <Card title="Mesh Nodes" icon="network-wired" href="/concepts/mesh-nodes">
+    Local nodes and cloud API nodes
+  </Card>
+</CardGroup>

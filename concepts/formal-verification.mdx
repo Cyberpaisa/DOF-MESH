@@ -1,0 +1,152 @@
+---
+title: "Formal Verification"
+description: "Z3 SMT solver — 4/4 theorems PROVEN, 8 state invariants, 9 transition types, keccak256 on-chain receipts."
+---
+
+Z3 is the theorem prover used in safety-critical systems — aerospace certification, nuclear reactor safety, cryptographic protocol analysis. DOF uses Z3 to prove governance invariants mathematically. Not monitored. **Proven.**
+
+---
+
+## The 4 SMT Theorems
+
+```bash
+dof prove
+# All verified: True | Total time: 8.6ms
+#   VERIFIED  GCR_INVARIANT    (3.10ms)
+#   VERIFIED  SS_FORMULA       (1.80ms)
+#   VERIFIED  SS_MONOTONICITY  (2.40ms)
+#   VERIFIED  SS_BOUNDARIES    (1.20ms)
+```
+
+| Theorem | Formal statement |
+|---------|-----------------|
+| `GCR_INVARIANT` | GCR(f) = 1.0 for all f ∈ [0,1] |
+| `SS_FORMULA` | SS(f) = 1 − f³ for all f ∈ [0,1] under r = 2 |
+| `SS_MONOTONICITY` | For all f1 < f2: SS(f1) > SS(f2) |
+| `SS_BOUNDARIES` | SS(0) = 1.0 and SS(1) = 0.0 |
+
+---
+
+## 8 State Invariants (TransitionVerifier)
+
+`core/transitions.py` verifies state transitions across all 9 transition types:
+
+| ID | Invariant |
+|----|-----------|
+| INV-1 | `threat_detected` → NOT `publish_allowed` |
+| INV-2 | `trust_score < 0.4` → `attestation_count == 0` |
+| INV-3 | `hierarchy_level_next <= hierarchy_level + 1` |
+| INV-4 | `0 <= trust_score <= 1` |
+| INV-5 | `cooldown_active` → NOT `publish_allowed` |
+| INV-6 | `hierarchy_level == 3` → `trust_score > 0.8` |
+| INV-7 | `safety_score == 1 - failure_rate³` |
+| INV-8 | `governance_violation` → `hierarchy_level_next < hierarchy_level` |
+
+---
+
+## 9 Transition Types
+
+```
+PUBLISH · SCORE_UPDATE · PROMOTE · DEMOTE · THREAT_DETECT
+THREAT_CLEAR · COOLDOWN_START · COOLDOWN_END · GOVERNOR_ACTION
+```
+
+Results saved to `logs/z3_proofs.json`.
+
+---
+
+## The Z3 Gate
+
+**File:** `core/z3_gate.py` — neurosymbolic interface between LLM proposals and formal proofs.
+
+```
+LLM output → Z3Gate → Z3Verifier → APPROVED | REJECTED | TIMEOUT | FALLBACK
+```
+
+| Verdict | Meaning |
+|---------|---------|
+| `APPROVED` | All constraints satisfied, proof complete |
+| `REJECTED` | At least one constraint violated |
+| `TIMEOUT` | Solver exceeded time budget (default: 5s) |
+| `FALLBACK` | Z3 unavailable — rule-based governance only |
+
+```python
+from dof import Z3Verifier
+
+verifier = Z3Verifier()
+result = verifier.verify_governance_state(gcr=0.95, supervisor_score=0.87)
+print(result.verdict)     # "APPROVED"
+print(result.proof_hash)  # "0x7f3a9c..."
+```
+
+---
+
+## ProofResult States
+
+```python
+VERIFIED             # UNSAT — property holds universally
+COUNTEREXAMPLE_FOUND # SAT — counterexample found
+TIMEOUT              # inconclusive
+PROVEN               # TransitionVerifier equivalent of VERIFIED
+VIOLATED             # TransitionVerifier equivalent of COUNTEREXAMPLE_FOUND
+```
+
+---
+
+## 42 Hierarchy Patterns
+
+```bash
+dof verify-hierarchy
+# → 42 patterns PROVEN
+```
+
+`HierarchyZ3` verifies that `SYSTEM > USER > ASSISTANT` holds under:
+- 6 override patterns
+- 11 escalation patterns
+- 25 additional hierarchy patterns
+
+```python
+# verify_hierarchy_inviolable() → PROVEN
+# find_weakest_pattern() → None (all strong)
+```
+
+---
+
+## Cryptographic Proof Chain
+
+```
+Decision
+  → keccak256(input_hash + verdict + timestamp)
+  → GovernanceProof { input_hash, verdict, proof_hash, timestamp }
+  → MerkleBatcher (accumulated in batch)
+  → Merkle root → DOFProofRegistry.attest() on-chain
+```
+
+| Module | Role |
+|--------|------|
+| `core/zk_governance_proof.py` | keccak256 per decision |
+| `core/zk_batch_prover.py` | Merkle tree + batch accumulation |
+| `core/merkle_tree.py` | Merkle implementation |
+| `core/proof_storage.py` | Local proof persistence |
+
+---
+
+## Verify On-Chain (Anyone)
+
+```bash
+cast call 0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6 \
+  "verifyProof(bytes32)" 0x44b45cd026916c... \
+  --rpc-url https://api.avax.network/ext/bc/C/rpc
+# → true
+```
+
+---
+
+<CardGroup cols={2}>
+  <Card title="On-Chain Attestations" icon="link" href="/guides/on-chain-attestations">
+    Full deployment table — 9 chains
+  </Card>
+  <Card title="Z3 API Reference" icon="function" href="/reference/z3-api">
+    Z3Verifier and Z3Gate full API
+  </Card>
+</CardGroup>

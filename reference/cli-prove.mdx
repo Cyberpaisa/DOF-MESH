@@ -1,0 +1,148 @@
+---
+title: "CLI: prove & verify-states"
+description: "dof prove, dof verify-states, dof verify-hierarchy — Z3 formal verification commands."
+---
+
+## dof prove
+
+Runs all 4 Z3 SMT theorems and reports results.
+
+```bash
+dof prove
+```
+
+```
+DOF Formal Verification — Z3 SMT Solver
+All verified: True | Total time: 8.6ms
+
+  VERIFIED  GCR_INVARIANT    (3.10ms)
+  VERIFIED  SS_FORMULA       (1.80ms)
+  VERIFIED  SS_MONOTONICITY  (2.40ms)
+  VERIFIED  SS_BOUNDARIES    (1.20ms)
+```
+
+**JSON output:**
+
+```bash
+dof --json prove
+```
+
+```json
+{
+  "verified": true,
+  "theorems": [
+    {"name": "GCR_INVARIANT",   "result": "VERIFIED", "time_ms": 3.10},
+    {"name": "SS_FORMULA",      "result": "VERIFIED", "time_ms": 1.80},
+    {"name": "SS_MONOTONICITY", "result": "VERIFIED", "time_ms": 2.40},
+    {"name": "SS_BOUNDARIES",   "result": "VERIFIED", "time_ms": 1.20}
+  ]
+}
+```
+
+---
+
+## dof verify-states
+
+Verifies 4 state invariants via `TransitionVerifier` across all 9 transition types.
+
+```bash
+dof verify-states
+```
+
+```
+DOF State Transition Verification — 4/4 PROVEN
+
+  INV-1: threat_detected → NOT publish_allowed           PROVEN
+  INV-2: trust_score < 0.4 → attestation_count == 0     PROVEN
+  INV-3: hierarchy_level_next <= hierarchy_level + 1     PROVEN
+  INV-4: 0 <= trust_score <= 1                           PROVEN
+```
+
+**JSON output:**
+
+```json
+{
+  "proven": true,
+  "invariants": [
+    {"id": "INV-1", "result": "PROVEN"},
+    {"id": "INV-2", "result": "PROVEN"},
+    {"id": "INV-3", "result": "PROVEN"},
+    {"id": "INV-4", "result": "PROVEN"}
+  ],
+  "transition_types": 9,
+  "time_ms": 110
+}
+```
+
+---
+
+## dof verify-hierarchy
+
+Verifies the `SYSTEM > USER > ASSISTANT` hierarchy across 42 patterns.
+
+```bash
+dof verify-hierarchy
+```
+
+```
+DOF Hierarchy Verification — Z3
+  42 patterns PROVEN
+  6 override patterns:    all PROVEN
+  11 escalation patterns: all PROVEN
+  25 hierarchy patterns:  all PROVEN
+
+  verify_hierarchy_inviolable() → PROVEN
+  find_weakest_pattern()        → None (all strong)
+```
+
+---
+
+## regression-baseline / regression-check
+
+Capture a baseline and check for regressions:
+
+```bash
+dof regression-baseline
+# Baseline captured:
+#   Z3 invariants: 4/4 PROVEN
+#   Tests:         4,308 passed
+#   Timestamp:     2026-04-04T20:00:00Z
+
+dof regression-check
+# Comparing vs baseline...
+#   Z3 invariants: 4/4 PROVEN ✓
+#   Tests:         4,308 passed ✓
+#   No regressions detected — exit 0
+```
+
+Use in CI:
+
+```bash
+dof regression-check || exit 1
+```
+
+---
+
+## Python API
+
+```python
+from dof.quick import prove
+
+result = prove()
+assert result["verified"] == True
+assert all(t["result"] == "VERIFIED" for t in result["theorems"])
+
+for t in result["theorems"]:
+    print(f"{t['name']}: {t['result']} ({t['time_ms']}ms)")
+```
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Formal Verification" icon="function" href="/concepts/formal-verification">
+    Theory behind Z3 proofs and invariants
+  </Card>
+  <Card title="Z3 API Reference" icon="code" href="/reference/z3-api">
+    Z3Verifier and TransitionVerifier API
+  </Card>
+</CardGroup>

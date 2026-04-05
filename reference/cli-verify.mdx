@@ -1,0 +1,153 @@
+---
+title: "CLI: verify commands"
+description: "dof verify, dof verify-code, and dof check-facts with real outputs."
+---
+
+## dof verify
+
+Runs text through the full pipeline: Constitution → AST → DataOracle.
+
+```bash
+dof verify "<text>"
+dof verify "<text>" --json
+```
+
+**Example:**
+
+```bash
+dof verify "Bitcoin was created in 2009 by Satoshi Nakamoto."
+# Status:     PASS
+# Score:      0.95
+# Violations: []
+# Latency:    12.4ms
+```
+
+```bash
+dof --json verify "Bitcoin was created in 2009"
+```
+
+```json
+{
+  "status": "pass",
+  "score": 0.95,
+  "violations": [],
+  "warnings": [],
+  "layers": {
+    "constitution": "pass",
+    "ast": "pass",
+    "oracle": "pass"
+  },
+  "latency_ms": 12.4
+}
+```
+
+**Blocked example — empty output:**
+
+```bash
+dof verify ""
+# Status:     BLOCKED
+# Violations: ["[NO_EMPTY_OUTPUT] Output too short (0 < 50 chars)"]
+```
+
+---
+
+## dof verify-code
+
+AST static analysis only — no Constitution or Oracle.
+
+```bash
+dof verify-code "<code>"
+dof verify-code path/to/file.py
+```
+
+**Safe code:**
+
+```bash
+dof verify-code "x = 1 + 2\nprint(x)"
+# Passed:           True
+# Score:            1.0
+# Violations:       []
+# Blocked patterns: []
+```
+
+**Unsafe code — secret:**
+
+```bash
+dof verify-code 'API_KEY = "sk-abc123def456ghi789jkl012mno345pqr678"'
+# Passed:           False
+# Violations:       ["PII/secret pattern detected"]
+# Blocked patterns: ["hardcoded_secret"]
+```
+
+**Unsafe code — eval:**
+
+```bash
+dof verify-code "x = eval(input())"
+# Passed:           False
+# Blocked patterns: ["UNSAFE_CALLS"]
+```
+
+---
+
+## dof check-facts
+
+DataOracle fact verification — 6 strategies.
+
+```bash
+dof check-facts "<text>"
+```
+
+**Example:**
+
+```bash
+dof check-facts "Ethereum was launched in 2010."
+# Status:       DISCREPANCY
+# Claims:       1 checked
+# Discrepancies: [{"claim": "Ethereum launched 2010", "expected": "2015", "got": "2010"}]
+# Oracle score: 0.12
+# Latency:      38.7ms
+```
+
+**Verified claim:**
+
+```bash
+dof check-facts "Bitcoin was created in 2009 by Satoshi Nakamoto."
+# Status:       VERIFIED
+# Oracle score: 0.94
+# Strategies:   6/6 used
+```
+
+---
+
+## Python API Equivalents
+
+```python
+from dof.quick import verify, verify_code, check_facts
+
+# verify
+result = verify("Your text here")
+print(result["status"])     # "pass" | "warn" | "blocked"
+print(result["latency_ms"]) # float
+
+# verify_code
+result = verify_code('API_KEY = "sk-..."')
+print(result["passed"])     # False
+print(result["violations"]) # list
+
+# check_facts
+result = check_facts("Ethereum was launched in 2010.")
+print(result["overall_status"])   # "DISCREPANCY"
+print(result["oracle_score"])     # 0.12
+print(len(result["strategies_used"]))  # 6
+```
+
+---
+
+<CardGroup cols={2}>
+  <Card title="CLI: prove" icon="function" href="/reference/cli-prove">
+    Z3 formal proofs
+  </Card>
+  <Card title="Governance API" icon="code" href="/reference/governance-api">
+    GovernanceResult dataclass
+  </Card>
+</CardGroup>

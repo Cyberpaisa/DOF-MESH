@@ -1,0 +1,121 @@
+---
+title: "Security Configuration"
+description: "7-layer governance configuration, DLP scanner, E2E encryption, and security compliance status."
+---
+
+## Security Compliance Status
+
+`DOF_MESH Security Score: 100% (5/5 gaps closed)`
+
+| Control | Severity | Status | Implementation |
+|---------|----------|--------|---------------|
+| E2E Encryption | CRITICAL | Resolved | NaCl box (Curve25519 + XSalsa20-Poly1305) |
+| NATS TLS 1.3 + mTLS | HIGH | Resolved | Phase 3 |
+| Key Management (KMS) | MEDIUM | Resolved | AES-256-GCM vault |
+| SHA3-256 Audit Chain | MEDIUM | Resolved | Phase 3 |
+| Data Loss Prevention | MEDIUM | Resolved | 18 patterns + entropy analysis |
+
+---
+
+## 7 Official Layer Names
+
+<Warning>
+  Use the official layer names. The old names (MeshGuardian, Icarus, Cerberus,
+  SecurityHierarchy) are deprecated and will not match the codebase.
+</Warning>
+
+| # | Official Name | Module | Role |
+|---|---------------|--------|------|
+| 1 | Constitution | `core/governance.py` | Hard rules block, soft rules warn |
+| 2 | AST Validator | `core/ast_verifier.py` | Static analysis |
+| 3 | Tool Hook Gate PRE | `core/tool_hooks.py` | Intercepts before execution |
+| 4 | Supervisor Engine | `core/supervisor.py` | Monitors behavior and drift |
+| 5 | Adversarial Guard | `core/adversarial.py` | Red/blue pipeline |
+| 6 | Memory Layer | `core/memory_governance.py` | Session state governance |
+| 7 | Z3 SMT Verifier | `core/z3_verifier.py` | 4/4 state invariants PROVEN |
+
+---
+
+## DLP Scanner
+
+`adversarial_dlp_hook(text)` — 18 patterns across 7 categories:
+
+| Category | Severity | Patterns |
+|----------|----------|---------|
+| API keys | CRITICAL | OpenAI, Anthropic, Groq, Cerebras, NVIDIA |
+| Private keys/crypto | CRITICAL | RSA PEM, Ethereum 64-hex, BIP39 |
+| Cloud credentials | CRITICAL | AWS Access Key, AWS Secret |
+| Database | CRITICAL | PostgreSQL, MySQL, MongoDB, Redis connection strings |
+| PII | CRITICAL | SSN, credit cards |
+| Auth tokens | HIGH | JWT |
+| PII bulk | MEDIUM | 3+ email addresses |
+
+```python
+from core.adversarial import adversarial_dlp_hook
+
+result = adversarial_dlp_hook("GROQ_API_KEY=gsk_abc123...")
+# → {"blocked": True, "category": "API keys", "severity": "CRITICAL"}
+```
+
+---
+
+## Formal Verification
+
+```bash
+dof verify-states
+# → 4/4 PROVEN in ~110ms
+```
+
+Verifies state transitions across 9 types: PUBLISH, SCORE_UPDATE, PROMOTE, DEMOTE,
+THREAT_DETECT, THREAT_CLEAR, COOLDOWN_START, COOLDOWN_END, GOVERNOR_ACTION.
+
+---
+
+## Tuning Constitution Rules
+
+Edit `dof.constitution.yml` to adjust thresholds:
+
+```yaml
+supervisor:
+  thresholds:
+    accept: 7.0
+    retry: 5.0
+    escalate_below: 5.0
+    max_retries: 2
+```
+
+To add a new HARD rule:
+
+```python
+# core/governance.py
+HARD_RULES.append({
+    "rule_key": "MY_CUSTOM_RULE",
+    "type": "regex",
+    "pattern": r"your_pattern",
+    "priority": RulePriority.SYSTEM
+})
+```
+
+Then add the matching entry to `dof.constitution.yml`.
+
+---
+
+## Security Hierarchy
+
+```
+SYSTEM > USER > ASSISTANT
+```
+
+Enforced by `core/supervisor.py` → `enforce_hierarchy()`. Override resistance
+verified by Z3 across 42 hierarchy patterns (6 overrides + 11 escalations + 25 others).
+
+---
+
+<CardGroup cols={2}>
+  <Card title="7-Layer Governance" icon="shield" href="/concepts/governance-layers">
+    Full layer reference with HARD/SOFT rules
+  </Card>
+  <Card title="Formal Verification" icon="function" href="/concepts/formal-verification">
+    Z3 invariants and state transitions
+  </Card>
+</CardGroup>

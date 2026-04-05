@@ -1,0 +1,103 @@
+---
+title: "Running the Mesh"
+description: "Launch the full DOF-MESH multi-LLM network — from quick CLI start to full Docker deployment."
+---
+
+## Option 1 — CLI (quick start)
+
+```bash
+pip install dof-sdk==0.6.0
+
+python3 core/api_node_runner.py \
+  --nodes deepseek-coder cerebras-llama gemini-flash local-agi-m4max \
+  --daemon
+```
+
+<Warning>
+  Do not include `local-qwen` — it does not exist. Use `local-agi-m4max` for
+  local sovereign compute.
+</Warning>
+
+---
+
+## Option 2 — Docker (full mesh)
+
+```bash
+git clone https://github.com/Cyberpaisa/DOF-MESH.git && cd DOF-MESH
+cp .env.example .env   # add your API keys
+docker-compose up -d --build
+
+curl http://localhost:8000/
+# → {"status":"ok","agents":8,"crews":11}
+```
+
+Services:
+
+| Service | Port | Description |
+|---------|------|-------------|
+| A2A Server | 8000 | JSON-RPC + REST agent interface |
+| Streamlit Dashboard | 8501 | Real-time governance monitoring |
+| Telegram Bot | — | `/status`, `/prove`, `/verify` |
+
+---
+
+## Running a Crew
+
+```bash
+python main.py
+# → Interactive CLI (15 options)
+
+python main.py --mode research --task "Analyze DOF competitors"
+# → Research crew: 5-agent pipeline
+```
+
+---
+
+## Governance Verification at Startup
+
+```bash
+dof prove
+# → 4/4 PROVEN in ~110ms
+
+dof verify-states
+# → INV-1 a INV-4: PROVEN
+
+dof health
+# → DOF v0.6.0 — 16/16 components available
+```
+
+---
+
+## Environment Variables (minimum)
+
+```bash
+GROQ_API_KEY=gsk_...         # Required — free
+MINIMAX_API_KEY=...           # Primary provider — 1,000 req/day free
+EVM_PRIVATE_KEY=0x...         # For on-chain attestations
+```
+
+---
+
+## Logs and Audit Trails
+
+All outputs go to JSONL for audit:
+
+```
+logs/traces/         ← RunTrace per execution
+logs/experiments/    ← runs.jsonl with aggregated metrics
+logs/metrics/        ← governance + supervisor steps
+logs/daemon/         ← cycles.jsonl (autonomous daemon)
+logs/mesh/           ← nodes.json, messages.jsonl
+logs/z3_proofs.json  ← formal verification results
+```
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Mesh Nodes" icon="network-wired" href="/concepts/mesh-nodes">
+    Node table, TTL backoff, consensus
+  </Card>
+  <Card title="Providers & Agents" icon="robot" href="/guides/providers-and-agents">
+    Provider chains for each role
+  </Card>
+</CardGroup>

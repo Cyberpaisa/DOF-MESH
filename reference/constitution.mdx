@@ -1,0 +1,172 @@
+---
+title: "Constitution Reference"
+description: "dof.constitution.yml — full reference for metadata, identity, providers, metrics, and supervisor thresholds."
+---
+
+The constitution file (`dof.constitution.yml`) defines all governance parameters.
+It is the single source of truth for rule IDs, provider chains, thresholds, and
+formal metrics.
+
+---
+
+## metadata
+
+```yaml
+spec_version: "1.0"
+project: "deterministic-observability-framework"
+author: "Juan Carlos Quiceno Vasquez"
+license: "Apache-2.0"
+```
+
+---
+
+## identity — Primary Provider
+
+```yaml
+model: "minimax/MiniMax-M2.1"
+providers:
+  - name: "groq"
+    models:
+      - "llama-3.3-70b-versatile"
+      - "qwen/qwen3-32b"
+      - "moonshotai/kimi-k2-instruct"
+  - name: "nvidia"
+    models:
+      - "qwen/qwen3.5-397b-a17b"
+      - "moonshotai/kimi-k2.5"
+      - "deepseek-ai/deepseek-v3.2"
+  - name: "cerebras"
+    models:
+      - "gpt-oss-120b"
+  - name: "minimax"
+    models:
+      - "MiniMax-M2.1"
+  - name: "gemini"
+    models:
+      - "gemini-2.5-flash"
+  - name: "sambanova"
+    models:
+      - "DeepSeek-V3.2"
+  - name: "openrouter"
+    models:
+      - "nousresearch/hermes-3-llama-3.1-405b:free"
+  - name: "zhipu"
+    models:
+      - "glm-4.7-flash"
+```
+
+---
+
+## 5 Formal Metrics
+
+| Metric | Formula | Range |
+|--------|---------|-------|
+| SS — Stability Score | `1 - f³` | [0.0, 1.0] |
+| PFI — Provider Fragility | `mean(failures)/n` | [0.0, 1.0] |
+| RP — Retry Pressure | `mean(retries)/n` | [0.0, 1.0] |
+| GCR — Governance Compliance | invariant = 1.0 | [1.0, 1.0] |
+| SSR — Supervisor Strictness | `rejected/completed` | [0.0, 1.0] |
+
+---
+
+## Supervisor Thresholds
+
+```yaml
+supervisor:
+  thresholds:
+    accept: 7.0
+    retry: 5.0
+    escalate_below: 5.0
+    max_retries: 2
+  weights:
+    quality: 0.40
+    actionability: 0.25
+    completeness: 0.20
+    factuality: 0.15
+```
+
+---
+
+## HARD Rules
+
+```yaml
+hard_rules:
+  - rule_key: NO_HALLUCINATION_CLAIM
+    type: phrase_without_url
+    description: "Blocks factual phrases without source URL"
+    priority: SYSTEM
+
+  - rule_key: LANGUAGE_COMPLIANCE
+    type: language_check
+    threshold: 0.05
+    description: ">5% English markers or JSON triggers block"
+    priority: SYSTEM
+
+  - rule_key: NO_EMPTY_OUTPUT
+    type: min_length
+    min_chars: 50
+    blocklist: ["no output", "error", "n/a", "todo"]
+    priority: SYSTEM
+
+  - rule_key: MAX_LENGTH
+    type: max_length
+    max_chars: 50000
+    priority: SYSTEM
+```
+
+---
+
+## SOFT Rules
+
+```yaml
+soft_rules:
+  - rule_key: HAS_SOURCES
+    match_mode: absent
+    description: "Warn when no https:// URL"
+
+  - rule_key: STRUCTURED_OUTPUT
+    match_mode: absent
+    description: "Warn when no headers or bullets"
+
+  - rule_key: CONCISENESS
+    match_mode: present
+    description: "Warn on repetitive filler patterns"
+
+  - rule_key: ACTIONABLE
+    match_mode: absent
+    description: "Warn when no actionable words"
+
+  - rule_key: NO_PII_LEAK
+    match_mode: present
+    patterns:
+      - '\b\d{3}-\d{2}-\d{4}\b'         # SSN
+      - '\b4[0-9]{12}(?:[0-9]{3})?\b'   # Visa
+      - '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' # Email
+```
+
+---
+
+## Loading the Constitution
+
+```python
+from dof import load_constitution, get_constitution, HARD_RULES, SOFT_RULES
+
+constitution = load_constitution()
+print(len(HARD_RULES))  # 4
+print(len(SOFT_RULES))  # 5
+
+# Get active constitution
+c = get_constitution()
+print(c.spec_version)   # "1.0"
+```
+
+---
+
+<CardGroup cols={2}>
+  <Card title="7-Layer Governance" icon="shield" href="/concepts/governance-layers">
+    How rules are enforced
+  </Card>
+  <Card title="LLM Config" icon="sliders" href="/reference/llm-config">
+    Provider chain configuration
+  </Card>
+</CardGroup>

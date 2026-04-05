@@ -1,0 +1,148 @@
+---
+title: "Governance API"
+description: "ConstitutionEnforcer, GovernanceResult, HierarchyResult — Python API reference."
+---
+
+## GovernanceResult
+
+```python
+@dataclass
+class GovernanceResult:
+    passed: bool         # True when no hard rule violations
+    score: float         # 1.0 = passed, 0.0 = blocked
+    violations: list[str]  # "[RULE_ID] description"
+    warnings: list[str]    # "[RULE_ID] warning"
+```
+
+<Warning>
+  `score` is 1.0 when passed, 0.0 when blocked. It is not a continuous
+  confidence value.
+</Warning>
+
+---
+
+## ConstitutionEnforcer
+
+```python
+from dof import ConstitutionEnforcer, load_constitution
+
+constitution = load_constitution()
+enforcer = ConstitutionEnforcer(constitution)
+
+result = enforcer.enforce("Your agent output text here")
+
+print(result.passed)      # True | False
+print(result.score)       # 1.0 | 0.0
+print(result.violations)  # ["[NO_EMPTY_OUTPUT] Output too short"]
+print(result.warnings)    # ["[HAS_SOURCES] No URLs found"]
+```
+
+---
+
+## HierarchyResult
+
+```python
+@dataclass
+class HierarchyResult:
+    compliant: bool
+    violation_level: str  # "NONE" | "SYSTEM" | "USER"
+    details: list[str]
+```
+
+<Warning>
+  `HierarchyResult` does NOT have a `status` attribute. Use `compliant`,
+  `violation_level`, and `details`.
+</Warning>
+
+```python
+from dof import ConstitutionEnforcer, load_constitution
+
+enforcer = ConstitutionEnforcer(load_constitution())
+result = enforcer.enforce_hierarchy("Your text")
+
+print(result.compliant)         # True
+print(result.violation_level)   # "NONE"
+print(result.details)           # []
+```
+
+---
+
+## Available Imports
+
+```python
+from dof import (
+    Constitution,
+    ConstitutionEnforcer,
+    GovernanceResult,
+    load_constitution,
+    get_constitution,
+    HARD_RULES,
+    SOFT_RULES,
+    PII_PATTERNS,
+)
+
+# Verify exports
+print(len(HARD_RULES))   # 4
+print(len(SOFT_RULES))   # 5
+print(len(PII_PATTERNS)) # 3
+```
+
+---
+
+## Checking Specific Rules
+
+```python
+from dof import HARD_RULES, SOFT_RULES
+
+# Print all active HARD rules
+for rule in HARD_RULES:
+    print(f"{rule['rule_key']}: {rule['type']}")
+
+# Constitution object
+constitution = load_constitution()
+print(constitution.spec_version)  # "1.0"
+print(constitution.project)       # "deterministic-observability-framework"
+```
+
+---
+
+## ASTVerifier
+
+```python
+from dof import ASTVerifier
+
+verifier = ASTVerifier()
+result = verifier.verify("x = 1 + 2")
+
+print(result.passed)            # True
+print(result.score)             # 1.0
+print(result.violations)        # []
+print(result.blocked_patterns)  # []
+```
+
+---
+
+## quick.verify (pipeline shortcut)
+
+```python
+from dof.quick import verify
+
+result = verify("Text to verify")
+# {
+#   "status": "pass" | "warn" | "blocked",
+#   "violations": [...],
+#   "layers": {"constitution": "pass", "ast": "pass", "oracle": "pass"},
+#   "latency_ms": float
+# }
+```
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Constitution Reference" icon="file-code" href="/reference/constitution">
+    Rule IDs and YAML structure
+  </Card>
+  <Card title="7-Layer Governance" icon="shield" href="/concepts/governance-layers">
+    How enforcement works
+  </Card>
+</CardGroup>
