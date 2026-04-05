@@ -43,6 +43,7 @@ reports/
 *.json
 !package.json
 !composer.json
+!docs.json
 !**/dof.constitution.yml
 
 # Output
