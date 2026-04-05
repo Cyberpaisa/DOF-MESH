@@ -83,6 +83,9 @@
 - `obsidian-claude-memoria` — Obsidian como memoria persistente entre sesiones · triggers: "obsidian memoria claude", "claude memoria permanente"
 - `trucos-claude-basicos` — ultrathink+Plan Mode+sub-agentes+/init+PROGRESS.md · triggers: "ultrathink claude", "trucos claude"
 
+### Skills de arquitectura de prompts
+- `arquitecto-claudio` v2.0 — Context Engineering 2026, 7 técnicas + Ultrathink + score 0-7 · triggers: "arquitecto", "claudio", "crea un prompt", "mejora este prompt"
+
 ### Otras instaladas
 - `arquitecto-sistema-prompt`, `construye-con-estructura`, `crear-skills`
 - `business-growth-skills`, `c-level-advisor`, `engineering-advanced-skills`
