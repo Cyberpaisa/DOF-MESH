@@ -350,3 +350,18 @@ Las instrucciones de Soberanía y Extracción están en `.claude/rules/`. Se car
 ## Estado Actual
 
 Ver: `docs/09_sessions/ESTADO_ACTUAL.md`
+
+## Stack Automático de Trabajo
+
+Reglas que aplican SIEMPRE sin instrucciones adicionales:
+
+| Tarea | Herramienta oficial |
+|---|---|
+| Construir prompt | arquitecto-claudio (7/7 técnicas) |
+| Crear skill | dof-skill-creator (7 pasos) |
+| Convertir documento | markitdown-converter |
+| Cerrar sesión | dof-session-report (HTML+MD+commit) |
+| Arrancar sesión | Lee CLAUDE.md + ESTADO_ACTUAL.md |
+| Extraer URL o página | web_fetch → markitdown si aplica |
+| Escribir código | Leer archivos existentes primero |
+| Hacer push | CI verde + doble revisión pre-commit |
