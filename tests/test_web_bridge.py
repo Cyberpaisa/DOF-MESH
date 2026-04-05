@@ -6,6 +6,10 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 
+def setUpModule():
+    raise unittest.SkipTest("module removed in commit 6cd575e — internal only, pending restoration")
+
+
 # ── WEB_TARGETS config ───────────────────────────────────────────────────────
 
 class TestWebTargetsConfig(unittest.TestCase):

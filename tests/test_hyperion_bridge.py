@@ -4,6 +4,10 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 
+def setUpModule():
+    raise unittest.SkipTest("module removed in commit 6cd575e — internal only, pending restoration")
+
+
 def _mock_sm():
     sm = MagicMock()
     shard = MagicMock()
