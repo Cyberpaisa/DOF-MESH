@@ -87,7 +87,7 @@ class TestOAGSIdentity(unittest.TestCase):
         for field in required:
             self.assertIn(field, card, f"Missing field: {field}")
         self.assertEqual(card["framework"], "DOF")
-        self.assertEqual(card["version"], "0.5.1")
+        self.assertEqual(card["version"], "0.6.0")
         self.assertEqual(card["model"], "test-model")
         self.assertEqual(card["tools"], ["t1", "t2"])
 
