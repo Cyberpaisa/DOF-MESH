@@ -63,7 +63,8 @@
             "group": "Config",
             "pages": [
               "reference/constitution",
-              "reference/llm-config"
+              "reference/llm-config",
+              "reference/mcp-config"
             ]
           }
         ]

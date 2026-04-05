@@ -1,0 +1,184 @@
+---
+title: "MCP Config Reference"
+description: "mcp_config.py — MCP_REGISTRY, ROLE_MCP_MAP, get_mcp_for_role(), and 11 available servers."
+---
+
+`mcp_config.py` is the single source of truth for MCP server configuration.
+It uses a two-table architecture: `MCP_REGISTRY` defines every available server,
+and `ROLE_MCP_MAP` assigns servers to agent roles — no hardcoded logic.
+
+```
+MCP_REGISTRY   → defines each server (command, args, env)
+ROLE_MCP_MAP   → assigns MCPs to agent roles
+get_mcp_for_role() → builds MCPServerStdio objects on demand
+```
+
+---
+
+## MCP_REGISTRY — 11 Servers
+
+### Foundational (4)
+
+| Key | Package | Description |
+|-----|---------|-------------|
+| `filesystem` | `@modelcontextprotocol/server-filesystem` | Read/write files in allowed directories |
+| `web_search` | `@pskill9/web-search` | Google search — no API key required |
+| `fetch` | `@anthropics/mcp-server-fetch` | Fetch URLs and convert to markdown |
+| `memory` | `@anthropics/mcp-server-memory` | Persistent knowledge graph (complements ChromaDB) |
+
+### Guardian-audited (7 — 26 March 2026)
+
+| Key | Package | Publisher | API key |
+|-----|---------|-----------|---------|
+| `context7` | `@upstash/context7-mcp` | Upstash (official) — 430K dl/week | — |
+| `sequential_thinking` | `@modelcontextprotocol/server-sequential-thinking` | Anthropic (official) — 94K dl/week | — |
+| `playwright` | `@playwright/mcp --headless` | Microsoft (official) — 1.86M dl/week | — |
+| `evm` | `@mcpdotdirect/evm-mcp-server` | mcpdotdirect — SLSA provenance | — |
+| `tavily` | `tavily-mcp` | Tavily AI (official) — 137K dl/week | `TAVILY_API_KEY` |
+| `brave_search` | `@brave/brave-search-mcp-server` | Brave Software (official) | `BRAVE_API_KEY` |
+| `supabase` | `@supabase/mcp-server-supabase` | Supabase (official) — 47K dl/week | `SUPABASE_ACCESS_TOKEN` |
+
+<Warning>
+  `evm` — **NEVER** connect your primary wallet. Use a dedicated wallet only.
+</Warning>
+
+---
+
+## ROLE_MCP_MAP
+
+### Crew roles (8)
+
+| Role | MCPs |
+|------|------|
+| `code_architect` | filesystem, fetch, context7, evm, playwright |
+| `research_analyst` | tavily, brave_search, context7, fetch |
+| `data_engineer` | filesystem, supabase, context7 |
+| `project_organizer` | filesystem, supabase |
+| `narrative_content` | brave_search, fetch, context7 |
+| `mvp_strategist` | sequential_thinking, brave_search, context7 |
+| `qa_reviewer` | playwright, context7, tavily |
+| `verifier` | evm, sequential_thinking, tavily |
+
+### Agent roles (17 — agents.yaml)
+
+| Agent ID | MCPs |
+|----------|------|
+| `lider_orquestador` | sequential_thinking, tavily, context7, supabase |
+| `organizador_archivos` | filesystem |
+| `product_manager` | sequential_thinking, brave_search, context7 |
+| `director_operaciones` | supabase, tavily, sequential_thinking |
+| `bizdev` | brave_search, tavily, fetch |
+| `arquitecto` | filesystem, context7, evm, sequential_thinking |
+| `developer` | filesystem, context7, fetch, playwright |
+| `qa_engineer` | playwright, context7, tavily |
+| `investigador` | tavily, brave_search, fetch, context7 |
+| `devops` | filesystem, supabase, playwright |
+| `seguridad_blockchain` | evm, sequential_thinking, tavily |
+| `experto_ideacion` | brave_search, fetch, sequential_thinking |
+| `experto_multichain` | evm, tavily, context7 |
+| `experto_cuantico` | sequential_thinking, context7, tavily |
+| `seguridad_informatica` | evm, playwright, sequential_thinking |
+| `experto_metodologias` | sequential_thinking, context7, fetch |
+| `experto_bpm` | sequential_thinking, supabase, context7 |
+
+---
+
+## API
+
+### get_mcp_for_role()
+
+Returns a list of `MCPServerStdio` objects for a given agent role.
+Accepts both Spanish (`agents.yaml`) and English alias names.
+
+```python
+from mcp_config import get_mcp_for_role
+
+# By role name (Spanish)
+mcps = get_mcp_for_role("investigador")
+# → [MCPServerStdio(tavily), MCPServerStdio(brave_search), ...]
+
+# By alias (English)
+mcps = get_mcp_for_role("researcher")
+# → same as "investigador"
+
+# With custom project directory (for filesystem MCP)
+mcps = get_mcp_for_role("developer", project_dir="/tmp/my-project")
+```
+
+### get_available_mcps()
+
+```python
+from mcp_config import get_available_mcps
+
+registry = get_available_mcps()
+# {
+#   "filesystem": {"description": "...", "env_required": None, "warning": None},
+#   "evm":        {"description": "...", "env_required": None,
+#                  "warning": "NUNCA conectar wallet principal..."},
+#   "tavily":     {"description": "...", "env_required": "TAVILY_API_KEY", ...},
+#   ...
+# }
+```
+
+### get_role_map()
+
+```python
+from mcp_config import get_role_map
+
+role_map = get_role_map()
+print(role_map["code_architect"])
+# ["filesystem", "fetch", "context7", "evm", "playwright"]
+```
+
+---
+
+## Adding a New MCP Server
+
+1. Add an entry to `MCP_REGISTRY`:
+
+```python
+"my_server": {
+    "command": "npx",
+    "args": ["-y", "@org/my-mcp-server"],
+    "description": "What it does",
+    "env": "MY_API_KEY",  # optional
+},
+```
+
+2. Add to relevant roles in `ROLE_MCP_MAP`:
+
+```python
+"my_role": ["filesystem", "my_server"],
+```
+
+No other changes needed — `get_mcp_for_role()` picks it up automatically.
+
+---
+
+## Role Aliases (English → Spanish)
+
+| English alias | Maps to |
+|---------------|---------|
+| `orchestrator` | `lider_orquestador` |
+| `file_organizer` | `organizador_archivos` |
+| `operations` | `director_operaciones` |
+| `architect` | `arquitecto` |
+| `security_blockchain` | `seguridad_blockchain` |
+| `security` | `seguridad_informatica` |
+| `researcher` | `investigador` |
+| `ideation` | `experto_ideacion` |
+| `multichain` | `experto_multichain` |
+| `quantum` | `experto_cuantico` |
+| `methodologies` | `experto_metodologias` |
+| `bpm` | `experto_bpm` |
+
+---
+
+<CardGroup cols={2}>
+  <Card title="MCP & API Guide" icon="plug" href="/guides/mcp-api">
+    REST API endpoints and DOF MCP tools
+  </Card>
+  <Card title="Providers & Agents" icon="robot" href="/guides/providers-and-agents">
+    17 agents and their roles
+  </Card>
+</CardGroup>
