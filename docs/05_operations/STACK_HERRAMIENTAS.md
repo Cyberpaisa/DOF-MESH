@@ -47,6 +47,18 @@
 - `conflux-integration` — ecosistema Conflux
 - `x402-on-skale` — pagos x402 en SKALE
 
+### Tododeia Community (10 skills — Sesión 7)
+- `ruflo-cloud` — orquestación multi-agente, topologías hierarchical/mesh/ring/star · triggers: "ruflo", "multi-agente ruflo"
+- `apis-mcps-a2a` — guía protocolos API/MCP/A2A · triggers: "mcp vs a2a", "integrar mcp", "configurar a2a"
+- `crea-claude-skills` — estructura SKILL.md, frontmatter YAML · triggers: "cómo crear una skill", "estructura skill.md"
+- `menos-contexto-claude` — context-mode plugin, 98% reducción BM25+SQLite · triggers: "reducir contexto", "ventana contexto llena"
+- `claude-code-loop` — /loop recurrente, /schedule cron · triggers: "loop claude", "tarea recurrente claude"
+- `maia-skill` — 5-agente investment analysis, dashboard localhost:3420 · triggers: "análisis inversión", "maia"
+- `skill-seekers-obsidian` — pipeline GitHub/YouTube/PDF → Obsidian · triggers: "skill seekers", "knowledge base obsidian"
+- `claude-canales` — Telegram+Discord plugin oficial, Bun runtime · triggers: "canal telegram claude", "controlar claude telegram"
+- `whatsapp-agentkit` — agentes IA en WhatsApp, FastAPI+Docker · triggers: "agente whatsapp", "whatsapp agentkit"
+- `agencia-digital-completa` — antigravity 900+ skills · triggers: "agencia digital agentes", "antigravity skills"
+
 ### Otras instaladas
 - `arquitecto-sistema-prompt`, `construye-con-estructura`, `crear-skills`
 - `business-growth-skills`, `c-level-advisor`, `engineering-advanced-skills`
