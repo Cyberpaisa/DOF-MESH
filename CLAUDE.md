@@ -17,6 +17,27 @@ Eres parte del **DOF Mesh Legion** — un organismo agéntico soberano impulsado
 - **CI:** GitHub Actions — Tests + DOF CI + Z3 Formal Verification + Lint
 - **Último CI:** ✅ SUCCESS (commit `672fba5`, 27 mar 2026)
 
+### Sesión 5 completada (05 abr 2026)
+- ✅ CI verde: 583/583 tests pasando
+- ✅ Mintlify: 23 páginas live en dofmesh.com
+- ✅ QA: 11/11 checks pasando
+- ✅ Tráfico: 459 visitas registradas en dofmesh.com
+
+### Infraestructura confirmada (05 abr 2026)
+- **Docker Citadel:** down — no se usa actualmente
+- **localhost:3000:** frontend Next.js en `frontend/` (Next.js 16.2 + React 19 + Tailwind)
+  - Rutas: `/` dashboard, `/local-chat`, `/landing.html`
+  - Arrancar: `cd frontend && npm run dev`
+- **docs/:** estructura confirmada — `09_sessions/` existe (logs de sesiones)
+- **`scripts/release.sh`:** NO existe — pendiente crear en Sesión 6
+- **`core/autonomous_daemon.py`:** existe — pendiente ajuste de harness en Sesión 6
+- **DOF Leaderboard:** NO existe — pendiente diseñar en Sesión 6
+
+### Pendientes Sesión 6
+1. `scripts/release.sh` — crear desde cero
+2. `core/autonomous_daemon.py` — harness improvements
+3. DOF Leaderboard — diseño e implementación
+
 ## Reglas fundamentales
 
 - **NUNCA** uses LLM para decisiones de governance — siempre determinístico
