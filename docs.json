@@ -22,61 +22,73 @@
     "name": "PyPI",
     "url": "https://pypi.org/project/dof-sdk/"
   },
-  "navigation": [
-    {
-      "group": "Get Started",
-      "pages": [
-        "introduction",
-        "installation",
-        "quickstart"
-      ]
-    },
-    {
-      "group": "Concepts",
-      "pages": [
-        "concepts/architecture",
-        "concepts/governance-layers",
-        "concepts/formal-verification",
-        "concepts/mesh-nodes"
-      ]
-    },
-    {
-      "group": "Guides",
-      "pages": [
-        "guides/on-chain-attestations",
-        "guides/autonomous-operations",
-        "guides/running-the-mesh",
-        "guides/providers-and-agents",
-        "guides/security-configuration"
-      ]
-    },
-    {
-      "group": "API Reference",
-      "pages": [
-        "reference/api-quick",
-        "reference/api-governance",
-        "reference/api-mesh-orchestrator",
-        "reference/api-z3-verifier"
-      ]
-    },
-    {
-      "group": "CLI Reference",
-      "pages": [
-        "reference/cli-overview",
-        "reference/cli-verify",
-        "reference/cli-prove",
-        "reference/cli-benchmark"
-      ]
-    },
-    {
-      "group": "Configuration",
-      "pages": [
-        "reference/constitution-yaml",
-        "reference/llm-config",
-        "reference/mcp-servers"
-      ]
-    }
-  ],
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Docs",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "concepts/architecture",
+              "concepts/governance-layers",
+              "concepts/formal-verification",
+              "concepts/mesh-nodes"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/on-chain-attestations",
+              "guides/autonomous-operations",
+              "guides/running-the-mesh",
+              "guides/providers-and-agents",
+              "guides/security-configuration"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Python API",
+            "pages": [
+              "reference/api-quick",
+              "reference/api-governance",
+              "reference/api-mesh-orchestrator",
+              "reference/api-z3-verifier"
+            ]
+          },
+          {
+            "group": "CLI",
+            "pages": [
+              "reference/cli-overview",
+              "reference/cli-verify",
+              "reference/cli-prove",
+              "reference/cli-benchmark"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "reference/constitution-yaml",
+              "reference/llm-config",
+              "reference/mcp-servers"
+            ]
+          }
+        ]
+      }
+    ]
+  },
   "footerSocials": {
     "github": "https://github.com/Cyberpaisa/DOF-MESH",
     "x": "https://twitter.com/Cyber_paisa"
