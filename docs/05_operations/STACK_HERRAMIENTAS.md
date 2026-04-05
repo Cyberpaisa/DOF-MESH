@@ -36,6 +36,7 @@
 
 ### Activas DOF
 - `dof-skill-creator` — **constructor oficial de skills DOF** · triggers: "crea una skill", "nueva skill", "construye una skill"
+- `anthropic-ecosystem` — base de conocimiento repos/quickstarts/SDKs Anthropic · triggers: "qué repo de anthropic", "quickstart", "claude api", "sdk"
 - `dof-session-report` — reporte HTML de cierre de sesión
 - `markitdown-converter` — conversión de documentos a MD · triggers: "convierte", "pasa a markdown", "ingesta"
 - `sovereign-funding` — capa financiera nativa DOF Mesh
