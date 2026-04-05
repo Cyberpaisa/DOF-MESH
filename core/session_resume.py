@@ -266,7 +266,6 @@ class SessionStore:
             with open(tmp_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
                 f.flush()
-                os.fsync(f.fileno())
             os.replace(tmp_path, self._session_file)
         except OSError as exc:
             logger.error("SessionStore._write_atomic: failed — %s", exc)
