@@ -130,6 +130,7 @@ SAFE_INJECTION.txt
 docs/03_book/
 docs/evidence/
 docs/09_sessions/
+!docs/09_sessions/ESTADO_ACTUAL.md
 docs/08_agents/
 
 # Personal / internal — NEVER public

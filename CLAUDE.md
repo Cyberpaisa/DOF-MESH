@@ -346,3 +346,7 @@ PYTHONPATH=. python3 scripts/phase11_night_orchestrator.py
 ## Reglas modulares
 
 Las instrucciones de Soberanía y Extracción están en `.claude/rules/`. Se cargan automáticamente según el contexto de edición.
+
+## Estado Actual
+
+Ver: `docs/09_sessions/ESTADO_ACTUAL.md`
