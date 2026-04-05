@@ -35,7 +35,9 @@
 ## Skills Claude instaladas (35 total)
 
 ### Activas DOF
+- `dof-skill-creator` — **constructor oficial de skills DOF** · triggers: "crea una skill", "nueva skill", "construye una skill"
 - `dof-session-report` — reporte HTML de cierre de sesión
+- `markitdown-converter` — conversión de documentos a MD · triggers: "convierte", "pasa a markdown", "ingesta"
 - `sovereign-funding` — capa financiera nativa DOF Mesh
 - `super-sentinel` — Trust Layer ERC-8004
 - `erc8004-avalanche` — registro de agentes Avalanche
