@@ -47,7 +47,9 @@
 - `conflux-integration` — ecosistema Conflux
 - `x402-on-skale` — pagos x402 en SKALE
 
-### Tododeia Community (10 skills — Sesión 7)
+### Tododeia Community (30 skills — Sesiones 7a + 7b)
+
+#### Batch 1 — Sesión 7a (10 skills)
 - `ruflo-cloud` — orquestación multi-agente, topologías hierarchical/mesh/ring/star · triggers: "ruflo", "multi-agente ruflo"
 - `apis-mcps-a2a` — guía protocolos API/MCP/A2A · triggers: "mcp vs a2a", "integrar mcp", "configurar a2a"
 - `crea-claude-skills` — estructura SKILL.md, frontmatter YAML · triggers: "cómo crear una skill", "estructura skill.md"
@@ -58,6 +60,28 @@
 - `claude-canales` — Telegram+Discord plugin oficial, Bun runtime · triggers: "canal telegram claude", "controlar claude telegram"
 - `whatsapp-agentkit` — agentes IA en WhatsApp, FastAPI+Docker · triggers: "agente whatsapp", "whatsapp agentkit"
 - `agencia-digital-completa` — antigravity 900+ skills · triggers: "agencia digital agentes", "antigravity skills"
+
+#### Batch 2 — Sesión 7b (20 skills)
+- `claude-token-efficient` — 8-rule CLAUDE.md reduce 63% tokens · triggers: "ahorrar tokens", "63% menos tokens"
+- `cinco-errores-claude` — 5 errores que vacían la cuenta Claude · triggers: "errores cuenta claude", "5 errores claude"
+- `configura-claude-ahorra` — 5 configs que duplican duración del plan · triggers: "plan claude doble", "configurar plan claude"
+- `mejora-prompts-claude` — plugin prompt-improver, 31% token savings · triggers: "mejorar prompts", "prompt improver"
+- `comando-de-sistema` — guía conversacional 5 fases para system prompts · triggers: "system prompt guiado", "crear system prompt"
+- `the-architect-skill` — plano 16 secciones (Hainrixz) · triggers: "the architect", "plano 16 secciones"
+- `arquitecto-de-ingresos` — plan monetización: KILLER_MOVE_24H, 14-day sprint · triggers: "arquitecto ingresos", "killer move 24h"
+- `metodologia-v1` — metodología 5 fases para scope de v1 · triggers: "metodología v1", "construir por fases ia"
+- `claude-piloto-automatico` — YOLO Mode + hooks de protección · triggers: "piloto automático claude", "yolo mode"
+- `schedule-agentes-nube` — /schedule en servidores Anthropic · triggers: "schedule nube anthropic", "agentes cloud claude"
+- `claude-dispatch` — asignar tareas desde móvil, ejecutar en desktop · triggers: "claude dispatch", "claude desde el móvil"
+- `crea-agentes-con-claude` — 6 pasos: Plan Mode → describe → ejecuta · triggers: "crear agente claude code", "agente plan mode"
+- `claude-control-remoto` — Computer Use: mouse/teclado/pantalla · triggers: "computer use claude", "control remoto claude"
+- `skill-vault` — gestor biblioteca skills, 13 checkpoints seguridad · triggers: "skill vault", "gestionar biblioteca skills"
+- `equipo-dev-5-skills` — 5 skills: SuperPower+Debugging+FileSearch+Optimizer+Creator · triggers: "equipo dev skills", "5 skills desarrollo"
+- `vercel-skills-finder` — skills.sh + find-skills marketplace · triggers: "buscar skills vercel", "skills.sh"
+- `gstack-ia` — GStack Garry Tan (YC CEO) 31 comandos · triggers: "gstack", "autoplan ship qa"
+- `claude-cowork` — Claude Desktop workspaces persistentes · triggers: "cowork claude", "workspace persistente claude"
+- `obsidian-claude-memoria` — Obsidian como memoria persistente entre sesiones · triggers: "obsidian memoria claude", "claude memoria permanente"
+- `trucos-claude-basicos` — ultrathink+Plan Mode+sub-agentes+/init+PROGRESS.md · triggers: "ultrathink claude", "trucos claude"
 
 ### Otras instaladas
 - `arquitecto-sistema-prompt`, `construye-con-estructura`, `crear-skills`
