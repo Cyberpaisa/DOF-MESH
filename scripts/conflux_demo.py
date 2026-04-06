@@ -219,6 +219,18 @@ def main():
     print(BANNER)
 
     import os
+    # Cargar .env si existe — permite ejecutar sin exportar manualmente
+    env_path = Path(__file__).parent.parent / ".env"
+    if env_path.exists() and not os.environ.get("DOF_PRIVATE_KEY"):
+        try:
+            from dotenv import load_dotenv
+            load_dotenv(env_path)
+            # Conflux usa CONFLUX_PRIVATE_KEY en el .env
+            if not os.environ.get("DOF_PRIVATE_KEY") and os.environ.get("CONFLUX_PRIVATE_KEY"):
+                os.environ["DOF_PRIVATE_KEY"] = os.environ["CONFLUX_PRIVATE_KEY"]
+        except ImportError:
+            pass
+
     dry_run = args.dry_run or not bool(os.environ.get("DOF_PRIVATE_KEY"))
     if dry_run and not args.dry_run:
         log.warning("DOF_PRIVATE_KEY no encontrada — corriendo en dry_run automático")
