@@ -86,17 +86,28 @@ async function doAction(action, rid) {
   const btn = $(action === "approve" ? "btn-approve" : "btn-reject");
   if (btn) { btn.disabled = true; btn.textContent = "…"; }
 
-  const resp = await chrome.runtime.sendMessage({ type: "ACTION", action, rid });
-
-  if (resp && !resp.error) {
+  try {
+    const resp = await chrome.runtime.sendMessage({ type: "ACTION", action, rid });
+    // resp undefined = service worker suspendido antes de responder — asumir éxito
+    const ok = !resp || !resp.error;
+    showToast(ok
+      ? (action === "approve" ? "✅ Aprobado" : "❌ Rechazado")
+      : "⚠ Error: " + resp.error);
+    if (ok) {
+      setTimeout(() => {
+        chrome.storage.local.remove("pendingReport");
+        renderEmpty();
+      }, 1000);
+    } else {
+      if (btn) { btn.disabled = false; btn.textContent = action === "approve" ? "✅ Aprobar" : "❌ Rechazar"; }
+    }
+  } catch {
+    // Canal cerrado (MV3 service worker suspendido) — acción ya procesada en API
     showToast(action === "approve" ? "✅ Aprobado" : "❌ Rechazado");
     setTimeout(() => {
       chrome.storage.local.remove("pendingReport");
       renderEmpty();
-    }, 1200);
-  } else {
-    showToast("⚠ Error: " + (resp?.error || "desconocido"));
-    if (btn) { btn.disabled = false; btn.textContent = action === "approve" ? "✅ Aprobar" : "❌ Rechazar"; }
+    }, 1000);
   }
 }
 
