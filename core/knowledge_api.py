@@ -93,7 +93,9 @@ class KnowledgeHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         path = self.path.rstrip("/")
 
-        if path.startswith("/approve/"):
+        if path == "/ingest":
+            self._handle_ingest()
+        elif path.startswith("/approve/"):
             rid = path[len("/approve/"):]
             self._handle_action(rid, action="approve")
         elif path.startswith("/reject/"):
@@ -101,6 +103,39 @@ class KnowledgeHandler(BaseHTTPRequestHandler):
             self._handle_action(rid, action="reject")
         else:
             self._send(404, {"error": "not found"})
+
+    def _handle_ingest(self):
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            body = json.loads(self.rfile.read(length)) if length else {}
+            url = body.get("url", "").strip()
+            if not url or "youtube.com/watch" not in url and "youtu.be/" not in url:
+                self._send(400, {"error": "invalid YouTube URL"})
+                return
+        except Exception as e:
+            self._send(400, {"error": str(e)})
+            return
+
+        # Encola en background — no bloqueamos la respuesta HTTP
+        import threading
+        def _run():
+            try:
+                from core.youtube_ingestor import ingest
+                from core.knowledge_daemon import _process_pending, _load_processed
+                from core.knowledge_reporter import report_all_pending
+                from core.knowledge_notifier import notify_all_pending
+                ingest(url)
+                processed = _load_processed()
+                _process_pending(processed)
+                reports = report_all_pending()
+                if reports:
+                    notify_all_pending()
+                logger.info(f"Ingest pipeline done for {url}")
+            except Exception as e:
+                logger.error(f"Ingest failed: {e}")
+
+        threading.Thread(target=_run, daemon=True).start()
+        self._send(202, {"status": "queued", "url": url})
 
     def _handle_action(self, rid: str, action: str):
         if not rid or not rid.isalnum():

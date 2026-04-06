@@ -78,7 +78,19 @@ chrome.runtime.onStartup.addListener(() => {
   fetchLatest();
 });
 
-// ── Message bridge (popup → background) ─────────────────────────────
+// ── Ingest (llamado desde content.js) ───────────────────────────────
+
+async function ingestUrl(url) {
+  const res = await fetch(`${API}/ingest`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url }),
+    signal: AbortSignal.timeout(8000),
+  });
+  return res.json();
+}
+
+// ── Message bridge (popup + content.js → background) ─────────────────
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === "ACTION") {
@@ -90,5 +102,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === "POLL") {
     fetchLatest().then(() => sendResponse({ ok: true }));
     return true;
+  }
+  if (msg.type === "INGEST") {
+    ingestUrl(msg.url)
+      .then((data) => sendResponse({ ok: true, data }))
+      .catch((e) => sendResponse({ ok: false, error: e.message }));
+    return true; // async
   }
 });
