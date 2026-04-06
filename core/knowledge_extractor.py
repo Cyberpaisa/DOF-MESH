@@ -40,7 +40,7 @@ Transcripción:
 """
 
 
-def _ollama(prompt: str, timeout: int = 120) -> str:
+def _ollama(prompt: str, timeout: int = 300) -> str:
     payload = json.dumps({
         "model": OLLAMA_MODEL,
         "prompt": prompt,
