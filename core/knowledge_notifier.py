@@ -91,6 +91,17 @@ def _send_telegram(report: dict) -> bool:
         return False
 
 
+def _write_latest(report: dict) -> bool:
+    try:
+        latest = PENDING_DIR / "latest.json"
+        latest.write_text(json.dumps(report, ensure_ascii=False, indent=2))
+        logger.info(f"Chrome extension: latest.json updated")
+        return True
+    except Exception as e:
+        logger.error(f"latest.json error: {e}")
+        return False
+
+
 def _send_frontend(report: dict) -> bool:
     url = f"{FRONTEND_URL}/api/knowledge/pending"
     data = json.dumps(report).encode()
@@ -114,13 +125,15 @@ def notify(report_path: Path) -> dict:
 
     tg_ok = _send_telegram(report)
     fe_ok = _send_frontend(report)
+    cr_ok = _write_latest(report)
 
     result = {
         "id_aprobacion": rid,
         "telegram": tg_ok,
         "frontend": fe_ok,
+        "chrome": cr_ok,
     }
-    logger.info(f"Notified {rid}: telegram={tg_ok} frontend={fe_ok}")
+    logger.info(f"Notified {rid}: telegram={tg_ok} frontend={fe_ok} chrome={cr_ok}")
     return result
 
 
