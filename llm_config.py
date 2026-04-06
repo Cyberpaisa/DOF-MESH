@@ -1,5 +1,5 @@
 """
-Configuración de LLMs — 9 proveedores gratuitos + Smart Router + Retry.
+Configuración de LLMs — 10 proveedores gratuitos + Smart Router + Retry.
 
 Distribución de carga (Research Crew):
   Researcher:  Groq Llama 3.3         (tool-calling)
@@ -7,13 +7,14 @@ Distribución de carga (Research Crew):
   QA Reviewer: Cerebras GPT-OSS 120B  (tool-calling)
   Verifier:    Cerebras GPT-OSS 120B  (libera Groq TPM)
 
-Proveedores activos (9):
+Proveedores activos (10):
   GROQ:       Llama 3.3 70B, Qwen3-32B, GPT-OSS 120B, Kimi K2  (131K, 12K TPM free)
   NVIDIA:     Qwen3.5-397B, Kimi K2.5, DeepSeek V3.2           (128K, 1000 credits)
   DEEPSEEK:   DeepSeek V3 (chat), DeepSeek R1 (reasoner)        (128K, API tier)
   CEREBRAS:   GPT-OSS 120B                                      (128K, 1M tok/día free)
   MINIMAX:    MiniMax-M2.1                                      (128K, free tier)
   GEMINI:     2.5 Flash                                (1M context, 20 req/día free)
+  GEMMA:      Gemma 4 27B / 12B via OLLAMA local       (256K ctx, Apache 2.0, sin key)
   SAMBANOVA:  DeepSeek V3.2                            (BACKUP — 24K limit)
   OPENROUTER: Hermes 405B free                         (variable)
   ZHIPU:      GLM-4.7-Flash                             (128K, gratis, 745B MoE)
@@ -159,6 +160,25 @@ def get_minimax_llm(model="MiniMax-M2.1", temperature=0.3):
     )
 
 
+def get_gemma_llm(model="gemma4:12b", temperature=0.3):
+    """Gemma 4 via OLLAMA local — Apache 2.0, sin API key, 256K context.
+
+    Modelos disponibles (instalar con 'ollama pull'):
+      gemma4:12b  — 12B parámetros, uso general, ~8GB VRAM
+      gemma4:27b  — 27B denso, mayor calidad, ~18GB VRAM
+      gemma4:27b-moe — 26B MoE, solo 3.8B activos en inferencia (recomendado M4 Max)
+
+    Requiere OLLAMA corriendo: ollama serve
+    Sin API key — modelo local, datos no salen del equipo.
+    """
+    return LLM(
+        model=f"ollama/{model}",
+        base_url="http://localhost:11434",
+        temperature=temperature,
+        max_tokens=4096,
+    )
+
+
 # ═══════════════════════════════════════════════════════
 # PROVIDER RESILIENCE — Auto-fallback cuando un provider cae
 # ═══════════════════════════════════════════════════════
@@ -181,7 +201,7 @@ def reset_exhausted_providers():
 
 def _get_active_providers() -> list[str]:
     """List active (non-exhausted) providers."""
-    all_providers = ["groq", "nvidia", "deepseek", "cerebras", "minimax", "zhipu"]
+    all_providers = ["groq", "nvidia", "deepseek", "cerebras", "minimax", "zhipu", "gemma"]
     return [p for p in all_providers if p not in _exhausted_providers]
 
 
@@ -271,6 +291,7 @@ _DEFAULT_CHAIN = [
     ("zhipu", "openai/glm-4.7-flash"),
     ("nvidia", "nvidia_nim/deepseek-ai/deepseek-v3.2"),
     ("deepseek", "deepseek/deepseek-chat"),
+    ("gemma", "gemma4:12b"),  # OLLAMA local — backup sin API key, Apache 2.0
 ]
 
 _ROLE_TEMPS = {
@@ -287,6 +308,7 @@ _PROVIDER_KEY_ENV = {
     "deepseek": "DEEPSEEK_API_KEY",
     "cerebras": "CEREBRAS_API_KEY",
     "zhipu": "ZHIPU_API_KEY",
+    "gemma": "",  # OLLAMA local — sin API key
 }
 
 _ZHIPU_BASE_URL = "https://api.z.ai/api/paas/v4/"
@@ -320,6 +342,11 @@ def get_llm_for_role(role: str) -> LLM:
         api_key = os.getenv(_PROVIDER_KEY_ENV.get(provider, ""))
         if not api_key:
             continue
+
+        # Gemma via OLLAMA — no API key required
+        if provider == "gemma":
+            logger.info(f"LLM for '{role}': {model} (provider: gemma/ollama)")
+            return get_gemma_llm(model=model.replace("ollama/", ""), temperature=temp)
 
         kwargs = {
             "model": model,
@@ -593,6 +620,7 @@ def validate_keys() -> dict:
         "sambanova": bool(os.getenv("SAMBANOVA_API_KEY")),
         "openrouter": bool(os.getenv("OPENROUTER_API_KEY")),
         "zhipu": bool(os.getenv("ZHIPU_API_KEY")),
+        "gemma_ollama": True,  # OLLAMA local — siempre disponible si ollama serve está activo
         "serper": bool(os.getenv("SERPER_API_KEY")),
         "tavily": bool(os.getenv("TAVILY_API_KEY")),
     }
