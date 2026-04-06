@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>DOF-MESH Session 7 Report — 05 Apr 2026</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@300;400;500;600;700;900&display=swap');
+:root{
+  --black:#000;--white:#fff;--off:#f5f5f3;
+  --blue:#0052FF;--green:#00CC55;--red:#CC3300;--gold:#f59e0b;
+  --gray:rgba(0,0,0,0.45);--border:rgba(0,0,0,0.08);
+  --sans:'IBM Plex Sans',sans-serif;--mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--sans);background:var(--off);color:var(--black);}
+
+.cover{background:#000;min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;padding:60px;}
+.cover-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:6px 16px;margin-bottom:28px;}
+.cover-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+.cover-badge-txt{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,.5);text-transform:uppercase;}
+.cover-title{font-size:clamp(52px,8vw,96px);font-weight:900;color:#fff;line-height:.9;letter-spacing:-.03em;margin-bottom:20px;}
+.cover-sub{font-size:16px;font-weight:300;color:rgba(255,255,255,.45);line-height:1.7;max-width:560px;}
+.cover-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid rgba(255,255,255,.08);padding-top:36px;margin-top:36px;}
+.cs{padding-right:28px;border-right:1px solid rgba(255,255,255,.08);}
+.cs:last-child{border-right:none;padding-right:0;padding-left:28px;}
+.cs-n{font-size:32px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1;}
+.cs-n.g{color:var(--green);}
+.cs-n.b{color:var(--blue);}
+.cs-n.gold{color:var(--gold);}
+.cs-l{font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.25);letter-spacing:.12em;text-transform:uppercase;margin-top:5px;}
+.cover-meta{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.2);line-height:2;margin-top:28px;}
+
+.page{max-width:1040px;margin:0 auto;padding:72px 56px;border-bottom:1px solid var(--border);}
+.page:last-of-type{border-bottom:none;}
+.sec-label{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(0,0,0,.3);margin-bottom:28px;display:flex;align-items:center;gap:12px;}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.page-title{font-size:clamp(30px,4vw,46px);font-weight:900;letter-spacing:-.02em;line-height:1.05;margin-bottom:40px;}
+
+.score-hero{background:#000;border-radius:20px;padding:48px;color:#fff;margin-bottom:32px;position:relative;overflow:hidden;}
+.score-hero::before{content:'';position:absolute;top:-80px;right:-80px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(0,82,255,.18) 0%,transparent 70%);}
+.score-inner{display:flex;align-items:flex-start;gap:56px;position:relative;z-index:1;}
+.score-num{font-size:110px;font-weight:900;letter-spacing:-.05em;line-height:1;color:#fff;}
+.score-num span{font-size:44px;color:rgba(255,255,255,.35);}
+.score-right{flex:1;padding-top:8px;}
+.score-title{font-size:26px;font-weight:700;margin-bottom:6px;}
+.score-sub{font-size:13px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:20px;}
+.badge-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+.sbadge{display:inline-flex;align-items:center;gap:6px;border-radius:6px;padding:6px 12px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;}
+.sbadge.gold{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:#f59e0b;}
+.sbadge.green{background:rgba(0,204,85,.1);border:1px solid rgba(0,204,85,.25);color:#00CC55;}
+.sbadge.blue{background:rgba(0,82,255,.12);border:1px solid rgba(0,82,255,.3);color:#6699ff;}
+.bars{display:flex;flex-direction:column;gap:9px;}
+.bar-row{display:flex;align-items:center;gap:10px;}
+.bar-lbl{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.35);width:200px;flex-shrink:0;}
+.bar-track{flex:1;height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:2px;background:var(--green);}
+.bar-fill.b{background:var(--blue);}
+.bar-fill.gold{background:var(--gold);}
+.bar-val{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.4);width:28px;text-align:right;flex-shrink:0;}
+
+.tl{display:flex;flex-direction:column;}
+.tl-item{display:grid;grid-template-columns:120px 1px 1fr;gap:0 24px;padding-bottom:36px;}
+.tl-item:last-child{padding-bottom:0;}
+.tl-time{font-family:var(--mono);font-size:10px;color:var(--gray);padding-top:3px;text-align:right;line-height:1.5;}
+.tl-date{font-size:9px;color:rgba(0,0,0,.25);display:block;}
+.tl-line{background:var(--border);position:relative;}
+.tl-dot{position:absolute;top:5px;left:50%;transform:translateX(-50%);width:10px;height:10px;border-radius:50%;background:var(--black);border:2px solid var(--off);}
+.tl-dot.b{background:var(--blue);}
+.tl-dot.g{background:var(--green);}
+.tl-dot.r{background:var(--red);}
+.tl-dot.gold{background:var(--gold);}
+.tl-content{padding-top:1px;}
+.tl-title{font-size:15px;font-weight:700;margin-bottom:5px;letter-spacing:-.01em;}
+.tl-desc{font-size:13px;color:var(--gray);line-height:1.7;}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.tag{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:4px;border:1px solid var(--border);color:var(--gray);}
+.tag.b{border-color:var(--blue);color:var(--blue);}
+.tag.g{border-color:var(--green);color:var(--green);}
+.tag.r{border-color:var(--red);color:var(--red);}
+.tag.gold{border-color:var(--gold);color:var(--gold);}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;margin-bottom:24px;}
+
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;}
+.card-label{font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-bottom:10px;}
+.card-n{font-size:28px;font-weight:900;letter-spacing:-.02em;line-height:1;margin-bottom:4px;}
+.card-n.b{color:var(--blue);}
+.card-n.g{color:var(--green);}
+.card-n.gold{color:var(--gold);}
+.card-title{font-size:15px;font-weight:700;margin-bottom:6px;}
+.card-body{font-size:12px;color:var(--gray);line-height:1.65;}
+
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);padding:0 12px 10px 0;border-bottom:1px solid var(--border);text-align:left;}
+.tbl td{padding:10px 12px 10px 0;border-bottom:1px solid rgba(0,0,0,.04);vertical-align:top;}
+.tbl tr:last-child td{border-bottom:none;}
+.pass{font-family:var(--mono);font-size:10px;color:var(--green);font-weight:700;}
+.fail{font-family:var(--mono);font-size:10px;color:var(--red);font-weight:700;}
+
+.commit{display:flex;align-items:baseline;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.04);}
+.commit:last-child{border-bottom:none;}
+.chash{font-family:var(--mono);font-size:11px;color:var(--blue);flex-shrink:0;min-width:64px;}
+.cmsg{font-size:12px;flex:1;line-height:1.5;}
+.crepo{font-family:var(--mono);font-size:9px;color:var(--gray);flex-shrink:0;}
+
+.metric{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;}
+.metric-n{font-size:28px;font-weight:900;letter-spacing:-.02em;line-height:1;}
+.metric-n.b{color:var(--blue);}
+.metric-n.g{color:var(--green);}
+.metric-n.gold{color:var(--gold);}
+.metric-l{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-top:5px;}
+
+.pipeline-card{background:#000;border-radius:16px;padding:32px;margin-bottom:24px;}
+.pipeline-row{display:flex;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.pipeline-row:last-child{border-bottom:none;}
+.pipeline-n{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.25);width:24px;flex-shrink:0;}
+.pipeline-name{font-size:13px;font-weight:600;color:#fff;flex:1;}
+.pipeline-desc{font-size:11px;color:rgba(255,255,255,.35);flex:2;}
+.pipeline-hash{font-family:var(--mono);font-size:10px;color:var(--blue);}
+.pipeline-check{font-family:var(--mono);font-size:10px;color:var(--green);flex-shrink:0;}
+
+.rfooter{background:#000;padding:36px 56px;display:flex;justify-content:space-between;align-items:center;}
+.rf-l{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.25);line-height:2;}
+.rf-r{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.15);text-align:right;line-height:2;}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:48px;">
+      <svg width="36" height="36" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="8,7 42,46 42,54 8,93 8,72 29,54 29,46 8,28" fill="#fff"/>
+        <polygon points="92,7 58,46 58,54 92,93 92,72 71,54 71,46 92,28" fill="#fff"/>
+      </svg>
+      <span style="font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.3);text-transform:uppercase;">DOF-MESH · Cyberpaisa</span>
+    </div>
+    <div class="cover-badge">
+      <div class="cover-badge-dot"></div>
+      <span class="cover-badge-txt">Session 7 · Knowledge Pipeline Complete</span>
+    </div>
+    <div class="cover-title">DOF-MESH<br>Session 7<br>Report.</div>
+    <div class="cover-sub">
+      Domingo 05 de abril de 2026 · 16:00 – 21:00 COT<br>
+      DOF Knowledge Pipeline (8 componentes) · 30 skills instaladas · Gemma 4 + Ollama
+    </div>
+    <div class="cover-stats">
+      <div class="cs">
+        <div class="cs-n g">19</div>
+        <div class="cs-l">Commits</div>
+      </div>
+      <div class="cs">
+        <div class="cs-n b">4,262</div>
+        <div class="cs-l">Tests CI</div>
+      </div>
+      <div class="cs">
+        <div class="cs-n gold">~5h</div>
+        <div class="cs-l">Sesión</div>
+      </div>
+      <div class="cs">
+        <div class="cs-n">~34.5h</div>
+        <div class="cs-l">Acumulado</div>
+      </div>
+    </div>
+    <div class="cover-meta">
+      Repo: Cyberpaisa/DOF-MESH · Versión v0.6.0 · claude-sonnet-4-6 · Claude Code (Antigravity)<br>
+      CI: ✓ 4,262/4,262 · Knowledge Pipeline: 8/8 · Tests nuevos: 30 · git push: ✓ cad4c3c
+    </div>
+  </div>
+</div>
+
+<!-- 00 · FICHA -->
+<div class="page">
+  <div class="sec-label">00 · Ficha de sesión</div>
+  <div class="page-title">Información general.</div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-label">Info General</div>
+      <table class="tbl">
+        <tr><td style="color:var(--gray);width:140px;">Fecha</td><td><strong>Domingo, 05 Apr 2026</strong></td></tr>
+        <tr><td style="color:var(--gray);">Horario</td><td><strong>16:00 – 21:00 COT</strong> (UTC-5)</td></tr>
+        <tr><td style="color:var(--gray);">Duración</td><td><strong>~5 horas</strong></td></tr>
+        <tr><td style="color:var(--gray);">Sesión #</td><td><strong>7</strong> de la serie DOF-MESH</td></tr>
+        <tr><td style="color:var(--gray);">Acumulado</td><td><strong>~34.5 horas</strong> totales</td></tr>
+        <tr><td style="color:var(--gray);">Repos</td><td><strong>Cyberpaisa/DOF-MESH</strong></td></tr>
+        <tr><td style="color:var(--gray);">Commits</td><td><strong>19</strong></td></tr>
+        <tr><td style="color:var(--gray);">Plataforma</td><td>claude.ai · Plan Max</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-label">Modelo &amp; Herramientas</div>
+      <table class="tbl">
+        <tr><td style="color:var(--gray);width:140px;">Modelo IA</td><td><strong>Claude Sonnet 4.6</strong></td></tr>
+        <tr><td style="color:var(--gray);">Model string</td><td><code style="font-size:11px;">claude-sonnet-4-6</code></td></tr>
+        <tr><td style="color:var(--gray);">Terminal</td><td>Claude Code (Antigravity)</td></tr>
+        <tr><td style="color:var(--gray);">LLM local</td><td>Ollama · dof-analyst (Qwen2 14.8B)</td></tr>
+        <tr><td style="color:var(--gray);">Nuevo LLM</td><td>Gemma 4 · Apache 2.0 · ollama/gemma4:12b</td></tr>
+        <tr><td style="color:var(--gray);">Tests</td><td>python3 -m unittest (NO pytest)</td></tr>
+        <tr><td style="color:var(--gray);">CI</td><td>GitHub Actions · 4,262 passing</td></tr>
+        <tr><td style="color:var(--gray);">Push</td><td>✓ <code style="font-size:11px;">cad4c3c</code> → origin/main</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 01 · CALIFICACIÓN -->
+<div class="page">
+  <div class="sec-label">01 · Calificación de sesión</div>
+  <div class="page-title">Rendimiento técnico.</div>
+  <div class="score-hero">
+    <div class="score-inner">
+      <div class="score-num">91<span>/100</span></div>
+      <div class="score-right">
+        <div class="score-title">Senior · Top 5%</div>
+        <div class="score-sub">Pipeline completo de 8 componentes entregado en una sesión.<br>19 commits, 30 tests nuevos, zero regresiones, push exitoso.</div>
+        <div class="badge-row">
+          <span class="sbadge gold">⚡ Pipeline Architect</span>
+          <span class="sbadge green">✓ 30/30 Tests</span>
+          <span class="sbadge blue">8 Componentes</span>
+          <span class="sbadge green">✓ Compaction Recovery</span>
+        </div>
+        <div class="bars">
+          <div class="bar-row">
+            <span class="bar-lbl">Recuperación de contexto</span>
+            <div class="bar-track"><div class="bar-fill" style="width:95%"></div></div>
+            <span class="bar-val">95</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-lbl">Diagnóstico técnico</span>
+            <div class="bar-track"><div class="bar-fill" style="width:92%"></div></div>
+            <span class="bar-val">92</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-lbl">Velocidad de ejecución</span>
+            <div class="bar-track"><div class="bar-fill" style="width:95%"></div></div>
+            <span class="bar-val">95</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-lbl">Stack multi-sistema</span>
+            <div class="bar-track"><div class="bar-fill b" style="width:80%"></div></div>
+            <span class="bar-val">80</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-lbl">Persistencia</span>
+            <div class="bar-track"><div class="bar-fill gold" style="width:90%"></div></div>
+            <span class="bar-val">90</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-lbl">QA y validación</span>
+            <div class="bar-track"><div class="bar-fill" style="width:97%"></div></div>
+            <span class="bar-val">97</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="g3">
+    <div class="card">
+      <div class="card-label">Pipeline shipped</div>
+      <div class="card-n g">8/8</div>
+      <div class="card-body">youtube→MD→Ollama→score→Telegram→Chrome. Cero componentes pendientes.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Skills instaladas (sesión)</div>
+      <div class="card-n b">30+</div>
+      <div class="card-body">tododeia batch (30), dof-skill-creator, anthropic-ecosystem, arquitecto-claudio v2.0.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Bugs resueltos en vivo</div>
+      <div class="card-n gold">6</div>
+      <div class="card-body">yt-dlp --print, Ollama timeout, daemon retry, TG chat_id cast, MarkdownV2 escaping, lazy mock path.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 02 · CRONOLOGÍA -->
+<div class="page">
+  <div class="sec-label">02 · Cronología</div>
+  <div class="page-title">Línea de tiempo.</div>
+  <div class="tl">
+    <div class="tl-item">
+      <div class="tl-time">16:00 COT<span class="tl-date">Domingo 05 Abr</span></div>
+      <div class="tl-line"><div class="tl-dot b"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">Inicio sesión 7 — Skills batch</div>
+        <div class="tl-desc">30 skills de tododeia.com instaladas en batch (tokens, prompts, agentes, APIs, loops, canales, obsidian, Antigravity…). dof-skill-creator y anthropic-ecosystem como base de conocimiento.</div>
+        <div class="tags"><span class="tag b">skills</span><span class="tag">30 commits preparados</span></div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">16:45 COT</div>
+      <div class="tl-line"><div class="tl-dot g"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">CLAUDE.md + arquitecto-claudio v2.0</div>
+        <div class="tl-desc">Stack Automático de Trabajo añadido a CLAUDE.md (8 entradas). arquitecto-claudio v2.0 creada: 9 secciones, 356 líneas, Context Engineering 2026, score 0-7 con tabla NOVATO→MAESTRO.</div>
+        <div class="tags"><span class="tag g">1e07c4f</span><span class="tag g">6b16478</span></div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">17:15 COT</div>
+      <div class="tl-line"><div class="tl-dot gold"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">Gemma 4 + Ollama en llm_config · Harness v0.6.0</div>
+        <div class="tl-desc">get_gemma_llm() con ollama/gemma4:12b, 256K context, Apache 2.0, sin API key. Harness v0.6.0 integrado en autonomous_daemon (SessionStore + CostTracker + mock_provider).</div>
+        <div class="tags"><span class="tag gold">662255c</span><span class="tag gold">3b4a348</span></div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">17:45 COT</div>
+      <div class="tl-line"><div class="tl-dot b"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">FASE 1: youtube_ingestor.py — Bug yt-dlp resuelto</div>
+        <div class="tl-desc">yt-dlp con --remote-components ejs:github + cookies. Bug crítico: --print bloquea descarga SRT. Solución: split en 2 subprocess calls separados (metadata primero, download después). Output: YYYY-MM-DD-{slug}.md con meta JSON embebido.</div>
+        <div class="tags"><span class="tag b">dd35171</span><span class="tag r">bug: --print</span><span class="tag g">fix: 2 calls</span></div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">18:15 COT</div>
+      <div class="tl-line"><div class="tl-dot b"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">FASE 2-3: knowledge_extractor.py + knowledge_daemon.py</div>
+        <div class="tl-desc">Extractor: Ollama/dof-analyst (Qwen2 14.8B), CHUNK_WORDS=3500, timeout=300s (fix: 120s insuficiente). Merge multi-chunk. MemoryManager.store_long_term() + queue daemon. Daemon: watcher 30s, state JSONL, retry solo fallos (fix: solo success=True).</div>
+        <div class="tags"><span class="tag b">12b16b5</span><span class="tag b">7cd8ca4</span><span class="tag r">fix: timeout</span><span class="tag g">fix: retry</span></div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">18:45 COT</div>
+      <div class="tl-line"><div class="tl-dot b"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">FASE 4-5: knowledge_reporter.py + knowledge_notifier.py</div>
+        <div class="tl-desc">Reporter: score DOF 0-100 (alta=60, media=35, baja=10 + apps×5 + techs×2). Notifier: Telegram MarkdownV2 con botones inline aprobar_/rechazar_, POST frontend, _write_latest() para Chrome. Fix: int(TELEGRAM_CHAT_ID) + _escape_md() para todos los campos.</div>
+        <div class="tags"><span class="tag b">ea266c7</span><span class="tag b">c56d170</span><span class="tag b">ab9bd67</span><span class="tag r">fix: TG escaping</span></div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">19:15 COT</div>
+      <div class="tl-line"><div class="tl-dot r"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">Context compaction — reanudado sin pérdida</div>
+        <div class="tl-desc">Claude Code activó compaction automático. Sesión resumida desde /jsonl con contexto completo. El pipeline continuó exactamente donde quedó: knowledge_approver.py pendiente de tests y commit.</div>
+        <div class="tags"><span class="tag r">compaction</span><span class="tag g">recovery: ok</span></div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">19:30 COT</div>
+      <div class="tl-line"><div class="tl-dot b"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">FASE 6-7: knowledge_approver.py — 12 tests</div>
+        <div class="tl-desc">Approver: poll Telegram getUpdates con offset persistente, approve() → MemoryManager + queue + approved/, reject() → rejected/. Bug test: @patch("core.knowledge_approver.MemoryManager") falla con lazy import → fix a core.memory_manager.MemoryManager. 12/12 pasando.</div>
+        <div class="tags"><span class="tag b">c253928</span><span class="tag r">fix: mock lazy</span><span class="tag g">12/12 tests</span></div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">20:20 COT</div>
+      <div class="tl-line"><div class="tl-dot g"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">FASE 8: knowledge_api.py + Chrome extension dof-youtube/</div>
+        <div class="tl-desc">API HTTP :19019 (GET /latest, /pending, /health · POST /approve/{rid}, /reject/{rid}). Chrome MV3: background.js polling 30s, badge rojo, notificaciones. popup.html/js: UI aprobar/rechazar con toast. 12/12 tests API. git push → origin/main.</div>
+        <div class="tags"><span class="tag g">cad4c3c</span><span class="tag g">12/12 tests</span><span class="tag g">git push ✓</span></div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">21:00 COT</div>
+      <div class="tl-line"><div class="tl-dot gold"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">Cierre — Pipeline 8/8, API activa en :19019</div>
+        <div class="tl-desc">knowledge_api corriendo en background. 4,262 tests pasando. Reporte de sesión generado.</div>
+        <div class="tags"><span class="tag gold">sesión cerrada</span><span class="tag g">4,262/4,262</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 03 · MÉTRICAS -->
+<div class="page">
+  <div class="sec-label">03 · Métricas</div>
+  <div class="page-title">Números de sesión.</div>
+  <div class="g4">
+    <div class="metric"><div class="metric-n g">19</div><div class="metric-l">Commits</div></div>
+    <div class="metric"><div class="metric-n b">4,262</div><div class="metric-l">Tests totales</div></div>
+    <div class="metric"><div class="metric-n g">30</div><div class="metric-l">Tests nuevos</div></div>
+    <div class="metric"><div class="metric-n gold">0</div><div class="metric-l">Regresiones</div></div>
+  </div>
+  <div class="g4">
+    <div class="metric"><div class="metric-n b">8</div><div class="metric-l">Componentes pipeline</div></div>
+    <div class="metric"><div class="metric-n g">30+</div><div class="metric-l">Skills instaladas</div></div>
+    <div class="metric"><div class="metric-n gold">6</div><div class="metric-l">Bugs resueltos</div></div>
+    <div class="metric"><div class="metric-n g">91</div><div class="metric-l">Score sesión</div></div>
+  </div>
+
+  <!-- DOF Knowledge Pipeline visual -->
+  <div class="pipeline-card">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:20px;">DOF Knowledge Pipeline — 8 Componentes</div>
+    <div class="pipeline-row">
+      <span class="pipeline-n">01</span>
+      <span class="pipeline-name">youtube_ingestor.py</span>
+      <span class="pipeline-desc">yt-dlp + SRT → docs/knowledge/YYYY-MM-DD-{slug}.md</span>
+      <span class="pipeline-hash">dd35171</span>
+      <span class="pipeline-check">✓</span>
+    </div>
+    <div class="pipeline-row">
+      <span class="pipeline-n">02</span>
+      <span class="pipeline-name">knowledge_extractor.py</span>
+      <span class="pipeline-desc">Ollama/dof-analyst (Qwen2 14.8B) → JSON estructurado</span>
+      <span class="pipeline-hash">12b16b5</span>
+      <span class="pipeline-check">✓</span>
+    </div>
+    <div class="pipeline-row">
+      <span class="pipeline-n">03</span>
+      <span class="pipeline-name">knowledge_daemon.py</span>
+      <span class="pipeline-desc">Watcher 30s · retry fallos · state JSONL</span>
+      <span class="pipeline-hash">7cd8ca4</span>
+      <span class="pipeline-check">✓</span>
+    </div>
+    <div class="pipeline-row">
+      <span class="pipeline-n">04</span>
+      <span class="pipeline-name">~/bin/yt</span>
+      <span class="pipeline-desc">Entry point unificado: ingestor + daemon --once</span>
+      <span class="pipeline-hash">dd35171</span>
+      <span class="pipeline-check">✓</span>
+    </div>
+    <div class="pipeline-row">
+      <span class="pipeline-n">05</span>
+      <span class="pipeline-name">knowledge_reporter.py</span>
+      <span class="pipeline-desc">Score DOF 0-100 → pending/{id}.json</span>
+      <span class="pipeline-hash">ea266c7</span>
+      <span class="pipeline-check">✓</span>
+    </div>
+    <div class="pipeline-row">
+      <span class="pipeline-n">06</span>
+      <span class="pipeline-name">knowledge_notifier.py</span>
+      <span class="pipeline-desc">Telegram MarkdownV2 + botones inline + Chrome latest.json</span>
+      <span class="pipeline-hash">ab9bd67</span>
+      <span class="pipeline-check">✓</span>
+    </div>
+    <div class="pipeline-row">
+      <span class="pipeline-n">07</span>
+      <span class="pipeline-name">knowledge_approver.py</span>
+      <span class="pipeline-desc">Telegram callbacks → MemoryManager + queue + approved/</span>
+      <span class="pipeline-hash">c253928</span>
+      <span class="pipeline-check">✓</span>
+    </div>
+    <div class="pipeline-row">
+      <span class="pipeline-n">08</span>
+      <span class="pipeline-name">knowledge_api.py + dof-youtube/</span>
+      <span class="pipeline-desc">HTTP :19019 + Chrome MV3 extension (popup + badge + notifs)</span>
+      <span class="pipeline-hash">cad4c3c</span>
+      <span class="pipeline-check">✓</span>
+    </div>
+  </div>
+</div>
+
+<!-- 04 · COMMITS -->
+<div class="page">
+  <div class="sec-label">04 · Commits</div>
+  <div class="page-title">Registro de cambios.</div>
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-label">Cyberpaisa/DOF-MESH — 19 commits · Sesión 7</div>
+
+    <div class="commit">
+      <span class="chash">cad4c3c</span>
+      <span class="cmsg">feat: Chrome extension dof-youtube/ + knowledge_api.py (Componente 8)</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">c253928</span>
+      <span class="cmsg">feat: knowledge_approver.py — Telegram callbacks + MemoryManager + queue (Componente 6)</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">ab9bd67</span>
+      <span class="cmsg">feat: knowledge_notifier v2 — chrome latest.json + 6 tests unitarios</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">c56d170</span>
+      <span class="cmsg">feat: core/knowledge_notifier.py — Telegram inline buttons + frontend POST, Componente 5</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">ea266c7</span>
+      <span class="cmsg">feat: core/knowledge_reporter.py — score DOF 0-100 + pending queue, Componente 4</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">7cd8ca4</span>
+      <span class="cmsg">feat: core/knowledge_daemon.py — watchdog MD→JSON, retry fallos, Componente 3</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">12b16b5</span>
+      <span class="cmsg">feat: core/knowledge_extractor.py — Ollama→JSON + MemoryManager, Componente 2</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">dd35171</span>
+      <span class="cmsg">feat: core/youtube_ingestor.py — YouTube → MD pipeline, Componente 1</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">662255c</span>
+      <span class="cmsg">feat: add Gemma 4 (OLLAMA) to llm_config — Apache 2.0, sin API key, backup local</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">862c196</span>
+      <span class="cmsg">fix: start_voice.sh — ruta DOF-MESH → equipo-de-agentes</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">6b16478</span>
+      <span class="cmsg">skill: arquitecto-claudio v2.0 — context engineering 2026, 9 secciones, score 0-7</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">1e07c4f</span>
+      <span class="cmsg">docs: stack automático de trabajo en CLAUDE.md — 8 entradas canónicas</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">fc2057c</span>
+      <span class="cmsg">skill: add 20 tododeia skills — tokens, prompts, agentes, tools</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">b25634d</span>
+      <span class="cmsg">skill: add 10 tododeia skills — ruflo, apis, loops, maia, whatsapp, canales, obsidian, context, skills-guide, antigravity</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">3b4a348</span>
+      <span class="cmsg">feat: integrate harness v0.6.0 into autonomous_daemon — SessionStore + CostTracker + mock_provider</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">6c5adc0</span>
+      <span class="cmsg">skill: add anthropic-ecosystem — base conocimiento repos SDKs quickstarts</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">791a0a9</span>
+      <span class="cmsg">skill: add dof-skill-creator — constructor oficial skills DOF, 7 pasos</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">991f5f3</span>
+      <span class="cmsg">docs: PDF→MD para ingesta IA — DOF_Evolucion_y_Claridad_Conceptual</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+    <div class="commit">
+      <span class="chash">3b555b3</span>
+      <span class="cmsg">docs: inventario real STACK_HERRAMIENTAS.md — tools activos DOF-MESH</span>
+      <span class="crepo">DOF-MESH</span>
+    </div>
+  </div>
+</div>
+
+<!-- 05 · LECCIONES -->
+<div class="page">
+  <div class="sec-label">05 · Lecciones técnicas</div>
+  <div class="page-title">Lo que aprendimos.</div>
+  <div class="g3">
+    <div class="card">
+      <div class="card-label">L-01 · yt-dlp --print</div>
+      <div class="card-title">--print bloquea descarga</div>
+      <div class="card-body">El flag --print hace que yt-dlp imprima metadata y salga antes de descargar subtítulos. Solución: dos subprocess separados — primero metadata (--print), luego descarga (sin --print).</div>
+    </div>
+    <div class="card">
+      <div class="card-label">L-02 · Ollama timeout</div>
+      <div class="card-title">14.8B necesita 300s</div>
+      <div class="card-body">Qwen2 14.8B (dof-analyst) tarda >2 minutos en transcripts completos. Default 120s causaba TimeoutError. Corregido a 300s. Para modelos >7B siempre usar timeout ≥ 300s.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">L-03 · Daemon state</div>
+      <div class="card-title">Solo marcar éxitos</div>
+      <div class="card-body">El state file del daemon debe guardar solo entries con success=True. Si se marcan fallos como "procesados", no se reintentarán en el próximo ciclo. _load_processed() filtra por entry.get("success").</div>
+    </div>
+    <div class="card">
+      <div class="card-label">L-04 · Telegram chat_id</div>
+      <div class="card-title">int() es obligatorio</div>
+      <div class="card-body">os.getenv() devuelve string. Telegram Bot API requiere chat_id como integer. Pasar string causa HTTP 400. Fix: int(TELEGRAM_CHAT_ID) en el payload antes de enviar.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">L-05 · MarkdownV2</div>
+      <div class="card-title">Escapar todos los chars</div>
+      <div class="card-body">Telegram MarkdownV2 requiere escapar: \_ * [ ] ( ) ~ ` > # + - = | { } . ! — incluyendo puntos y guiones en URLs y títulos. _escape_md() debe correr en TODOS los campos, no solo el título.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">L-06 · Lazy imports + mock</div>
+      <div class="card-title">Patch en módulo origen</div>
+      <div class="card-body">Si un módulo importa MemoryManager dentro de una función (lazy), @patch("core.knowledge_approver.MemoryManager") falla con AttributeError. Hay que patchear en el módulo origen: @patch("core.memory_manager.MemoryManager").</div>
+    </div>
+  </div>
+</div>
+
+<!-- 06 · ESTADO FINAL + PENDIENTES -->
+<div class="page">
+  <div class="sec-label">06 · Estado final y pendientes</div>
+  <div class="page-title">Próxima sesión.</div>
+  <div class="g2" style="margin-bottom:32px;">
+    <div class="card">
+      <div class="card-label">Estado del sistema (fin sesión 7)</div>
+      <table class="tbl">
+        <tr><td style="color:var(--gray);width:180px;">CI Tests</td><td><span class="pass">✓ 4,262 / 4,262</span></td></tr>
+        <tr><td style="color:var(--gray);">Knowledge Pipeline</td><td><span class="pass">✓ 8/8 componentes</span></td></tr>
+        <tr><td style="color:var(--gray);">knowledge_api</td><td><span class="pass">✓ :19019 activa</span></td></tr>
+        <tr><td style="color:var(--gray);">Chrome extension</td><td><span class="pass">✓ dof-youtube/ listo</span></td></tr>
+        <tr><td style="color:var(--gray);">Git push</td><td><span class="pass">✓ cad4c3c → origin/main</span></td></tr>
+        <tr><td style="color:var(--gray);">Ollama/dof-analyst</td><td><span class="pass">✓ Qwen2 14.8B local</span></td></tr>
+        <tr><td style="color:var(--gray);">Gemma 4</td><td><span class="pass">✓ registrado llm_config</span></td></tr>
+        <tr><td style="color:var(--gray);">Skills instaladas</td><td><span class="pass">✓ 30+ activas</span></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-label">Pendientes — Sesión 8</div>
+      <table class="tbl">
+        <tr>
+          <td style="width:24px;padding-top:10px;">1</td>
+          <td><strong>scripts/release.sh</strong><br><span style="font-size:11px;color:var(--gray);">Script de release automático — crear desde cero</span></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><strong>DOF Leaderboard</strong><br><span style="font-size:11px;color:var(--gray);">Diseño e implementación del leaderboard DOF</span></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><strong>Chrome extension — instalar y probar</strong><br><span style="font-size:11px;color:var(--gray);">chrome://extensions/ → cargar dof-youtube/ → verificar badge</span></td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><strong>Flujo completo end-to-end</strong><br><span style="font-size:11px;color:var(--gray);">yt [URL real] → Ollama → Telegram → Chrome → aprobar</span></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="background:#000;border:none;padding:28px 32px;">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:16px;">Flujo completo DOF Knowledge Pipeline</div>
+    <div style="font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.6);line-height:2.2;">
+      <span style="color:#0052FF;">yt</span> [YouTube URL]
+      <span style="color:rgba(255,255,255,.2);">→</span> youtube_ingestor.py
+      <span style="color:rgba(255,255,255,.2);">→</span> <span style="color:#00CC55;">docs/knowledge/*.md</span><br>
+      &nbsp;&nbsp;&nbsp;<span style="color:rgba(255,255,255,.2);">→</span> knowledge_daemon.py
+      <span style="color:rgba(255,255,255,.2);">→</span> knowledge_extractor.py
+      <span style="color:rgba(255,255,255,.2);">→</span> <span style="color:#00CC55;">Ollama/dof-analyst</span>
+      <span style="color:rgba(255,255,255,.2);">→</span> <span style="color:#00CC55;">*.json</span><br>
+      &nbsp;&nbsp;&nbsp;<span style="color:rgba(255,255,255,.2);">→</span> knowledge_reporter.py
+      <span style="color:rgba(255,255,255,.2);">→</span> <span style="color:#f59e0b;">score 0-100</span>
+      <span style="color:rgba(255,255,255,.2);">→</span> <span style="color:#00CC55;">pending/{id}.json</span><br>
+      &nbsp;&nbsp;&nbsp;<span style="color:rgba(255,255,255,.2);">→</span> knowledge_notifier.py
+      <span style="color:rgba(255,255,255,.2);">→</span> <span style="color:#0052FF;">Telegram</span> + <span style="color:#0052FF;">Chrome</span> + <span style="color:#0052FF;">Frontend</span><br>
+      &nbsp;&nbsp;&nbsp;<span style="color:rgba(255,255,255,.2);">→</span> knowledge_approver.py
+      <span style="color:rgba(255,255,255,.2);">→</span> <span style="color:#00CC55;">MemoryManager</span> + <span style="color:#00CC55;">daemon queue</span>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="rfooter">
+  <div class="rf-l">
+    <svg width="20" height="20" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="display:inline;vertical-align:middle;margin-right:8px;opacity:.3;">
+      <polygon points="8,7 42,46 42,54 8,93 8,72 29,54 29,46 8,28" fill="#fff"/>
+      <polygon points="92,7 58,46 58,54 92,93 92,72 71,54 71,46 92,28" fill="#fff"/>
+    </svg>
+    DOF-MESH · Cyberpaisa × Claude Sonnet 4.6<br>
+    Sesión 7 · Domingo 05 Apr 2026 · 16:00 – 21:00 COT<br>
+    Repo: github.com/Cyberpaisa/DOF-MESH · Branch: main
+  </div>
+  <div class="rf-r">
+    Score: 91/100 · Senior · Top 5%<br>
+    Commits: 19 · Tests: 4,262 · Nuevos: 30<br>
+    Pipeline: 8/8 · Acumulado: ~34.5h
+  </div>
+</div>
+
+</body>
+</html>
