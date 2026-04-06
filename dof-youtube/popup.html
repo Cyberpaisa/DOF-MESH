@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DOF YouTube</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 340px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+      background: #0f1117;
+      color: #e2e8f0;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid #1e2535;
+      background: #151b2a;
+    }
+    .header-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #48bb78;
+      box-shadow: 0 0 6px #48bb78;
+      flex-shrink: 0;
+    }
+    .header-dot.offline { background: #718096; box-shadow: none; }
+    .header-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: #90cdf4;
+      letter-spacing: 0.5px;
+    }
+    .header-refresh {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: #4a5568;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .header-refresh:hover { color: #90cdf4; }
+
+    /* Empty state */
+    .empty {
+      padding: 32px 20px;
+      text-align: center;
+      color: #4a5568;
+    }
+    .empty-icon { font-size: 28px; margin-bottom: 8px; }
+    .empty-text { font-size: 12px; line-height: 1.5; }
+
+    /* Report card */
+    .card {
+      padding: 14px;
+    }
+
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .score-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+    }
+    .score-badge.alta  { background: #742a2a; color: #fc8181; }
+    .score-badge.media { background: #5f370e; color: #f6ad55; }
+    .score-badge.baja  { background: #2d3748; color: #a0aec0; }
+
+    .score-num {
+      font-size: 11px;
+      color: #718096;
+    }
+
+    .titulo {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e8f0;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .url {
+      font-size: 11px;
+      color: #4299e1;
+      text-decoration: none;
+      word-break: break-all;
+      display: block;
+      margin-bottom: 10px;
+    }
+    .url:hover { text-decoration: underline; }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #4a5568;
+      margin-bottom: 4px;
+    }
+
+    .ideas {
+      list-style: none;
+      margin-bottom: 10px;
+    }
+    .ideas li {
+      font-size: 12px;
+      color: #a0aec0;
+      padding: 2px 0;
+    }
+    .ideas li::before { content: "›"; margin-right: 6px; color: #4299e1; }
+
+    .techs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 14px;
+    }
+    .tech-tag {
+      font-size: 11px;
+      background: #1a2035;
+      border: 1px solid #2d3748;
+      color: #90cdf4;
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:hover  { opacity: 0.85; }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-approve { background: #276749; color: #9ae6b4; }
+    .btn-reject  { background: #742a2a; color: #fc8181; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2d3748;
+      color: #e2e8f0;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+
+    /* ID */
+    .rid {
+      font-size: 10px;
+      color: #2d3748;
+      text-align: right;
+      margin-top: 10px;
+      font-family: monospace;
+    }
+
+    hr { border: none; border-top: 1px solid #1e2535; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-dot" id="dot"></div>
+    <span class="header-title">DOF YouTube</span>
+    <button class="header-refresh" id="btn-refresh" title="Actualizar">↻</button>
+  </div>
+
+  <div id="content"></div>
+  <div class="toast" id="toast"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
