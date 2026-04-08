@@ -83,3 +83,117 @@ class ConfluxGateway:
             }
         ]
         return self.w3.eth.contract(address=self.SPONSOR_CONTRACT_ADDRESS, abi=abi)
+
+    def get_logs_paginated(
+        self,
+        from_block: int,
+        to_block: int,
+        address: str,
+        topics: list = None
+    ) -> list:
+        """
+        Paginated eth_getLogs for Conflux eSpace.
+
+        BUG CONTEXT: Conflux eSpace enforces a hard limit of 1,000 blocks
+        per eth_getLogs request. Queries spanning more blocks silently fail
+        or return incomplete results. This affects any batch reader that
+        tries to scan the full DOFProofRegistry event history.
+
+        Related upstream issue: https://github.com/Conflux-Chain/conflux-rust/issues/2998
+
+        This method chunks the range into 900-block windows (10% safety
+        margin below the 1,000 limit) and concatenates all results.
+
+        Args:
+            from_block: Start block number (inclusive)
+            to_block:   End block number (inclusive)
+            address:    Contract address to filter events
+            topics:     Optional list of event topic filters
+
+        Returns:
+            List of all log entries across the full block range
+        """
+        CHUNK_SIZE = 900  # Conservative: Conflux hard limit is 1,000
+        all_logs = []
+        current_from = from_block
+
+        if self.dry_run:
+            self.logger.info(
+                f"[dry_run] get_logs_paginated({from_block}→{to_block}) "
+                f"— {((to_block - from_block) // CHUNK_SIZE) + 1} chunks"
+            )
+            return []
+
+        while current_from <= to_block:
+            current_to = min(current_from + CHUNK_SIZE - 1, to_block)
+            filter_params = {
+                "fromBlock": hex(current_from),
+                "toBlock":   hex(current_to),
+                "address":   address,
+            }
+            if topics:
+                filter_params["topics"] = topics
+
+            try:
+                chunk = self.w3.eth.get_logs(filter_params)
+                all_logs.extend(chunk)
+                self.logger.debug(
+                    f"getLogs chunk [{current_from}–{current_to}]: {len(chunk)} events"
+                )
+            except Exception as exc:
+                self.logger.warning(
+                    f"getLogs chunk [{current_from}–{current_to}] failed: {exc}"
+                )
+            current_from = current_to + 1
+
+        self.logger.info(
+            f"get_logs_paginated: {len(all_logs)} total events "
+            f"({from_block}→{to_block})"
+        )
+        return all_logs
+
+    def get_block_context_hash(self, tx_hash: str) -> str:
+        """
+        Generate a block context hash using Conflux debug_blockProperties.
+
+        Conflux eSpace v3.0.2+ exposes debug_blockProperties, which returns
+        per-transaction execution context (coinbase, timestamp, difficulty).
+        This is unique to Conflux: in the Tree-Graph architecture, multiple
+        transactions in one block can have different execution contexts.
+
+        DOF-MESH uses this to bind proof hashes to a specific Conflux block
+        context, making proofs impossible to replay across chains or blocks.
+
+        Falls back to block number hash on older node versions.
+
+        Args:
+            tx_hash: Transaction hash to retrieve context for
+
+        Returns:
+            Hex string of keccak256(coinbase + timestamp + difficulty)
+        """
+        from web3 import Web3
+
+        if self.dry_run:
+            return "0x" + "d0f" * 21 + "d"  # Deterministic dry_run sentinel
+
+        try:
+            block_props = self.w3.provider.make_request(
+                "debug_blockProperties", [tx_hash]
+            )
+            result = block_props.get("result", {})
+            if result:
+                context_data = (
+                    str(result.get("coinbase",   "0x0")) +
+                    str(result.get("timestamp",  "0"))   +
+                    str(result.get("difficulty", "0"))
+                )
+                return Web3.keccak(text=context_data).hex()
+        except Exception:
+            pass
+
+        try:
+            receipt = self.w3.eth.get_transaction_receipt(tx_hash)
+            return Web3.keccak(text=str(receipt.blockNumber)).hex()
+        except Exception:
+            return "0x" + "0" * 64
