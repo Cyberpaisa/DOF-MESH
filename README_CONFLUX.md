@@ -39,6 +39,18 @@ Conflux eSpace hosts our live `DOFProofRegistry` contract. We use Conflux's nati
 
 ---
 
+## Hackfest 2026 — Competing Tracks
+
+| Track | Criteria Met | Prize |
+|-------|-------------|-------|
+| 🤖 Best AI + Conflux | Z3 formal proofs + MCP Server + on-chain attestation + Proof-to-Gasless | $500 |
+| 🔧 Best Developer Tool | First MCP Server for Conflux — 5 tools for any AI agent runtime | $500 |
+| 📦 Bounty 04 — MCP Server | `mcp_server/dof_conflux_mcp.py` · 5 tools · stdio + HTTP transport | $500 |
+
+**Skills validated against:** [conflux-fans/conflux-skills](https://github.com/conflux-fans/conflux-skills) — all `conflux-dev`, `conflux-scan-rpc`, `conflux-docs` patterns applied.
+
+---
+
 ## 👥 Team
 
 | Name | Role | GitHub | Discord |

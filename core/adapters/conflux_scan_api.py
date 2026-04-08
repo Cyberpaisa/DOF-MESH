@@ -31,8 +31,9 @@ logger = logging.getLogger("dof.conflux_scan_api")
 
 # ─── Constants ────────────────────────────────────────────────────
 
-CONFLUXSCAN_TESTNET = "https://evmtestnet.confluxscan.io/api"
-CONFLUXSCAN_MAINNET = "https://evm.confluxscan.io/api"
+# Official URLs per conflux-fans/conflux-skills skill reference
+CONFLUXSCAN_TESTNET = "https://evmapi-testnet.confluxscan.org/api"
+CONFLUXSCAN_MAINNET = "https://evmapi.confluxscan.org/api"
 
 DOF_PROOF_REGISTRY_TESTNET = "0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83"
 DOF_PROOF_REGISTRY_MAINNET = ""  # Pending mainnet deployment
