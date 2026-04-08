@@ -413,6 +413,10 @@ python3 scripts/conflux_demo.py              # requires CONFLUX_PRIVATE_KEY in .
 - **YouTube**: [https://youtu.be/WwpqXdYYID8](https://youtu.be/WwpqXdYYID8)
 - **Duration**: 104 seconds
 
+### Personal Intro Video
+- **YouTube**: [https://youtu.be/JCVOWVA1whI](https://youtu.be/JCVOWVA1whI)
+- Juan Carlos Quiceno — Medellín, Colombia — Global Hackfest 2026
+
 ### Live Resources
 - **Docs**: [https://dofmesh.com](https://dofmesh.com)
 - **Contract on Conflux Testnet**: [ConfluxScan](https://evmtestnet.confluxscan.io/address/0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83)
