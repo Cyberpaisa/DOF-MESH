@@ -1,0 +1,159 @@
+{
+  "project": "DOF-MESH — Deterministic Governance for Autonomous AI Agents on Conflux",
+  "hackathon": "Conflux Global Hackfest 2026",
+  "author": "Juan Carlos Quiceno (@Cyber_paisa) — Colombia Blockchain, Medellín",
+  "repo": "github.com/Cyberpaisa/DOF-MESH (branch: conflux-hackathon)",
+  "generated_at": "2026-04-08T05:07:00Z",
+
+  "contracts": {
+    "v1": {
+      "name": "DOFProofRegistry V1",
+      "address": "0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83",
+      "network": "Conflux eSpace Testnet",
+      "chainId": 71,
+      "total_txs": 146,
+      "total_proofs": 100,
+      "gas_sponsor_tx": "0x6451c69cb3923ffa68c791f35ae60f78bcdc832ef85b167a8bbf3e910ebfc4c1",
+      "gas_sponsor_block": 248461435,
+      "explorer": "https://evmtestnet.confluxscan.io/address/0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83"
+    },
+    "v2": {
+      "name": "DOFProofRegistry V2 — Proof-to-Gasless Edition",
+      "address": "0x58F0126B647E87a9a49e79971E168ce139326fd1",
+      "network": "Conflux eSpace Testnet",
+      "chainId": 71,
+      "deploy_tx": "0x5b480b88ac84a60131d1de28660859917111e029d6d1e697bfa198780dbafe3c",
+      "deploy_block": 248461365,
+      "deploy_gas": 3562907,
+      "gas_sponsor_tx": "0x454a34a949846b0037b973b31acf8e5f9b03f226ce34031e07a4fb4df78e1d65",
+      "gas_sponsor_block": 248461425,
+      "gas_sponsor_amount": "0.5 CFX",
+      "owner": "0xEAFdc9C3019fC80620f16c30313E3B663248A655",
+      "bytecode_bytes": 8345,
+      "explorer": "https://evmtestnet.confluxscan.io/address/0x58F0126B647E87a9a49e79971E168ce139326fd1"
+    }
+  },
+
+  "batch_attestation": {
+    "cycles_executed": 100,
+    "cycles_confirmed_on_chain": 100,
+    "success_rate": "100%",
+    "z3_4_of_4_proven": "all 100 cycles",
+    "governance_passed": 20,
+    "governance_blocked": 80,
+    "total_duration_seconds": 1368,
+    "avg_cycle_seconds": 13.7,
+    "min_cycle_seconds": 8.5,
+    "max_cycle_seconds": 41.9,
+    "median_cycle_seconds": 13.3,
+    "proof_hashes_unique": true,
+    "batch_run_date": "2026-04-08",
+    "jsonl_records": "logs/conflux_batch_results.jsonl"
+  },
+
+  "z3_formal_verification": {
+    "theorems": ["GCR_INVARIANT", "SS_FORMULA", "SS_MONOTONICITY", "SS_BOUNDARIES"],
+    "status": "4/4 PROVEN",
+    "total_verification_ms": 5.3,
+    "cycles_with_all_proven": 100
+  },
+
+  "conflux_bugs_documented": [
+    {
+      "id": 1,
+      "title": "SSTORE cost 40K gas (2× Ethereum)",
+      "impact": "V2 packed struct: ~4 SSTORE vs ~10, saves ~240K gas per proof",
+      "fix": "GovernanceProof packed storage in DOFProofRegistryV2.sol"
+    },
+    {
+      "id": 2,
+      "title": "eth_getLogs 1000-block limit",
+      "impact": "Silent event omission for long-running batch readers",
+      "fix": "ConfluxGateway.get_logs_paginated() with 900-block auto-chunking"
+    },
+    {
+      "id": 3,
+      "title": "block.number returns Epoch Number (not sequential)",
+      "impact": "Time-based contract logic breaks if using block.number",
+      "fix": "All contract time logic uses block.timestamp exclusively"
+    },
+    {
+      "id": 4,
+      "title": "eth_getProof (EIP-1186) not supported",
+      "impact": "Cannot use Merkle proofs for state verification",
+      "fix": "Deterministic SHA-256 proof hashes replace Merkle proofs"
+    }
+  ],
+
+  "innovations": {
+    "proof_to_gasless": {
+      "description": "Mathematical compliance earns gas sponsorship. Z3+TRACER+Constitution pass → SponsorWhitelistControl.addPrivilege(agent)",
+      "sponsor_control": "0x0888000000000000000000000000000000000001",
+      "gas_per_proof_v1": 373421,
+      "gas_per_proof_v2_est": 133000,
+      "savings_per_proof": "~240K gas (~0.010 CFX)"
+    },
+    "mcp_server": {
+      "description": "First MCP server for Conflux Network worldwide",
+      "file": "mcp_server/dof_conflux_mcp.py",
+      "tools": ["verify_agent_compliance", "register_proof_on_chain", "check_gasless_status", "get_proof_history", "get_network_stats"],
+      "transport": "stdio",
+      "command": "claude mcp add dof-conflux -- python3 mcp_server/dof_conflux_mcp.py"
+    },
+    "dof_learn": {
+      "description": "6-layer self-learning compliance memory. GPU-poor. On-chain anchored via Conflux proof hashes.",
+      "tables": ["dof_knowledge", "dof_learnings"],
+      "reference": "agno-agi/dash (OpenAI 6-layer context model)",
+      "section": "docs/CONFLUX_HACKFEST_PAPER.md §5.1"
+    },
+    "erc_8004": {
+      "description": "Reference implementation for ERC-8004 Formal Governance Proof Registry",
+      "proposal": "ethereum-magicians.org/t/erc-formal-governance-proof-registry/28152",
+      "interfaces": ["IGoverned", "IProofRegistry", "IComplianceOracle"],
+      "chains": 8
+    }
+  },
+
+  "wallet": {
+    "address": "0xEAFdc9C3019fC80620f16c30313E3B663248A655",
+    "balance_at_start": "1096.835449641199036217 CFX",
+    "balance_after": "1095.734264455557017415 CFX",
+    "spent": "~1.10 CFX (deploy + gas sponsorship + TX fees)"
+  },
+
+  "screenshots": [
+    "docs/evidence/conflux/confluxscan_53_txs_apr7_2026.png",
+    "docs/evidence/conflux/confluxscan_100txs_final_apr8_2026.png",
+    "docs/evidence/conflux/terminal_batch_running_apr7_2026.png",
+    "docs/evidence/conflux/screenshot_confluxscan_146txs.png"
+  ],
+
+  "key_files": {
+    "paper": "docs/CONFLUX_HACKFEST_PAPER.md",
+    "master_report": "docs/04_strategy/CONFLUX_HACKFEST_MASTER_REPORT.md",
+    "v2_contract": "contracts/DOFProofRegistryV2.sol",
+    "mcp_server": "mcp_server/dof_conflux_mcp.py",
+    "conflux_gateway": "core/adapters/conflux_gateway.py",
+    "conflux_scan_api": "core/adapters/conflux_scan_api.py",
+    "batch_script": "scripts/conflux_batch_attest.py",
+    "batch_results": "logs/conflux_batch_results.jsonl",
+    "deploy_v2": "scripts/deploy_v2.js",
+    "activate_gasless": "scripts/activate_gasless.js",
+    "verify_gasless": "scripts/verify_gasless.js",
+    "test_proof_to_gasless": "scripts/test_proof_to_gasless.py",
+    "grant_proposal": "docs/04_strategy/CONFLUX_GRANT_PROPOSAL.md",
+    "readme_conflux": "README_CONFLUX.md",
+    "integration_guide": "guides/conflux-integration.mdx"
+  },
+
+  "submission_status": {
+    "paper": "complete",
+    "contracts_deployed": "V1 (146 TXs) + V2 (deployed 2026-04-08)",
+    "gas_sponsorship": "activated on both V1 and V2",
+    "mcp_server": "implemented and tested",
+    "batch_attestation": "100/100 confirmed on-chain",
+    "documentation": "paper 8 sections + master report + grant proposal",
+    "tests": "passing (test_conflux_batch.py, test_conflux_core_gateway.py)",
+    "branch": "conflux-hackathon"
+  }
+}

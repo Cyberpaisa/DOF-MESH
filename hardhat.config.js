@@ -7,6 +7,8 @@ module.exports = {
     cache: "./cache",
     artifacts: "./artifacts"
   },
+  // Exclude tempo directory (uses forge-std, not compatible with Hardhat)
+  // Workaround: use ignoreFiles to skip tempo/
   solidity: {
     compilers: [
       { version: "0.8.19" },

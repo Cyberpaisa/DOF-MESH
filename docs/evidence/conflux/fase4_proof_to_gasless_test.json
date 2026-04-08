@@ -1,0 +1,42 @@
+{
+  "phase": "FASE4_PROOF_TO_GASLESS_TEST",
+  "timestamp": "2026-04-08T05:06:43.759539Z",
+  "network": "conflux_eSpace_testnet",
+  "chainId": 71,
+  "compliance_simulation": {
+    "action": "DeFi arbitrage: route 100 USDT via Uniswap V3 \u2192 Curve Finance",
+    "agent_id": "0xEAFdc9C3019fC80620f16c30313E3B663248A655",
+    "constitution_score": 0.95,
+    "z3_proven": 4,
+    "z3_total": 4,
+    "z3_theorems": {
+      "GCR_INVARIANT": true,
+      "SS_FORMULA": true,
+      "SS_MONOTONICITY": true,
+      "SS_BOUNDARIES": true
+    },
+    "tracer_score": 0.712,
+    "proof_hash": "0x6ec4e23f0c29b1ffc670ef4ca2ba3aecb2c1edced8a968cf396ac44bc2631992",
+    "gov_passed": true,
+    "gasless_eligible": true,
+    "timestamp": "2026-04-08T05:06:41.050721Z"
+  },
+  "v2_state": {
+    "has_bytecode": true,
+    "owner": "0xEAFdc9C3019fC80620f16c30313E3B663248A655",
+    "stats": null,
+    "current_block": 248461531
+  },
+  "v1": {
+    "address": "0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83",
+    "bytecode_present": true,
+    "total_txs": 146
+  },
+  "outcome": {
+    "gov_passed": true,
+    "gasless_eligible": true,
+    "proof_hash": "0x6ec4e23f0c29b1ffc670ef4ca2ba3aecb2c1edced8a968cf396ac44bc2631992",
+    "innovation": "Mathematical compliance earns gas sponsorship on Conflux",
+    "mechanism": "SponsorWhitelistControl.addPrivilege() called after Z3+TRACER+Constitution pass"
+  }
+}
