@@ -1,0 +1,150 @@
+---
+title: "Conflux Integration"
+description: "DOF-MESH on Conflux eSpace — deterministic governance proofs with native Gas Sponsorship"
+---
+
+## Overview
+
+DOF-MESH integrates with Conflux Network at two levels:
+
+- **Conflux eSpace** (production-ready) — `DOFProofRegistry` smart contract deployed on chain 71. Every governance proof is published as a keccak256 hash, permanently on-chain.
+- **Conflux Core Space** (awareness layer) — native `cfx_*` RPC integration for network-level queries. Full Core Space transaction signing is on the roadmap.
+
+## Why Conflux
+
+Conflux's **Gas Sponsorship** (`SponsorWhitelistControl`) is architecturally necessary for autonomous agent infrastructure. Agents should not hold gas tokens to register compliance proofs — they should act. With Conflux's native sponsorship, proof registration costs the agent nothing.
+
+No other EVM chain has this natively.
+
+## Live Contract — Conflux eSpace Testnet
+
+| | |
+|---|---|
+| **Contract** | `0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83` |
+| **Chain** | Conflux eSpace Testnet — Chain ID 71 |
+| **Explorer** | [ConfluxScan](https://evmtestnet.confluxscan.io/address/0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83) |
+| **Proofs registered** | 100+ |
+
+## Quick Demo
+
+```bash
+git clone https://github.com/Cyberpaisa/DOF-MESH
+cd DOF-MESH
+pip install -r requirements.txt
+
+# Full governance cycle — dry run (no wallet needed)
+python3 scripts/conflux_demo.py --dry-run
+
+# With real on-chain attestation
+python3 scripts/conflux_demo.py
+
+# Batch: 100 attestations
+python3 scripts/conflux_batch_attest.py --count 100
+```
+
+**Expected output:**
+```
+Constitution:    ✅ PASSED  (score=1.0000)
+Z3 Verification: ✅ 4/4 PROVEN (44ms)
+TRACER Score:    ✅ 0.91/1.0
+Proof Hash:      0xb8677b595b7b71f7...
+Attestation:     CONFIRMED
+TX Hash:         0xbf98ea58...
+```
+
+## Verify On-Chain
+
+No DOF-MESH software required:
+
+```bash
+# Read proof count
+cast call 0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83 \
+  "getProofCount()(uint256)" \
+  --rpc-url https://evmtestnet.confluxrpc.com
+
+# Verify a proof hash
+cast call 0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83 \
+  "verifyProof(bytes32)(bool)" \
+  <proof_hash> \
+  --rpc-url https://evmtestnet.confluxrpc.com
+```
+
+## eSpace Integration — ConfluxGateway
+
+```python
+from core.adapters.conflux_gateway import ConfluxGateway
+
+# Connect to testnet
+gw = ConfluxGateway(use_testnet=True, dry_run=False)
+print(gw.w3.eth.chain_id)  # 71
+
+# Gas Sponsorship contract
+sponsor = gw.get_sponsor_contract()
+# → SponsorWhitelistControl at 0x0888000000000000000000000000000000000001
+
+# Publish a proof
+from core.chain_adapter import DOFChainAdapter
+adapter = DOFChainAdapter.from_chain_name("conflux_testnet")
+result = adapter.publish_attestation(
+    proof_hash="0x...",
+    agent_id=1687,
+    metadata="dof-v0.6.0 z3=4/4 tracer=0.91"
+)
+# → {"tx_hash": "0x...", "chain_id": 71, "gas_used": 373421}
+```
+
+## Core Space Integration — ConfluxCoreGateway
+
+Core Space uses native `cfx_*` RPC — distinct from EVM/eSpace.
+
+```python
+from core.adapters.conflux_core_gateway import ConfluxCoreGateway
+
+# Connect to Core Space testnet
+core_gw = ConfluxCoreGateway(use_testnet=True, dry_run=True)
+
+# Query network state
+epoch = core_gw.get_epoch_number()    # current epoch
+price = core_gw.get_gas_price()       # gas price in Drip
+status = core_gw.get_status()         # chain_id, network_id, epoch
+
+print(core_gw.describe())
+# {
+#   "type": "conflux_core_space",
+#   "rpc_url": "https://test.confluxrpc.com",
+#   "rpc_protocol": "cfx_*",
+#   "address_format": "cfx: (base32)",
+#   ...
+# }
+```
+
+| Feature | eSpace | Core Space |
+|---------|--------|------------|
+| RPC | `eth_*` (EVM) | `cfx_*` (native) |
+| Addresses | `0x...` | `cfx:...` (base32) |
+| DOFProofRegistry | ✅ deployed | Roadmap |
+| Web3.py | ✅ | ❌ (cfx_* raw) |
+| Gas Sponsorship | ✅ SponsorWhitelistControl | ✅ Storage Collateral |
+| DOF-MESH status | Production | RPC-aware |
+
+## Verified Transactions
+
+| Date | TX | What it proves |
+|------|----|----------------|
+| Apr 6, 2026 | [bf98ea58...](https://evmtestnet.confluxscan.io/tx/bf98ea58265dcd8433f594376d0d679fde65d93ae8cc18d841627308bebf740c) | Full 6-step governance cycle — Agent #1687 |
+| Apr 6, 2026 | [77d4ddea...](https://evmtestnet.confluxscan.io/tx/77d4ddea0043bf6df5a916cd7040886e0a97480ab12465e5842ce7c2f26b4b10) | Direct attestation test |
+
+## Roadmap
+
+| Phase | Feature | Status |
+|-------|---------|--------|
+| Hackathon | eSpace testnet deployment | ✅ Done |
+| Hackathon | Gas Sponsorship integration | ✅ Done |
+| Hackathon | Core Space RPC awareness | ✅ Done |
+| Q2 2026 | eSpace mainnet deployment | Planned |
+| Q2 2026 | Core Space TX signing | Planned |
+| Q3 2026 | Cross-Space proof sync | Planned |
+
+---
+
+*Built for [Conflux Global Hackfest 2026](https://github.com/conflux-fans/global-hackfest-2026) — [dofmesh.com](https://dofmesh.com)*

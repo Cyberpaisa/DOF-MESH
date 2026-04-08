@@ -32,6 +32,7 @@
               "guides/autonomous-operations",
               "guides/security-configuration",
               "guides/on-chain-attestations",
+              "guides/conflux-integration",
               "guides/providers-and-agents",
               "guides/mcp-api"
             ]
