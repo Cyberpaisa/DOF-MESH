@@ -76,9 +76,11 @@ load_dotenv()
 # ─── Configuration ────────────────────────────────────────────────
 CONFLUX_RPC   = os.getenv("CONFLUX_RPC",        "https://evmtestnet.confluxrpc.com")
 CHAIN_ID      = int(os.getenv("CONFLUX_CHAIN_ID", "71"))
-CONTRACT_V1   = "0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83"  # deployed, 100+ proofs
-CONTRACT_V2   = os.getenv("CONFLUX_CONTRACT_V2", "")           # pending deployment
+CONTRACT_V1   = "0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83"  # deployed, 38+ proofs
+CONTRACT_V2   = os.getenv("CONFLUX_CONTRACT_V2", "0x8B6BfF194641dfB067e7d9FDF4fb8A91A70Bb8D6")  # Proof-to-Gasless
 PRIVATE_KEY   = os.getenv("PRIVATE_KEY",        "")
+CONFLUXSCAN_API = "https://evmtestnet.confluxscan.io/api"
+USER_AGENT    = "DOF-MESH/0.6.0 (github.com/Cyberpaisa/DOF-MESH)"
 
 # ─── Logging (stderr only — stdout is MCP protocol) ──────────────
 logging.basicConfig(
@@ -368,91 +370,227 @@ async def _register_proof(args: dict) -> dict:
 
 
 async def _check_gasless(args: dict) -> dict:
-    """Query SponsorWhitelistControl for live gasless status."""
+    """
+    Check gasless status for an agent address.
+
+    Strategy (Conflux eSpace — SponsorWhitelistControl is Core Space internal):
+      1. Query DOFProofRegistryV2.isAgentGasless(agent) — delegates to SponsorWhitelistControl internally
+      2. Query DOFProofRegistryV2.agentGaslessCount(agent) — lifetime grants counter
+      3. Query SponsorWhitelistControl.getSponsoredBalanceForGas(CONTRACT_V2) — sponsor balance
+      Both reads go through eSpace, avoiding cross-space complexity.
+    """
     agent_address = args["agent_address"]
     try:
         from web3 import Web3
         w3 = Web3(Web3.HTTPProvider(CONFLUX_RPC))
-        SPONSOR_ABI = [
-            {"inputs": [{"name": "c", "type": "address"}, {"name": "u", "type": "address"}],
-             "name": "isWhitelisted", "outputs": [{"type": "bool"}],
-             "stateMutability": "view", "type": "function"},
-            {"inputs": [{"name": "c", "type": "address"}],
-             "name": "getSponsoredBalanceForGas", "outputs": [{"type": "uint256"}],
-             "stateMutability": "view", "type": "function"},
+
+        # V2 contract exposes isAgentGasless and agentGaslessCount — confirmed working
+        ABI_V2_READ = [
+            {
+                "inputs": [{"internalType": "address", "name": "agent", "type": "address"}],
+                "name": "isAgentGasless",
+                "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+                "stateMutability": "view", "type": "function",
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "agent", "type": "address"}],
+                "name": "agentGaslessCount",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view", "type": "function",
+            },
         ]
-        sponsor = w3.eth.contract(
-            address="0x0888000000000000000000000000000000000001",
-            abi=SPONSOR_ABI
+        ABI_SPONSOR_BAL = [
+            {
+                "inputs": [{"internalType": "address", "name": "contractAddr", "type": "address"}],
+                "name": "getSponsoredBalanceForGas",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view", "type": "function",
+            },
+        ]
+
+        v2 = w3.eth.contract(
+            address=Web3.to_checksum_address(CONTRACT_V2), abi=ABI_V2_READ
         )
-        is_gasless = sponsor.functions.isWhitelisted(CONTRACT_V1, agent_address).call()
-        balance_drip = sponsor.functions.getSponsoredBalanceForGas(CONTRACT_V1).call()
-        balance_cfx = balance_drip / 1e18
+        addr = Web3.to_checksum_address(agent_address)
+
+        # agentGaslessCount — always works (pure mapping read)
+        grant_count = v2.functions.agentGaslessCount(addr).call()
+
+        # isAgentGasless — may revert if SponsorWhitelistControl has no sponsor yet
+        is_gasless = False
+        is_gasless_method = "agentGaslessCount > 0 (SponsorWhitelistControl not funded)"
+        try:
+            is_gasless = v2.functions.isAgentGasless(addr).call()
+            is_gasless_method = "DOFProofRegistryV2.isAgentGasless()"
+        except Exception:
+            # Fallback: if grant_count > 0 the agent qualified — sponsor just not yet funded
+            is_gasless = grant_count > 0
+
+        # Sponsor balance — try/except (reverts if no sponsor configured)
+        sponsor_cfx = 0.0
+        try:
+            sponsor_ctrl = w3.eth.contract(
+                address="0x0888000000000000000000000000000000000001",
+                abi=ABI_SPONSOR_BAL,
+            )
+            drip = sponsor_ctrl.functions.getSponsoredBalanceForGas(
+                Web3.to_checksum_address(CONTRACT_V2)
+            ).call()
+            sponsor_cfx = round(drip / 1e18, 6)
+        except Exception:
+            pass  # no sponsor funded yet — non-fatal
+
         return {
-            "agent_address": agent_address,
-            "is_gasless":    is_gasless,
-            "sponsor_balance_cfx": round(balance_cfx, 6),
-            "contract":      CONTRACT_V1,
-            "sponsor_control": "0x0888000000000000000000000000000000000001",
+            "agent_address":        agent_address,
+            "is_gasless":           is_gasless,
+            "lifetime_grants":      grant_count,
+            "sponsor_balance_cfx":  sponsor_cfx,
+            "contract_v2":          CONTRACT_V2,
+            "sponsor_control":      "0x0888000000000000000000000000000000000001",
+            "method":               is_gasless_method,
+            "note":                 "Fund SponsorWhitelistControl to activate zero-gas TXs",
+            "network":              f"Conflux eSpace Testnet (Chain ID: {CHAIN_ID})",
         }
     except Exception as exc:
         return {
             "agent_address": agent_address,
-            "error": str(exc),
-            "note": "Connect to Conflux RPC to check live status",
+            "error":  str(exc),
+            "note":   "Verify CONFLUX_RPC is reachable and agent_address is valid checksum",
         }
 
 
 async def _proof_history(args: dict) -> dict:
-    """Retrieve proof history via ConfluxScan API — no wallet needed."""
-    try:
-        sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-        from core.adapters.conflux_scan_api import ConfluxScanAPI
-        api = ConfluxScanAPI(use_testnet=True)
-        txs = api.get_contract_transactions(
-            address=args.get("agent_address"),
-            limit=args.get("limit", 10)
-        )
-        return {
-            "agent_address": args.get("agent_address"),
-            "proof_count":   len(txs),
-            "proofs":        txs[:args.get("limit", 10)],
-            "source":        "ConfluxScan API — no Web3 wallet required",
-            "contract":      CONTRACT_V1,
+    """
+    Retrieve proof registration history via eth_getLogs — no wallet needed.
+
+    Queries ProofRegistered events from both V1 and V2 contracts using web3.py.
+    eth_getLogs is the authoritative source: on-chain, no API key, no 403.
+
+    V1 event: ProofRegistered(bytes32 proofHash, address indexed agent, ...)
+    V2 event: ProofRegistered(bytes32 indexed proofHash, address indexed agent,
+                               uint16 z3Theorems, uint32 tracerScore, bool gaslessGranted, uint40 timestamp)
+    """
+    from web3 import Web3
+    from web3.middleware import ExtraDataToPOAMiddleware
+
+    agent_address = args.get("agent_address", "")
+    limit = min(int(args.get("limit", 10)), 100)
+
+    w3 = Web3(Web3.HTTPProvider(CONFLUX_RPC))
+    w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
+
+    # keccak256 topic for ProofRegistered — same on V1 and V2
+    PROOF_REGISTERED_V2 = w3.keccak(
+        text="ProofRegistered(bytes32,address,uint16,uint32,bool,uint40)"
+    ).hex()
+
+    latest = w3.eth.block_number
+    from_block = max(0, latest - 500_000)  # ~7 days on Conflux (~1.25s/block)
+
+    def fetch_logs(contract: str, topic0: str, label: str) -> list:
+        """Fetch ProofRegistered logs for the given contract."""
+        filter_params: dict = {
+            "address":   Web3.to_checksum_address(contract),
+            "topics":    ["0x" + topic0],
+            "fromBlock": hex(from_block),
+            "toBlock":   "latest",
         }
-    except Exception as exc:
-        return {"error": str(exc), "agent_address": args.get("agent_address")}
+        # Optionally filter by agent address (topic index depends on contract version)
+        try:
+            raw_logs = w3.eth.get_logs(filter_params)
+        except Exception as exc:
+            logger.warning(f"get_logs({label}) failed: {exc}")
+            return []
+
+        results = []
+        for log in raw_logs:
+            # Build explorer link
+            tx_hash = log["transactionHash"].hex()
+            entry = {
+                "contract":    label,
+                "tx_hash":     "0x" + tx_hash,
+                "block":       log["blockNumber"],
+                "proof_hash":  "0x" + log["topics"][0].hex() if len(log["topics"]) > 0 else "",
+                "agent":       Web3.to_checksum_address("0x" + log["topics"][2].hex()[-40:])
+                               if len(log["topics"]) > 2 else "",
+                "explorer":    f"https://evmtestnet.confluxscan.io/tx/0x{tx_hash}",
+            }
+            # Filter by agent address if provided
+            if agent_address:
+                if entry["agent"].lower() != agent_address.lower():
+                    continue
+            results.append(entry)
+        return results
+
+    logs_v2 = fetch_logs(CONTRACT_V2, PROOF_REGISTERED_V2, "V2")
+    logs_v1 = fetch_logs(CONTRACT_V1, PROOF_REGISTERED_V2, "V1")
+
+    # V2 first (newest contracts), then V1 — newest block first
+    all_logs = sorted(logs_v2 + logs_v1, key=lambda x: x["block"], reverse=True)
+
+    return {
+        "agent_address":  agent_address or "all",
+        "proof_count":    len(all_logs),
+        "proofs_v2":      len(logs_v2),
+        "proofs_v1":      len(logs_v1),
+        "proofs":         all_logs[:limit],
+        "source":         "eth_getLogs on-chain — no API key required",
+        "contract_v1":    CONTRACT_V1,
+        "contract_v2":    CONTRACT_V2,
+        "network":        f"Conflux eSpace Testnet (Chain ID: {CHAIN_ID})",
+        "explorer_v2":    f"https://evmtestnet.confluxscan.io/address/{CONTRACT_V2}",
+    }
 
 
 async def _network_stats(args: dict) -> dict:
-    """Live DOF-MESH stats from Conflux eSpace."""
-    try:
-        sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-        from core.adapters.conflux_scan_api import ConfluxScanAPI
-        api   = ConfluxScanAPI(use_testnet=True)
-        txs   = api.get_contract_transactions(limit=100)
-        source = api.get_contract_source()
-        return {
-            "network":          "Conflux eSpace Testnet",
-            "chain_id":         CHAIN_ID,
-            "rpc":              CONFLUX_RPC,
-            "contract_v1":      CONTRACT_V1,
-            "contract_v2":      CONTRACT_V2 or "pending deployment",
-            "total_txs":        len(txs),
-            "contract_verified": source.get("verified", False),
-            "z3_theorems":      "4/4 PROVEN",
-            "governance_model": "deterministic — zero LLM",
-            "sdk":              "dof-sdk v0.6.0 (PyPI)",
-            "docs":             "dofmesh.com",
-        }
-    except Exception as exc:
-        return {
-            "network":     "Conflux eSpace Testnet",
-            "chain_id":    CHAIN_ID,
-            "contract_v1": CONTRACT_V1,
-            "error":       str(exc),
-            "note":        "ConfluxScan API unavailable — using static data",
-        }
+    """Live DOF-MESH stats from Conflux eSpace — V1 + V2 combined."""
+    import urllib.request
+
+    def get_total_proofs(contract: str) -> int:
+        """Query totalProofs from contract via eth_call."""
+        try:
+            from web3 import Web3
+            w3 = Web3(Web3.HTTPProvider(CONFLUX_RPC))
+            ABI = [{"inputs": [], "name": "totalProofs",
+                    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                    "stateMutability": "view", "type": "function"}]
+            c = w3.eth.contract(address=Web3.to_checksum_address(contract), abi=ABI)
+            return c.functions.totalProofs().call()
+        except Exception:
+            return -1
+
+    def get_tx_count(contract: str) -> int:
+        """Query ConfluxScan tx count for contract."""
+        url = (f"{CONFLUXSCAN_API}?module=account&action=txlist"
+               f"&address={contract}&sort=desc&limit=1")
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                data = json.loads(resp.read().decode())
+            return int(data.get("total", 0)) if data.get("status") == "1" else -1
+        except Exception:
+            return -1
+
+    proofs_v1 = get_total_proofs(CONTRACT_V1)
+    proofs_v2 = get_total_proofs(CONTRACT_V2)
+
+    return {
+        "network":           "Conflux eSpace Testnet",
+        "chain_id":          CHAIN_ID,
+        "rpc":               CONFLUX_RPC,
+        "contract_v1":       CONTRACT_V1,
+        "contract_v1_proofs": proofs_v1 if proofs_v1 >= 0 else "unavailable",
+        "contract_v2":       CONTRACT_V2,
+        "contract_v2_proofs": proofs_v2 if proofs_v2 >= 0 else "unavailable",
+        "total_proofs_all":  (proofs_v1 if proofs_v1 >= 0 else 0) + (proofs_v2 if proofs_v2 >= 0 else 0),
+        "z3_theorems":       "4/4 PROVEN (GCR_INVARIANT, SS_FORMULA, SS_MONOTONICITY, SS_BOUNDARIES)",
+        "governance_model":  "deterministic — zero LLM in decision path",
+        "proof_to_gasless":  "SponsorWhitelistControl@0x0888000000000000000000000000000000000001",
+        "sdk":               "dof-sdk v0.6.0 (PyPI)",
+        "docs":              "dofmesh.com",
+        "explorer_v1":       f"https://evmtestnet.confluxscan.io/address/{CONTRACT_V1}",
+        "explorer_v2":       f"https://evmtestnet.confluxscan.io/address/{CONTRACT_V2}",
+    }
 
 
 async def _analyze_defi_compliance(args: dict) -> dict:
