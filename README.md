@@ -8,9 +8,9 @@
 
 **DOF-MESH v0.6.0 | 8 Chains | Enigma Group · Medellín, Colombia**
 
-[![PyPI](https://img.shields.io/badge/PyPI-DOF--SDK-007acc?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/dof-sdk/)
-[![Github](https://img.shields.io/badge/GitHub-DOF--MESH-24292e?style=for-the-badge&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
-[![On-Chain](https://img.shields.io/badge/Conflux_eSpace-0x58F0126B...6fd1-28c840?style=for-the-badge)](https://evmtestnet.confluxscan.net/address/0x58F0126B647E87a9a49e79971E168ce139326fd1)
+[![PyPI](https://img.shields.io/badge/PyPI-DOF--SDK-007acc?style=for-the-badge&v=update1&logo=pypi&logoColor=white)](https://pypi.org/project/dof-sdk/)
+[![Github](https://img.shields.io/badge/GitHub-DOF--MESH-24292e?style=for-the-badge&v=update1&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
+[![On-Chain](https://img.shields.io/badge/Conflux_eSpace-0x58F0126B...6fd1-28c840?style=for-the-badge&v=update1)](https://evmtestnet.confluxscan.net/address/0x58F0126B647E87a9a49e79971E168ce139326fd1)
 
 [![Tests](https://img.shields.io/badge/Tests-4%2C308_passing-brightgreen?style=flat-square)]()
 [![PyPI](https://img.shields.io/pypi/v/dof-sdk?color=blue&style=flat-square)](https://pypi.org/project/dof-sdk/)
@@ -402,8 +402,8 @@ equipo-de-agentes/
 
 **Enigma Group · Medellín, Colombia**
 
-[![PyPI](https://img.shields.io/badge/Install-pip_install_dof--sdk-blue?style=for-the-badge&logo=pypi)](https://pypi.org/project/dof-sdk/)
-[![GitHub](https://img.shields.io/badge/GitHub-DOF--MESH-181717?style=for-the-badge&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
-[![On-Chain](https://img.shields.io/badge/On--Chain_Proof-Conflux_eSpace-28c840?style=for-the-badge)](https://evmtestnet.confluxscan.net/address/0x58F0126B647E87a9a49e79971E168ce139326fd1)
+[![PyPI](https://img.shields.io/badge/Install-pip_install_dof--sdk-blue?style=for-the-badge&v=update1&logo=pypi)](https://pypi.org/project/dof-sdk/)
+[![GitHub](https://img.shields.io/badge/GitHub-DOF--MESH-181717?style=for-the-badge&v=update1&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
+[![On-Chain](https://img.shields.io/badge/On--Chain_Proof-Conflux_eSpace-28c840?style=for-the-badge&v=update1)](https://evmtestnet.confluxscan.net/address/0x58F0126B647E87a9a49e79971E168ce139326fd1)
 
 </div>

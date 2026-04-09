@@ -6,7 +6,7 @@
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-dof--agent--web.vercel.app-8b5cf6?style=for-the-badge)](https://dof-agent-web.vercel.app)
 [![ERC-8004](https://img.shields.io/badge/ERC--8004-Certified-22c55e?style=for-the-badge)](https://basescan.org/tx/0x7362ef41605e430aba3998b0888e7886c04d65673ce89aa12e1abdf7cffcada4)
-[![On-Chain](https://img.shields.io/badge/Conflux_eSpace-0x58F0126B...6fd1-28c840?style=for-the-badge)](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6)
+[![On-Chain](https://img.shields.io/badge/Conflux_eSpace-0x58F0126B...6fd1-28c840?style=for-the-badge)](https://evmtestnet.confluxscan.net/address/0x58F0126B647E87a9a49e79971E168ce139326fd1)
 
 **Live Demo:** [https://dof-agent-web.vercel.app](https://dof-agent-web.vercel.app)
 
@@ -27,7 +27,7 @@ The **Deterministic Observability Framework (DOF)** is a governance and verifica
 | Metric | Value | Verifiable |
 |--------|-------|------------|
 | Autonomous Cycles | 238+ | Git commit history |
-| On-Chain Attestations | 48+ | [Snowtrace](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6) |
+| On-Chain Attestations | 48+ | [Snowtrace](https://evmtestnet.confluxscan.net/address/0x58F0126B647E87a9a49e79971E168ce139326fd1) |
 | Z3 Formal Proofs | 8/8 PROVEN | `python3 -c "from core.z3_verifier import Z3Verifier; print(Z3Verifier().verify_all())"` |
 | Unit Tests | 986 passing | `python3 -m unittest discover tests/` |
 | Core Modules | 35 | Source code |
@@ -168,7 +168,7 @@ Identity (ERC-8004 #31013) -> Task Discovery -> LLM Inference -> Governance (Zer
 
 | Contract | Chain | Address | Explorer |
 |----------|-------|---------|----------|
-| DOFProofRegistry.sol | Conflux eSpace C-Chain | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` | [Snowtrace](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6) |
+| DOFProofRegistry.sol | Conflux eSpace C-Chain | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` | [Snowtrace](https://evmtestnet.confluxscan.net/address/0x58F0126B647E87a9a49e79971E168ce139326fd1) |
 | ERC-8004 Identity | Base Mainnet | Token #31013 | [Basescan](https://basescan.org/tx/0x7362ef41605e430aba3998b0888e7886c04d65673ce89aa12e1abdf7cffcada4) |
 
 ## Running Locally
