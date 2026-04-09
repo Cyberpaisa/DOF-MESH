@@ -339,34 +339,171 @@ async def _verify_compliance(args: dict) -> dict:
         }
 
 
+# ─── V2 ABI (registerProof + totalProofs) ────────────────────────
+ABI_V2_WRITE = [
+    {
+        "inputs": [
+            {"internalType": "bytes32", "name": "proofHash",         "type": "bytes32"},
+            {"internalType": "bytes32", "name": "blockContextHash",  "type": "bytes32"},
+            {"internalType": "uint16",  "name": "z3Theorems",        "type": "uint16"},
+            {"internalType": "uint32",  "name": "tracerScore",       "type": "uint32"},
+            {"internalType": "uint32",  "name": "constitutionScore", "type": "uint32"},
+            {"internalType": "string",  "name": "payload",           "type": "string"},
+        ],
+        "name": "registerProof", "outputs": [], "stateMutability": "nonpayable", "type": "function",
+    },
+    {
+        "inputs": [],
+        "name": "totalProofs",
+        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+        "stateMutability": "view", "type": "function",
+    },
+    {
+        "inputs": [{"internalType": "bytes32", "name": "proofHash", "type": "bytes32"}],
+        "name": "getProof",
+        "outputs": [{
+            "components": [
+                {"internalType": "bytes32",  "name": "proofHash",         "type": "bytes32"},
+                {"internalType": "bytes32",  "name": "blockContextHash",  "type": "bytes32"},
+                {"internalType": "address",  "name": "agent",             "type": "address"},
+                {"internalType": "uint40",   "name": "timestamp",         "type": "uint40"},
+                {"internalType": "uint16",   "name": "z3Theorems",        "type": "uint16"},
+                {"internalType": "uint32",   "name": "tracerScore",       "type": "uint32"},
+                {"internalType": "uint32",   "name": "constitutionScore", "type": "uint32"},
+                {"internalType": "bool",     "name": "gaslessGranted",    "type": "bool"},
+                {"internalType": "string",   "name": "payload",           "type": "string"},
+            ],
+            "internalType": "struct DOFProofRegistryV2.GovernanceProof",
+            "name": "", "type": "tuple",
+        }],
+        "stateMutability": "view", "type": "function",
+    },
+]
+
+
 async def _register_proof(args: dict) -> dict:
-    """Register proof on Conflux eSpace — triggers Proof-to-Gasless."""
-    if not CONTRACT_V2 or not PRIVATE_KEY:
-        return {
-            "error": "Set CONFLUX_CONTRACT_V2 and PRIVATE_KEY in .env first",
-            "status": "configuration_required",
-            "note": "V2 contract pending mainnet deployment. V1 active at " + CONTRACT_V1,
-        }
+    """
+    Register a governance proof on Conflux eSpace DOFProofRegistryV2.
+
+    Full TX pipeline: build → estimate gas → sign → broadcast → receipt.
+    Proof-to-Gasless: agents with TRACER≥0.4 + Constitution≥0.9 get
+    gaslessGranted=True stored in the proof struct on-chain.
+
+    Requires PRIVATE_KEY in environment (CONFLUX_PRIVATE_KEY or PRIVATE_KEY).
+    Falls back to dry-run if no key is available.
+    """
+    import hashlib
+    from web3 import Web3
+    from web3.middleware import ExtraDataToPOAMiddleware
+
+    # Resolve private key (support both env var names)
+    private_key = (
+        PRIVATE_KEY
+        or os.environ.get("CONFLUX_PRIVATE_KEY", "")
+        or os.environ.get("DOF_PRIVATE_KEY", "")
+    )
+    dry_run = not bool(private_key)
 
     try:
-        from web3 import Web3
         w3 = Web3(Web3.HTTPProvider(CONFLUX_RPC))
-        account = w3.eth.account.from_key(PRIVATE_KEY)
+        w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
 
-        tracer_scaled      = int(args["tracer_score"] * 1000)
-        constitution_scaled = int(args["constitution_score"] * 10000)
+        # ── Inputs ──────────────────────────────────────────────────
+        proof_hash_str   = args["proof_hash"]
+        z3_theorems      = int(args["z3_theorems"])
+        tracer_scaled    = int(float(args["tracer_score"]) * 1000)
+        const_scaled     = int(float(args["constitution_score"]) * 10000)
+        payload          = str(args.get("payload", f"dof-mcp z3={z3_theorems} tracer={tracer_scaled}"))
+
+        # proof_hash: accept "0x..." or raw 64-char hex
+        if proof_hash_str.startswith("0x"):
+            ph_bytes = bytes.fromhex(proof_hash_str[2:])
+        else:
+            ph_bytes = bytes.fromhex(proof_hash_str)
+
+        # blockContextHash: deterministic per session
+        block_ctx_bytes = bytes.fromhex(
+            hashlib.sha3_256(b"conflux_espace_testnet_block_ctx_mcp_v2").hexdigest()
+        )
+
+        qualifies = (tracer_scaled >= 400 and const_scaled >= 9000)
+
+        # ── Dry-run (no key) ────────────────────────────────────────
+        if dry_run:
+            return {
+                "status":             "dry_run",
+                "proof_hash":         proof_hash_str,
+                "z3_theorems":        z3_theorems,
+                "tracer_score_scaled": tracer_scaled,
+                "constitution_score_scaled": const_scaled,
+                "gasless_eligible":   qualifies,
+                "contract":           CONTRACT_V2,
+                "note":               "Set PRIVATE_KEY or CONFLUX_PRIVATE_KEY in .env to broadcast TX",
+            }
+
+        # ── Live TX ─────────────────────────────────────────────────
+        account  = w3.eth.account.from_key(private_key)
+        contract = w3.eth.contract(
+            address=Web3.to_checksum_address(CONTRACT_V2), abi=ABI_V2_WRITE
+        )
+
+        logger.info(f"  registerProof: agent={account.address} z3={z3_theorems} tracer={tracer_scaled} const={const_scaled}")
+
+        # Dynamic gas estimation (Conflux SSTORE = 40k — must estimate, not hardcode)
+        gas_est = contract.functions.registerProof(
+            ph_bytes, block_ctx_bytes, z3_theorems, tracer_scaled, const_scaled, payload
+        ).estimate_gas({"from": account.address})
+        gas_limit = int(gas_est * 1.2)
+
+        nonce = w3.eth.get_transaction_count(account.address)
+        tx = contract.functions.registerProof(
+            ph_bytes, block_ctx_bytes, z3_theorems, tracer_scaled, const_scaled, payload
+        ).build_transaction({
+            "chainId":  CHAIN_ID,
+            "from":     account.address,
+            "nonce":    nonce,
+            "gas":      gas_limit,
+            "gasPrice": w3.eth.gas_price,
+        })
+
+        signed   = w3.eth.account.sign_transaction(tx, private_key)
+        tx_hash  = w3.eth.send_raw_transaction(signed.raw_transaction).hex()
+        logger.info(f"  TX sent: 0x{tx_hash[:20]}...")
+
+        receipt  = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
+        status   = "confirmed" if receipt.status == 1 else "reverted"
+
+        # Read gaslessGranted from stored proof
+        gasless_granted = False
+        try:
+            proof = contract.functions.getProof(ph_bytes).call()
+            gasless_granted = proof[7]  # bool gaslessGranted
+        except Exception:
+            pass
+
+        total_proofs = contract.functions.totalProofs().call()
 
         return {
-            "status":        "ready",
-            "agent_address": account.address,
-            "contract":      CONTRACT_V2,
-            "z3_theorems":   args["z3_theorems"],
-            "tracer_score":  tracer_scaled,
-            "gasless_threshold": "TRACER≥400 + Constitution≥9000",
-            "note":          "Full TX signing requires ABI from compiled V2 contract",
+            "status":           status,
+            "tx_hash":          "0x" + tx_hash,
+            "block":            receipt.blockNumber,
+            "agent_address":    account.address,
+            "proof_hash":       proof_hash_str,
+            "z3_theorems":      z3_theorems,
+            "tracer_score_scaled": tracer_scaled,
+            "constitution_score_scaled": const_scaled,
+            "gasless_eligible": qualifies,
+            "gasless_granted":  gasless_granted,
+            "total_proofs_v2":  total_proofs,
+            "contract_v2":      CONTRACT_V2,
+            "explorer_tx":      f"https://evmtestnet.confluxscan.io/tx/0x{tx_hash}",
+            "explorer_contract": f"https://evmtestnet.confluxscan.io/address/{CONTRACT_V2}",
+            "network":          f"Conflux eSpace Testnet (Chain ID: {CHAIN_ID})",
         }
+
     except Exception as exc:
-        return {"error": str(exc), "status": "failed"}
+        logger.error(f"_register_proof error: {exc}")
+        return {"error": str(exc), "status": "failed", "contract": CONTRACT_V2}
 
 
 async def _check_gasless(args: dict) -> dict:
@@ -546,16 +683,19 @@ async def _network_stats(args: dict) -> dict:
     """Live DOF-MESH stats from Conflux eSpace — V1 + V2 combined."""
     import urllib.request
 
-    def get_total_proofs(contract: str) -> int:
-        """Query totalProofs from contract via eth_call."""
+    def get_total_proofs(contract: str, is_v1: bool = False) -> int:
+        """Query proof count from contract via eth_call.
+        V1 uses getProofCount(), V2 uses totalProofs().
+        """
         try:
             from web3 import Web3
             w3 = Web3(Web3.HTTPProvider(CONFLUX_RPC))
-            ABI = [{"inputs": [], "name": "totalProofs",
+            fn_name = "getProofCount" if is_v1 else "totalProofs"
+            ABI = [{"inputs": [], "name": fn_name,
                     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
                     "stateMutability": "view", "type": "function"}]
             c = w3.eth.contract(address=Web3.to_checksum_address(contract), abi=ABI)
-            return c.functions.totalProofs().call()
+            return getattr(c.functions, fn_name)().call()
         except Exception:
             return -1
 
@@ -571,8 +711,8 @@ async def _network_stats(args: dict) -> dict:
         except Exception:
             return -1
 
-    proofs_v1 = get_total_proofs(CONTRACT_V1)
-    proofs_v2 = get_total_proofs(CONTRACT_V2)
+    proofs_v1 = get_total_proofs(CONTRACT_V1, is_v1=True)
+    proofs_v2 = get_total_proofs(CONTRACT_V2, is_v1=False)
 
     return {
         "network":           "Conflux eSpace Testnet",
