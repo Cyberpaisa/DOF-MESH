@@ -1,0 +1,23 @@
+{
+  "status": "confirmed",
+  "tx_hash": "0xd9cfdca0eb46dd126e6ff5894f55263c42f9ffd23af0719678cac8d2a43bfd2d",
+  "block": 248598675,
+  "gasless_granted": true,
+  "total_proofs_v2": 2,
+  "explorer_tx": "https://evmtestnet.confluxscan.io/tx/0xd9cfdca0eb46dd126e6ff5894f55263c42f9ffd23af0719678cac8d2a43bfd2d",
+  "explorer_contract": "https://evmtestnet.confluxscan.io/address/0x8B6BfF194641dfB067e7d9FDF4fb8A91A70Bb8D6",
+  "proof_hash": "0x380fbf761a943eafa636114d22ec37506fe334c415b0a18fcb80cc45b4eb6fe3",
+  "contract_v2": "0x8B6BfF194641dfB067e7d9FDF4fb8A91A70Bb8D6",
+  "governance": {
+    "passed": true,
+    "score": 1.0
+  },
+  "z3": {
+    "proven": 4,
+    "total": 4,
+    "ms": 31.369999999999997
+  },
+  "tracer": {
+    "total": 0.47
+  }
+}

@@ -44,9 +44,8 @@ async function main() {
   try {
     const stats = await contract.getStats();
     console.log(`  totalProofs:     ${stats[0]}`);
-    console.log(`  proofsPassed:    ${stats[1]}`);
-    console.log(`  gaslessAgents:   ${stats[2]}`);
-    console.log(`  sponsorBalance:  ${ethers.formatEther(stats[3])} CFX`);
+    console.log(`  gaslessEnabled:  ${stats[1]}`);
+    console.log(`  gaslessGranted:  ${stats[2]}`);
     console.log("  ✅ Contract verified — getStats() returned expected state");
   } catch (e) {
     console.log(`  ⚠️  getStats() failed: ${e.message}`);

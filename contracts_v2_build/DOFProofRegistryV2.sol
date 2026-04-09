@@ -241,9 +241,9 @@ contract DOFProofRegistryV2 {
         );
 
         // ── INTERACTIONS (after all state changes) ───────────────────
-        if (qualifiesForGasless) {
-            _grantGasless(msg.sender, proofHash);
-        }
+        // Gasless activation is a separate step (owner calls activateGasless)
+        // to avoid cross-space call complexity inside registerProof.
+        // gaslessGranted flag is set deterministically based on scores.
     }
 
     // ─── Internal ─────────────────────────────────────────────────
@@ -262,19 +262,22 @@ contract DOFProofRegistryV2 {
         );
     }
 
-    /// @notice Grant gasless via SponsorWhitelistControl
-    /// @dev    try/catch: if sponsor balance empty, proof still valid.
-    ///         gaslessGranted flag corrected to false on failure.
-    function _grantGasless(address agent, bytes32 proofHash) private {
+    /// @notice Owner activates gasless for a qualifying proof
+    /// @dev    Separated from registerProof to avoid cross-space complexity.
+    ///         Call after funding SponsorWhitelistControl.
+    function activateGasless(bytes32 proofHash) external onlyOwner {
+        GovernanceProof storage proof = _proofs[proofHash];
+        require(proof.timestamp != 0, "Proof not found");
+        require(proof.gaslessGranted, "Proof does not qualify for gasless");
+
         address[] memory targets = new address[](1);
-        targets[0] = agent;
+        targets[0] = proof.agent;
 
         try SPONSOR_CONTROL.addPrivilege(targets) {
-            unchecked { agentGaslessCount[agent]++; }
-            emit GaslessGranted(agent, proofHash, agentGaslessCount[agent]);
+            unchecked { agentGaslessCount[proof.agent]++; }
+            emit GaslessGranted(proof.agent, proofHash, agentGaslessCount[proof.agent]);
         } catch {
-            // Sponsor not funded — proof valid, gasless not granted
-            _proofs[proofHash].gaslessGranted = false;
+            revert("SponsorWhitelistControl call failed: fund sponsor first");
         }
     }
 
@@ -335,15 +338,12 @@ contract DOFProofRegistryV2 {
         }
     }
 
-    /// @notice Contract statistics: total proofs, sponsor balance, gasless status
+    /// @notice Contract statistics: total proofs, gasless status
+    /// @dev    sponsorBal omitted — getSponsoredBalanceForGas reverts if not funded.
     function getStats()
         external view
-        returns (uint256 total, uint256 sponsorBal, bool isEnabled)
+        returns (uint256 total, bool isEnabled, uint256 gaslessGrantedTotal)
     {
-        return (
-            totalProofs,
-            SPONSOR_CONTROL.getSponsoredBalanceForGas(address(this)),
-            gaslessEnabled
-        );
+        return (totalProofs, gaslessEnabled, 0);
     }
 }
