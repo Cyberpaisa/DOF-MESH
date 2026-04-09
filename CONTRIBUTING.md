@@ -47,7 +47,7 @@ See [docs/ARCHITECTURAL_REDESIGN_v1.md](docs/ARCHITECTURAL_REDESIGN_v1.md) for t
 ## Testing
 All tests use `unittest`. Run with:
 ```bash
-python3 -m unittest discover tests/ -v          # Full suite (1,008+ tests)
+python3 -m unittest discover tests/ -v          # Full suite (4,308 tests)
 python3 -m dof verify-states                     # Z3 invariants (8/8 PROVEN)
 python3 -m dof verify-hierarchy                  # Hierarchy (42 patterns)
 python3 -m dof regression-check                  # Post-merge regression check

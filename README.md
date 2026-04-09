@@ -12,7 +12,7 @@
 [![Github](https://img.shields.io/badge/GitHub-DOF--MESH-24292e?style=for-the-badge&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
 [![On-Chain](https://img.shields.io/badge/Conflux_eSpace-0x58F0126B...6fd1-28c840?style=for-the-badge)](https://evmtestnet.confluxscan.net/address/0x58F0126B647E87a9a49e79971E168ce139326fd1)
 
-[![Tests](https://img.shields.io/badge/Tests-4%2C191_passing-brightgreen?style=flat-square)]()
+[![Tests](https://img.shields.io/badge/Tests-4%2C308_passing-brightgreen?style=flat-square)]()
 [![PyPI](https://img.shields.io/pypi/v/dof-sdk?color=blue&style=flat-square)](https://pypi.org/project/dof-sdk/)
 [![Python](https://img.shields.io/badge/python-3.11+-blue?style=flat-square)](https://pypi.org/project/dof-sdk/)
 [![Modules](https://img.shields.io/badge/Modules-142-blue?style=flat-square)]()
@@ -190,10 +190,10 @@ A deterministic function does. Every time. Same answer.
 
 | Metric | Value |
 |:-------|------:|
-| Unit tests | **4,191** |
+| Unit tests | **4,308** |
 | Autonomous cycles | **238+** |
 | On-chain attestations | **30+** |
-| Chains (mainnets) | **7** |
+| Supported Chains | **8** |
 | Core modules | **142** |
 | Lines of code | **57,000+** |
 | Z3 theorems | **4/4 PROVEN** |
