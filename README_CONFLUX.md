@@ -45,9 +45,39 @@ Conflux eSpace hosts our live `DOFProofRegistry` contract. We use Conflux's nati
 |-------|-------------|-------|
 | 🤖 Best AI + Conflux | Z3 formal proofs + MCP Server + on-chain attestation + Proof-to-Gasless | $500 |
 | 🔧 Best Developer Tool | First MCP Server for Conflux — 5 tools for any AI agent runtime | $500 |
-| 📦 Bounty 04 — MCP Server | `mcp_server/dof_conflux_mcp.py` · 5 tools · stdio + HTTP transport | $500 |
+| 💰 Best USDT0 Integration | Deterministic Zero-Gas validation bounds for agent spending in DeFi | $500 |
+| 📦 Bounty 04 — MCP Server | `mcp_server/dof_conflux_mcp.py` · 6 tools · stdio + HTTP transport | $500 |
 
 **Skills validated against:** [conflux-fans/conflux-skills](https://github.com/conflux-fans/conflux-skills) — all `conflux-dev`, `conflux-scan-rpc`, `conflux-docs` patterns applied.
+
+---
+
+## 🔌 Hackfest Extension: MCP + DeFi Synergy
+
+We evolved DOF-MESH to operate not just as an off-chain oracle, but as a live **Model Context Protocol (MCP)** server specifically built for Conflux eSpace. Any AI agent standard (like Claude Desktop or Cursor) can inherit our mathematical governance simply by attaching the Server. 
+
+To prove its power in **DeFi**, we integrated a deterministic on-chain liquidity boundary test for **USDT0**. The agent can only execute token transfers if DOF-MESH formally proves the limits constraints are respected and the reserves are solvent. 
+
+```mermaid
+sequenceDiagram
+    participant AI as Autonomous Agent (LLM)
+    participant MCP as DOF Conflux MCP
+    participant Z3 as Z3 Formal Prover
+    participant Web3 as Conflux eSpace (RPC)
+    participant USDT0 as USDT0 Contract
+    
+    AI->>MCP: Request Action: Spend 250 USDT0
+    MCP->>Z3: Check system invariants < 1000 bounds
+    Z3-->>MCP: Theorem PROVEN (Deterministic)
+    
+    MCP->>Web3: ABI Call: balanceOf(AgentProxy)
+    Web3->>USDT0: Read State
+    USDT0-->>Web3: Return Balance
+    Web3-->>MCP: Balance >= 250
+    
+    MCP-->>AI: Payload: APPROVED_GASLESS
+    Note over AI,MCP: Agent safely signs the transaction<br/>Sponsorship assigned to signature.
+```
 
 ---
 
