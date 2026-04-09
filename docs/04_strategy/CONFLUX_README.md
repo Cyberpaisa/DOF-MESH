@@ -123,7 +123,7 @@ Conflux eSpace is the right chain for verifiable AI governance:
 DOF-MESH v0.6.0
 ├── 7-layer governance (Constitution → AST → Tool Hook → Supervisor → Adversarial → Memory → Z3)
 ├── Z3 SMT formal verification — 4/4 invariants PROVEN
-├── 8 active chains — Avalanche, Base, Celo, Conflux, Polygon, SKALE, Fuji, Base Sepolia
+├── 8 active chains — Conflux eSpace, Base, Celo, Conflux, Polygon, SKALE, Fuji, Base Sepolia
 ├── 238+ autonomous cycles logged
 ├── ConfluxGateway with Gas Sponsorship support
 └── DOFProofRegistry.sol — identical contract on all 8 chains

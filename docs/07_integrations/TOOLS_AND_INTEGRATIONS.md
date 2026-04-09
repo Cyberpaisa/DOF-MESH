@@ -250,7 +250,7 @@ ClawRouter resuelve TODOS estos problemas:
 ┌─────────────────▼───────────────────────────┐
 │          Persistence & Memory               │
 │  JSONL traces │ ChromaDB │ novyx-mcp (eval) │
-│  Blockchain (Avalanche + Base)              │
+│  Blockchain (Conflux eSpace + Base)              │
 └─────────────────────────────────────────────┘
 ```
 
@@ -449,7 +449,7 @@ OpenAI, Anthropic, Google Gemini, DeepSeek, Volcengine (Doubao), Moonshot (Kimi)
 | MCP | stdio/SSE/HTTP + OAuth | 4 servers | Plugin system |
 | IM Channels | Telegram/Slack/Feishu | Telegram (via OpenClaw) | Telegram/Discord/WhatsApp |
 | Skills | 17 built-in | 18 via Skills Engine | Skills via plugins |
-| Blockchain | None | Avalanche + Base | None |
+| Blockchain | None | Conflux eSpace + Base | None |
 | Tests | ~50 files | 986 tests | N/A |
 =======
 ## 8. OpenClaw — Guía de Deployment (de video Fazt)
@@ -490,7 +490,7 @@ OpenAI, Anthropic, Google Gemini, DeepSeek, Volcengine (Doubao), Moonshot (Kimi)
 | MCP | stdio/SSE/HTTP + OAuth | 4 servers | Plugin system |
 | IM Channels | Telegram/Slack/Feishu | Telegram (via OpenClaw) | Telegram/Discord/WhatsApp |
 | Skills | 17 built-in | 18 via Skills Engine | Skills via plugins |
-| Blockchain | Ninguno | Avalanche + Base | Ninguno |
+| Blockchain | Ninguno | Conflux eSpace + Base | Ninguno |
 | Tests | ~50 archivos | 986 tests | N/A |
 >>>>>>> 4e63386 (refactor: organize repo into professional structure)
 
@@ -1344,7 +1344,7 @@ keep it short, you're talking to someone on their phone
 2. **ASMR phase**: When released (April), implement parallel Observer + Search agents
 3. **Fusion**: RMH knowledge graph as storage + ASMR agents as retrieval layer = best of both
 4. **DOF governance**: Every retrieval pass and graph reshape goes through deterministic governance
-5. **On-chain**: Graph state hashes attested on Avalanche/Base
+5. **On-chain**: Graph state hashes attested on Conflux eSpace/Base
 
 ---
 
@@ -1380,7 +1380,7 @@ keep it short, you're talking to someone on their phone
 2. **Fase ASMR**: Cuando se libere (abril), implementar Observer + Search agents paralelos
 3. **Fusión**: RMH knowledge graph como storage + ASMR agents como retrieval layer = best of both
 4. **DOF governance**: Cada retrieval pass y graph reshape pasa por governance determinística
-5. **On-chain**: Hashes de graph state attestados en Avalanche/Base
+5. **On-chain**: Hashes de graph state attestados en Conflux eSpace/Base
 
 ---
 
@@ -1441,7 +1441,7 @@ keep it short, you're talking to someone on their phone
 ### Relevance for DOF
 - **Coordination model**: The lock-based system + work registry is directly applicable to our 14 OpenClaw agents
 - **Parallel improvement**: We could run 14 agents improving DOF in parallel (tests, docs, refactoring)
-- **34 stacks**: Includes configuration for blockchain (Solana/Cosmos) — adaptable for our Avalanche+Base stack
+- **34 stacks**: Includes configuration for blockchain (Solana/Cosmos) — adaptable for our Conflux eSpace+Base stack
 - **Status**: EVALUATING — high potential to accelerate development
 =======
 - **Qué es**: Orquestador de 20-50 agentes Claude Code trabajando en paralelo via tmux para mejora sistemática de codebases
@@ -1468,7 +1468,7 @@ keep it short, you're talking to someone on their phone
 ### Relevancia para DOF
 - **Modelo de coordinación**: El lock-based system + work registry es directamente aplicable a nuestros 14 agentes OpenClaw
 - **Parallel improvement**: Podríamos correr 14 agentes mejorando DOF en paralelo (tests, docs, refactoring)
-- **34 stacks**: Incluye configuración para blockchain (Solana/Cosmos) — adaptable para nuestro stack Avalanche+Base
+- **34 stacks**: Incluye configuración para blockchain (Solana/Cosmos) — adaptable para nuestro stack Conflux eSpace+Base
 - **Estado**: EVALUANDO — alto potencial para acelerar desarrollo
 >>>>>>> 4e63386 (refactor: organize repo into professional structure)
 
@@ -1929,7 +1929,7 @@ Population of Programs → Gemini Flash 2.0 (fast mutation)
 | Stream | Description | Potential | Timeline |
 |--------|-------------|-----------|----------|
 | **Hackathons** | Synthesis, ETHGlobal, Chainlink, Base | $500-$50K per prize | Immediate |
-| **Grants/Bounties** | Avalanche, Base, Optimism, Gitcoin | $1K-$100K | 1-3 months |
+| **Grants/Bounties** | Conflux eSpace, Base, Optimism, Gitcoin | $1K-$100K | 1-3 months |
 | **PyPI Premium** | dof-sdk enterprise tier with support | $49-$499/month | 2 months |
 | **Consulting** | AI governance audits for companies | $150-$300/hr | 1 month |
 | **CryptoSkill** | Publish DOF skills (pay per use) | Variable | 1 month |
@@ -1942,18 +1942,18 @@ Population of Programs → Gemini Flash 2.0 (fast mutation)
 2. **ETHGlobal** — Upcoming events with AI agents tracks
 3. **Chainlink BUILD** — Program for blockchain projects
 4. **Base Builder Grants** — We already have ERC-8004 on Base (#31013)
-5. **Avalanche Grants** — We already have 48+ attestations on Avalanche
+5. **Conflux eSpace Grants** — We already have 48+ attestations on Conflux eSpace
 
 ### Relevant Grants
 - **Gitcoin Grants** — Open source AI governance
 - **Optimism RetroPGF** — Retroactive public goods funding
-- **Avalanche Ecosystem Fund** — Already in the ecosystem
+- **Conflux eSpace Ecosystem Fund** — Already in the ecosystem
 - **Base Ecosystem Fund** — Token registered, we can apply
 - **AI Safety grants** — DOF = verifiable AI safety with Z3
 
 ### Immediate Action
 1. Complete Synthesis Hackathon with maximum quality (in progress)
-2. Apply to Avalanche Grant with existing metrics (48 attestations, 986 tests)
+2. Apply to Conflux eSpace Grant with existing metrics (48 attestations, 986 tests)
 3. Apply to Base Builder Grant (ERC-8004 #31013 already registered)
 4. Publish 3 skills to CryptoSkill (governance_audit, z3_verify, agent_health)
 5. Create landing page with pricing for DOF-as-a-Service
@@ -2056,7 +2056,7 @@ Population of Programs → Gemini Flash 2.0 (mutación rápida)
 | Vía | Descripción | Potencial | Timeline |
 |-----|-------------|-----------|----------|
 | **Hackathons** | Synthesis, ETHGlobal, Chainlink, Base | $500-$50K por premio | Inmediato |
-| **Grants/Bounties** | Avalanche, Base, Optimism, Gitcoin | $1K-$100K | 1-3 meses |
+| **Grants/Bounties** | Conflux eSpace, Base, Optimism, Gitcoin | $1K-$100K | 1-3 meses |
 | **PyPI Premium** | dof-sdk enterprise tier con soporte | $49-$499/mes | 2 meses |
 | **Consulting** | AI governance audits para empresas | $150-$300/hr | 1 mes |
 | **CryptoSkill** | Publicar skills DOF (pago por uso) | Variable | 1 mes |
@@ -2069,18 +2069,18 @@ Population of Programs → Gemini Flash 2.0 (mutación rápida)
 2. **ETHGlobal** — Próximos eventos con tracks de AI agents
 3. **Chainlink BUILD** — Programa para proyectos blockchain
 4. **Base Builder Grants** — Ya tenemos ERC-8004 en Base (#31013)
-5. **Avalanche Grants** — Ya tenemos 48+ attestations en Avalanche
+5. **Conflux eSpace Grants** — Ya tenemos 48+ attestations en Conflux eSpace
 
 ### Grants Relevantes
 - **Gitcoin Grants** — Open source AI governance
 - **Optimism RetroPGF** — Retroactive public goods funding
-- **Avalanche Ecosystem Fund** — Ya estamos en el ecosistema
+- **Conflux eSpace Ecosystem Fund** — Ya estamos en el ecosistema
 - **Base Ecosystem Fund** — Token registrado, podemos aplicar
 - **AI Safety grants** — DOF = AI safety verificable con Z3
 
 ### Acción Inmediata
 1. Completar Synthesis Hackathon con calidad máxima (en progreso)
-2. Aplicar a Avalanche Grant con métricas existentes (48 attestations, 986 tests)
+2. Aplicar a Conflux eSpace Grant con métricas existentes (48 attestations, 986 tests)
 3. Aplicar a Base Builder Grant (ERC-8004 #31013 ya registrado)
 4. Publicar 3 skills en CryptoSkill (governance_audit, z3_verify, agent_health)
 5. Crear landing page con pricing para DOF-as-a-Service
@@ -2599,13 +2599,13 @@ Reputation-Weighted Task Allocation ← On-Chain Reputation Scoring
 ### Relevance for DOF
 - **Monetization**: DOF governance traces (ACCEPT/RETRY/ESCALATE) = expert-labeled AI behavior data → submit to Perle → earn PRL
 - **Trust signal**: On-chain reputation scores as input for DOF TrustGateway
-- **Cross-chain**: Avalanche (DOF) ↔ Solana (Perle) attestation bridge
+- **Cross-chain**: Conflux eSpace (DOF) ↔ Solana (Perle) attestation bridge
 - **Status**: IMPLEMENT (data submission) / EVALUATE (reputation import)
 =======
 ### Relevancia para DOF
 - **Monetización**: DOF governance traces (ACCEPT/RETRY/ESCALATE) = expert-labeled AI behavior data → submit a Perle → earn PRL
 - **Trust signal**: On-chain reputation scores como input para TrustGateway de DOF
-- **Cross-chain**: Avalanche (DOF) ↔ Solana (Perle) attestation bridge
+- **Cross-chain**: Conflux eSpace (DOF) ↔ Solana (Perle) attestation bridge
 - **Estado**: IMPLEMENTAR (data submission) / EVALUAR (reputation import)
 >>>>>>> 4e63386 (refactor: organize repo into professional structure)
 
@@ -2633,19 +2633,19 @@ Reputation-Weighted Task Allocation ← On-Chain Reputation Scoring
 | Agent protocol | A2A (Google Agent-to-Agent) |
 | MCP tools | 24 tools via MCP |
 | Orchestration | CrewAI |
-| Blockchain | Avalanche Fuji (dev), Base (prod), 9 chains |
+| Blockchain | Conflux eSpace Fuji (dev), Base (prod), 9 chains |
 
 <<<<<<< HEAD
 ### Ultravioleta DAO Repos
 | Repo | Description |
 |------|-------------|
 | execution-market | Core marketplace — A2H/H2A, x402, ERC-8004 |
-| karmakadabra | Trustless AI economy — ERC-8004 + x402 + CrewAI on Avalanche |
+| karmakadabra | Trustless AI economy — ERC-8004 + x402 + CrewAI on Conflux eSpace |
 | uvd-x402-sdk-python | x402 multi-chain SDK (EVM/Solana/NEAR/Stellar) |
 | x402scan | x402 ecosystem explorer |
 
 ### Relevance for DOF
-- **Nearly identical architecture**: CrewAI + Python + Avalanche + ERC-8004
+- **Nearly identical architecture**: CrewAI + Python + Conflux eSpace + ERC-8004
 - **x402 SDK**: Drop-in for micropayments in `a2a_server.py`
 - **24 MCP tools**: Extend our 4 MCP servers with real-world execution
 - **Status**: IMPLEMENT — high compatibility with existing DOF
@@ -2669,7 +2669,7 @@ Reputation-Weighted Task Allocation ← On-Chain Reputation Scoring
 | `logs/checkpoints/` | 10M+ IOPS = perfect JSONL append |
 | ChromaDB + embeddings | 25.6TB = complete knowledge graph without eviction |
 | Model weights (local) | XL-FLASH as HBM extension = larger models without quantization loss |
-| Blockchain data | Full Avalanche node + DOF audit trails on a single drive |
+| Blockchain data | Full Conflux eSpace node + DOF audit trails on a single drive |
 | 2027 Roadmap | 100M IOPS — storage stops being a bottleneck for any DOF operation |
 
 - **Status**: REFERENCE — datacenter hardware, defines storage direction for local AGI
@@ -2704,12 +2704,12 @@ Reputation-Weighted Task Allocation ← On-Chain Reputation Scoring
 | Repo | Descripción |
 |------|-------------|
 | execution-market | Core marketplace — A2H/H2A, x402, ERC-8004 |
-| karmakadabra | Trustless AI economy — ERC-8004 + x402 + CrewAI en Avalanche |
+| karmakadabra | Trustless AI economy — ERC-8004 + x402 + CrewAI en Conflux eSpace |
 | uvd-x402-sdk-python | SDK x402 multi-chain (EVM/Solana/NEAR/Stellar) |
 | x402scan | Explorador del ecosistema x402 |
 
 ### Relevancia para DOF
-- **Arquitectura casi idéntica**: CrewAI + Python + Avalanche + ERC-8004
+- **Arquitectura casi idéntica**: CrewAI + Python + Conflux eSpace + ERC-8004
 - **x402 SDK**: Drop-in para micropagos en `a2a_server.py`
 - **24 MCP tools**: Extienden nuestros 4 MCP servers con ejecución real-world
 - **Estado**: IMPLEMENTAR — alta compatibilidad con DOF existente
@@ -2733,7 +2733,7 @@ Reputation-Weighted Task Allocation ← On-Chain Reputation Scoring
 | `logs/checkpoints/` | 10M+ IOPS = JSONL append perfecto |
 | ChromaDB + embeddings | 25.6TB = knowledge graph completo sin eviction |
 | Model weights (local) | XL-FLASH como HBM extension = modelos más grandes sin quantization loss |
-| Blockchain data | Full Avalanche node + DOF audit trails en un solo drive |
+| Blockchain data | Full Conflux eSpace node + DOF audit trails en un solo drive |
 | Roadmap 2027 | 100M IOPS — storage deja de ser bottleneck para cualquier operación DOF |
 
 - **Estado**: REFERENCIA — hardware datacenter, define dirección de storage para AGI local

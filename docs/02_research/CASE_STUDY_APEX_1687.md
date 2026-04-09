@@ -7,7 +7,7 @@
 
 ## The Problem
 
-Apex #1687 is an autonomous arbitrage agent operating on Avalanche C-Chain. Its function: detect price opportunities between DEXs and execute trades without human intervention.
+Apex #1687 is an autonomous arbitrage agent operating on Conflux eSpace C-Chain. Its function: detect price opportunities between DEXs and execute trades without human intervention.
 
 The risk is real and quantifiable:
 
@@ -51,7 +51,7 @@ if result.verdict != "APPROVED":
 
 3. **ConstitutionEnforcer** — 4 HARD_RULES + 5 SOFT_RULES. Automatically detects governance override attempts, prompt injection, empty outputs, and PII violations.
 
-4. **Attestation** — each decision generates a keccak256 hash registered on-chain on Avalanche C-Chain:
+4. **Attestation** — each decision generates a keccak256 hash registered on-chain on Conflux eSpace C-Chain:
 
 ```
 DOFValidationRegistry: 0x8004B663056A597Dffe9eCcC1965A193B7388713
@@ -77,7 +77,7 @@ DOFValidationRegistry: 0x8004B663056A597Dffe9eCcC1965A193B7388713
 
 ## The Proofs — Verifiable by Any Third Party
 
-Apex #1687's attestations are publicly registered on Avalanche C-Chain. Any auditor can verify the history without needing to trust Enigma Group.
+Apex #1687's attestations are publicly registered on Conflux eSpace C-Chain. Any auditor can verify the history without needing to trust Enigma Group.
 
 **Contract:** `0x8004B663056A597Dffe9eCcC1965A193B7388713` (Reputation Registry)
 **Explorer:** [snowtrace.io](https://snowtrace.io/address/0x8004B663056A597Dffe9eCcC1965A193B7388713)
@@ -87,7 +87,7 @@ Each record contains:
 - `action` — the verified action
 - `verdict` — APPROVED / REJECTED
 - `attestation_hash` — keccak256 of the complete result
-- `timestamp` — Avalanche block
+- `timestamp` — Conflux eSpace block
 
 This transforms the claim "our agent is safe" into an auditable statement: **"here are the 21 cryptographic proofs, verifiable in the explorer without our intermediation."**
 

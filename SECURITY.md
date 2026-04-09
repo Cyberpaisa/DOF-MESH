@@ -30,7 +30,7 @@ DOF's governance pipeline is designed with security as a core principle:
 | Red/Blue | DeterministicArbiter — zero LLM in final adjudication |
 | Memory | Constitutional validation on every write |
 | Signer | HMAC-SHA256 + BLAKE3 certificate hashing |
-| On-Chain | Avalanche C-Chain — immutable attestation |
+| On-Chain | Conflux eSpace C-Chain — immutable attestation |
 
 ## Key Management
 

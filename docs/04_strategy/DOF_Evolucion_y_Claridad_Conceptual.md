@@ -116,7 +116,7 @@ Repo: DOF-MESH · 340+ commits · v0.6.0 · Marzo 2026
 
 ﬁ Expansión completa del concepto a 12 capas, 142 módulos, 4,036 tests
 
-ﬁ Integración de 5 blockchains: Avalanche, Base, Celo, ETH, Tempo (Stripe)
+ﬁ Integración de 5 blockchains: Conflux eSpace, Base, Celo, ETH, Tempo (Stripe)
 
 ﬁ Incorporación del Experimento Winston: validación multi-modelo del framework de
 comunicación
@@ -386,7 +386,7 @@ Winner Privacy & x402 · The Synthesis
 
 Validación externa del concepto
 
-ERC-8004 en producción Contratos en Avalanche + Tempo (Stripe)
+ERC-8004 en producción Contratos en Conflux eSpace + Tempo (Stripe)
 
 Parte del ecosistema emergente más activo
 
@@ -474,7 +474,7 @@ Cuando su regulación exija que los agentes de IA sean auditables (EU AI Act, SE
 
 pregunta será: '¿Puede probar qué decidió su agente?' Con DOF: sí. El hash keccak256 de cada
 
-decisión vive en Avalanche C-Chain. Inmutable. Verificable por terceros. Sin depender del proveedor.
+decisión vive en Conflux eSpace C-Chain. Inmutable. Verificable por terceros. Sin depender del proveedor.
 
 Cyber Paisa / Enigma Group · Medellín · Marzo 2026
 

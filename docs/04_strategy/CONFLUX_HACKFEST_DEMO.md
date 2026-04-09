@@ -9,7 +9,7 @@
 
 **SponsorWhitelistControl** — mecanismo nativo de Conflux que permite que un contrato patrocine
 el gas de sus usuarios. Resultado: usuarios interactúan **sin pagar CFX**.
-No existe en Ethereum, Avalanche, Base ni ninguna otra EVM. Es exclusivo de Conflux.
+No existe en Ethereum, Conflux eSpace, Base ni ninguna otra EVM. Es exclusivo de Conflux.
 
 ---
 

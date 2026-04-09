@@ -22,7 +22,9 @@
 [![LOC](https://img.shields.io/badge/LOC-57K%2B-lightgrey?style=flat-square)]()
 [![License](https://img.shields.io/badge/License-BSL--1.1-purple?style=flat-square)](LICENSE)
 
-[PyPI](https://pypi.org/project/dof-sdk/) | [Getting Started](docs/05_operations/GETTING_STARTED.md) | [Documentation](docs/INDEX.md) | [On-Chain Proof](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6) | [@Cyber_paisa](https://t.me/Cyber_paisa)
+**[📺 Watch Conflux Hackfest Demo](https://youtu.be/XAuTQFNLQQY)**
+
+[PyPI](https://pypi.org/project/dof-sdk/) | [Getting Started](docs/05_operations/GETTING_STARTED.md) | [Documentation](docs/INDEX.md) | [On-Chain Proof](https://evmtestnet.confluxscan.net/address/0x58F0126B647E87a9a49e79971E168ce139326fd1) | [@Cyber_paisa](https://t.me/Cyber_paisa)
 
 </div>
 
@@ -146,7 +148,7 @@ docker-compose up -d --build
 |  |      AGENT RUNTIME LAYER      |       ON-CHAIN LAYER          |  |
 |  |      (any framework)          |                               |  |
 |  |                               |  DOFProofRegistry             |  |
-|  |      LangChain · CrewAI       |  Avalanche · Base · Celo      |  |
+|  |      LangChain · CrewAI       |  Conflux eSpace · Base · Celo      |  |
 |  |      AutoGen · Custom         |  Polygon · SKALE · Conflux    |  |
 |  |                               |  8 chains · 30+ attestations  |  |
 |  +-------------------------------+-------------------------------+  |
@@ -261,7 +263,7 @@ print(post.attestation_hash)  # 0x44b45cd026916c...
 |:------|:-----------|
 | Core Framework | Python 3.11+ |
 | Formal Verification | Z3 Theorem Prover -- 4/4 invariants PROVEN |
-| Blockchain | web3.py · Avalanche · Base · Celo · Polygon · SKALE · Conflux |
+| Blockchain | web3.py · Conflux eSpace · Base · Celo · Polygon · SKALE · Conflux |
 | LLM Routing | LiteLLM Router (7+ providers, TTL backoff, Thompson Sampling) |
 | SDK | `dof-sdk` on PyPI -- `pip install dof-sdk` |
 | Vector Memory | ChromaDB + HuggingFace embeddings (all-MiniLM-L6-v2) |
@@ -277,10 +279,10 @@ print(post.attestation_hash)  # 0x44b45cd026916c...
 
 | Chain | Contract | Status |
 |:------|:---------|:-------|
-| Avalanche C-Chain (43114) | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` | ✅ mainnet |
+| Conflux eSpace C-Chain (43114) | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` | ✅ mainnet |
 | Base Mainnet (8453) | `0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D` | ✅ mainnet |
 | Celo Mainnet (42220) | `0x35B320A06DaBe2D83B8D39D242F10c6455cd809E` | ✅ mainnet |
-| Avalanche Fuji (43113) | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | ✅ testnet |
+| Conflux eSpace Fuji (43113) | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | ✅ testnet |
 | Base Sepolia (84532) | `0x7e0f0D0bC09D14Fa6C1F79ab7C0EF05b5e4F1f59` | ✅ testnet |
 | Conflux Testnet (71) | `0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83` | ✅ testnet |
 | Polygon Amoy (80002) | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | ✅ testnet |
@@ -402,6 +404,6 @@ equipo-de-agentes/
 
 [![PyPI](https://img.shields.io/badge/Install-pip_install_dof--sdk-blue?style=for-the-badge&logo=pypi)](https://pypi.org/project/dof-sdk/)
 [![GitHub](https://img.shields.io/badge/GitHub-DOF--MESH-181717?style=for-the-badge&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
-[![On-Chain](https://img.shields.io/badge/On--Chain_Proof-8_chains-e84142?style=for-the-badge&logo=ethereum)](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6)
+[![On-Chain](https://img.shields.io/badge/On--Chain_Proof-Conflux_eSpace-28c840?style=for-the-badge)](https://evmtestnet.confluxscan.net/address/0x58F0126B647E87a9a49e79971E168ce139326fd1)
 
 </div>

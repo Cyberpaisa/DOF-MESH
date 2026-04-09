@@ -10,7 +10,7 @@
 
 [![PyPI](https://img.shields.io/badge/PyPI-dof--sdk-blue?style=for-the-badge&logo=pypi)](https://pypi.org/project/dof-sdk/)
 [![GitHub](https://img.shields.io/badge/GitHub-DOF--MESH-181717?style=for-the-badge&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
-[![On-Chain](https://img.shields.io/badge/Avalanche-0x0b65d10F...751c-e84142?style=for-the-badge&logo=avalanche)](https://snowtrace.io/address/0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c)
+[![On-Chain](https://img.shields.io/badge/Conflux_eSpace-0x58F0126B...6fd1-28c840?style=for-the-badge&logo=conflux)](https://snowtrace.io/address/0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c)
 
 [![Tests](https://img.shields.io/badge/Tests-4%2C157_passing-brightgreen?style=flat-square)]()
 [![PyPI](https://img.shields.io/pypi/v/dof-sdk?color=blue&style=flat-square)](https://pypi.org/project/dof-sdk/)
@@ -146,7 +146,7 @@ docker-compose up -d --build
 |  |      AGENT RUNTIME LAYER      |       ON-CHAIN LAYER          |  |
 |  |      (any framework)          |                               |  |
 |  |                               |  DOFProofRegistry             |  |
-|  |      LangChain · CrewAI       |  Avalanche · Base · Celo      |  |
+|  |      LangChain · CrewAI       |  Conflux eSpace · Base · Celo      |  |
 |  |      AutoGen · Custom         |  Polygon · SKALE · Conflux    |  |
 |  |                               |  7 chains · 30+ attestations  |  |
 |  +-------------------------------+-------------------------------+  |
@@ -209,7 +209,7 @@ A deterministic function does. Every time. Same answer.
 |:------|:-----------|
 | Core Framework | Python 3.11+ |
 | Formal Verification | Z3 Theorem Prover -- 4/4 invariants PROVEN |
-| Blockchain | web3.py · Avalanche · Base · Celo · Polygon · SKALE · Conflux |
+| Blockchain | web3.py · Conflux eSpace · Base · Celo · Polygon · SKALE · Conflux |
 | LLM Routing | LiteLLM Router (7+ providers, TTL backoff, Thompson Sampling) |
 | SDK | `dof-sdk` on PyPI -- `pip install dof-sdk` |
 | Vector Memory | ChromaDB + HuggingFace embeddings (all-MiniLM-L6-v2) |
@@ -225,13 +225,13 @@ A deterministic function does. Every time. Same answer.
 
 | Chain | Contract | Block | Status |
 |:------|:---------|------:|:-------|
-| Avalanche C-Chain | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | 81,945,671 | ✅ mainnet |
+| Conflux eSpace C-Chain | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | 81,945,671 | ✅ mainnet |
 | Base Mainnet | `0x993399D9F8b8c5BF905367CeA6AB6317afDc9A1d` | 44,186,111 | ✅ mainnet |
 | Celo Mainnet | `0x35B320A06DaBe2D83B8D39D242F10c6455cd809E` | 63,262,268 | ✅ mainnet |
 | Polygon Mainnet | `0x1b65658A53CbB64BA4A93F644D7be3B67b237886` | 85,020,959 | ✅ mainnet |
 | SKALE Europa | `0x993399D9F8b8c5BF905367CeA6AB6317afDc9A1d` | 24,839,948 | ✅ mainnet · zero gas |
 | Conflux eSpace | `0x4e54634d1bD2480610b2A1b22F3a9e1727d9881D` | 248,014,025 | ✅ mainnet |
-| Avalanche Fuji | `0x4e54634d1bD2480610b2A1b22F3a9e1727d9881D` | 53,553,908 | ✅ testnet |
+| Conflux eSpace Fuji | `0x4e54634d1bD2480610b2A1b22F3a9e1727d9881D` | 53,553,908 | ✅ testnet |
 
 ```
 ERC-8004 Agent:    #1687 (Apex) · #1686 (AvaBuilder)

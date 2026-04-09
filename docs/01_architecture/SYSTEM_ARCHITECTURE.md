@@ -18,7 +18,7 @@
 | Scripts | 13 |
 | CI Workflows | 3 (Tests, DOF CI, Z3 Verify) |
 | SDK | dof-sdk 0.6.0 (PyPI) |
-| On-chain | 21+ attestations (Avalanche C-Chain) |
+| On-chain | 21+ attestations (Conflux eSpace C-Chain) |
 | CrewAI Agents | 17 |
 | Mesh LLM Nodes | 11 |
 | Governance layers | 7 |
@@ -113,13 +113,13 @@
 +============================v===================================+
 |              LAYER 6 -- BLOCKCHAIN (on-chain)                  |
 |                                                                |
-|  avalanche_bridge.py ----> Attestations on-chain (C-Chain)     |
+|  conflux_bridge.py ----> Attestations on-chain (C-Chain)     |
 |  chain_adapter.py ----> Multi-chain abstraction                |
 |  contract_scanner.py ----> Contract analysis                   |
 |  oracle_bridge.py ----> Oracle data feed                       |
 |  revenue_tracker.py ----> x402 micropayments                   |
 |                                                                |
-|  * cross_chain_identity.py ----> Bridge Avalanche/Base/Celo/ETH|
+|  * cross_chain_identity.py ----> Bridge Conflux eSpace/Base/Celo/ETH|
 |                                                                |
 |  Contracts:                                                    |
 |    ERC-8004 Identity: 0x8004A169FB4a3325136EB29fA0ceB6D2e...  |
@@ -210,7 +210,7 @@
    +-----+-----+
          |
 9. +-----v-----+
-   | On-Chain  | Merkle root -> Avalanche C-Chain attestation
+   | On-Chain  | Merkle root -> Conflux eSpace C-Chain attestation
    | Attestation| -> Cross-chain bridge if needed (Base/Celo)
    +-----+-----+
          |
@@ -229,7 +229,7 @@
 | Language | Python 3.10+ | Production |
 | Formal Verification | Z3 Theorem Prover | 4/4 PROVEN |
 | Crypto Proofs | SHA3-256 (keccak256) + Merkle | Implemented |
-| Blockchain | Avalanche C-Chain, Base, Celo, ETH | Multi-chain |
+| Blockchain | Conflux eSpace C-Chain, Base, Celo, ETH | Multi-chain |
 | Agents | CrewAI (17 agents) | Configured |
 | LLM Routing | LiteLLM + custom router | 8+ providers |
 | Memory | ChromaDB + HuggingFace embeddings | Active |
@@ -272,7 +272,7 @@
 1. **Zero-LLM governance** — Every governance decision is deterministic (regex, AST, Z3). No LLM judges another LLM.
 2. **Zero external dependencies** — DOF works standalone, without Enigma or any external service.
 3. **Proofs, not logs** — Every decision generates a verifiable cryptographic hash, not just a log.
-4. **Multi-chain portable** — Identity and attestations on Avalanche, Base, Celo, Ethereum.
+4. **Multi-chain portable** — Identity and attestations on Conflux eSpace, Base, Celo, Ethereum.
 5. **Heterogeneous mesh** — 11 distinct coordinated LLMs. Stronger than any individual model.
 6. **Offline-capable** — Sentinel, governance, and Z3 work without an internet connection.
 7. **Test-first** — 3,698 tests. No code is merged without tests.

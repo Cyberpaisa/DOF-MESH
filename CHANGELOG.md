@@ -148,7 +148,7 @@
 - `ProofRegistered` event for indexing
 
 ### Changed
-- 3-layer publish pipeline now registers proofs: PG → Enigma → Avalanche + ProofRegistry
+- 3-layer publish pipeline now registers proofs: PG → Enigma → Conflux eSpace + ProofRegistry
 - Paradigm shift: trust-by-scoring → **trust-by-proof**
 
 ---

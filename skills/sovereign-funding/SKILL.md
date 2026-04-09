@@ -26,7 +26,7 @@ Agents MUST use this tool automatically when:
 
 ## 3. Workflow Pattern (How to use)
 When an agent encounters a "Low Balance" error:
-1. **[  ] Identify Chain & Token:** Determine what asset is needed (e.g., CFX on eSpace, or AVAX on Avalanche).
+1. **[  ] Identify Chain & Token:** Determine what asset is needed (e.g., CFX on eSpace, or AVAX on Conflux eSpace).
 2. **[  ] Determine Amount:** Calculate the necessary amount + 10% buffer.
 3. **[  ] Call Tool:** Execute `generate_sovereign_funding_link` with the required parameters.
 4. **[  ] Send to User/Commander:** Output the generated link and HALT execution, waiting for the deposit to conform.

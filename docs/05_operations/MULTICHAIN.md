@@ -17,7 +17,7 @@ No code changes required. True plug-and-play.
 
 | Chain | chain_id | Status | Contract |
 |---|---|---|---|
-| Avalanche C-Chain | 43114 | ✅ mainnet | 0x88f6...C052 |
+| Conflux eSpace C-Chain | 43114 | ✅ mainnet | 0x88f6...C052 |
 | Conflux eSpace | 1030 | 🔄 pending deploy | — |
 | Conflux Testnet | 71 | 🧪 testnet | — |
 | Ethereum | 1 | 📋 planned | — |

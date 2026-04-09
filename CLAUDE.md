@@ -165,10 +165,10 @@ Casi causa expulsión de la competencia. Ver `docs/03_book/BOOK_CH23_SCOPE_BREAC
 ### Contratos DOFProofRegistry — tabla canónica verificada:
 | Chain | Chain ID | Dirección | Tipo |
 |---|---|---|---|
-| Avalanche C-Chain | 43114 | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` | mainnet |
+| Conflux eSpace C-Chain | 43114 | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` | mainnet |
 | Base Mainnet | 8453 | `0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D` | mainnet |
 | Celo Mainnet | 42220 | `0x35B320A06DaBe2D83B8D39D242F10c6455cd809E` | mainnet |
-| Avalanche Fuji | 43113 | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | testnet |
+| Conflux eSpace Fuji | 43113 | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | testnet |
 | Base Sepolia | 84532 | `0x7e0f0D0bC09D14Fa6C1F79ab7C0EF05b5e4F1f59` | testnet |
 | Conflux Testnet | 71 | `0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83` | testnet |
 | Polygon Amoy | 80002 | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | testnet |
@@ -196,7 +196,7 @@ DOF-MESH
   ├── 7 capas de governance: Constitution, AST Validator, Tool Hook Gate PRE,
   │   Supervisor Engine, Adversarial Guard, Memory Layer, Z3 SMT Verifier
   ├── Z3 formal verification: 4/4 invariantes PROVEN + 42 patrones de jerarquía
-  ├── 30+ attestations on-chain (7 chains: Avalanche, Base, Celo, Polygon, SKALE, Conflux, Fuji)
+  ├── 30+ attestations on-chain (7 chains: Conflux eSpace, Base, Celo, Polygon, SKALE, Conflux, Fuji)
   ├── SDK publicado en PyPI (dof-sdk v0.5.1)
   ├── 9 agentes CrewAI con SOUL.md (config/agents.yaml + agents/*/SOUL.md)
   ├── Mesh de 11+ nodos (LLM providers + web bridges + local models)

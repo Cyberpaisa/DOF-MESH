@@ -6,7 +6,7 @@
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-dof--agent--web.vercel.app-8b5cf6?style=for-the-badge)](https://dof-agent-web.vercel.app)
 [![ERC-8004](https://img.shields.io/badge/ERC--8004-Certified-22c55e?style=for-the-badge)](https://basescan.org/tx/0x7362ef41605e430aba3998b0888e7886c04d65673ce89aa12e1abdf7cffcada4)
-[![On-Chain](https://img.shields.io/badge/Avalanche-48%2B_Attestations-e84142?style=for-the-badge)](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6)
+[![On-Chain](https://img.shields.io/badge/Conflux_eSpace-0x58F0126B...6fd1-28c840?style=for-the-badge)](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6)
 
 **Live Demo:** [https://dof-agent-web.vercel.app](https://dof-agent-web.vercel.app)
 
@@ -137,7 +137,7 @@ DOF Agent (Autonomous)
 +-------------------------------------+
 |  4. MetaMask Signature              | <- personal_sign
 +-------------------------------------+
-|  5. On-Chain Attestation            | <- Avalanche / Base / Celo
+|  5. On-Chain Attestation            | <- Conflux eSpace / Base / Celo
 |     DOFProofRegistry.sol            |
 +-------------------------------------+
 ```
@@ -162,13 +162,13 @@ Identity (ERC-8004 #31013) -> Task Discovery -> LLM Inference -> Governance (Zer
 | Persistence | localStorage | Offline-capable, no backend required |
 | i18n | data-i18n + JS | EN, ES, FR, ZH — zero dependencies |
 | Hosting | Vercel | Static + serverless (Next.js API routes) |
-| On-Chain | Avalanche C-Chain, Base, Celo | Multi-chain attestation |
+| On-Chain | Conflux eSpace C-Chain, Base, Celo | Multi-chain attestation |
 
 ## Smart Contracts
 
 | Contract | Chain | Address | Explorer |
 |----------|-------|---------|----------|
-| DOFProofRegistry.sol | Avalanche C-Chain | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` | [Snowtrace](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6) |
+| DOFProofRegistry.sol | Conflux eSpace C-Chain | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` | [Snowtrace](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6) |
 | ERC-8004 Identity | Base Mainnet | Token #31013 | [Basescan](https://basescan.org/tx/0x7362ef41605e430aba3998b0888e7886c04d65673ce89aa12e1abdf7cffcada4) |
 
 ## Running Locally

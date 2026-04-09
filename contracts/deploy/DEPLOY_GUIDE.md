@@ -8,7 +8,7 @@ Contrato único, compatible con cualquier EVM. Registra attestations de verifica
 
 | Chain | Chain ID | Testnet | Faucet | Estado |
 |-------|----------|---------|--------|--------|
-| Avalanche | 43114 | Fuji (43113) | https://core.app/tools/testnet-faucet/ | ✅ LIVE |
+| Conflux eSpace | 43114 | Fuji (43113) | https://core.app/tools/testnet-faucet/ | ✅ LIVE |
 | Conflux eSpace | 1030 | Testnet (71) | https://efaucet.confluxnetwork.org/ | ✅ Testnet deployado |
 | Base | 8453 | Sepolia (84532) | https://www.coinbase.com/faucets/base-ethereum-goerli-faucet | 🟡 Pendiente |
 | Celo | 42220 | Alfajores (44787) | https://faucet.celo.org/ | 🟡 Pendiente |
@@ -115,13 +115,13 @@ Visitar cada faucet con la wallet DOF:
 4. **Arbitrum Sepolia:** https://www.alchemy.com/faucets/arbitrum-sepolia
 5. **Ethereum Sepolia:** https://sepoliafaucet.com/
 6. **Conflux Testnet:** https://efaucet.confluxnetwork.org/
-7. **Avalanche Fuji:** https://core.app/tools/testnet-faucet/
+7. **Conflux eSpace Fuji:** https://core.app/tools/testnet-faucet/
 
 ## Estado de Deploys
 
 | Chain | Testnet | Contract Address | Mainnet | Contract Address |
 |-------|---------|------------------|---------|------------------|
-| Avalanche | — | — | ✅ | `0x88f6043B...` |
+| Conflux eSpace | — | — | ✅ | `0x88f6043B...` |
 | Conflux | ✅ | `0x554cCa8c...` | 🟡 | — |
 | Tempo | — | — | ✅ | ver tempo/broadcast/ |
 | Base | 🟡 | — | 🟡 | — |

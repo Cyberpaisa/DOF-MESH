@@ -127,7 +127,7 @@ dof version                # Show version
   Red/Blue Output → [Z3 Gate] → Apply
 
 Attestation Pipeline:
-  PG (200ms) → Enigma (900ms) → Avalanche (2s) + DOFProofRegistry
+  PG (200ms) → Enigma (900ms) → Conflux eSpace (2s) + DOFProofRegistry
                                                     ↑
                                             z3_proof_hash included
 ```

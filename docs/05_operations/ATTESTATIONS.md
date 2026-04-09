@@ -4,10 +4,10 @@
 
 | Chain | Chain ID | Contrato | Tipo |
 |---|---|---|---|
-| Avalanche C-Chain | 43114 | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` | ✅ mainnet |
+| Conflux eSpace C-Chain | 43114 | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` | ✅ mainnet |
 | Base Mainnet | 8453 | `0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D` | ✅ mainnet |
 | Celo Mainnet | 42220 | `0x35B320A06DaBe2D83B8D39D242F10c6455cd809E` | ✅ mainnet |
-| Avalanche Fuji | 43113 | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | ✅ testnet |
+| Conflux eSpace Fuji | 43113 | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | ✅ testnet |
 | Base Sepolia | 84532 | `0x7e0f0D0bC09D14Fa6C1F79ab7C0EF05b5e4F1f59` | ✅ testnet |
 | Conflux Testnet | 71 | `0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83` | ✅ testnet |
 | Polygon Amoy | 80002 | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | ✅ testnet |
@@ -21,7 +21,7 @@ Total: **30+ attestations** on 2 chains with TX records, 4 different wallets.
 
 ---
 
-## Avalanche C-Chain (43114)
+## Conflux eSpace C-Chain (43114)
 Contract: [`0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6`](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6)
 
 ### Initial Batch — agent 1686
@@ -46,7 +46,7 @@ Contract: [`0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6`](https://snowtrace.io/ad
 | DOF | 0xEAFdc9C301... | [83e8d38b419c8065c9...](https://snowtrace.io/tx/83e8d38b419c8065c9) | 168,613 |
 | AVALANCHE | 0xB529f4f99a... | [d8e845c9aa3203ec45...](https://snowtrace.io/tx/d8e845c9aa3203ec45) | 213,469 |
 
-**Total Avalanche: 14 attestations**
+**Total Conflux eSpace: 14 attestations**
 
 ---
 
@@ -89,13 +89,13 @@ Contract: [`0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83`](https://evmtestnet.conf
 | Chain | TX | Note |
 |-------|----|------|
 | Conflux | c6e77c1c25d310a3... | First DOF attestation on Conflux |
-| Avalanche | 2e8ca5c8a687e5cd... | First DOF attestation on Avalanche v0.4.1 |
+| Conflux eSpace | 2e8ca5c8a687e5cd... | First DOF attestation on Conflux eSpace v0.4.1 |
 
 ---
 
 ## Summary
 | Chain | Attestations | Wallets | Status |
 |-------|-------------|---------|--------|
-| Avalanche C-Chain (mainnet) | 14 | 4 | ✅ live |
+| Conflux eSpace C-Chain (mainnet) | 14 | 4 | ✅ live |
 | Conflux eSpace Testnet | 16 | 1 | ✅ live |
 | **Total** | **30+** | **4** | ✅ |

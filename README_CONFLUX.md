@@ -235,7 +235,7 @@ Gas Sponsorship is not a nice-to-have — it is architecturally necessary. An au
 ### Infrastructure
 - **SDK**: PyPI (`dof-sdk v0.6.0`)
 - **CI**: GitHub Actions (Tests + Z3 verification + Lint)
-- **Agent Identity**: ERC-8004 on Avalanche C-Chain
+- **Agent Identity**: ERC-8004 on Conflux C-Chain
 
 ---
 
@@ -266,7 +266,7 @@ Interfaces  ──  CLI · A2A Server (port 8000) · Telegram · Dashboard
                               │
               ┌───────────────┼───────────────┐
               ▼               ▼               ▼
-         Conflux          Avalanche         Base
+         Conflux          Conflux         Base
          Testnet          C-Chain          Mainnet
          chain 71         chain 43114      chain 8453
 ```
@@ -497,10 +497,10 @@ Step 6 — Verifiable at:    https://evmtestnet.confluxscan.io/tx/bf98ea58...
 | Chain | Address |
 |-------|---------|
 | Conflux Testnet (71) | `0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83` |
-| Avalanche C-Chain (43114) | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` |
+| Conflux C-Chain (43114) | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` |
 | Base Mainnet (8453) | `0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D` |
 | Celo Mainnet (42220) | `0x35B320A06DaBe2D83B8D39D242F10c6455cd809E` |
-| Avalanche Fuji (43113) | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` |
+| Conflux Fuji (43113) | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` |
 | Base Sepolia (84532) | `0x7e0f0D0bC09D14Fa6C1F79ab7C0EF05b5e4F1f59` |
 | Polygon Amoy (80002) | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` |
 | SKALE Base Sepolia | `0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D` |

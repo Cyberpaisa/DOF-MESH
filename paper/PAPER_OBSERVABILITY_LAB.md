@@ -11,7 +11,7 @@
 [![Z3 Invariants](https://img.shields.io/badge/Z3-8%2F8_PROVEN-blue)]()
 [![Hierarchy](https://img.shields.io/badge/hierarchy-42_patterns_verified-blue)]()
 [![PyPI](https://img.shields.io/pypi/v/dof-sdk)](https://pypi.org/project/dof-sdk/)
-[![On-Chain](https://img.shields.io/badge/Avalanche-21_attestations-red)]()
+[![On-Chain](https://img.shields.io/badge/Conflux eSpace-21_attestations-red)]()
 [![License](https://img.shields.io/badge/license-BSL--1.1-orange)]()
 
 *Version 0.3.3 · March 2026 · 27K+ LOC · 35 Core Modules*
@@ -60,7 +60,7 @@
 - [18. Protocol Integration](#18-protocol-integration)
 - [19. Storage Architecture](#19-storage-architecture)
 - [20. Framework-Agnostic Governance](#20-framework-agnostic-governance)
-- [21. On-Chain Attestation via Avalanche C-Chain](#21-on-chain-attestation-via-avalanche-c-chain)
+- [21. On-Chain Attestation via Conflux eSpace C-Chain](#21-on-chain-attestation-via-conflux-c-chain)
 - [22. Scanner Integration and Combined Trust Architecture](#22-scanner-integration-and-combined-trust-architecture)
 - [23. External Agent Audit](#23-external-agent-audit)
 - [24. Adversarial Benchmark Results](#24-adversarial-benchmark-results)
@@ -82,7 +82,7 @@
 
 ## Abstract
 
-Multi-agent systems built on large language models (LLMs) exhibit complex failure modes distinct from single-model pipelines, including provider rate limits, model incompatibilities, and non-deterministic cascading errors. While existing orchestration frameworks abstract agent coordination, they fail to provide deterministic mechanisms for measuring system stability, enforcing formal governance, or guaranteeing compliance. This paper presents the Deterministic Observability Framework (DOF): a comprehensive, zero-dependency architecture for the formal evaluation, algorithmic governance, and cryptographic auditability of multi-agent LLM systems. DOF transitions agent evaluation from heuristic *trust-by-scoring* to mathematical *trust-by-proof*. We introduce a neurosymbolic verification architecture integrating Z3 SMT formal proofs to mathematically guarantee architectural invariants, coupled with deterministic Abstract Syntax Tree (AST) static analysis and a dialectical Red-on-Blue adversarial evaluation protocol. To ensure immutable traceability, the framework connects off-chain evaluation with on-chain execution through compliance-gated ERC-8004 attestations natively deployed across EVM networks (e.g., Avalanche C-Chain, Conflux eSpace). Empirical validations involving 1,008 automatically generated boundary tests demonstrate a 100% Governance Compliance Rate (GCR=1.0), zero false-positive tampering rejections, and cross-chain read consensus latencies under 1.5 seconds. The resulting implementation provides the first mathematically verifiable, framework-agnostic governance stack for autonomous agentic systems operating in zero-trust environments.
+Multi-agent systems built on large language models (LLMs) exhibit complex failure modes distinct from single-model pipelines, including provider rate limits, model incompatibilities, and non-deterministic cascading errors. While existing orchestration frameworks abstract agent coordination, they fail to provide deterministic mechanisms for measuring system stability, enforcing formal governance, or guaranteeing compliance. This paper presents the Deterministic Observability Framework (DOF): a comprehensive, zero-dependency architecture for the formal evaluation, algorithmic governance, and cryptographic auditability of multi-agent LLM systems. DOF transitions agent evaluation from heuristic *trust-by-scoring* to mathematical *trust-by-proof*. We introduce a neurosymbolic verification architecture integrating Z3 SMT formal proofs to mathematically guarantee architectural invariants, coupled with deterministic Abstract Syntax Tree (AST) static analysis and a dialectical Red-on-Blue adversarial evaluation protocol. To ensure immutable traceability, the framework connects off-chain evaluation with on-chain execution through compliance-gated ERC-8004 attestations natively deployed across EVM networks (e.g., Conflux eSpace C-Chain, Conflux eSpace). Empirical validations involving 1,008 automatically generated boundary tests demonstrate a 100% Governance Compliance Rate (GCR=1.0), zero false-positive tampering rejections, and cross-chain read consensus latencies under 1.5 seconds. The resulting implementation provides the first mathematically verifiable, framework-agnostic governance stack for autonomous agentic systems operating in zero-trust environments.
 
 ---
 
@@ -102,7 +102,7 @@ This paper advances the field of multi-agent reliability by making the following
 2. **Neurosymbolic Governance via Z3 SMT:** We introduce a Z3 Gate that intercepts LLM outputs, utilizing formal SMT solvers to mathematically prove architectural invariants (e.g., GCR = 1.0) and automatically generate boundary test cases via counterexamples.
 3. **Deterministic Static Verification:** Implementation of AST-based static analysis to evaluate agent-generated code structures—restricting unsafe imports, secrets, and recursive loops—with zero LLM involvement in the critical validation path.
 4. **Adversarial Red-on-Blue Evaluation:** A structured dialectical protocol resolving LLM supervisor circularity. A `RedTeamAgent` probes for vulnerabilities while a `GuardianAgent` provides evidence-backed defenses, adjudicated purely by deterministic algorithmic criteria.
-5. **Decentralized Cryptographic Attestation (ERC-8004):** A complete pipeline bridging off-chain mathematical proofs with on-chain immutability. Verified agent interactions are hashed (keccak256) and anchored to EVM smart contracts (Avalanche, Conflux) ensuring point-in-time trust validation without relying on centralized databases.
+5. **Decentralized Cryptographic Attestation (ERC-8004):** A complete pipeline bridging off-chain mathematical proofs with on-chain immutability. Verified agent interactions are hashed (keccak256) and anchored to EVM smart contracts (Conflux eSpace, Conflux) ensuring point-in-time trust validation without relying on centralized databases.
 
 *(Note: Extended architectural components, API bridging, memory governance implementations, and framework adapters—which originally scaled our changelog to 40+ modular additions—are detailed extensively in Sections 14 through 24).*
 
@@ -417,7 +417,7 @@ All experiments were executed on the implemented framework using `SimulatedCrew`
 
 **Configuration**: n=10 runs, deterministic=True, fail_step=-1 (no injection), mode="research".
 
-**Prompt**: "Investigar mercado de agentes AI autónomos en Avalanche. Competidores, market size, tendencias 2025-2026, oportunidades de grants."
+**Prompt**: "Investigar mercado de agentes AI autónomos en Conflux eSpace. Competidores, market size, tendencias 2025-2026, oportunidades de grants."
 
 **Results**:
 
@@ -1071,7 +1071,7 @@ The framework-agnostic governance system (Section 20) demonstrates that the GCR 
 
 ### 25.9 Production On-Chain Validation
 
-The deployment of DOFValidationRegistry on Avalanche C-Chain mainnet (Section 21) and the integration with the Enigma Scanner (Section 22) constitute the first production validation of the framework's governance pipeline against real, indexed agents. The three-layer publication pipeline provides defense in depth: if any single layer fails or is compromised, the remaining layers provide independent verification. The combined trust architecture (Section 22) demonstrates that formal governance verification can be integrated into production scoring systems alongside infrastructure monitoring and community feedback, with the weight allocation reflecting the relative strength of each verification methodology.
+The deployment of DOFValidationRegistry on Conflux eSpace C-Chain mainnet (Section 21) and the integration with the Enigma Scanner (Section 22) constitute the first production validation of the framework's governance pipeline against real, indexed agents. The three-layer publication pipeline provides defense in depth: if any single layer fails or is compromised, the remaining layers provide independent verification. The combined trust architecture (Section 22) demonstrates that formal governance verification can be integrated into production scoring systems alongside infrastructure monitoring and community feedback, with the weight allocation reflecting the relative strength of each verification methodology.
 
 The cross-verification results (Section 22.3) address a limitation previously identified in the discussion: governance compliance was validated only against the framework's own agents. The bilateral peer verification, where each agent governance-checks the other's output, provides the first evidence that DOF governance enforcement generalizes across agent identities and operational roles.
 

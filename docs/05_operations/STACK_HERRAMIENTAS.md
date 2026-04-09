@@ -41,7 +41,7 @@
 - `markitdown-converter` — conversión de documentos a MD · triggers: "convierte", "pasa a markdown", "ingesta"
 - `sovereign-funding` — capa financiera nativa DOF Mesh
 - `super-sentinel` — Trust Layer ERC-8004
-- `erc8004-avalanche` — registro de agentes Avalanche
+- `erc8004-conflux` — registro de agentes Conflux eSpace
 - `erc8004-celo` — registro de agentes Celo
 - `deploy-to-skale` — deploy contratos SKALE
 - `conflux-integration` — ecosistema Conflux

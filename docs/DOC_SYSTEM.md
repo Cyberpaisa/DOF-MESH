@@ -74,7 +74,7 @@ Leer en este orden:
 - **Módulos Python:** 231 archivos
 - **Tests:** 4,308 passing (583 en CI GitHub Actions)
 - **Lecciones:** L-1 → L-72
-- **Chains:** 8 (3 mainnet: Avalanche, Base, Celo + 5 testnet)
+- **Chains:** 8 (3 mainnet: Conflux eSpace, Base, Celo + 5 testnet)
 - **Agentes especializados:** 15
 - **Nodos mesh:** 29 registrados
 - **Attestations on-chain:** 30+
