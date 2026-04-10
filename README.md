@@ -22,7 +22,7 @@
 [![LOC](https://img.shields.io/badge/LOC-57K%2B-lightgrey?style=flat-square)]()
 [![License](https://img.shields.io/badge/License-BSL--1.1-purple?style=flat-square)](LICENSE)
 
-**[📺 Watch Conflux Hackfest Demo](https://youtu.be/XAuTQFNLQQY)** · **[🌐 Official Website](https://dofmesh.com)**
+**[📺 Watch Conflux Hackfest Demo](https://youtu.be/XAuTQFNLQQY)** · **[🌐 Official Website](https://dofmesh.com)** · **[🐦 Submission Tweet](https://x.com/Cyber_paisa/status/2042478622972277158)**
 
 [Website](https://dofmesh.com) | [PyPI](https://pypi.org/project/dof-sdk/) | [Getting Started](docs/05_operations/GETTING_STARTED.md) | [Documentation](docs/INDEX.md) | [On-Chain Proof](https://evmtestnet.confluxscan.net/address/0x58F0126B647E87a9a49e79971E168ce139326fd1) | [@Cyber_paisa](https://t.me/Cyber_paisa)
 
