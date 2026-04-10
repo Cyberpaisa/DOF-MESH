@@ -388,37 +388,163 @@ equipo-de-agentes/
 
 ## Go-to-Market Plan
 
-### Phase 1 — Conflux Beachhead (Months 1–6)
-Target the 13 active DeFi protocols on Conflux eSpace. Offer free integration for first 3 pilots. Activate Proof-to-Gasless as the primary incentive: verified agents pay zero gas. Close 10 protocol pilots via hackathon introductions.
+> "Unprovable AI decisions shouldn't control money."
 
-**Revenue target:** $47K ARR (10 protocols × $499/mo × 9 months avg)
+**Category we're creating:** Deterministic Agent Governance — not "security tool," not "monitoring." A new category.
 
-### Phase 2 — Multi-Chain Expansion (Months 7–12)
-Expand to Base, Avalanche, and Celo using existing deployed contracts. Launch MCP Server enterprise tier for AI agent runtime companies (Claude Code, LangChain). Submit ERC standard to Ethereum Magicians (already published draft).
+---
 
-**Revenue target:** $270K ARR · 50+ protocols · 3 chains active
+### The Market Window (Why Now)
 
-### Phase 3 — Protocol Standard (Months 13–18)
-Position DOF-MESH as the industry attestation standard. Partner with Ruta N and Colombia Blockchain for LATAM developer adoption. Enterprise deals with DeFi protocols requiring regulatory compliance proof.
+| Signal | Data |
+|---|---|
+| OZ Defender closes | July 1, 2026 — $180B+ in DeFi increasingly relies on automated governance |
+| AI agent incidents | 88% of orgs had incidents in 2026 (Gravitee State of AI Security) |
+| MCP ecosystem growth | Rapidly growing — 10,000+ active servers as of March 2026 |
+| Formal verification market | $420M → $2.1B by 2033, CAGR 19.8% (Research Intelo) |
+| Competitors | Tenderly: transaction simulation and monitoring (no formal verification). Forta: real-time threat detection and alerts (no deterministic proofs). |
 
-**Revenue target:** $1.2M ARR · SOM $4.7M addressable
+---
+
+### Beachhead — First Market
+
+**AI agents that move money.** Not enterprise. Not broad DeFi.
+
+Specifically: autonomous trading bots, treasury automation agents,
+governance execution agents — any agent with financial authority
+where one wrong decision costs millions.
+
+Why this segment first:
+- Highest pain: one exploit = catastrophic loss
+- Fastest decision cycle: developers ship weekly
+- Clear ROI: 1 incident avoided = ~$5.3M saved vs $1,188/year (Pro plan)
+
+---
+
+### Activation — Proof in 60 Seconds
+
+```python
+pip install dof-sdk
+
+from dof import DOFVerifier
+v = DOFVerifier()
+result = v.verify_action(
+    agent_id="my-bot",
+    action="transfer",
+    params={"amount": 500, "token": "USDC"}
+)
+print(result.proof)
+# → z3_proof: "4/4 VERIFIED"
+# → attestation: "0x44b45cd..." ← on Conflux, permanent
+# → latency_ms: 8.2
+# → verdict: "APPROVED"
+```
+
+Free tier: 100 proofs/month. No credit card.
+Works with LangChain, CrewAI, AutoGen — no migration of existing agents.
+
+---
+
+### Traction — Live Today
+
+| Metric | Value |
+|---|---|
+| Unit tests passing | 4,308 |
+| Autonomous cycles | 238+ (0 governance incidents) |
+| On-chain transactions | 146 confirmed (Conflux eSpace) |
+| Chains deployed | 9 (4 mainnets: Avalanche, Base, Celo, Tempo) |
+| Z3 theorems proven | 4/4 per cycle |
+| Latency | 8.2ms average |
+| External validation | +26.1% improvement across 10 frontier models (Adaline, 200M+ API calls/day) |
+
+> This is not a prototype. This is running.
+
+---
+
+### Distribution — Real Acquisition Channels
+
+| Channel | Priority | Tactic |
+|---|---|---|
+| Defender Migration | P0 | Direct outreach to teams exiting OZ Defender before Jul 1, 2026 |
+| PyPI / GitHub | P0 | `pip install dof-sdk` with 3-line working examples — developer-led adoption |
+| Conflux Ecosystem | P0 | 10 protocol pilots via hackathon network — word of mouth |
+| Technical Content | P1 | "How to prove AI agent behavior on-chain" — SEO + developer trust |
+| MCP Ecosystem | P1 | First Conflux MCP server — designed for compatibility with Claude Code, Cursor, Copilot, Windsurf |
+
+---
+
+### Growth Loop — Every Proof Is Distribution
+
+Each verified agent action generates:
+- Public shareable proof link (like an Etherscan TX)
+- Verifiable hash anyone can check on ConfluxScan
+- Attribution back to dofmesh.com
+
+Result: every user becomes a distribution channel.
+
+---
 
 ### Pricing
-| Tier | Price | Target |
-|------|-------|--------|
-| API Pay-per-Proof | $0.10/cycle | Individual agents, developers |
-| Starter | $99/mo | Small protocols, startups |
-| Protocol | $499/mo | Active DeFi protocols |
-| Enterprise MCP | Custom | AI runtime companies |
 
-**ROI anchor:** Average hack loss 2025 = $5.3M. DOF-MESH Protocol plan = $5,988/yr. One incident avoided = 885 years of subscriptions.
+| Tier | Price | Verifications | For |
+|---|---|---|---|
+| Free | $0 | 100/month | Developers evaluating |
+| Builder | $29/mo | 5,000/month + dashboard | Indie devs, small protocols |
+| Pro | $99/mo | 50,000/month + MCP + SLA | DeFi protocols, AI agent teams |
+| Enterprise | Custom | Unlimited + audit reports + dedicated node | Banks, regulated teams |
 
-### Distribution Channels
-- **Conflux ecosystem** — hackathon → pilot introductions → protocol partnerships
-- **PyPI** — `pip install dof-sdk` · organic developer adoption
-- **MCP marketplace** — Claude Code + AI agent runtime integrations
-- **ERC standard** — Ethereum Magicians community, ecosystem recognition
-- **LATAM BD** — Ruta N (Medellín), Colombia Blockchain, 3 hackathon networks
+**ROI:** Average Web3 incident loss 2025: ~$5.3M (CertiK).
+DOF-MESH Pro annual = $1,188. ROI for one incident avoided: **4,461x**.
+
+---
+
+### Market Opportunity
+
+| | Value | Source |
+|---|---|---|
+| AI agent security TAM | $574.9M (2026), CAGR 50.4% | Gravitee 2026 |
+| Agentic AI broader TAM | $9.14B (2026) → $139B (2034) | Fortune Business Insights |
+| Formal verification TAM | $420M → $2.1B by 2033 | Research Intelo |
+| SAM — on-chain governance | ~$270M | DOF-MESH addressable segment |
+| SOM — 18 months | $4.7M (Conflux + 5 chains) | Based on current deployments |
+
+---
+
+### Unfair Advantage
+
+| What | Why it matters |
+|---|---|
+| Z3 + TRACER combined | Only system with formal verification + behavioral tracing in production |
+| +26.1% model improvement | Validated on Adaline (200M+ API calls/day) — not self-reported |
+| 4,308 tests before launch | Production-grade from day one, not a prototype |
+| Proof-to-Gasless on Conflux | Conflux uniquely enables native gas sponsorship at the protocol level — $0 gas for verified agents |
+| First Conflux MCP Server | Distribution moat in fastest-growing developer infrastructure category |
+| Lean build | 57,000+ LOC across 142 modules — high capital efficiency |
+
+---
+
+### 90-Day Execution
+
+| Days | Action | Goal |
+|---|---|---|
+| 1–30 | 10 Conflux protocol pilots via hackathon network | First paying users |
+| 1–30 | MCP server listed publicly | Organic developer reach |
+| 31–60 | "Defender Migration Guide" published | Capture exiting teams |
+| 31–60 | 2 demo repos: trading bot + DAO agent with live proofs | GitHub-first GTM |
+| 61–90 | Conflux mainnet deployment + USDT0 integration | Production milestone |
+| 61–90 | First enterprise pilot signed | $1K+ MRR anchor |
+
+---
+
+### Why Conflux Wins This Category
+
+Proof-to-Gasless is structurally unique: verified agents are automatically
+whitelisted in Conflux's `setSponsorForGas`. On Ethereum: $2–50 per proof.
+On Conflux (verified agents): $0.
+
+This makes compliance economically rational, not just technically correct.
+Every developer who adopts DOF-MESH becomes a Conflux developer.
+Every verified agent generates on-chain transaction volume for the network.
 
 ---
 
