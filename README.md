@@ -386,6 +386,42 @@ equipo-de-agentes/
 
 ---
 
+## Go-to-Market Plan
+
+### Phase 1 — Conflux Beachhead (Months 1–6)
+Target the 13 active DeFi protocols on Conflux eSpace. Offer free integration for first 3 pilots. Activate Proof-to-Gasless as the primary incentive: verified agents pay zero gas. Close 10 protocol pilots via hackathon introductions.
+
+**Revenue target:** $47K ARR (10 protocols × $499/mo × 9 months avg)
+
+### Phase 2 — Multi-Chain Expansion (Months 7–12)
+Expand to Base, Avalanche, and Celo using existing deployed contracts. Launch MCP Server enterprise tier for AI agent runtime companies (Claude Code, LangChain). Submit ERC standard to Ethereum Magicians (already published draft).
+
+**Revenue target:** $270K ARR · 50+ protocols · 3 chains active
+
+### Phase 3 — Protocol Standard (Months 13–18)
+Position DOF-MESH as the industry attestation standard. Partner with Ruta N and Colombia Blockchain for LATAM developer adoption. Enterprise deals with DeFi protocols requiring regulatory compliance proof.
+
+**Revenue target:** $1.2M ARR · SOM $4.7M addressable
+
+### Pricing
+| Tier | Price | Target |
+|------|-------|--------|
+| API Pay-per-Proof | $0.10/cycle | Individual agents, developers |
+| Starter | $99/mo | Small protocols, startups |
+| Protocol | $499/mo | Active DeFi protocols |
+| Enterprise MCP | Custom | AI runtime companies |
+
+**ROI anchor:** Average hack loss 2025 = $5.3M. DOF-MESH Protocol plan = $5,988/yr. One incident avoided = 885 years of subscriptions.
+
+### Distribution Channels
+- **Conflux ecosystem** — hackathon → pilot introductions → protocol partnerships
+- **PyPI** — `pip install dof-sdk` · organic developer adoption
+- **MCP marketplace** — Claude Code + AI agent runtime integrations
+- **ERC standard** — Ethereum Magicians community, ecosystem recognition
+- **LATAM BD** — Ruta N (Medellín), Colombia Blockchain, 3 hackathon networks
+
+---
+
 ## Built By
 
 **@Cyber_paisa** · [Telegram](https://t.me/Cyber_paisa)
