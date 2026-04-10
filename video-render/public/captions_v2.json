@@ -1,0 +1,575 @@
+{
+  "voice": "en-US-AndrewNeural",
+  "rate": "-10%",
+  "fps": 30,
+  "total_sentences": 81,
+  "sentences": [
+    {
+      "text": "Two trillion dollars.",
+      "start_ms": 50,
+      "end_ms": 1681,
+      "start_f": 1,
+      "end_f": 50
+    },
+    {
+      "text": "Zero proof.",
+      "start_ms": 1681,
+      "end_ms": 2931,
+      "start_f": 50,
+      "end_f": 87
+    },
+    {
+      "text": "AI agents are executing transactions, managing DAO treasuries, making financial decisions — right now.",
+      "start_ms": 2931,
+      "end_ms": 10514,
+      "start_f": 87,
+      "end_f": 315
+    },
+    {
+      "text": "And there is no mathematical proof any of them behaved correctly.",
+      "start_ms": 10514,
+      "end_ms": 14681,
+      "start_f": 315,
+      "end_f": 440
+    },
+    {
+      "text": "You would not trust a bridge that was probably structurally sound.",
+      "start_ms": 14681,
+      "end_ms": 18417,
+      "start_f": 440,
+      "end_f": 552
+    },
+    {
+      "text": "But every autonomous agent fleet runs on probably.",
+      "start_ms": 18417,
+      "end_ms": 21653,
+      "start_f": 552,
+      "end_f": 649
+    },
+    {
+      "text": "Rules encoded as prompts can be overridden at any moment.",
+      "start_ms": 21653,
+      "end_ms": 25903,
+      "start_f": 649,
+      "end_f": 777
+    },
+    {
+      "text": "Language models hallucinate.",
+      "start_ms": 25903,
+      "end_ms": 28014,
+      "start_f": 777,
+      "end_f": 840
+    },
+    {
+      "text": "A validator that lies cannot validate.",
+      "start_ms": 28014,
+      "end_ms": 30833,
+      "start_f": 840,
+      "end_f": 925
+    },
+    {
+      "text": "Audit logs can be altered after the fact.",
+      "start_ms": 30833,
+      "end_ms": 33639,
+      "start_f": 925,
+      "end_f": 1009
+    },
+    {
+      "text": "The entire AI agent stack is built on trust — and trust is not a proof.",
+      "start_ms": 33639,
+      "end_ms": 39403,
+      "start_f": 1009,
+      "end_f": 1182
+    },
+    {
+      "text": "DOF-MESH changes this.",
+      "start_ms": 39403,
+      "end_ms": 41389,
+      "start_f": 1182,
+      "end_f": 1241
+    },
+    {
+      "text": "We are the first framework that mathematically proves an AI agent behaved correctly — before it acts.",
+      "start_ms": 41389,
+      "end_ms": 48056,
+      "start_f": 1241,
+      "end_f": 1441
+    },
+    {
+      "text": "Three independent deterministic layers.",
+      "start_ms": 48056,
+      "end_ms": 50958,
+      "start_f": 1441,
+      "end_f": 1528
+    },
+    {
+      "text": "Layer one: Constitution enforcement.",
+      "start_ms": 50958,
+      "end_ms": 53931,
+      "start_f": 1528,
+      "end_f": 1617
+    },
+    {
+      "text": "Deterministic rules.",
+      "start_ms": 53931,
+      "end_ms": 55667,
+      "start_f": 1617,
+      "end_f": 1670
+    },
+    {
+      "text": "Zero language models in the decision path.",
+      "start_ms": 55667,
+      "end_ms": 58653,
+      "start_f": 1670,
+      "end_f": 1759
+    },
+    {
+      "text": "Layer two: Z3 SMT formal verification.",
+      "start_ms": 58653,
+      "end_ms": 63153,
+      "start_f": 1759,
+      "end_f": 1894
+    },
+    {
+      "text": "Four theorems proven for all possible inputs — by Microsoft Research's solver.",
+      "start_ms": 63153,
+      "end_ms": 68986,
+      "start_f": 1894,
+      "end_f": 2069
+    },
+    {
+      "text": "Layer three: TRACER score.",
+      "start_ms": 68986,
+      "end_ms": 71403,
+      "start_f": 2069,
+      "end_f": 2142
+    },
+    {
+      "text": "Five-dimensional behavioral quality scoring.",
+      "start_ms": 71403,
+      "end_ms": 74292,
+      "start_f": 2142,
+      "end_f": 2228
+    },
+    {
+      "text": "The result: a keccak256 proof hash, registered permanently on Conflux — tamper-proof forever.",
+      "start_ms": 74292,
+      "end_ms": 82597,
+      "start_f": 2228,
+      "end_f": 2477
+    },
+    {
+      "text": "Why now?",
+      "start_ms": 82597,
+      "end_ms": 83528,
+      "start_f": 2477,
+      "end_f": 2505
+    },
+    {
+      "text": "Three hundred twenty-seven million AI agents will be deployed by 2027.",
+      "start_ms": 83528,
+      "end_ms": 88944,
+      "start_f": 2505,
+      "end_f": 2668
+    },
+    {
+      "text": "The AI governance market reaches forty-seven billion dollars by 2030.",
+      "start_ms": 88944,
+      "end_ms": 94264,
+      "start_f": 2668,
+      "end_f": 2827
+    },
+    {
+      "text": "And today — zero frameworks offer formal mathematical proof.",
+      "start_ms": 94264,
+      "end_ms": 98778,
+      "start_f": 2827,
+      "end_f": 2963
+    },
+    {
+      "text": "The infrastructure gap is open.",
+      "start_ms": 98778,
+      "end_ms": 101167,
+      "start_f": 2963,
+      "end_f": 3035
+    },
+    {
+      "text": "We built the solution.",
+      "start_ms": 101167,
+      "end_ms": 102708,
+      "start_f": 3035,
+      "end_f": 3081
+    },
+    {
+      "text": "Watch this live.",
+      "start_ms": 102708,
+      "end_ms": 103986,
+      "start_f": 3081,
+      "end_f": 3119
+    },
+    {
+      "text": "Agent 1687 requests a DeFi transaction on Conflux eSpace.",
+      "start_ms": 103986,
+      "end_ms": 109986,
+      "start_f": 3119,
+      "end_f": 3299
+    },
+    {
+      "text": "DOF-MESH intercepts it before execution.",
+      "start_ms": 109986,
+      "end_ms": 113278,
+      "start_f": 3299,
+      "end_f": 3398
+    },
+    {
+      "text": "Constitution check: passed.",
+      "start_ms": 113278,
+      "end_ms": 115667,
+      "start_f": 3398,
+      "end_f": 3470
+    },
+    {
+      "text": "Zero language models involved.",
+      "start_ms": 115667,
+      "end_ms": 117931,
+      "start_f": 3470,
+      "end_f": 3537
+    },
+    {
+      "text": "Z3 formal verification: four of four theorems proven in seven milliseconds.",
+      "start_ms": 117931,
+      "end_ms": 124333,
+      "start_f": 3537,
+      "end_f": 3730
+    },
+    {
+      "text": "TRACER behavioral score: zero point seven one two — well above threshold.",
+      "start_ms": 124333,
+      "end_ms": 130319,
+      "start_f": 3730,
+      "end_f": 3909
+    },
+    {
+      "text": "The agent qualifies.",
+      "start_ms": 130319,
+      "end_ms": 132056,
+      "start_f": 3909,
+      "end_f": 3961
+    },
+    {
+      "text": "Now it goes on-chain.",
+      "start_ms": 132056,
+      "end_ms": 133583,
+      "start_f": 3961,
+      "end_f": 4007
+    },
+    {
+      "text": "Here is the proof.",
+      "start_ms": 133583,
+      "end_ms": 134903,
+      "start_f": 4007,
+      "end_f": 4047
+    },
+    {
+      "text": "Permanent.",
+      "start_ms": 134903,
+      "end_ms": 135861,
+      "start_f": 4047,
+      "end_f": 4075
+    },
+    {
+      "text": "One hundred forty-five confirmed transactions on DOFProofRegistryV1.",
+      "start_ms": 135861,
+      "end_ms": 141500,
+      "start_f": 4075,
+      "end_f": 4245
+    },
+    {
+      "text": "And our latest innovation: V2 Proof-to-Gasless.",
+      "start_ms": 141500,
+      "end_ms": 145500,
+      "start_f": 4245,
+      "end_f": 4365
+    },
+    {
+      "text": "When an agent proves mathematical compliance — TRACER above zero point four, Constitution above ninety percent — it is automatically added to Conflux's SponsorWhitelistControl.",
+      "start_ms": 145500,
+      "end_ms": 158111,
+      "start_f": 4365,
+      "end_f": 4743
+    },
+    {
+      "text": "Its next transactions cost zero gas.",
+      "start_ms": 158111,
+      "end_ms": 161306,
+      "start_f": 4743,
+      "end_f": 4839
+    },
+    {
+      "text": "Math earns economic privilege.",
+      "start_ms": 161306,
+      "end_ms": 163819,
+      "start_f": 4839,
+      "end_f": 4914
+    },
+    {
+      "text": "That is new.",
+      "start_ms": 163819,
+      "end_ms": 164861,
+      "start_f": 4914,
+      "end_f": 4945
+    },
+    {
+      "text": "Why Conflux?",
+      "start_ms": 164861,
+      "end_ms": 166208,
+      "start_f": 4945,
+      "end_f": 4986
+    },
+    {
+      "text": "Because Gas Sponsorship is architecturally necessary for agent infrastructure.",
+      "start_ms": 166208,
+      "end_ms": 171625,
+      "start_f": 4986,
+      "end_f": 5148
+    },
+    {
+      "text": "Agents should not hold gas — they should act.",
+      "start_ms": 171625,
+      "end_ms": 174667,
+      "start_f": 5148,
+      "end_f": 5240
+    },
+    {
+      "text": "Conflux's native SponsorWhitelistControl makes zero-friction compliance registration possible at any scale.",
+      "start_ms": 174667,
+      "end_ms": 182417,
+      "start_f": 5240,
+      "end_f": 5472
+    },
+    {
+      "text": "On Ethereum, every agent needs gas.",
+      "start_ms": 182417,
+      "end_ms": 185514,
+      "start_f": 5472,
+      "end_f": 5565
+    },
+    {
+      "text": "On Conflux, math replaces money.",
+      "start_ms": 185514,
+      "end_ms": 188347,
+      "start_f": 5565,
+      "end_f": 5650
+    },
+    {
+      "text": "No other EVM chain has this natively.",
+      "start_ms": 188347,
+      "end_ms": 191403,
+      "start_f": 5650,
+      "end_f": 5742
+    },
+    {
+      "text": "Three revenue streams.",
+      "start_ms": 191403,
+      "end_ms": 193153,
+      "start_f": 5742,
+      "end_f": 5794
+    },
+    {
+      "text": "First: the open-source SDK.",
+      "start_ms": 193153,
+      "end_ms": 195972,
+      "start_f": 5794,
+      "end_f": 5879
+    },
+    {
+      "text": "Developers run pip install dof-sdk — Conflux integration ships included.",
+      "start_ms": 195972,
+      "end_ms": 202222,
+      "start_f": 5879,
+      "end_f": 6066
+    },
+    {
+      "text": "Second: the compliance API at ninety-nine to nine hundred ninety-nine dollars per month.",
+      "start_ms": 202222,
+      "end_ms": 208222,
+      "start_f": 6066,
+      "end_f": 6246
+    },
+    {
+      "text": "Finance.",
+      "start_ms": 208222,
+      "end_ms": 209306,
+      "start_f": 6246,
+      "end_f": 6279
+    },
+    {
+      "text": "Healthcare.",
+      "start_ms": 209306,
+      "end_ms": 210292,
+      "start_f": 6279,
+      "end_f": 6308
+    },
+    {
+      "text": "Legal.",
+      "start_ms": 210292,
+      "end_ms": 211125,
+      "start_f": 6308,
+      "end_f": 6333
+    },
+    {
+      "text": "Any team that cannot afford an agent that lies.",
+      "start_ms": 211125,
+      "end_ms": 214375,
+      "start_f": 6333,
+      "end_f": 6431
+    },
+    {
+      "text": "Third: enterprise white-label licensing.",
+      "start_ms": 214375,
+      "end_ms": 217597,
+      "start_f": 6431,
+      "end_f": 6527
+    },
+    {
+      "text": "Fifty thousand to five hundred thousand dollars per year.",
+      "start_ms": 217597,
+      "end_ms": 221194,
+      "start_f": 6527,
+      "end_f": 6635
+    },
+    {
+      "text": "DAO treasuries, DeFi protocols, full agent fleets.",
+      "start_ms": 221194,
+      "end_ms": 225569,
+      "start_f": 6635,
+      "end_f": 6767
+    },
+    {
+      "text": "The total addressable market for AI governance reaches eighteen billion by 2028.",
+      "start_ms": 225569,
+      "end_ms": 231792,
+      "start_f": 6767,
+      "end_f": 6953
+    },
+    {
+      "text": "Our serviceable market — blockchain AI agent compliance — is three point two billion.",
+      "start_ms": 231792,
+      "end_ms": 237903,
+      "start_f": 6953,
+      "end_f": 7137
+    },
+    {
+      "text": "Our realistic capture in year three: one hundred sixty million, starting with DeFi protocols needing provably-correct agents.",
+      "start_ms": 237903,
+      "end_ms": 246889,
+      "start_f": 7137,
+      "end_f": 7406
+    },
+    {
+      "text": "This is not a prototype.",
+      "start_ms": 246889,
+      "end_ms": 248500,
+      "start_f": 7406,
+      "end_f": 7455
+    },
+    {
+      "text": "One hundred forty-seven on-chain attestations on Conflux alone.",
+      "start_ms": 248500,
+      "end_ms": 252903,
+      "start_f": 7455,
+      "end_f": 7587
+    },
+    {
+      "text": "Eight active chains.",
+      "start_ms": 252903,
+      "end_ms": 254472,
+      "start_f": 7587,
+      "end_f": 7634
+    },
+    {
+      "text": "Four thousand three hundred eight tests passing.",
+      "start_ms": 254472,
+      "end_ms": 257236,
+      "start_f": 7634,
+      "end_f": 7717
+    },
+    {
+      "text": "Two hundred thirty-eight autonomous agent cycles completed.",
+      "start_ms": 257236,
+      "end_ms": 261028,
+      "start_f": 7717,
+      "end_f": 7830
+    },
+    {
+      "text": "Six MCP tools fully operational — the first Model Context Protocol server for Conflux Network.",
+      "start_ms": 261028,
+      "end_ms": 268500,
+      "start_f": 7830,
+      "end_f": 8055
+    },
+    {
+      "text": "ERC-8004, the Autonomous Agent Identity Standard, submitted to Ethereum Magicians.",
+      "start_ms": 268500,
+      "end_ms": 276847,
+      "start_f": 8055,
+      "end_f": 8305
+    },
+    {
+      "text": "I am Juan Carlos Quiceno — solo builder from Medellín, Colombia.",
+      "start_ms": 276847,
+      "end_ms": 281889,
+      "start_f": 8305,
+      "end_f": 8456
+    },
+    {
+      "text": "I built every line of this: the framework, the contracts, the MCP server, the SDK.",
+      "start_ms": 281889,
+      "end_ms": 289208,
+      "start_f": 8456,
+      "end_f": 8676
+    },
+    {
+      "text": "My ask is simple: help us deploy to Conflux mainnet, connect us with regulated-industry partners, and recognize this as the missing infrastructure layer for AI on blockchain.",
+      "start_ms": 289208,
+      "end_ms": 301625,
+      "start_f": 8676,
+      "end_f": 9048
+    },
+    {
+      "text": "The math is proven.",
+      "start_ms": 301625,
+      "end_ms": 303236,
+      "start_f": 9048,
+      "end_f": 9097
+    },
+    {
+      "text": "The chain is ready.",
+      "start_ms": 303236,
+      "end_ms": 304583,
+      "start_f": 9097,
+      "end_f": 9137
+    },
+    {
+      "text": "The agents are waiting.",
+      "start_ms": 304583,
+      "end_ms": 306069,
+      "start_f": 9137,
+      "end_f": 9182
+    },
+    {
+      "text": "Most frameworks verify what happened.",
+      "start_ms": 306218,
+      "end_ms": 308612,
+      "start_f": 9186,
+      "end_f": 9258
+    },
+    {
+      "text": "DOF verifies what is about to happen.",
+      "start_ms": 308612,
+      "end_ms": 311251,
+      "start_f": 9258,
+      "end_f": 9337
+    }
+  ]
+}
