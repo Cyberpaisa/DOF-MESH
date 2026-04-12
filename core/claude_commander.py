@@ -151,6 +151,9 @@ class ClaudeCommander:
         else:
             self.constitution = self._load_constitution()
 
+        # AbortSignal — set to cancel all in-flight command() calls
+        self._abort_event: asyncio.Event = asyncio.Event()
+
         # Session persistence — track named sessions for resume
         self._sessions = {}  # name → session_id
         self._sessions_file = self.log_path / "sessions.json"
@@ -209,11 +212,20 @@ class ClaudeCommander:
     # MODE 1: SDK — Direct command via Claude Agent SDK
     # ═══════════════════════════════════════════════════
 
+    def abort(self) -> None:
+        """Signal all in-flight command() calls to cancel at the next message boundary."""
+        self._abort_event.set()
+
+    def reset_abort(self) -> None:
+        """Clear the abort signal so new commands can run."""
+        self._abort_event.clear()
+
     async def command(self, prompt: str,
                       tools: Optional[list] = None,
                       system_prompt: Optional[str] = None,
                       resume_session: Optional[str] = None,
-                      max_turns: Optional[int] = None) -> CommandResult:
+                      max_turns: Optional[int] = None,
+                      abort_event: Optional[asyncio.Event] = None) -> CommandResult:
         """Send a command to Claude Code via the Agent SDK.
 
         This is DOF giving orders to Claude directly.
@@ -248,9 +260,21 @@ class ClaudeCommander:
 
         output_parts = []
         session_id = None
+        # Combine instance-level abort with caller-supplied abort_event
+        _abort = abort_event or self._abort_event
 
         try:
             async for message in query(prompt=prompt, options=options):
+                # AbortSignal Cascade — honour abort at every message boundary
+                if _abort.is_set():
+                    logger.warning("command() aborted via abort_event after session_id=%s", session_id)
+                    return CommandResult(
+                        status="aborted",
+                        output="\n".join(output_parts) or "(aborted before output)",
+                        session_id=session_id,
+                        elapsed_ms=(time.time() - start) * 1000,
+                        mode="sdk",
+                    )
                 # Capture session ID from init message
                 if hasattr(message, 'session_id'):
                     session_id = message.session_id
