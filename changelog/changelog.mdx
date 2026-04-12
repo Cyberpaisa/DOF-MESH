@@ -5,6 +5,14 @@ description: "Release history for DOF-MESH. All changes, features, and improveme
 
 ## v0.7.0 — April 2026
 
+### Session 8 (cont. 2) — feature_flags_governance + CI fixes (Apr 12, 2026)
+
+- **feature_flags_governance** (`core/governance.py`) — `ConstitutionEnforcer` now checks feature flags before applying each rule; rules in `dof.constitution.yml` can declare `feature_flag:` for staged rollout; 6 tests in `tests/test_governance_feature_flags.py`
+- **CI fix** — `tests/test_api.py` + `tests/test_oags_bridge.py` now import `__version__` dynamically instead of hardcoding `"0.6.0"`
+- **GitHub Release v0.7.0** — release notes published at github.com/Cyberpaisa/DOF-MESH/releases/tag/v0.7.0
+- **Test suite** grows to 4,371 tests · 145 modules
+- **Docs** updated: introduction.mdx, installation.mdx, cli-benchmark.mdx, cli-prove.mdx
+
 ### Session 8 (cont.) — Governance Gate + v0.7.0 bump (Apr 12, 2026)
 
 - **AutonomousDaemon governance gate** (`core/autonomous_daemon.py`) — `_gate_instruction()` runs injection detection via `SystemPromptBoundary` before any Telegram order executes; BLOCKED_TOOLS also checked against instruction text
