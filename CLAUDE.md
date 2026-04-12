@@ -347,9 +347,9 @@ PYTHONPATH=. python3 scripts/phase11_night_orchestrator.py
 - `logs/mesh/` — nodes.json, messages.jsonl, inbox/<node>/*.json
 - `output/` — Resultados de crews
 
-## Archivo corrupto conocido
+## Archivo legacy movido
 
-`core/qanion_mimo.py` tiene bloques de markdown (`\`\`\`python`) pegados por una IA externa dentro del código Python (líneas 834-1716). Excluido del lint. Necesita limpieza profunda — NO intentar arreglar parcialmente, requiere reescritura completa de las secciones corruptas.
+`core/qanion_mimo.py` fue movido a `_internal/core_legacy/qanion_mimo.py` — ya no está en el core activo ni es importado por ningún módulo. El archivo legacy parsea sin errores de sintaxis. No hay nada que limpiar en el código activo.
 
 ## Reglas modulares
 
