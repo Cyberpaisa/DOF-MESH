@@ -67,6 +67,34 @@ SAFE_TOOLS: set[str] = {
     "Grep",
 }
 
+# Tools safe for concurrent execution (read-only, no side effects)
+# Superset of SAFE_TOOLS that includes all known read-only Claude Code tools
+CONCURRENT_SAFE_TOOLS: frozenset[str] = frozenset(SAFE_TOOLS | {
+    "search_files",
+    "list_files",
+    "WebSearch",
+    "WebFetch",
+    "mcp__brave",
+    "mcp__context7",
+})
+
+# Tools that write state — must run serially
+WRITE_TOOLS: frozenset[str] = frozenset({
+    "Edit", "Write", "Bash", "NotebookEdit", "computer_use",
+    "write_file", "create_file", "delete_file", "move_file",
+})
+
+# Output size budget per tool (chars) — prevents context flooding
+TOOL_OUTPUT_LIMITS: dict[str, int] = {
+    "Bash":      8_000,
+    "Read":     10_000,
+    "fetch_url": 5_000,
+    "WebFetch":  5_000,
+    "Grep":      6_000,
+    "Glob":      4_000,
+    "_default":  4_000,
+}
+
 
 # ── Result types ──────────────────────────────────────────────────────────────
 
@@ -294,8 +322,12 @@ class ToolHookPipeline:
         ts = time.strftime("%Y-%m-%dT%H:%M:%S")
 
         # Deterministic attestation hash (no on-chain — per-tool level)
+        # Hash uses raw output (before budgeting) for integrity
         hash_payload = f"{tool_name}|{tool_output[:500]}|{agent_id}|{ts}"
         attestation_hash = "0x" + hashlib.sha256(hash_payload.encode()).hexdigest()
+
+        # Budget output AFTER hash to avoid altering attestation
+        budgeted_output = self._budget_output(tool_name, tool_output or "")
 
         trace_entry = {
             "event":            "tool_execution",
@@ -307,7 +339,8 @@ class ToolHookPipeline:
             "pre_layer":        pre_result.layer if pre_result else None,
             "pre_latency_ms":   pre_result.latency_ms if pre_result else None,
             "z3_proof":         pre_result.z3_proof if pre_result else None,
-            "output_preview":   (tool_output or "")[:200],
+            "output_preview":   budgeted_output[:200],
+            "output_budgeted":  len(budgeted_output) < len(tool_output or ""),
         }
 
         audit_entry = {
@@ -323,6 +356,35 @@ class ToolHookPipeline:
             trace_entry=trace_entry,
             audit_written=True,
         )
+
+    # ── Tool classification & budgeting ───────────────────────────────────────
+
+    def classify_tool(self, tool_name: str) -> str:
+        """Classify a tool for concurrency and Z3 routing.
+
+        Returns:
+            "concurrent_safe" — read-only, can run in parallel, skip Z3Gate
+            "write"           — mutates state, must run serially
+            "default"         — unknown tool, run through full pipeline
+        """
+        if tool_name in CONCURRENT_SAFE_TOOLS:
+            return "concurrent_safe"
+        if tool_name in WRITE_TOOLS:
+            return "write"
+        return "default"
+
+    def _budget_output(self, tool_name: str, output: str) -> str:
+        """Truncate tool output to the configured budget for this tool.
+
+        Prevents context flooding when tools return large payloads.
+        The raw output is preserved for hashing — this only affects
+        what gets stored in trace_entry / audit JSONL.
+        """
+        limit = TOOL_OUTPUT_LIMITS.get(tool_name, TOOL_OUTPUT_LIMITS["_default"])
+        if len(output) <= limit:
+            return output
+        truncated = output[:limit]
+        return truncated + f"\n…[truncated {len(output) - limit} chars by budget]"
 
     # ── Internal logging ──────────────────────────────────────────────────────
 

@@ -410,6 +410,71 @@ def check_governance(text: str) -> GovernanceResult:
 
 
 # ─────────────────────────────────────────────────────────────────────
+# Self-Correction Loop — deterministic auto-repair for soft violations
+# ─────────────────────────────────────────────────────────────────────
+
+# Soft rules eligible for auto-correction (regex strip of offending pattern)
+# NO_PII_LEAK is intentionally excluded — never auto-strip PII silently
+_CORRECTABLE_SOFT_RULES: set[str] = {"CONCISENESS"}
+
+def check_and_correct(text: str) -> tuple[str, "GovernanceResult"]:
+    """Run governance check and attempt deterministic correction if only soft rules fail.
+
+    If the text only has warnings (no hard violations), applies regex-strip
+    corrections for rules marked as correctable, then re-checks.
+
+    Returns:
+        (corrected_text, GovernanceResult) — corrected_text == text if no changes needed.
+
+    Rules:
+        - HARD violations → return immediately, no correction attempted
+        - Only SOFT violations with correctable rules → strip offending patterns
+        - NO_PII_LEAK is never auto-corrected (could suppress legitimate data)
+    """
+    result = check_governance(text)
+
+    # Already passing — nothing to do
+    if result.passed and not result.warnings:
+        return text, result
+
+    # Hard violations → cannot auto-correct
+    if result.violations:
+        return text, result
+
+    # Only warnings → attempt correction for correctable rules
+    corrected = text
+    corrected_rules: list[str] = []
+
+    for rule in SOFT_RULES:
+        rule_id = rule.get("id", "")
+        if rule_id not in _CORRECTABLE_SOFT_RULES:
+            continue
+        if rule.get("match_mode") != "present":
+            continue
+        pattern = rule.get("pattern")
+        if not pattern:
+            continue
+
+        # Strip lines that match the offending pattern
+        patterns = pattern if isinstance(pattern, list) else [pattern]
+        for p in patterns:
+            if re.search(p, corrected, re.IGNORECASE):
+                corrected = re.sub(p, "", corrected, flags=re.IGNORECASE).strip()
+                corrected_rules.append(rule_id)
+
+    if not corrected_rules:
+        return text, result
+
+    # Re-check corrected text
+    new_result = check_governance(corrected)
+    logger.debug(
+        f"check_and_correct: fixed {corrected_rules} → "
+        f"passed={new_result.passed} warnings={len(new_result.warnings)}"
+    )
+    return corrected, new_result
+
+
+# ─────────────────────────────────────────────────────────────────────
 # Instruction hierarchy enforcement
 # ─────────────────────────────────────────────────────────────────────
 

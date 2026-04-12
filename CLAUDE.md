@@ -351,6 +351,43 @@ Las instrucciones de Soberanía y Extracción están en `.claude/rules/`. Se car
 
 Ver: `docs/09_sessions/ESTADO_ACTUAL.md`
 
+## Segundo Cerebro — Obsidian Vault
+
+El Soberano mantiene un **segundo cerebro** en Obsidian con todo el conocimiento del proyecto:
+
+- **Ruta del vault**: `/Users/jquiceva/cerebro cyber/cerebro cyber/`
+- **CLI de gestión**: `python3 scripts/second_brain.py`
+- **Schema del vault**: `/Users/jquiceva/cerebro cyber/cerebro cyber/CLAUDE.md`
+
+### Estructura del vault
+```
+wiki/DOF-MESH/       ← arquitectura, estado, plan, aprendizajes
+wiki/Claude-Code/    ← patrones Claude Code, Karpathy system, conexión Obsidian
+wiki/Blockchain/     ← Conflux, contratos, hackathon
+wiki/Proyectos/      ← ecosistema completo de proyectos
+raw/                 ← material fuente sin procesar
+outputs/             ← análisis generados con fecha
+templates/           ← plantillas para nuevas notas
+```
+
+### Comandos del segundo cerebro
+```bash
+python3 scripts/second_brain.py health              # estado del vault
+python3 scripts/second_brain.py sync                # sync docs/ DOF → vault
+python3 scripts/second_brain.py add 'título' --content 'texto' --tags tag1,tag2
+python3 scripts/second_brain.py process             # procesa raw/
+python3 scripts/second_brain.py watch               # vigila raw/ en tiempo real
+python3 scripts/second_brain.py search 'query'      # busca en el vault
+```
+
+### Regla: cuándo actualizar el vault
+- Al aprender algo nuevo sobre DOF-MESH → `second_brain.py add`
+- Al cerrar una sesión de trabajo → `second_brain.py sync`
+- Al recibir información nueva del Soberano → guardar primero en `raw/`, luego `process`
+- Si el Soberano dice "guarda esto en Obsidian" → ejecutar `add` de inmediato
+
+---
+
 ## Stack Automático de Trabajo
 
 Reglas que aplican SIEMPRE sin instrucciones adicionales:
@@ -365,3 +402,4 @@ Reglas que aplican SIEMPRE sin instrucciones adicionales:
 | Extraer URL o página | web_fetch → markitdown si aplica |
 | Escribir código | Leer archivos existentes primero |
 | Hacer push | CI verde + doble revisión pre-commit |
+| Guardar conocimiento | second_brain.py add/sync |

@@ -235,6 +235,83 @@ class MemoryManager:
 
     # ── Internal ──
 
+    def compact(self, strategy: str = "ttl_evict", target_file: str = "long_term") -> dict:
+        """Compact a JSONL memory file using the specified strategy.
+
+        Strategies:
+            ttl_evict        — Remove entries whose TTL has expired (ttl_seconds > 0)
+            score_evict      — Remove entries with access_count == 0 (never recalled)
+            dedup_merge      — Keep only the most recent entry per key
+            summary_compress — Truncate episodic entry values to 500 chars
+
+        Uses atomic write (tmp → replace) to prevent corruption on interruption.
+
+        Args:
+            strategy:    One of the four strategy names above
+            target_file: "long_term" or "episodic"
+
+        Returns:
+            dict with keys: strategy, before, after, removed, filepath
+        """
+        filepath = self._long_term_file if target_file == "long_term" else self._episodic_file
+        entries = self._load_jsonl(filepath)
+        before = len(entries)
+
+        if strategy == "ttl_evict":
+            now = time.time()
+            kept = [
+                e for e in entries
+                if not (e.ttl_seconds and e.ttl_seconds > 0
+                        and now - e.created_at > e.ttl_seconds)
+            ]
+
+        elif strategy == "score_evict":
+            kept = [e for e in entries if e.access_count > 0]
+
+        elif strategy == "dedup_merge":
+            seen: dict[str, MemoryEntry] = {}
+            for e in entries:
+                # Keep most recent entry per key
+                if e.key not in seen or e.created_at > seen[e.key].created_at:
+                    seen[e.key] = e
+            kept = list(seen.values())
+
+        elif strategy == "summary_compress":
+            MAX_VALUE = 500
+            kept = []
+            for e in entries:
+                if e.memory_type == "episodic" and len(e.value) > MAX_VALUE:
+                    kept.append(MemoryEntry(
+                        key=e.key, value=e.value[:MAX_VALUE] + "…[compacted]",
+                        memory_type=e.memory_type, created_at=e.created_at,
+                        ttl_seconds=e.ttl_seconds, source=e.source,
+                        tags=e.tags, access_count=e.access_count,
+                    ))
+                else:
+                    kept.append(e)
+        else:
+            raise ValueError(f"Unknown compact strategy: {strategy!r}")
+
+        after = len(kept)
+        removed = before - after
+
+        # Atomic write — tmp file → os.replace (POSIX atomic)
+        tmp_path = filepath + ".compact_tmp"
+        try:
+            with open(tmp_path, "w") as f:
+                for e in kept:
+                    f.write(json.dumps(asdict(e), default=str) + "\n")
+            os.replace(tmp_path, filepath)
+        except Exception as exc:
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+            logger.error(f"compact({strategy}) write failed: {exc}")
+            raise
+
+        logger.info(f"compact({strategy}, {target_file}): {before}→{after} entries (-{removed})")
+        return {"strategy": strategy, "before": before, "after": after,
+                "removed": removed, "filepath": filepath}
+
     def _cleanup_expired(self):
         """Remove expired short-term entries."""
         now = time.time()
