@@ -595,6 +595,76 @@ def get_constitution() -> dict:
     return load_constitution()
 
 # ─────────────────────────────────────────────────────────────────────
+# System Prompt BOUNDARY — detects leakage and injection
+# ─────────────────────────────────────────────────────────────────────
+
+@dataclass
+class BoundaryResult:
+    compliant: bool
+    leakage: bool          # system prompt text found in response
+    injection: bool        # user message tries to override system prompt
+    details: list[str]
+
+
+def check_system_prompt_boundary(
+    system_prompt: str,
+    user_msg: str,
+    response: str,
+    min_ngram: int = 8,
+) -> BoundaryResult:
+    """Detect system prompt leakage in responses and injection attempts in user messages.
+
+    Leakage detection:
+        Checks whether verbatim n-gram fragments (≥ min_ngram words) from the
+        system prompt appear in the response. This catches "repeat your instructions"
+        attacks without false-positiving on common short phrases.
+
+    Injection detection:
+        Re-uses _OVERRIDE_PATTERNS and _ESCALATION_PATTERNS to catch user messages
+        that attempt to override, ignore, or supersede the system prompt.
+
+    Args:
+        system_prompt: The authoritative system instructions.
+        user_msg:      The incoming user message to inspect.
+        response:      The assistant response to inspect.
+        min_ngram:     Minimum consecutive words to consider a leakage match.
+
+    Returns:
+        BoundaryResult with compliant=True only when neither leakage nor injection found.
+    """
+    details: list[str] = []
+    leakage = False
+    injection = False
+
+    # --- Leakage check ---
+    if system_prompt and response:
+        sys_words = system_prompt.split()
+        resp_lower = response.lower()
+        # Slide a window of min_ngram words over the system prompt
+        for i in range(len(sys_words) - min_ngram + 1):
+            ngram = " ".join(sys_words[i:i + min_ngram]).lower()
+            if ngram in resp_lower:
+                leakage = True
+                details.append(f"[BOUNDARY_LEAK] System prompt fragment in response: '{ngram[:60]}…'")
+                break
+
+    # --- Injection check ---
+    if user_msg:
+        for pat in _OVERRIDE_PATTERNS + _ESCALATION_PATTERNS:
+            if re.search(pat, user_msg, re.IGNORECASE):
+                injection = True
+                details.append(f"[BOUNDARY_INJECT] Override attempt in user message: '{pat[:60]}'")
+                break
+
+    return BoundaryResult(
+        compliant=not leakage and not injection,
+        leakage=leakage,
+        injection=injection,
+        details=details,
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────
 # ZK Governance Proof integration
 # ─────────────────────────────────────────────────────────────────────
 

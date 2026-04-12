@@ -1,16 +1,20 @@
 """
 mesh_scheduler.py — Smart task scheduler for the DOF mesh.
 Manages concurrency slots, RAM-aware recommendations, and a priority queue.
+DiskTaskQueue adds filelock-backed persistence so tasks survive restarts.
 """
 
 from __future__ import annotations
 
+import json
 import math
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import List, Optional
 
 import psutil
+from filelock import FileLock
 
 # ---------------------------------------------------------------------------
 # Priority levels
@@ -136,3 +140,109 @@ class MeshScheduler:
             "recommended_slots": self.recommended_slots(),
             "available_ram_gb": round(self.available_ram_gb(), 2),
         }
+
+
+# ---------------------------------------------------------------------------
+# Disk-backed task queue — survives restarts, filelock-protected
+# ---------------------------------------------------------------------------
+
+class DiskTaskQueue:
+    """
+    Persistent JSONL task queue protected by a filelock.
+
+    Tasks are stored one-per-line as JSON in ``queue_path``.
+    A companion lock file (<queue_path>.lock) serialises concurrent writes.
+    All mutating operations hold the lock for the minimum time needed.
+
+    Usage::
+        q = DiskTaskQueue("logs/commander/task_queue.jsonl")
+        q.push(TaskSlot.create("t1", "do X", "node-a", priority=HIGH))
+        task = q.pop()          # highest-priority item (FIFO within same priority)
+        count = q.size()
+        all_tasks = q.drain()   # atomically empty the queue and return items
+        q.clear()               # discard all pending tasks
+    """
+
+    def __init__(self, queue_path: str | Path, timeout: float = 5.0) -> None:
+        self._path = Path(queue_path)
+        self._path.parent.mkdir(parents=True, exist_ok=True)
+        self._lock = FileLock(str(self._path) + ".lock", timeout=timeout)
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    def _read_all(self) -> List[TaskSlot]:
+        """Read all tasks from disk. Caller must hold the lock."""
+        if not self._path.exists():
+            return []
+        tasks: List[TaskSlot] = []
+        for line in self._path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                d = json.loads(line)
+                tasks.append(TaskSlot(
+                    priority=d["priority"],
+                    queued_at=d["queued_at"],
+                    task_id=d["task_id"],
+                    prompt=d["prompt"],
+                    node=d["node"],
+                ))
+            except (KeyError, json.JSONDecodeError):
+                continue
+        return tasks
+
+    def _write_all(self, tasks: List[TaskSlot]) -> None:
+        """Overwrite the queue file. Caller must hold the lock."""
+        lines = [
+            json.dumps({
+                "priority": t.priority,
+                "queued_at": t.queued_at,
+                "task_id": t.task_id,
+                "prompt": t.prompt,
+                "node": t.node,
+            })
+            for t in sorted(tasks)  # highest priority first on disk
+        ]
+        self._path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
+
+    def push(self, task: TaskSlot) -> None:
+        """Append a task to the queue."""
+        with self._lock:
+            tasks = self._read_all()
+            tasks.append(task)
+            self._write_all(tasks)
+
+    def pop(self) -> Optional[TaskSlot]:
+        """Remove and return the highest-priority task, or None if empty."""
+        with self._lock:
+            tasks = self._read_all()
+            if not tasks:
+                return None
+            tasks.sort()
+            top = tasks.pop(0)
+            self._write_all(tasks)
+            return top
+
+    def size(self) -> int:
+        """Return the number of pending tasks (reads disk without lock — approximate)."""
+        with self._lock:
+            return len(self._read_all())
+
+    def drain(self) -> List[TaskSlot]:
+        """Atomically empty the queue and return all tasks sorted by priority."""
+        with self._lock:
+            tasks = sorted(self._read_all())
+            self._write_all([])
+            return tasks
+
+    def clear(self) -> None:
+        """Discard all pending tasks."""
+        with self._lock:
+            self._write_all([])

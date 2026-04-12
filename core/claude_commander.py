@@ -265,9 +265,26 @@ class ClaudeCommander:
                             output_parts.append(block.text)
 
             elapsed = (time.time() - start) * 1000
+            output = "\n".join(output_parts) if output_parts else "(no output)"
+
+            # System Prompt BOUNDARY check — detect leakage/injection
+            boundary_details: list[str] = []
+            try:
+                from core.governance import check_system_prompt_boundary
+                bresult = check_system_prompt_boundary(
+                    system_prompt=sys_prompt or "",
+                    user_msg=prompt,
+                    response=output,
+                )
+                if not bresult.compliant:
+                    boundary_details = bresult.details
+                    logger.warning("BOUNDARY violation: %s", bresult.details)
+            except Exception as _be:
+                logger.debug("BOUNDARY check skipped: %s", _be)
+
             result = CommandResult(
                 status="success",
-                output="\n".join(output_parts) if output_parts else "(no output)",
+                output=output,
                 session_id=session_id,
                 elapsed_ms=elapsed,
                 mode="sdk",
@@ -280,8 +297,15 @@ class ClaudeCommander:
                 elapsed_ms=elapsed,
                 mode="sdk",
             )
+            boundary_details = []
 
-        self._log_command({"mode": "sdk", "prompt": prompt[:200], "status": result.status, "elapsed_ms": result.elapsed_ms})
+        self._log_command({
+            "mode": "sdk",
+            "prompt": prompt[:200],
+            "status": result.status,
+            "elapsed_ms": result.elapsed_ms,
+            "boundary_violations": boundary_details,
+        })
         return result
 
     async def persistent_command(self, name: str, prompt: str, **kwargs) -> CommandResult:
