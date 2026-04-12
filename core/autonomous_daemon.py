@@ -318,6 +318,71 @@ class AutonomousDaemon:
         return json.loads(lines[-1]).get("dof_score", 0.0)
 
     # ═══════════════════════════════════════════════════
+    # SEMANTIC AVOIDANCE — Skip historically failing actions
+    # ═══════════════════════════════════════════════════
+
+    _FALLBACK_ACTIONS: list[tuple[str, str, str]] = [
+        ("patrol",  "Check core module imports for syntax errors",          "semantic_avoidance_fallback"),
+        ("improve", "Review logs/experiments/runs.jsonl for metric trends", "semantic_avoidance_fallback"),
+        ("report",  "Generate brief system health summary",                  "semantic_avoidance_fallback"),
+        ("review",  "Run python3 -m unittest discover -s tests --failfast", "semantic_avoidance_fallback"),
+        ("patrol",  "Verify Z3 invariants via dof verify-states",           "semantic_avoidance_fallback"),
+    ]
+
+    @staticmethod
+    def _keyword_overlap(action_text: str, pattern_action: str) -> int:
+        """Count overlapping meaningful words (len>=4) between two action strings."""
+        stop = {"with", "that", "this", "from", "have", "will", "been", "into", "over",
+                "also", "more", "very", "just", "then", "than", "some", "such"}
+        def words(s: str) -> set[str]:
+            return {w for w in s.lower().split() if len(w) >= 4 and w not in stop}
+        return len(words(action_text) & words(pattern_action))
+
+    def _apply_semantic_avoidance(self, action: DaemonAction) -> DaemonAction:
+        """
+        Semantic avoidance: if the proposed action text has significant keyword overlap
+        with a historically failing action, replace it with a safe fallback.
+
+        Only active when feature flag 'daemon_memory' is enabled.
+        Returns the (possibly replaced) DaemonAction — never raises.
+        """
+        try:
+            from core.feature_flags import flags
+            if not flags.is_enabled("daemon_memory"):
+                return action
+            mem = self._get_daemon_memory()
+            if mem is None:
+                return action
+            patterns = mem.error_patterns(top_n=3)
+            if not patterns:
+                return action
+            for ep in patterns:
+                overlap = self._keyword_overlap(action.action, ep.action)
+                if overlap >= 2:
+                    logger.info(
+                        "Avoiding action '%s' — failed %d times historically (overlap=%d with '%s')",
+                        action.action, ep.count, overlap, ep.action,
+                    )
+                    # Pick first fallback that isn't the same mode as the failed action
+                    # and doesn't itself overlap with the error pattern
+                    for fb_mode, fb_action, fb_trigger in self._FALLBACK_ACTIONS:
+                        if self._keyword_overlap(fb_action, ep.action) < 2:
+                            return DaemonAction(
+                                mode=fb_mode,
+                                action=fb_action,
+                                priority=action.priority,
+                                agent_count=max(1, action.agent_count),
+                                estimated_seconds=action.estimated_seconds,
+                                metadata={**action.metadata,
+                                           "avoided_action": action.action,
+                                           "avoided_count": ep.count,
+                                           "trigger": fb_trigger},
+                            )
+        except Exception as e:
+            logger.debug("_apply_semantic_avoidance error (non-critical): %s", e)
+        return action
+
+    # ═══════════════════════════════════════════════════
     # PHASE 2: DECISION — Plan next action
     # ═══════════════════════════════════════════════════
 
@@ -334,80 +399,80 @@ class AutonomousDaemon:
 
         # Priority 1: Pending orders from Telegram
         if state.pending_orders > 0:
-            return DaemonAction(
+            return self._apply_semantic_avoidance(DaemonAction(
                 mode="build",
                 action=f"Execute {state.pending_orders} pending Telegram orders",
                 priority=1,
                 agent_count=min(state.pending_orders, self.max_agents),
                 estimated_seconds=30 * state.pending_orders,
                 metadata={"trigger": "telegram_queue"},
-            )
+            ))
 
         # Priority 2: Critical dirty file count — takes precedence over error patrol
         # >30 uncommitted files is a bigger emergency than diagnosing old errors
         if state.git_dirty_files > 30:
-            return DaemonAction(
+            return self._apply_semantic_avoidance(DaemonAction(
                 mode="review",
                 action=f"CRITICAL: {state.git_dirty_files} uncommitted files — review and commit now",
                 priority=2,
                 agent_count=2,
                 estimated_seconds=120,
                 metadata={"trigger": "critical_dirty_files", "files": state.git_dirty_files},
-            )
+            ))
 
         # Priority 3: Too many recent errors
         if state.recent_errors >= 3:
-            return DaemonAction(
+            return self._apply_semantic_avoidance(DaemonAction(
                 mode="patrol",
                 action=f"Diagnose {state.recent_errors} recent errors in last hour",
                 priority=3,
                 agent_count=1,
                 estimated_seconds=60,
                 metadata={"trigger": "error_threshold", "errors": state.recent_errors},
-            )
+            ))
 
         # Priority 3: Git has changes — review them
         if state.git_dirty_files > 5:
-            return DaemonAction(
+            return self._apply_semantic_avoidance(DaemonAction(
                 mode="review",
                 action=f"Review {state.git_dirty_files} modified files",
                 priority=3,
                 agent_count=2,
                 estimated_seconds=90,
                 metadata={"trigger": "git_changes", "files": state.git_dirty_files},
-            )
+            ))
 
         # Priority 4: Optimize — every 5 cycles run autoresearch
         if self.cycle_count > 0 and self.cycle_count % 5 == 0:
-            return DaemonAction(
+            return self._apply_semantic_avoidance(DaemonAction(
                 mode="improve",
                 action="Run autoresearch optimization cycle",
                 priority=4,
                 agent_count=1,
                 estimated_seconds=120,
                 metadata={"trigger": "scheduled_optimization", "cycle": self.cycle_count},
-            )
+            ))
 
         # Priority 5: Status report — every 10 cycles
         if self.cycle_count > 0 and self.cycle_count % 10 == 0:
-            return DaemonAction(
+            return self._apply_semantic_avoidance(DaemonAction(
                 mode="report",
                 action="Generate system status report",
                 priority=5,
                 agent_count=1,
                 estimated_seconds=45,
                 metadata={"trigger": "scheduled_report"},
-            )
+            ))
 
         # Default: patrol
-        return DaemonAction(
+        return self._apply_semantic_avoidance(DaemonAction(
             mode="patrol",
             action="System healthy — routine health monitoring",
             priority=5,
             agent_count=0,
             estimated_seconds=5,
             metadata={"trigger": "routine"},
-        )
+        ))
 
     # ═══════════════════════════════════════════════════
     # PHASE 3: EXECUTION — Spawn agents and run
