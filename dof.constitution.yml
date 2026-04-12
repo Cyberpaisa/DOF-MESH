@@ -400,5 +400,5 @@ feature_flags:
     enabled: false
     description: "Feynman academic research agent integration"
   feature_flags_governance:
-    enabled: false
+    enabled: true
     description: "ConstitutionEnforcer checks feature_flags before applying new rules"

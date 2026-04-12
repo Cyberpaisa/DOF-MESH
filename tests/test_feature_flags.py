@@ -106,6 +106,7 @@ class TestFeatureFlagsYAML(unittest.TestCase):
         # All stable flags should still be True even after YAML load
         self.assertTrue(ff.is_enabled("disk_task_queue"))
         self.assertTrue(ff.is_enabled("daemon_memory"))
+        self.assertTrue(ff.is_enabled("feature_flags_governance"))
         # Candidate flags remain False
         self.assertFalse(ff.is_enabled("graphify_integration"))
 

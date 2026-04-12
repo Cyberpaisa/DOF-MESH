@@ -46,7 +46,7 @@ _DEFAULTS: dict[str, bool] = {
     "media_generation_tool": False,    # muapi.ai media generation
     "feynman_research_crew": False,    # Feynman academic research agent
     "daemon_memory": True,             # DaemonMemory historical query (Sesión 8)
-    "feature_flags_governance": False, # Check flags inside ConstitutionEnforcer
+    "feature_flags_governance": True,  # Check flags inside ConstitutionEnforcer (v0.7.0)
     "dof_leaderboard": False,          # Leaderboard (needs 10+ agents to make sense)
 }
 

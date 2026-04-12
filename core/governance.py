@@ -24,6 +24,13 @@ try:
 except ImportError:
     _INTEGRITY_AVAILABLE = False
 
+try:
+    from core.feature_flags import flags as _feature_flags
+    _FLAGS_AVAILABLE = True
+except ImportError:
+    _feature_flags = None  # type: ignore[assignment]
+    _FLAGS_AVAILABLE = False
+
 logger = logging.getLogger("core.governance")
 
 # ── Constitution Enforcer (Phase 9) ───────────────────────────────────────────
@@ -206,6 +213,10 @@ def _sync_rules_from_constitution():
                 "max_chars": r.get("pattern", {}).get("max_chars"),
             })
         if new_hard:
+            # Propagate optional feature_flag field for staged rollout
+            for i, (r, parsed) in enumerate(zip(yaml_hard, new_hard)):
+                if "feature_flag" in r:
+                    new_hard[i]["feature_flag"] = r["feature_flag"]
             HARD_RULES = new_hard
 
     # Sync Soft Rules — merge YAML into Python defaults (Python wins on missing fields)
@@ -243,14 +254,17 @@ def _sync_rules_from_constitution():
                 # Fall back to Python-defined match_mode
                 match_mode = py_default.get("match_mode", "present")
 
-            new_soft.append({
+            entry: dict = {
                 "id": rule_id,
                 "priority": r.get("priority", RulePriority.USER),
                 "pattern": raw_pattern,
                 "description": r.get("description") or py_default.get("description"),
                 "weight": r.get("weight", py_default.get("weight", 0.1)),
                 "match_mode": match_mode,
-            })
+            }
+            if "feature_flag" in r:
+                entry["feature_flag"] = r["feature_flag"]
+            new_soft.append(entry)
         if new_soft:
             SOFT_RULES = new_soft
 
@@ -302,8 +316,19 @@ def check_governance(text: str) -> GovernanceResult:
             warnings=[],
         )
 
+    # Feature-flag gate: skip rules disabled via feature_flags_governance
+    _ff_governance = (
+        _FLAGS_AVAILABLE
+        and _feature_flags is not None
+        and _feature_flags.is_enabled("feature_flags_governance")
+    )
+
     # Hard rules — block on match (YAML-aligned logic)
     for rule in HARD_RULES:
+        # Skip rule if gated by a disabled feature flag
+        if _ff_governance and "feature_flag" in rule:
+            if not _feature_flags.is_enabled(rule["feature_flag"]):  # type: ignore[union-attr]
+                continue
         rule_type = rule.get("type", "regex")
         pattern = rule.get("pattern")
 
@@ -353,6 +378,10 @@ def check_governance(text: str) -> GovernanceResult:
 
     # Soft rules — warn based on match_mode
     for rule in SOFT_RULES:
+        # Skip rule if gated by a disabled feature flag
+        if _ff_governance and "feature_flag" in rule:
+            if not _feature_flags.is_enabled(rule["feature_flag"]):  # type: ignore[union-attr]
+                continue
         pattern = rule.get("pattern")
         if not pattern:
             continue
