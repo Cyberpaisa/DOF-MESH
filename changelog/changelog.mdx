@@ -5,14 +5,28 @@ description: "Release history for DOF-MESH. All changes, features, and improveme
 
 ## v0.6.0 — April 2026
 
-### Session 8 — Governance Hardening (Apr 12, 2026)
+### Session 8 — Fase 2 & 3: Resilience + Streaming (Apr 12, 2026)
 
-- **Test suite** grows to 4,272 tests, 0 failures
-- **Self-correction loop** (`check_and_correct()`) — soft-rule violations repaired deterministically before blocking
-- **Tool concurrency classification** — `CONCURRENT_SAFE_TOOLS`, `WRITE_TOOLS`, `classify_tool()` for Z3 bypass on read-only calls
+- **Test suite** grows to 4,302 tests, 0 failures · 143 core modules
+- **DiskTaskQueue** (`core/mesh_scheduler.py`) — filelock-backed JSONL persistence, survives restarts
+- **SystemPromptBoundary** (`core/governance.py`) — detects system prompt leakage in responses and injection in user messages
+- **AbortSignal Cascade** (`core/claude_commander.py`) — `abort_event` parameter cascades cancellation at every message boundary
+- **StreamingToolExecutor** (`core/streaming_executor.py`) — new module, executes tool sequences with JSONL event stream and abort support
+- **Git Worktree Isolation** (`scripts/spawn_worker.sh`) — workers run in isolated `/tmp` worktrees, main is never touched
+- **Mintlify docs sweep** — all pages updated: 8 chains, 4,302 tests, 143 modules, new changelog page
+
+### Session 7 — Knowledge Pipeline (Apr 5, 2026)
+
+- **Self-correction loop** (`check_and_correct()`) — soft-rule violations repaired deterministically
+- **Tool concurrency classification** — `CONCURRENT_SAFE_TOOLS`, `WRITE_TOOLS`, `classify_tool()`
 - **Memory compaction** — 4 strategies: `ttl_evict`, `score_evict`, `dedup_merge`, `summary_compress`
 - **Async daemon** — `scan_state()` converted to 5 parallel coroutines via `asyncio.gather()`
 - **Release automation** — `scripts/release.sh` with dry-run, version bump, PyPI, GitHub Release
+- **Knowledge Pipeline** — 6-component end-to-end: YouTube → extractor → daemon → reporter → notifier → approver
+- **Chrome Extension** (`dof-youtube`) — ⚡DOF button on YouTube watch pages
+- **knowledge_api.py** — HTTP server on port 19019 (`/health`, `/ingest`, `/pending`, `/approve/:rid`)
+- **Auto-startup** — macOS LaunchAgent (`com.dof.mesh.plist`, RunAtLoad=true)
+- 25 commits · 6 new core modules · 4 runtime bugs fixed
 
 ### Session 7 — Knowledge Pipeline (Apr 5, 2026)
 
