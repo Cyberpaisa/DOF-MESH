@@ -27,7 +27,8 @@ class TestHealthEndpoint(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
         data = r.json()
         self.assertEqual(data["status"], "ok")
-        self.assertEqual(data["version"], "0.6.0")
+        from dof import __version__
+        self.assertEqual(data["version"], __version__)
         self.assertIn("tests", data)
         self.assertIn("modules", data)
 
