@@ -5,18 +5,23 @@ description: "Release history for DOF-MESH. All changes, features, and improveme
 
 ## v0.7.0 — April 2026
 
+### Session 8 (cont. 4) — Test suite 100% clean (Apr 12, 2026)
+
+- **Fix: stale `mcp_server/` namespace package** — directorio vacío heredado de `dof_conflux_mcp.py` eliminado envenenaba imports haciendo que Python 3.3+ lo importara como namespace package antes que `core/mcp_server.py`; 27 errores eliminados
+- **Suite completamente limpia:** 4,419 tests · 0 errors · 0 failures · 33 skipped — primera vez en la sesión con 0 errores
+
 ### Session 8 (cont. 3) — Semantic Avoidance + GraphifyTool (Apr 12, 2026)
 
 - **DaemonMemory Semantic Avoidance** (`core/autonomous_daemon.py`) — `_apply_semantic_avoidance()` detecta overlap de palabras clave entre la acción propuesta y los top-3 patrones de error histórico; si overlap ≥ 2, substituye con acción fallback segura y loguea para audit trail; 7 tests en `test_daemon_memory_avoidance.py`
 - **GraphifyTool** (`core/graphify_tool.py`) — CrewAI `BaseTool` que sirve índice semántico del codebase; fallback AST stdlib: escanea `core/*.py`, extrae clases y funciones, filtra por query en <100ms; listo para plugin `m8e/graphify` en v0.8.0; 10 tests en `test_graphify_tool.py`
-- **Test suite** grows to 4,388 tests · 146 modules
+- **Test suite** grows to 4,419 tests · 146 modules · 0 errors
 
 ### Session 8 (cont. 2) — feature_flags_governance + CI fixes (Apr 12, 2026)
 
 - **feature_flags_governance** (`core/governance.py`) — `ConstitutionEnforcer` now checks feature flags before applying each rule; rules in `dof.constitution.yml` can declare `feature_flag:` for staged rollout; 6 tests in `tests/test_governance_feature_flags.py`
 - **CI fix** — `tests/test_api.py` + `tests/test_oags_bridge.py` now import `__version__` dynamically instead of hardcoding `"0.6.0"`
 - **GitHub Release v0.7.0** — release notes published at github.com/Cyberpaisa/DOF-MESH/releases/tag/v0.7.0
-- **Test suite** grows to 4,388 tests · 146 modules
+- **Test suite** grows to 4,419 tests · 146 modules · 0 errors
 - **Docs** updated: introduction.mdx, installation.mdx, cli-benchmark.mdx, cli-prove.mdx
 
 ### Session 8 (cont.) — Governance Gate + v0.7.0 bump (Apr 12, 2026)
