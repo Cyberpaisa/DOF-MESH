@@ -35,6 +35,34 @@ git -C "$REPO" worktree add -b "$BRANCH" "$WORKTREE_DIR" HEAD
 INBOX="$REPO/logs/mesh/inbox/$WORKER_NAME"
 mkdir -p "$INBOX" "$REPO/logs/mesh/inbox/commander"
 
+QUEUE_FILE="$REPO/logs/commander/task_queue.jsonl"
+
+# ── Pop tasks from DiskTaskQueue and write to inbox ────────────────────────
+echo "[$WORKER_NAME] Leyendo tareas de DiskTaskQueue ($QUEUE_FILE)..."
+python3 - <<PYEOF
+import sys, json
+from pathlib import Path
+sys.path.insert(0, "$REPO")
+try:
+    from core.mesh_scheduler import DiskTaskQueue
+    q = DiskTaskQueue("$QUEUE_FILE", ttl_seconds=3600)
+    tasks = q.drain()
+    inbox = Path("$INBOX")
+    inbox.mkdir(parents=True, exist_ok=True)
+    for t in tasks[:$MAX_TASKS]:
+        out = inbox / f"{t.task_id}.json"
+        out.write_text(json.dumps({
+            "task_id": t.task_id,
+            "task_type": "prompt",
+            "description": t.prompt,
+            "validation": "python3 -m unittest discover -s tests 2>&1 | tail -1",
+            "rules": [],
+        }))
+    print(f"[queue] {len(tasks[:$MAX_TASKS])} tasks written to inbox")
+except Exception as e:
+    print(f"[queue] No tasks from DiskTaskQueue ({e}) — checking inbox directly")
+PYEOF
+
 PROMPT="Eres $WORKER_NAME — un nodo autónomo del DOF Mesh Legion.
 
 Tu directorio de trabajo es: $WORKTREE_DIR  (worktree aislado — NO es main)

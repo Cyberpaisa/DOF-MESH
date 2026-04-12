@@ -142,5 +142,81 @@ class TestDiskTaskQueueDrain(unittest.TestCase):
         self.assertIsNone(self.q.pop())
 
 
+class TestDiskTaskQueueTTL(unittest.TestCase):
+    def setUp(self):
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.path = Path(self._tmpdir.name) / "q.jsonl"
+
+    def tearDown(self):
+        self._tmpdir.cleanup()
+
+    def test_non_expired_task_is_returned(self):
+        q = DiskTaskQueue(self.path, ttl_seconds=60)
+        q.push(TaskSlot.create("live", "p", "n"))
+        self.assertEqual(q.size(), 1)
+        task = q.pop()
+        self.assertIsNotNone(task)
+        self.assertEqual(task.task_id, "live")
+
+    def test_expired_task_is_dropped_on_pop(self):
+        q = DiskTaskQueue(self.path, ttl_seconds=1)
+        # Write a task with a past queued_at directly (already expired)
+        import time as _time
+        old_slot = TaskSlot(
+            priority=NORMAL,
+            queued_at=_time.time() - 10,  # 10 seconds ago
+            task_id="expired",
+            prompt="p",
+            node="n",
+        )
+        q.push(old_slot)
+        self.assertIsNone(q.pop())
+
+    def test_expired_task_not_counted_in_size(self):
+        import time as _time
+        q = DiskTaskQueue(self.path, ttl_seconds=1)
+        old = TaskSlot(priority=NORMAL, queued_at=_time.time() - 10, task_id="old", prompt="p", node="n")
+        q.push(old)
+        q.push(TaskSlot.create("fresh", "p", "n"))
+        self.assertEqual(q.size(), 1)
+
+    def test_evict_removes_expired_returns_count(self):
+        import time as _time
+        q = DiskTaskQueue(self.path, ttl_seconds=1)
+        old = TaskSlot(priority=NORMAL, queued_at=_time.time() - 10, task_id="old", prompt="p", node="n")
+        q.push(old)
+        q.push(TaskSlot.create("fresh", "p", "n"))
+        evicted = q.evict()
+        self.assertEqual(evicted, 1)
+        self.assertEqual(q.size(), 1)
+
+    def test_evict_without_ttl_returns_zero(self):
+        q = DiskTaskQueue(self.path)  # no ttl
+        q.push(TaskSlot.create("t1", "p", "n"))
+        self.assertEqual(q.evict(), 0)
+
+    def test_no_ttl_never_expires(self):
+        import time as _time
+        q = DiskTaskQueue(self.path)  # no ttl
+        old = TaskSlot(priority=NORMAL, queued_at=0.0, task_id="ancient", prompt="p", node="n")
+        q.push(old)
+        task = q.pop()
+        self.assertIsNotNone(task)
+        self.assertEqual(task.task_id, "ancient")
+
+    def test_mixed_expired_and_live_drain(self):
+        import time as _time
+        q = DiskTaskQueue(self.path, ttl_seconds=1)
+        old = TaskSlot(priority=NORMAL, queued_at=_time.time() - 10, task_id="old", prompt="p", node="n")
+        q.push(old)
+        q.push(TaskSlot.create("live1", "p", "n"))
+        q.push(TaskSlot.create("live2", "p", "n"))
+        tasks = q.drain()
+        ids = [t.task_id for t in tasks]
+        self.assertNotIn("old", ids)
+        self.assertIn("live1", ids)
+        self.assertIn("live2", ids)
+
+
 if __name__ == "__main__":
     unittest.main()

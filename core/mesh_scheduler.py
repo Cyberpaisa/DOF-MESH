@@ -148,32 +148,50 @@ class MeshScheduler:
 
 class DiskTaskQueue:
     """
-    Persistent JSONL task queue protected by a filelock.
+    Persistent JSONL task queue protected by a filelock, with optional TTL.
 
     Tasks are stored one-per-line as JSON in ``queue_path``.
     A companion lock file (<queue_path>.lock) serialises concurrent writes.
     All mutating operations hold the lock for the minimum time needed.
 
+    TTL (time-to-live):
+        When ``ttl_seconds`` is set, tasks older than that value are silently
+        dropped on every read. This prevents stale tasks from accumulating
+        after crashes or long pauses.
+
     Usage::
-        q = DiskTaskQueue("logs/commander/task_queue.jsonl")
+        q = DiskTaskQueue("logs/commander/task_queue.jsonl", ttl_seconds=3600)
         q.push(TaskSlot.create("t1", "do X", "node-a", priority=HIGH))
-        task = q.pop()          # highest-priority item (FIFO within same priority)
-        count = q.size()
-        all_tasks = q.drain()   # atomically empty the queue and return items
+        task = q.pop()          # highest-priority non-expired item
+        count = q.size()        # excludes expired tasks
+        all_tasks = q.drain()   # atomically empty queue, returns non-expired tasks
         q.clear()               # discard all pending tasks
+        expired = q.evict()     # explicitly remove expired tasks, returns count
     """
 
-    def __init__(self, queue_path: str | Path, timeout: float = 5.0) -> None:
+    def __init__(
+        self,
+        queue_path: str | Path,
+        timeout: float = 5.0,
+        ttl_seconds: Optional[float] = None,
+    ) -> None:
         self._path = Path(queue_path)
         self._path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = FileLock(str(self._path) + ".lock", timeout=timeout)
+        self._ttl = ttl_seconds
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
 
+    def _is_expired(self, queued_at: float) -> bool:
+        """Return True if the task has exceeded the TTL."""
+        if self._ttl is None:
+            return False
+        return (time.time() - queued_at) > self._ttl
+
     def _read_all(self) -> List[TaskSlot]:
-        """Read all tasks from disk. Caller must hold the lock."""
+        """Read all non-expired tasks from disk. Caller must hold the lock."""
         if not self._path.exists():
             return []
         tasks: List[TaskSlot] = []
@@ -183,9 +201,12 @@ class DiskTaskQueue:
                 continue
             try:
                 d = json.loads(line)
+                queued_at = d["queued_at"]
+                if self._is_expired(queued_at):
+                    continue  # silently drop expired tasks
                 tasks.append(TaskSlot(
                     priority=d["priority"],
-                    queued_at=d["queued_at"],
+                    queued_at=queued_at,
                     task_id=d["task_id"],
                     prompt=d["prompt"],
                     node=d["node"],
@@ -213,11 +234,18 @@ class DiskTaskQueue:
     # ------------------------------------------------------------------
 
     def push(self, task: TaskSlot) -> None:
-        """Append a task to the queue."""
+        """Append a task to the queue (preserves expired tasks on disk until evict())."""
         with self._lock:
-            tasks = self._read_all()
-            tasks.append(task)
-            self._write_all(tasks)
+            # Append directly to avoid re-reading and re-sorting the whole file
+            entry = json.dumps({
+                "priority": task.priority,
+                "queued_at": task.queued_at,
+                "task_id": task.task_id,
+                "prompt": task.prompt,
+                "node": task.node,
+            })
+            with self._path.open("a", encoding="utf-8") as f:
+                f.write(entry + "\n")
 
     def pop(self) -> Optional[TaskSlot]:
         """Remove and return the highest-priority task, or None if empty."""
@@ -246,3 +274,47 @@ class DiskTaskQueue:
         """Discard all pending tasks."""
         with self._lock:
             self._write_all([])
+
+    def _read_all_raw(self) -> List[dict]:
+        """Read ALL task dicts from disk without TTL filtering. Caller must hold the lock."""
+        if not self._path.exists():
+            return []
+        rows = []
+        for line in self._path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rows.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+        return rows
+
+    def evict(self) -> int:
+        """Explicitly remove expired tasks. Returns the number of tasks evicted.
+
+        Not needed for normal use — _read_all() already filters expired tasks.
+        Useful for reclaiming disk space after a long pause.
+        """
+        if self._ttl is None:
+            return 0
+        with self._lock:
+            all_rows = self._read_all_raw()
+            live = [
+                r for r in all_rows
+                if not self._is_expired(r.get("queued_at", 0))
+            ]
+            live_slots = []
+            for r in live:
+                try:
+                    live_slots.append(TaskSlot(
+                        priority=r["priority"],
+                        queued_at=r["queued_at"],
+                        task_id=r["task_id"],
+                        prompt=r["prompt"],
+                        node=r["node"],
+                    ))
+                except KeyError:
+                    continue
+            self._write_all(live_slots)
+            return len(all_rows) - len(live)

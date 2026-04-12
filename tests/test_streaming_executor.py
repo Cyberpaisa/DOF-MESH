@@ -204,5 +204,62 @@ class TestStreamingExecutorJSONL(unittest.TestCase):
         self.assertGreaterEqual(summary.total_elapsed_ms, 0)
 
 
+class TestStreamingExecutorRetry(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.path = Path(self._tmp.name) / "stream.jsonl"
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_no_retry_by_default(self):
+        attempts = []
+        def flaky():
+            attempts.append(1)
+            raise RuntimeError("fail")
+        ex = StreamingToolExecutor(self.path)
+        tools = [ToolCall("flaky", {})]
+        summary = run(ex.run(tools, {"flaky": flaky}))
+        self.assertEqual(len(attempts), 1)
+        self.assertEqual(summary.failed, 1)
+
+    def test_retry_succeeds_on_second_attempt(self):
+        attempts = []
+        def flaky():
+            attempts.append(1)
+            if len(attempts) < 2:
+                raise RuntimeError("not yet")
+            return "ok"
+        ex = StreamingToolExecutor(self.path)
+        tools = [ToolCall("flaky", {}, max_retries=2, retry_backoff=0.0)]
+        summary = run(ex.run(tools, {"flaky": flaky}))
+        self.assertEqual(summary.completed, 1)
+        self.assertEqual(summary.failed, 0)
+        self.assertEqual(len(attempts), 2)
+
+    def test_retry_exhausted_counts_as_failure(self):
+        attempts = []
+        def always_fail():
+            attempts.append(1)
+            raise RuntimeError("always")
+        ex = StreamingToolExecutor(self.path)
+        tools = [ToolCall("f", {}, max_retries=2, retry_backoff=0.0)]
+        summary = run(ex.run(tools, {"f": always_fail}))
+        self.assertEqual(summary.failed, 1)
+        self.assertEqual(len(attempts), 3)  # 1 original + 2 retries
+
+    def test_retry_backoff_zero_no_sleep(self):
+        """Backoff=0.0 should complete instantly even with retries."""
+        def fail_once(state={"n": 0}):
+            state["n"] += 1
+            if state["n"] == 1:
+                raise RuntimeError("once")
+            return "ok"
+        ex = StreamingToolExecutor(self.path)
+        tools = [ToolCall("f", {}, max_retries=1, retry_backoff=0.0)]
+        summary = run(ex.run(tools, {"f": fail_once}))
+        self.assertEqual(summary.completed, 1)
+
+
 if __name__ == "__main__":
     unittest.main()

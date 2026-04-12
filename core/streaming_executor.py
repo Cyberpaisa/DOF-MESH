@@ -45,6 +45,8 @@ class ToolCall:
     name: str
     args: Dict[str, Any] = field(default_factory=dict)
     tool_id: Optional[str] = None
+    max_retries: int = 0          # 0 = no retry; N = up to N extra attempts
+    retry_backoff: float = 1.0    # base delay in seconds (doubles each retry)
 
     def __post_init__(self) -> None:
         if self.tool_id is None:
@@ -203,37 +205,53 @@ class StreamingToolExecutor:
                 failed += 1
                 continue
 
-            try:
-                if inspect.iscoroutinefunction(handler):
-                    result = await handler(**tool.args)
-                else:
-                    result = handler(**tool.args)
-                elapsed = (time.time() - t0) * 1000
-                ok_evt = ToolCompleted(
-                    tool_id=tool.tool_id or "",
-                    name=tool.name,
-                    status="ok",
-                    result=result,
-                    elapsed_ms=elapsed,
-                )
-                self._emit(ok_evt)
-                if on_event:
-                    on_event(ok_evt)
-                completed += 1
-            except Exception as exc:
+            last_exc: Optional[Exception] = None
+            attempts = 1 + max(0, tool.max_retries)
+            for attempt in range(attempts):
+                # Abort check inside retry loop
+                if self._abort.is_set():
+                    break
+                if attempt > 0:
+                    delay = tool.retry_backoff * (2 ** (attempt - 1))
+                    logger.info("Tool '%s' retry %d/%d after %.1fs", tool.name, attempt, tool.max_retries, delay)
+                    await asyncio.sleep(delay)
+                try:
+                    if inspect.iscoroutinefunction(handler):
+                        result = await handler(**tool.args)
+                    else:
+                        result = handler(**tool.args)
+                    elapsed = (time.time() - t0) * 1000
+                    ok_evt = ToolCompleted(
+                        tool_id=tool.tool_id or "",
+                        name=tool.name,
+                        status="ok",
+                        result=result,
+                        elapsed_ms=elapsed,
+                    )
+                    self._emit(ok_evt)
+                    if on_event:
+                        on_event(ok_evt)
+                    completed += 1
+                    last_exc = None
+                    break  # success — no more retries
+                except Exception as exc:
+                    last_exc = exc
+                    logger.warning("Tool '%s' attempt %d failed: %s", tool.name, attempt + 1, exc)
+
+            if last_exc is not None:
                 elapsed = (time.time() - t0) * 1000
                 err_evt = ToolCompleted(
                     tool_id=tool.tool_id or "",
                     name=tool.name,
                     status="error",
-                    error=str(exc),
+                    error=str(last_exc),
                     elapsed_ms=elapsed,
                 )
                 self._emit(err_evt)
                 if on_event:
                     on_event(err_evt)
                 failed += 1
-                logger.error("Tool '%s' raised: %s", tool.name, exc)
+                logger.error("Tool '%s' failed after %d attempt(s): %s", tool.name, attempts, last_exc)
 
         summary = ExecutionComplete(
             completed=completed,
