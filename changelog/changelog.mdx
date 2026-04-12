@@ -9,8 +9,11 @@ description: "Release history for DOF-MESH. All changes, features, and improveme
 
 - **AutonomousDaemon governance gate** (`core/autonomous_daemon.py`) — `_gate_instruction()` runs injection detection via `SystemPromptBoundary` before any Telegram order executes; BLOCKED_TOOLS also checked against instruction text
 - **7 new gate tests** (`tests/test_autonomous_daemon.py`) — normal pass, injection blocked, escalation blocked, never-raises contract
-- **v0.7.0 bump** — `dof/__init__.py` + `pyproject.toml` → 0.7.0 · 4,335 tests · 143 modules
+- **v0.7.0 bump** — `dof/__init__.py` + `pyproject.toml` → 0.7.0 · 4,361 tests · 145 modules
 - **MANIFEST.in** — PyPI exclusions: `_internal/`, `tests/`, `logs/`, `*.map` (prevents Claude Code–style source leak)
+- **DOFFeatureFlags** (`core/feature_flags.py`) — runtime feature flag registry with YAML constitution loading, 3-layer priority (runtime override → YAML → defaults), 12 flags declared for v0.7.0 and v0.8.0 candidates
+- **DaemonMemory** (`core/daemon_memory.py`) — indexes `cycles.jsonl` for historical queries: success rate, error patterns, mode distribution, top failing action; wired into `scan_state()` so the daemon avoids repeating its top 174-failure action
+- **feature_flags section** in `dof.constitution.yml` — all 12 flags with descriptions, Policy-as-Code for rollout control
 
 ### Session 8 — Fase 2 & 3: Resilience + Streaming (Apr 12, 2026)
 

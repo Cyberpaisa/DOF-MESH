@@ -64,6 +64,10 @@ class SystemState:
     health: dict = field(default_factory=dict)
     last_experiment_score: float = 0.0
     uptime_cycles: int = 0
+    # Historical context from DaemonMemory (populated when daemon_memory flag is enabled)
+    historical_success_rate: float = 0.0
+    historical_total_cycles: int = 0
+    top_error_action: str = ""          # most repeated failing action — avoid repeating it
 
 
 @dataclass
@@ -123,6 +127,7 @@ class AutonomousDaemon:
         self._session_store = None  # lazy — initialized via _get_session_store()
         self._cost_tracker = None   # lazy — initialized via _get_cost_tracker()
         self._pipeline = None       # lazy — initialized via _get_pipeline()
+        self._daemon_memory = None  # lazy — initialized via _get_daemon_memory()
         self.log_file = log_file if log_file else DAEMON_LOG
 
         # Ensure log dirs exist
@@ -145,6 +150,19 @@ class AutonomousDaemon:
                           if store.current_session else None)
             self._cost_tracker = CostTracker(session_id=session_id)
         return self._cost_tracker
+
+    def _get_daemon_memory(self):
+        """Lazy-load DaemonMemory (only when feature flag is enabled)."""
+        from core.feature_flags import flags
+        if not flags.is_enabled("daemon_memory"):
+            return None
+        if self._daemon_memory is None:
+            try:
+                from core.daemon_memory import DaemonMemory
+                self._daemon_memory = DaemonMemory(self.log_file)
+            except Exception as e:
+                logger.warning(f"DaemonMemory unavailable: {e}")
+        return self._daemon_memory
 
     def _get_pipeline(self):
         """Lazy-load ToolHookPipeline — Constitution + Z3Gate pre-execution checks."""
@@ -239,6 +257,19 @@ class AutonomousDaemon:
             state.health = health
         if not isinstance(last_score, Exception):
             state.last_experiment_score = last_score
+
+        # Enrich with historical context from DaemonMemory (feature-flagged)
+        mem = self._get_daemon_memory()
+        if mem is not None:
+            try:
+                mem.refresh()
+                state.historical_success_rate = mem.success_rate()
+                state.historical_total_cycles = mem.total_cycles()
+                top_errors = mem.error_patterns(top_n=1)
+                if top_errors:
+                    state.top_error_action = top_errors[0].action
+            except Exception as e:
+                logger.debug(f"DaemonMemory scan failed (non-critical): {e}")
 
         return state
 

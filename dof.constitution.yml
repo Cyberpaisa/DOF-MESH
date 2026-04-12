@@ -359,3 +359,46 @@ storage:
   backend: "auto"
   jsonl_path: "memory/"
   postgresql_url: null
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Feature Flags — Runtime control of DOF-MESH capabilities
+# Managed by core/feature_flags.py
+# ─────────────────────────────────────────────────────────────────────
+
+feature_flags:
+  # ── Stable (v0.7.0) ─────────────────────────────────────────────────
+  disk_task_queue:
+    enabled: true
+    description: "DiskTaskQueue JSONL persistence with TTL eviction"
+  system_prompt_boundary:
+    enabled: true
+    description: "Detects system prompt leakage and injection in governance"
+  abort_signal_cascade:
+    enabled: true
+    description: "abort_event propagates cancellation through ClaudeCommander"
+  streaming_executor:
+    enabled: true
+    description: "StreamingToolExecutor with JSONL event stream and retry"
+  git_worktree_isolation:
+    enabled: true
+    description: "Workers run in isolated /tmp worktrees via spawn_worker.sh"
+  daemon_governance_gate:
+    enabled: true
+    description: "AutonomousDaemon gates instructions via SystemPromptBoundary"
+  daemon_memory:
+    enabled: true
+    description: "DaemonMemory indexes cycles.jsonl for historical queries"
+  # ── Candidates (v0.8.0) ──────────────────────────────────────────────
+  graphify_integration:
+    enabled: false
+    description: "GraphifyTool for CrewAI — knowledge graph over core/ modules"
+  media_generation_tool:
+    enabled: false
+    description: "muapi.ai media generation tool for creative agents"
+  feynman_research_crew:
+    enabled: false
+    description: "Feynman academic research agent integration"
+  feature_flags_governance:
+    enabled: false
+    description: "ConstitutionEnforcer checks feature_flags before applying new rules"
