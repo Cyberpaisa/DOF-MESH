@@ -35,7 +35,7 @@ echo "=== DOF-MESH Release v$VERSION ==="
 [[ "$DRY_RUN" == true ]] && echo ">>> DRY RUN — no changes will be made <<<"
 
 # ── 1. Verify clean working tree ───────────────────────────────────────────────
-DIRTY=$(git status --porcelain | grep -v "^??" | wc -l | tr -d ' ')
+DIRTY=$(git status --porcelain | { grep -v "^??" || true; } | wc -l | tr -d ' ')
 if [[ "$DIRTY" -gt 0 ]]; then
     echo "ERROR: Working tree has $DIRTY uncommitted changes. Commit or stash first."
     exit 1
