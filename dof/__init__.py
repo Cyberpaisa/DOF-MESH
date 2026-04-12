@@ -15,7 +15,7 @@ Quick start:
     bench = benchmark()
 """
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 import os as _os
 import logging as _logging

@@ -1,0 +1,30 @@
+# MANIFEST.in — PyPI build exclusions for dof-sdk
+# Prevents source map / internal file leaks (pattern: Claude Code March 2026 incident)
+
+# Never include debug artifacts
+global-exclude *.map
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude __pycache__
+
+# Never include internal / experimental modules
+recursive-exclude _internal *
+recursive-exclude tests *
+recursive-exclude logs *
+recursive-exclude scripts *
+recursive-exclude docs *
+recursive-exclude frontend *
+recursive-exclude agents *
+recursive-exclude config *
+
+# Never include environment or key files
+global-exclude .env
+global-exclude *.key
+global-exclude *.pem
+global-exclude *.secret
+
+# Include only what the SDK needs
+include dof/*.py
+include core/*.py
+recursive-include dof *.py
+recursive-include core *.py

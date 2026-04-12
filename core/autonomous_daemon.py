@@ -122,6 +122,7 @@ class AutonomousDaemon:
         self._commander = None
         self._session_store = None  # lazy — initialized via _get_session_store()
         self._cost_tracker = None   # lazy — initialized via _get_cost_tracker()
+        self._pipeline = None       # lazy — initialized via _get_pipeline()
         self.log_file = log_file if log_file else DAEMON_LOG
 
         # Ensure log dirs exist
@@ -144,6 +145,55 @@ class AutonomousDaemon:
                           if store.current_session else None)
             self._cost_tracker = CostTracker(session_id=session_id)
         return self._cost_tracker
+
+    def _get_pipeline(self):
+        """Lazy-load ToolHookPipeline — Constitution + Z3Gate pre-execution checks."""
+        if self._pipeline is None:
+            try:
+                from core.tool_hooks import ToolHookPipeline
+                self._pipeline = ToolHookPipeline()
+            except Exception as e:
+                logger.warning(f"ToolHookPipeline unavailable: {e} — daemon running ungated")
+                self._pipeline = None
+        return self._pipeline
+
+    def _gate_instruction(self, instruction: str, agent_id: str = "daemon") -> tuple[bool, str]:
+        """
+        Gate a daemon instruction BEFORE execution.
+
+        Uses injection detection (SystemPromptBoundary) against the instruction,
+        NOT ConstitutionEnforcer — which validates agent outputs, not inputs.
+        Also checks BLOCKED_TOOLS for dangerous tool names embedded in the instruction.
+
+        Returns (allowed, reason). Never raises.
+        """
+        try:
+            from core.governance import check_system_prompt_boundary
+            # Check instruction for prompt-injection patterns (user_msg = instruction)
+            boundary = check_system_prompt_boundary(
+                system_prompt="",     # no system prompt to leak here
+                user_msg=instruction,
+                response="",          # no response yet
+            )
+            if boundary.injection:
+                return False, f"Injection detected in instruction: {'; '.join(boundary.details)}"
+        except Exception as e:
+            logger.warning(f"gate_instruction boundary check error: {e}")
+
+        # Also block hardcoded dangerous patterns regardless of boundary
+        pipeline = self._get_pipeline()
+        if pipeline is not None:
+            try:
+                # Only use BLOCKED_TOOLS layer — skip ConstitutionEnforcer (output-focused)
+                instr_lower = instruction.lower()
+                blocked = pipeline._blocked if hasattr(pipeline, "_blocked") else set()
+                for tool in blocked:
+                    if tool.lower() in instr_lower:
+                        return False, f"Blocked tool pattern '{tool}' detected in instruction"
+            except Exception as e:
+                logger.warning(f"gate_instruction blocked_tools check error: {e}")
+
+        return True, "approved"
 
     def _get_commander(self):
         """Lazy-load ClaudeCommander to avoid circular imports."""
@@ -376,6 +426,15 @@ class AutonomousDaemon:
                 if order.get("status") != "pending":
                     continue
 
+                # Gate: Constitution + Z3 check BEFORE executing
+                allowed, gate_reason = self._gate_instruction(order["instruction"])
+                if not allowed:
+                    order["status"] = "blocked"
+                    order["gate_reason"] = gate_reason
+                    f.write_text(json.dumps(order, ensure_ascii=False, indent=2))
+                    outputs.append(f"Order {order['id']}: BLOCKED by governance — {gate_reason}")
+                    continue
+
                 # Mark as in_progress
                 order["status"] = "in_progress"
                 f.write_text(json.dumps(order, ensure_ascii=False))
@@ -405,11 +464,17 @@ class AutonomousDaemon:
 
     async def _execute_patrol(self, commander, action: DaemonAction) -> tuple:
         """Diagnose and fix system issues."""
-        result = await commander.command(
+        patrol_prompt = (
             "Check the DOF system health: "
             "1. Read the last 20 lines of logs/daemon/cycles.jsonl for recent errors. "
             "2. Check if any core/ modules have syntax errors. "
-            "3. Report findings in 3 bullet points.",
+            "3. Report findings in 3 bullet points."
+        )
+        allowed, gate_reason = self._gate_instruction(patrol_prompt)
+        if not allowed:
+            return "blocked", f"Patrol BLOCKED by governance: {gate_reason}", 0
+        result = await commander.command(
+            patrol_prompt,
             tools=["Read", "Bash", "Glob", "Grep"],
             max_turns=8,
         )

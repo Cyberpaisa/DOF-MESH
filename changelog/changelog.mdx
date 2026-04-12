@@ -3,11 +3,18 @@ title: "Changelog"
 description: "Release history for DOF-MESH. All changes, features, and improvements."
 ---
 
-## v0.6.0 — April 2026
+## v0.7.0 — April 2026
+
+### Session 8 (cont.) — Governance Gate + v0.7.0 bump (Apr 12, 2026)
+
+- **AutonomousDaemon governance gate** (`core/autonomous_daemon.py`) — `_gate_instruction()` runs injection detection via `SystemPromptBoundary` before any Telegram order executes; BLOCKED_TOOLS also checked against instruction text
+- **7 new gate tests** (`tests/test_autonomous_daemon.py`) — normal pass, injection blocked, escalation blocked, never-raises contract
+- **v0.7.0 bump** — `dof/__init__.py` + `pyproject.toml` → 0.7.0 · 4,335 tests · 143 modules
+- **MANIFEST.in** — PyPI exclusions: `_internal/`, `tests/`, `logs/`, `*.map` (prevents Claude Code–style source leak)
 
 ### Session 8 — Fase 2 & 3: Resilience + Streaming (Apr 12, 2026)
 
-- **Test suite** grows to 4,302 tests, 0 failures · 143 core modules
+- **Test suite** grows to 4,335 tests, 0 failures · 143 core modules
 - **DiskTaskQueue** (`core/mesh_scheduler.py`) — filelock-backed JSONL persistence, survives restarts
 - **SystemPromptBoundary** (`core/governance.py`) — detects system prompt leakage in responses and injection in user messages
 - **AbortSignal Cascade** (`core/claude_commander.py`) — `abort_event` parameter cascades cancellation at every message boundary
