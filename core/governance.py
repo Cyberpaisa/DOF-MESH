@@ -635,6 +635,30 @@ class BoundaryResult:
     details: list[str]
 
 
+def _tfidf_similarity(text_a: str, text_b: str) -> float:
+    """Compute TF-IDF cosine similarity between two texts.
+
+    Returns a value in [0.0, 1.0].
+    Returns 0.0 if either text is shorter than 10 chars or if sklearn is
+    unavailable or raises any exception.
+    """
+    if len(text_a) < 10 or len(text_b) < 10:
+        return 0.0
+    try:
+        from sklearn.feature_extraction.text import TfidfVectorizer  # best-effort import
+        import numpy as _np
+
+        vec = TfidfVectorizer()
+        mat = vec.fit_transform([text_a, text_b]).toarray()
+        num = float(_np.dot(mat[0], mat[1]))
+        denom = float(_np.linalg.norm(mat[0]) * _np.linalg.norm(mat[1]))
+        if denom == 0.0:
+            return 0.0
+        return min(1.0, max(0.0, num / denom))
+    except Exception:
+        return 0.0
+
+
 def check_system_prompt_boundary(
     system_prompt: str,
     user_msg: str,
@@ -684,6 +708,22 @@ def check_system_prompt_boundary(
                 injection = True
                 details.append(f"[BOUNDARY_INJECT] Override attempt in user message: '{pat[:60]}'")
                 break
+
+    # --- Semantic similarity check (second pass — feature flag gated) ---
+    if _FLAGS_AVAILABLE and _feature_flags.is_enabled("semantic_boundary_check"):
+        # Leakage: high TF-IDF similarity between system prompt and response
+        if len(system_prompt) > 20 and len(response) > 20:
+            sim = _tfidf_similarity(system_prompt, response)
+            if sim > 0.75:
+                leakage = True
+                details.append("semantic_similarity={:.2f}".format(sim))
+
+        # Injection: high TF-IDF similarity between system prompt and user message
+        if len(system_prompt) > 20 and len(user_msg) > 20:
+            sim = _tfidf_similarity(system_prompt, user_msg)
+            if sim > 0.75:
+                injection = True
+                details.append("semantic_similarity={:.2f}".format(sim))
 
     return BoundaryResult(
         compliant=not leakage and not injection,

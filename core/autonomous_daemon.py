@@ -338,10 +338,44 @@ class AutonomousDaemon:
             return {w for w in s.lower().split() if len(w) >= 4 and w not in stop}
         return len(words(action_text) & words(pattern_action))
 
+    @staticmethod
+    def _cosine_similarity(text_a: str, text_b: str) -> float:
+        """
+        Compute TF-IDF cosine similarity between two texts.
+
+        Uses a minimal corpus of [text_a, text_b] to fit a TfidfVectorizer,
+        then returns the cosine similarity between the two resulting vectors.
+        Returns 0.0 on any failure (empty texts, sklearn unavailable, etc.).
+        Import is deferred so sklearn absence doesn't break the module.
+        """
+        try:
+            from sklearn.feature_extraction.text import TfidfVectorizer
+            if not text_a or not text_b or not text_a.strip() or not text_b.strip():
+                return 0.0
+            vectorizer = TfidfVectorizer()
+            tfidf = vectorizer.fit_transform([text_a, text_b])
+            # cosine similarity = dot(v1, v2) / (|v1| * |v2|)
+            # scipy or manual — use manual to avoid extra dep
+            vec_a = tfidf[0]
+            vec_b = tfidf[1]
+            dot = (vec_a * vec_b.T).toarray()[0][0]
+            norm_a = (vec_a * vec_a.T).toarray()[0][0] ** 0.5
+            norm_b = (vec_b * vec_b.T).toarray()[0][0] ** 0.5
+            if norm_a == 0.0 or norm_b == 0.0:
+                return 0.0
+            return float(dot / (norm_a * norm_b))
+        except Exception:
+            return 0.0
+
     def _apply_semantic_avoidance(self, action: DaemonAction) -> DaemonAction:
         """
         Semantic avoidance: if the proposed action text has significant keyword overlap
-        with a historically failing action, replace it with a safe fallback.
+        OR high TF-IDF cosine similarity with a historically failing action, replace it
+        with a safe fallback.
+
+        Avoidance triggers when ANY of these conditions is true:
+          - _keyword_overlap >= 2  (fast path, no sklearn needed)
+          - _cosine_similarity >= 0.6  (semantic similarity via TF-IDF)
 
         Only active when feature flag 'daemon_memory' is enabled.
         Returns the (possibly replaced) DaemonAction — never raises.
@@ -358,13 +392,20 @@ class AutonomousDaemon:
                 return action
             for ep in patterns:
                 overlap = self._keyword_overlap(action.action, ep.action)
-                if overlap >= 2:
-                    logger.info(
-                        "Avoiding action '%s' — failed %d times historically (overlap=%d with '%s')",
-                        action.action, ep.count, overlap, ep.action,
-                    )
-                    # Pick first fallback that isn't the same mode as the failed action
-                    # and doesn't itself overlap with the error pattern
+                cosine = self._cosine_similarity(action.action, ep.action)
+                should_avoid = overlap >= 2 or cosine >= 0.6
+                if should_avoid:
+                    if cosine >= 0.6 and overlap < 2:
+                        logger.info(
+                            "Avoiding action '%s' — cosine=%.2f with '%s'",
+                            action.action, cosine, ep.action,
+                        )
+                    else:
+                        logger.info(
+                            "Avoiding action '%s' — failed %d times historically (overlap=%d with '%s')",
+                            action.action, ep.count, overlap, ep.action,
+                        )
+                    # Pick first fallback that doesn't overlap with the error pattern
                     for fb_mode, fb_action, fb_trigger in self._FALLBACK_ACTIONS:
                         if self._keyword_overlap(fb_action, ep.action) < 2:
                             return DaemonAction(

@@ -48,6 +48,7 @@ _DEFAULTS: dict[str, bool] = {
     "daemon_memory": True,             # DaemonMemory historical query (Sesión 8)
     "feature_flags_governance": True,  # Check flags inside ConstitutionEnforcer (v0.7.0)
     "dof_leaderboard": False,          # Leaderboard (needs 10+ agents to make sense)
+    "semantic_boundary_check": False,  # TF-IDF semantic similarity in SystemPromptBoundary (v0.8.0)
 }
 
 _CONSTITUTION_PATH = Path(__file__).parent.parent / "dof.constitution.yml"

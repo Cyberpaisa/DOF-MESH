@@ -402,3 +402,6 @@ feature_flags:
   feature_flags_governance:
     enabled: true
     description: "ConstitutionEnforcer checks feature_flags before applying new rules"
+  semantic_boundary_check:
+    enabled: false
+    description: "TF-IDF semantic similarity check in SystemPromptBoundary (v0.8.0)"
