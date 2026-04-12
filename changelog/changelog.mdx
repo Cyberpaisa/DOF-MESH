@@ -1,0 +1,83 @@
+---
+title: "Changelog"
+description: "Release history for DOF-MESH. All changes, features, and improvements."
+---
+
+## v0.6.0 — April 2026
+
+### Session 8 — Governance Hardening (Apr 12, 2026)
+
+- **Test suite** grows to 4,272 tests, 0 failures
+- **Self-correction loop** (`check_and_correct()`) — soft-rule violations repaired deterministically before blocking
+- **Tool concurrency classification** — `CONCURRENT_SAFE_TOOLS`, `WRITE_TOOLS`, `classify_tool()` for Z3 bypass on read-only calls
+- **Memory compaction** — 4 strategies: `ttl_evict`, `score_evict`, `dedup_merge`, `summary_compress`
+- **Async daemon** — `scan_state()` converted to 5 parallel coroutines via `asyncio.gather()`
+- **Release automation** — `scripts/release.sh` with dry-run, version bump, PyPI, GitHub Release
+
+### Session 7 — Knowledge Pipeline (Apr 5, 2026)
+
+- **Knowledge Pipeline** — 6-component end-to-end: YouTube → extractor → daemon → reporter → notifier → approver
+- **Chrome Extension** (`dof-youtube`) — ⚡DOF button on YouTube watch pages
+- **knowledge_api.py** — HTTP server on port 19019 (`/health`, `/ingest`, `/pending`, `/approve/:rid`)
+- **Auto-startup** — macOS LaunchAgent (`com.dof.mesh.plist`, RunAtLoad=true)
+- **~/bin/dof** — Kill+restart+health check in one command
+- 25 commits · 6 new core modules · 4 runtime bugs fixed
+
+### Session 6 — Conflux Hackathon (Apr 6, 2026)
+
+- **Conflux eSpace testnet** — DOFProofRegistry deployed at `0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83` (Chain ID 71)
+- **Conflux governance demo** — full cycle with on-chain attestations for Global Hackfest 2026
+- **146+ transactions** verified on Conflux testnet during hackathon demo
+
+---
+
+## v0.6.0 — March 2026 (Full Release)
+
+### Swarm Architecture + Guardian Legion (Mar 24, 2026)
+
+- **Swarm pattern** — `MetaSupervisor.orchestrate_swarm()` divides into 6 parallel agents
+- **Guardian Fusion** — CERBERUS PRIME (65 tests), ICARUS APEX (PQC analyzer), SENTINEL OMEGA
+- **RAG Engine** — TF-IDF indexing of logs/docs/code, semantic search for agents
+- Total mesh nodes: 29
+
+### Phase 9 — Autonomous Scaling (Mar 24, 2026)
+
+- **100% DOF compliance** — all 5 security gaps closed
+- **KMS** (AES-256-GCM vault) + **DLP** (18 patterns + Shannon entropy)
+- 3,270+ tests · 0 errors
+
+### Phase 8 — Hyperion (Mar 25, 2026)
+
+- **Hyperion** — distributed coordination: ConsistentHashRing, Gossip, WAL, DistributedMeshQueue
+- **Raft consensus** — leader election < 600ms · P99 = 5.7µs · 402K tasks/sec
+- 107 new tests
+
+---
+
+## v0.5.1 — March 2026
+
+- **DOF SDK v0.5.1** published on PyPI
+- **30+ on-chain attestations** across 8 chains
+- **4/4 Z3 proofs** VERIFIED: GCR_INVARIANT, SS_FORMULA, SS_MONOTONICITY, SS_BOUNDARIES
+- **238 autonomous cycles** completed
+- 4,157 tests · 142 modules
+
+---
+
+## v0.5.0 — March 2026
+
+- **Claude Commander** — 5 modes: SDK, Spawn, Team, Debate, Peers
+- **Autonomous Daemon** — Perceive → Decide → Execute → Evaluate (4 phases)
+- **Node Mesh** — NodeRegistry + MessageBus + SessionScanner + infinite agent network
+- **Multi-model mesh** — 55 nodes in one session (Opus, Sonnet, Gemini, DeepSeek, Kimi)
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Get started with DOF-MESH
+  </Card>
+  <Card title="On-Chain Attestations" icon="link" href="/guides/on-chain-attestations">
+    DOFProofRegistry on 8 chains
+  </Card>
+</CardGroup>

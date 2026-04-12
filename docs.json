@@ -35,6 +35,10 @@
               "guides/providers-and-agents",
               "guides/mcp-api"
             ]
+          },
+          {
+            "group": "Updates",
+            "pages": ["changelog/changelog"]
           }
         ]
       },
