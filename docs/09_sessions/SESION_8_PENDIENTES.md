@@ -61,10 +61,10 @@ Comando cuando esté listo:
 # 4. TWINE_USERNAME=__token__ TWINE_PASSWORD=$PYPI_API_TOKEN twine upload dist/*
 ```
 
-### DOF Leaderboard (pendiente diseño + implementación)
-- Rankings on-chain de agentes DOF
-- Integración con dofmesh.com
-- No empezado aún
+### DOF Leaderboard (descartado por ahora)
+- No tiene sentido con solo 2 agentes registrados (#1687, #1686)
+- Retomar cuando haya agentes externos usando DOF
+- Prerequisito: 10+ agentes registrados en DOFProofRegistry
 
 ### Conflux
 - Solo testnet hasta resultados del hackathon Global Hackfest 2026

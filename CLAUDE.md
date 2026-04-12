@@ -162,7 +162,9 @@ Casi causa expulsión de la competencia. Ver `docs/03_book/BOOK_CH23_SCOPE_BREAC
 - **Z3 proofs:** 4/4 PROVEN (GCR_INVARIANT, SS_FORMULA, SS_MONOTONICITY, SS_BOUNDARIES)
 - **Versión SDK:** v0.5.1 en PyPI
 
-### Contratos DOFProofRegistry — tabla canónica verificada:
+### Contratos desplegados — tabla canónica completa (9 chains):
+
+**DOFProofRegistry (attestations):**
 | Chain | Chain ID | Dirección | Tipo |
 |---|---|---|---|
 | Avalanche C-Chain | 43114 | `0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6` | mainnet |
@@ -174,7 +176,13 @@ Casi causa expulsión de la competencia. Ver `docs/03_book/BOOK_CH23_SCOPE_BREAC
 | Polygon Amoy | 80002 | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | testnet |
 | SKALE Base Sepolia | 324705682 | `0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D` | testnet |
 
-**DEPRECATED:** `0x88f6043B091055Bbd896Fc8D2c6234A47C02C052` — DOFValidationRegistry v1 (reemplazado, sigue on-chain pero no usar)
+**ERC-8004 Identity (Tempo Mainnet):**
+| Chain | Chain ID | Contrato | Dirección |
+|---|---|---|---|
+| Tempo Mainnet | 42431 | DOFIdentityRegistry | `0xf264581a4061ce7b515f0d423f12856b6b85d2b7` |
+| Tempo Mainnet | 42431 | DOFReputationRegistry | `0x4452089c5df907c91a521b072e79ba2885eb8f89` |
+
+**DEPRECATED:** `0x88f6043B091055Bbd896Fc8D2c6234A47C02C052` — DOFValidationRegistry v1 (no usar)
 **PENDIENTES:** Polygon mainnet, Conflux eSpace, SKALE Base mainnet (pending_funds)
 
 ### Z3 proofs — IMPORTANTE:

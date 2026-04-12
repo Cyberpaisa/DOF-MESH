@@ -1,6 +1,6 @@
 ---
 title: "On-Chain Attestations"
-description: "DOFProofRegistry deployed on 8 chains. Write and verify cryptographic proof receipts on-chain."
+description: "DOFProofRegistry on 8 chains + ERC-8004 identity contracts on Tempo. Full deployment map."
 ---
 
 ## DOFProofRegistry
@@ -18,7 +18,7 @@ Merkle tree and attested on-chain via `DOFProofRegistry`.
 
 ---
 
-## Deployment Table
+## DOFProofRegistry — Deployment Table (8 chains)
 
 | Chain | Chain ID | Address | Type |
 |-------|----------|---------|------|
@@ -30,6 +30,21 @@ Merkle tree and attested on-chain via `DOFProofRegistry`.
 | Conflux Testnet | 71 | `0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83` | testnet |
 | Polygon Amoy | 80002 | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | testnet |
 | SKALE Base Sepolia | 324705682 | `0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D` | testnet |
+
+---
+
+## ERC-8004 Identity Contracts — Tempo Mainnet
+
+DOF agent identities (DOFIdentityRegistry + DOFReputationRegistry) are also deployed
+on **Tempo Mainnet** (chain ID 42431). These are separate from DOFProofRegistry and
+handle agent registration and reputation scoring under the ERC-8004 standard.
+
+| Chain | Chain ID | Contract | Address |
+|-------|----------|----------|---------|
+| Tempo Mainnet | 42431 | `DOFIdentityRegistry` | `0xf264581a4061ce7b515f0d423f12856b6b85d2b7` |
+| Tempo Mainnet | 42431 | `DOFReputationRegistry` | `0x4452089c5df907c91a521b072e79ba2885eb8f89` |
+
+**Total chains with DOF contracts: 9** (8 DOFProofRegistry + 1 Tempo ERC-8004)
 
 ---
 
