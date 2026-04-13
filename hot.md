@@ -10,12 +10,15 @@
 
 ## Features nuevas (sesión 9)
 
-### DOF-MCP Gateway — `0c5032f`
+### DOF-MCP Gateway — `0c5032f` + fix `ca0bb3c`
 - `core/gateway/` — FastAPI HTTP bridge para `mcp_server.py`
-- Auth por `x-api-key` header, rate limiting 100 req/min, CORS abierto
+- Auth por `x-api-key` header, CORS abierto
 - 15 tools expuestas vía `POST /mcp/tools/{tool_name}`
 - Dev mode: acepta cualquier key `sk-dof-*` si `DOF_GATEWAY_KEYS` no está seteada
-- 10 tests · `GET /health` sin auth
+- **Rate limit persistente via JSONL** ✅ — sobrevive reinicios del proceso
+  - Estado en `logs/gateway/rate_limits.jsonl` (cubierto por `.gitignore`)
+  - Ventanas expiradas descartadas al cargar
+- 12 tests · `GET /health` sin auth
 - Arrancar: `DOF_GATEWAY_KEYS=sk-dof-xxx uvicorn core.gateway.server:app --port 8080`
 
 ### DOF-Router — `ba9bf14`
@@ -41,6 +44,7 @@
 ## Commits recientes
 
 ```
+ca0bb3c  fix(gateway): persistent rate limiting via JSONL — sobrevive reinicios
 ba9bf14  feat(router): DOF-Router — intelligent agent routing with failover (13 tests)
 0c5032f  feat(gateway): DOF-MCP Gateway — HTTP bridge para mcp_server (FastAPI + auth + rate limiting)
 ```
