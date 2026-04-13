@@ -738,6 +738,9 @@ class AutonomousDaemon:
         except Exception as e:
             logger.debug(f"Self-improvement skip: {e}")
 
+        # Knowledge extraction: si el ciclo tiene aprendizaje, actualiza vault
+        self._maybe_extract_learning(cycle_result)
+
     # ═══════════════════════════════════════════════════
     # MAIN LOOP
     # ═══════════════════════════════════════════════════
@@ -832,6 +835,58 @@ class AutonomousDaemon:
             logger.info(f"\nDAEMON SUMMARY: {self.cycle_count} cycles, "
                          f"{sum(c.agents_spawned for c in self.history)} agents spawned, "
                          f"{self.total_improvements} improvements")
+
+    # ═══════════════════════════════════════════════════
+    # KNOWLEDGE EXTRACTION
+    # ═══════════════════════════════════════════════════
+
+    # Solo disparar el check en ciclos que pueden enseñar algo:
+    # errores, mejoras exitosas, órdenes ejecutadas, o cada 10 ciclos.
+    _LEARNING_STATUSES = {"error", "budget_exceeded", "success"}
+    _LEARNING_MODES    = {"improve", "build", "patrol"}
+
+    def _maybe_extract_learning(self, cycle_result: "CycleResult") -> None:
+        """
+        Decide si el ciclo actual merece extraer aprendizaje y,
+        si es así, llama a knowledge_health_check.run_check().
+
+        Criterio de disparo (OR):
+          - result_status == "error"
+          - result_status == "success" AND mode in (improve, build)
+          - cycle_count % 10 == 0  (revisión periódica)
+
+        Nunca bloquea el loop principal — todos los errores son silenciosos (DEBUG).
+        """
+        status = cycle_result.result_status
+        mode   = cycle_result.action.mode
+
+        should_run = (
+            status == "error"
+            or status == "budget_exceeded"
+            or (status == "success" and mode in self._LEARNING_MODES)
+            or (self.cycle_count % 10 == 0)
+        )
+
+        if not should_run:
+            return
+
+        try:
+            import subprocess
+            result = subprocess.run(
+                [sys.executable,
+                 os.path.join(BASE_DIR, "scripts", "knowledge_health_check.py"),
+                 "--limit", "5"],  # máx 5 bloques por ciclo — evita flooding
+                capture_output=True, text=True,
+                cwd=BASE_DIR, timeout=15,
+            )
+            if result.returncode == 0:
+                output = result.stdout.strip()
+                if output and "No hay aprendizajes nuevos" not in output:
+                    logger.info(f"[KNOWLEDGE] {output}")
+            else:
+                logger.debug(f"knowledge_health_check error: {result.stderr[:200]}")
+        except Exception as e:
+            logger.debug(f"_maybe_extract_learning skip: {e}")
 
     # ═══════════════════════════════════════════════════
     # STATUS
