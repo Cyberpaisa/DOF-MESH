@@ -196,9 +196,24 @@ def audit_contract(contrato: dict) -> AuditResult:
     valor_str = contrato.get("valor_del_contrato", "0") or "0"
     modalidad = contrato.get("modalidad_de_contratacion", "") or ""
     tipo      = contrato.get("tipo_de_contrato", "") or ""
-    contratista  = contrato.get("nombre_del_contratista", "") or ""
-    doc_contratista = contrato.get("documento_contratista", "") or ""
-    entidad   = contrato.get("nombre_de_la_entidad", "") or ""
+    # Aliases: SECOP II API usa nombres distintos según versión del endpoint
+    contratista = (
+        contrato.get("nombre_del_contratista")
+        or contrato.get("proveedor_adjudicado")
+        or contrato.get("nombre_representante_legal")
+        or ""
+    )
+    doc_contratista = (
+        contrato.get("documento_contratista")
+        or contrato.get("documento_proveedor")
+        or contrato.get("codigo_proveedor")
+        or ""
+    )
+    entidad = (
+        contrato.get("nombre_de_la_entidad")
+        or contrato.get("nombre_entidad")
+        or ""
+    )
     fecha_firma_s = contrato.get("fecha_de_firma", "") or ""
     fecha_fin_s   = contrato.get("fecha_de_fin_del_contrato", "") or ""
     contract_id   = contrato.get("id_contrato", contrato.get("referencia_del_contrato", "")) or ""

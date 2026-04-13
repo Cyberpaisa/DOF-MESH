@@ -295,7 +295,7 @@ class TestDetectAnomalies(unittest.TestCase):
 class TestFetchContracts(unittest.TestCase):
     """fetch_contracts — mock para evitar dependencia de red en tests unitarios."""
 
-    @patch("tools.secop.httpx.get")
+    @patch("tools.secop._requests.get")
     def test_fetch_con_entity_filter(self, mock_get):
         mock_response = MagicMock()
         mock_response.json.return_value = [_make_contract()]
@@ -304,12 +304,11 @@ class TestFetchContracts(unittest.TestCase):
 
         result = fetch_contracts(entity="ALCALDIA DE MEDELLIN", limit=5)
         self.assertEqual(len(result), 1)
-        # URL construida manualmente — verificar que contiene $where y la entidad
-        called_url = mock_get.call_args[0][0]
-        self.assertIn("$where", called_url)
-        self.assertIn("ALCALDIA DE MEDELLIN", called_url)
+        # entity pasa como $q en params kwargs, no en la URL
+        called_kwargs = mock_get.call_args[1]
+        self.assertIn("ALCALDIA DE MEDELLIN", called_kwargs.get("params", {}).get("$q", ""))
 
-    @patch("tools.secop.httpx.get")
+    @patch("tools.secop._requests.get")
     def test_fetch_error_retorna_lista_vacia(self, mock_get):
         mock_get.side_effect = Exception("timeout")
         result = fetch_contracts()
