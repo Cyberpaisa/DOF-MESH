@@ -6,13 +6,13 @@
 
 ### Verify. Prove. Attest. · Mathematics, not promises.
 
-**DOF-MESH v0.7.0 | 8 Chains | Enigma Group · Medellín, Colombia**
+**DOF-MESH v0.8.0 | 8 Chains | Enigma Group · Medellín, Colombia**
 
 [![PyPI](https://img.shields.io/badge/PyPI-dof--sdk-blue?style=for-the-badge&logo=pypi)](https://pypi.org/project/dof-sdk/)
 [![GitHub](https://img.shields.io/badge/GitHub-DOF--MESH-181717?style=for-the-badge&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
 [![On-Chain](https://img.shields.io/badge/Avalanche-0x0b65d10F...751c-e84142?style=for-the-badge&logo=avalanche)](https://snowtrace.io/address/0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c)
 
-[![Tests](https://img.shields.io/badge/Tests-4%2C438_passing-brightgreen?style=flat-square)]()
+[![Tests](https://img.shields.io/badge/Tests-4%2C446_passing-brightgreen?style=flat-square)]()
 [![PyPI](https://img.shields.io/pypi/v/dof-sdk?color=blue&style=flat-square)](https://pypi.org/project/dof-sdk/)
 [![Python](https://img.shields.io/badge/python-3.11+-blue?style=flat-square)](https://pypi.org/project/dof-sdk/)
 [![Modules](https://img.shields.io/badge/Modules-147-blue?style=flat-square)]()
@@ -171,7 +171,7 @@ docker-compose up -d --build
 
 ## The Numbers
 
-We wrote 4,438 tests before calling it a framework.
+We wrote 4,446 tests before calling it a framework.
 Most projects write them after something breaks.
 
 The proofs aren't in our database. They're on 8 public blockchains.
@@ -190,7 +190,7 @@ A deterministic function does. Every time. Same answer.
 
 | Metric | Value |
 |:-------|------:|
-| Unit tests | **4,438** |
+| Unit tests | **4,446** |
 | Autonomous cycles | **238+** |
 | On-chain attestations | **30+** |
 | Chains (mainnets) | **8** |
@@ -321,7 +321,7 @@ DOF-MESH/
   agents/                   # agents running on DOF (validation, not the product)
   contracts/                # DOFProofRegistry.sol (deployed on 8 chains)
   integrations/             # CrewAI, AgentKit, Virtuals, SKALE, Tempo
-  tests/                    # 4,438 unit tests
+  tests/                    # 4,446 unit tests
   docs/                     # public documentation
   logs/                     # JSONL audit trails (append-only)
   experiments/              # Winston vs baseline raw data
@@ -333,7 +333,7 @@ DOF-MESH/
 
 **@Cyber_paisa** · [Telegram](https://t.me/Cyber_paisa)
 
-**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,438 tests. 8 chains. 147 modules. Mathematics, not promises.
+**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,446 tests. 8 chains. 147 modules. Mathematics, not promises.
 
 ---
 

@@ -3,14 +3,25 @@ title: "Changelog"
 description: "Release history for DOF-MESH. All changes, features, and improvements."
 ---
 
+## v0.8.0 — April 2026
+
+### Session 8 (final) — feynman_research_crew + all flags active (Apr 12, 2026)
+
+- **FeynmanCrew** (`core/crews/feynman_crew.py`) — Feynman Research Crew; pipeline determinístico 3 pasos: extract_concepts → build_explanation → assess_confidence; log a `logs/feynman/sessions.jsonl`; 8 tests en `tests/test_feynman_crew.py`
+- **agents/feynman-researcher/SOUL.md** — método Feynman 4 pasos, governance rules, Commander+Mesh integration
+- **Todos los flags v0.8.0 activos:** `graphify_integration`, `media_generation_tool`, `semantic_boundary_check`, `feynman_research_crew` → `True`; solo `dof_leaderboard: False`
+- **Test suite:** 4,446 tests · 0 errors · 147 módulos · 33 skipped
+
+---
+
 ## v0.7.0 — April 2026
 
 ### Session 8 (cont. 5) — v0.8.0 prep: TF-IDF + MediaTool (Apr 12, 2026)
 
-- **MediaGenerationTool** (`core/tools/media_generation_tool.py`) — CrewAI tool wrapper para muapi.ai; feature-flagged (`media_generation_tool: false`); sin deps externas (urllib); 8 tests
+- **MediaGenerationTool** (`core/tools/media_generation_tool.py`) — CrewAI tool wrapper para muapi.ai; feature-flagged (`media_generation_tool: true`); sin deps externas (urllib); 8 tests
 - **Semantic avoidance upgrade** (`core/autonomous_daemon.py`) — `_cosine_similarity()` con TF-IDF; `_apply_semantic_avoidance()` usa `overlap>=2 OR cosine>=0.6`; +3 tests
 - **SystemPromptBoundary TF-IDF** (`core/governance.py`) — `_tfidf_similarity()` + segunda pasada semántica en `check_system_prompt_boundary()` gateada por `semantic_boundary_check` flag (false por defecto); 8 tests nuevos; 15 existentes sin regresión
-- **feature_flags:** `semantic_boundary_check: false` declarado para v0.8.0
+- **feature_flags:** `semantic_boundary_check: true` declarado para v0.8.0
 - **Test suite:** 4,438 tests · 0 errors · 147 módulos
 
 ### Session 8 (cont. 4) — Test suite 100% clean (Apr 12, 2026)

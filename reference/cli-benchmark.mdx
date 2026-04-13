@@ -9,7 +9,7 @@ Check all 16 components.
 
 ```bash
 dof health
-# DOF v0.6.0 — 16/16 components available
+# DOF v0.8.0 — 16/16 components available
 ```
 
 ```bash
@@ -18,7 +18,7 @@ dof --json health
 
 ```json
 {
-  "version": "0.6.0",
+  "version": "0.8.0",
   "total": 16,
   "available": 16,
   "components": {
@@ -48,10 +48,10 @@ dof --json health
 
 ```bash
 dof version
-# dof-sdk 0.6.0
+# dof-sdk 0.8.0
 
 dof --json version
-# {"version": "0.6.0", "sdk": "dof-sdk"}
+# {"version": "0.8.0", "sdk": "dof-sdk"}
 ```
 
 ---
@@ -108,7 +108,7 @@ Capture current system state as baseline for future comparisons.
 dof regression-baseline
 # Baseline captured:
 #   Z3 invariants: 4/4 PROVEN
-#   Tests:         4,438 passed
+#   Tests:         4,446 passed
 #   Timestamp:     2026-04-12T00:00:00Z
 ```
 
@@ -119,7 +119,7 @@ Compare current state against the captured baseline. Returns exit code 1 if regr
 ```bash
 dof regression-check
 # Z3 invariants: 4/4 PROVEN ✓
-# Tests:         4,438 passed ✓
+# Tests:         4,446 passed ✓
 # No regressions — exit 0
 
 # In CI:
@@ -142,7 +142,7 @@ dof regression-history
 from dof.quick import health
 
 result = health()
-print(result["version"])    # "0.6.0"
+print(result["version"])    # "0.8.0"
 print(result["total"])      # 16
 print(result["available"])  # 16
 ```
