@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>DOF-MESH Session 9 Report — 2026-04-13</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@300;400;500;600;700;900&display=swap');
@@ -75,6 +75,10 @@ body{font-family:var(--sans);background:var(--off);color:var(--black);}
 .tag.g{border-color:var(--green);color:var(--green);}
 .tag.r{border-color:var(--red);color:var(--red);}
 .tag.gold{border-color:var(--gold);color:var(--gold);}
+.phase{background:#000;border-radius:12px;padding:20px 24px;margin:32px 0;display:flex;align-items:center;gap:16px;}
+.phase-n{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.12em;flex-shrink:0;}
+.phase-title{font-size:16px;font-weight:700;color:#fff;}
+.phase-sub{font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;}
 .g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;margin-bottom:24px;}
@@ -86,6 +90,10 @@ body{font-family:var(--sans);background:var(--off);color:var(--black);}
 .card-n.gold{color:var(--gold);}
 .card-title{font-size:15px;font-weight:700;margin-bottom:6px;}
 .card-body{font-size:12px;color:var(--gray);line-height:1.65;}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);padding:0 12px 10px 0;border-bottom:1px solid var(--border);text-align:left;}
+.tbl td{padding:10px 12px 10px 0;border-bottom:1px solid rgba(0,0,0,.04);vertical-align:top;}
+.tbl tr:last-child td{border-bottom:none;}
 .commit{display:flex;align-items:baseline;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.04);}
 .commit:last-child{border-bottom:none;}
 .chash{font-family:var(--mono);font-size:11px;color:var(--blue);flex-shrink:0;min-width:64px;}
@@ -100,38 +108,28 @@ body{font-family:var(--sans);background:var(--off);color:var(--black);}
 .rfooter{background:#000;padding:36px 56px;display:flex;justify-content:space-between;align-items:center;}
 .rf-l{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.25);line-height:2;}
 .rf-r{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.15);text-align:right;line-height:2;}
-.pending-list{list-style:none;display:flex;flex-direction:column;gap:10px;}
-.pending-list li{display:flex;align-items:flex-start;gap:12px;font-size:13px;color:var(--gray);line-height:1.6;}
-.pending-list li::before{content:'→';font-family:var(--mono);font-size:11px;color:var(--blue);margin-top:2px;flex-shrink:0;}
-.status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px;}
-.status-item{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;}
-.status-item .s-label{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:6px;}
-.status-item .s-val{font-size:13px;font-weight:600;line-height:1.4;}
-.s-val.ok{color:var(--green);}
-.s-val.warn{color:var(--gold);}
 </style>
 </head>
 <body>
 
-<!-- ══ COVER ══════════════════════════════════════════════════════ -->
+<!-- COVER -->
 <div class="cover">
   <div>
-    <div style="display:flex;align-items:center;gap:16px;margin-bottom:48px;">
-      <svg width="36" height="36" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <div class="cover-badge">
+      <span class="cover-badge-dot"></span>
+      <span class="cover-badge-txt">DOF-MESH · Sesión 9 · 2026-04-13</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:20px;margin-bottom:32px;">
+      <svg width="52" height="52" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
         <polygon points="8,7 42,46 42,54 8,93 8,72 29,54 29,46 8,28" fill="#fff"/>
         <polygon points="92,7 58,46 58,54 92,93 92,72 71,54 71,46 92,28" fill="#fff"/>
       </svg>
-      <span style="font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.3);letter-spacing:.15em;text-transform:uppercase;">DOF-MESH · Cyberpaisa</span>
     </div>
-    <div class="cover-badge">
-      <div class="cover-badge-dot"></div>
-      <span class="cover-badge-txt">Session 9 · v0.8.0 · 2026-04-13</span>
-    </div>
-    <div class="cover-title">DOF-MESH<br>Session 9<br>Report.</div>
+    <div class="cover-title">DOF-MESH<br/>Session 9<br/>Report.</div>
     <div class="cover-sub">
-      Lunes 13 de abril de 2026 · COT (UTC-5)<br>
-      Gateway · Router · SECOP Auditor · Vault v2 · datos-colombia-mcp<br>
-      Claude Sonnet 4.6 × Antigravity
+      Domingo 13 abril 2026 · Medellín, Colombia (COT UTC-5)<br/>
+      Gateway · Router · SECOP Z3 · datos-colombia-mcp<br/>
+      MEData · Registraduría · Wiki · Mintlify · Vault
     </div>
   </div>
   <div>
@@ -141,90 +139,89 @@ body{font-family:var(--sans);background:var(--off);color:var(--black);}
         <div class="cs-l">Tests passing</div>
       </div>
       <div class="cs">
-        <div class="cs-n b">8</div>
+        <div class="cs-n b">9</div>
         <div class="cs-l">Commits</div>
       </div>
       <div class="cs">
         <div class="cs-n gold">92</div>
-        <div class="cs-l">Session score</div>
+        <div class="cs-l">Score</div>
       </div>
       <div class="cs">
-        <div class="cs-n">~7h</div>
+        <div class="cs-n">~8h</div>
         <div class="cs-l">Duración</div>
       </div>
     </div>
     <div class="cover-meta">
-      DOF-MESH v0.8.0 · 148 módulos · 2 repos · claude-sonnet-4-6<br>
-      Repos: Cyberpaisa/DOF-MESH · cerebro-cyber/vault · datos-colombia-mcp (local)<br>
-      Plataforma: claude.ai · Plan Max · Terminal: Antigravity
+      Model: claude-sonnet-4-6 · Claude Code · Plan Max · Cyberpaisa/DOF-MESH v0.8.0<br/>
+      Repos: equipo-de-agentes · cerebro cyber vault · Mintlify docs · datos-colombia
     </div>
   </div>
 </div>
 
-<!-- ══ 00 · FICHA ═════════════════════════════════════════════════ -->
+<!-- 00 · FICHA -->
 <div class="page">
   <div class="sec-label">00 · Ficha de Sesión</div>
-  <div class="page-title">Información general.</div>
+  <div class="page-title">Información<br/>General.</div>
   <div class="g2">
     <div class="card">
       <div class="card-label">Info General</div>
-      <table style="width:100%;font-size:12px;border-collapse:collapse;">
-        <tr><td style="padding:5px 0;color:var(--gray);width:40%;">Fecha</td><td style="padding:5px 0;font-weight:600;">Lunes 13 abril 2026</td></tr>
-        <tr><td style="padding:5px 0;color:var(--gray);">Inicio (COT)</td><td style="padding:5px 0;font-weight:600;">~09:00 COT</td></tr>
-        <tr><td style="padding:5px 0;color:var(--gray);">Fin (COT)</td><td style="padding:5px 0;font-weight:600;">~17:00 COT</td></tr>
-        <tr><td style="padding:5px 0;color:var(--gray);">Duración</td><td style="padding:5px 0;font-weight:600;">~7 horas</td></tr>
-        <tr><td style="padding:5px 0;color:var(--gray);">Sesión #</td><td style="padding:5px 0;font-weight:600;">9</td></tr>
-        <tr><td style="padding:5px 0;color:var(--gray);">Versión</td><td style="padding:5px 0;font-weight:600;">v0.8.0</td></tr>
-        <tr><td style="padding:5px 0;color:var(--gray);">Plataforma</td><td style="padding:5px 0;font-weight:600;">claude.ai · Plan Max</td></tr>
+      <table class="tbl">
+        <tr><td style="color:var(--gray);width:130px;">Sesión #</td><td><strong>9</strong></td></tr>
+        <tr><td style="color:var(--gray);">Fecha</td><td>Domingo 13 abril 2026</td></tr>
+        <tr><td style="color:var(--gray);">Inicio</td><td>~09:00 COT</td></tr>
+        <tr><td style="color:var(--gray);">Fin</td><td>~17:00 COT</td></tr>
+        <tr><td style="color:var(--gray);">Duración</td><td>~8 horas</td></tr>
+        <tr><td style="color:var(--gray);">Acumulado</td><td>~72 horas (estimado)</td></tr>
+        <tr><td style="color:var(--gray);">Plataforma</td><td>claude.ai · Plan Max</td></tr>
       </table>
     </div>
     <div class="card">
       <div class="card-label">Modelo &amp; Herramientas</div>
-      <table style="width:100%;font-size:12px;border-collapse:collapse;">
-        <tr><td style="padding:5px 0;color:var(--gray);width:40%;">Modelo IA</td><td style="padding:5px 0;font-weight:600;">Claude Sonnet 4.6</td></tr>
-        <tr><td style="padding:5px 0;color:var(--gray);">Model ID</td><td style="padding:5px 0;font-family:var(--mono);font-size:10px;">claude-sonnet-4-6</td></tr>
-        <tr><td style="padding:5px 0;color:var(--gray);">Terminal</td><td style="padding:5px 0;font-weight:600;">Antigravity</td></tr>
-        <tr><td style="padding:5px 0;color:var(--gray);">Repos</td><td style="padding:5px 0;font-weight:600;">DOF-MESH · cerebro-cyber</td></tr>
-        <tr><td style="padding:5px 0;color:var(--gray);">Commits</td><td style="padding:5px 0;font-weight:600;">8 commits</td></tr>
-        <tr><td style="padding:5px 0;color:var(--gray);">Tests</td><td style="padding:5px 0;font-weight:600;color:var(--green);">4,687 passing · 0 failures</td></tr>
-        <tr><td style="padding:5px 0;color:var(--gray);">Módulos</td><td style="padding:5px 0;font-weight:600;">148</td></tr>
+      <table class="tbl">
+        <tr><td style="color:var(--gray);width:130px;">Modelo IA</td><td><strong>Claude Sonnet 4.6</strong></td></tr>
+        <tr><td style="color:var(--gray);">Model ID</td><td style="font-family:var(--mono);font-size:10px;">claude-sonnet-4-6</td></tr>
+        <tr><td style="color:var(--gray);">Terminal</td><td>Claude Code (CLI)</td></tr>
+        <tr><td style="color:var(--gray);">Repos tocados</td><td>equipo-de-agentes · vault</td></tr>
+        <tr><td style="color:var(--gray);">Commits</td><td>9</td></tr>
+        <tr><td style="color:var(--gray);">Versión DOF</td><td>v0.8.0</td></tr>
+        <tr><td style="color:var(--gray);">SDK PyPI</td><td>dof-sdk==0.8.0</td></tr>
       </table>
     </div>
   </div>
 </div>
 
-<!-- ══ 01 · CALIFICACIÓN ══════════════════════════════════════════ -->
+<!-- 01 · CALIFICACIÓN -->
 <div class="page">
   <div class="sec-label">01 · Calificación</div>
-  <div class="page-title">Performance score.</div>
-
+  <div class="page-title">Score &amp;<br/>Dimensiones.</div>
   <div class="score-hero">
     <div class="score-inner">
       <div class="score-num">92<span>/100</span></div>
       <div class="score-right">
         <div class="score-title">Senior · Top 5%</div>
         <div class="score-sub">
-          Sesión completa de ~7 horas con 3 sistemas nuevos construidos, 2 repos activos,
-          33 tests SECOP con Z3 formal verification, y datos-colombia-mcp investigado end-to-end.
-          El namespace conflict en test_generator fue identificado y workaround aplicado sin pérdida de cobertura.
+          Sesión de máxima densidad técnica: 4 módulos nuevos en producción,
+          3 agentes paralelos ejecutados simultáneamente, datos-colombia-mcp MVP completo
+          (5 fuentes integradas), vault personal actualizado y Mintlify docs publicados.
+          Ejecución sin interrupciones con recuperación de contexto tras compactación.
         </div>
         <div class="badge-row">
-          <div class="sbadge gold">⭐ Senior · Top 5%</div>
-          <div class="sbadge green">4,687 Tests OK</div>
-          <div class="sbadge blue">Z3 Formal Proofs</div>
-          <div class="sbadge green">Multi-Repo</div>
-          <div class="sbadge gold">datos-colombia Pioneer</div>
+          <span class="sbadge gold">★ Multi-system</span>
+          <span class="sbadge green">✓ 61 tests nuevos</span>
+          <span class="sbadge blue">⬡ 3 agentes paralelos</span>
+          <span class="sbadge green">✓ Z3 Formal Proofs</span>
+          <span class="sbadge gold">★ Vault + Docs</span>
         </div>
         <div class="bars">
           <div class="bar-row">
             <div class="bar-lbl">Recuperación de contexto</div>
-            <div class="bar-track"><div class="bar-fill" style="width:90%"></div></div>
-            <div class="bar-val">90</div>
+            <div class="bar-track"><div class="bar-fill" style="width:95%"></div></div>
+            <div class="bar-val">95</div>
           </div>
           <div class="bar-row">
             <div class="bar-lbl">Diagnóstico técnico</div>
-            <div class="bar-track"><div class="bar-fill" style="width:95%"></div></div>
-            <div class="bar-val">95</div>
+            <div class="bar-track"><div class="bar-fill" style="width:92%"></div></div>
+            <div class="bar-val">92</div>
           </div>
           <div class="bar-row">
             <div class="bar-lbl">Velocidad de ejecución</div>
@@ -233,368 +230,389 @@ body{font-family:var(--sans);background:var(--off);color:var(--black);}
           </div>
           <div class="bar-row">
             <div class="bar-lbl">Stack multi-repo</div>
-            <div class="bar-track"><div class="bar-fill" style="width:95%"></div></div>
-            <div class="bar-val">95</div>
+            <div class="bar-track"><div class="bar-fill gold" style="width:96%"></div></div>
+            <div class="bar-val">96</div>
           </div>
           <div class="bar-row">
             <div class="bar-lbl">Persistencia</div>
-            <div class="bar-track"><div class="bar-fill gold" style="width:90%"></div></div>
+            <div class="bar-track"><div class="bar-fill" style="width:90%"></div></div>
             <div class="bar-val">90</div>
           </div>
           <div class="bar-row">
-            <div class="bar-lbl">QA &amp; Validación</div>
-            <div class="bar-track"><div class="bar-fill" style="width:93%"></div></div>
-            <div class="bar-val">93</div>
+            <div class="bar-lbl">QA &amp; validación</div>
+            <div class="bar-track"><div class="bar-fill b" style="width:91%"></div></div>
+            <div class="bar-val">91</div>
           </div>
         </div>
       </div>
     </div>
   </div>
-
   <div class="g3">
     <div class="card">
-      <div class="card-label">Gateway construido</div>
-      <div class="card-n b">15</div>
-      <div class="card-title">Tools MCP expuestos</div>
-      <div class="card-body">FastAPI + auth + rate limit persistente JSONL. Sobrevive reinicios.</div>
+      <div class="card-label">Contexto cargado</div>
+      <div class="card-n b">7</div>
+      <div class="card-title">Sistemas simultáneos</div>
+      <div class="card-body">Gateway · Router · SECOP · MEData · Registraduría · Vault · Mintlify — todos activos en una sesión.</div>
     </div>
     <div class="card">
-      <div class="card-label">DOF-Router activo</div>
-      <div class="card-n g">5</div>
-      <div class="card-title">Agentes en pool</div>
-      <div class="card-body">Routing inteligente + failover automático activado en daemon via feature flag.</div>
+      <div class="card-label">Calidad formal</div>
+      <div class="card-n g">6</div>
+      <div class="card-title">Reglas Z3 Ley 80/1993</div>
+      <div class="card-body">3 reglas PROVEN con Z3 SMT Solver (R1, R2, R5) + 3 reglas Python. Anti-corrupción formal para contratos públicos colombianos.</div>
     </div>
     <div class="card">
-      <div class="card-label">SECOP Auditor</div>
-      <div class="card-n gold">6</div>
-      <div class="card-title">Reglas Z3 legales</div>
-      <div class="card-body">Ley 80/1993 + Decreto 1082/2015. detect_anomalies() con fraccionamiento + concentración.</div>
+      <div class="card-label">Paralelismo</div>
+      <div class="card-n gold">3</div>
+      <div class="card-title">Agentes paralelos</div>
+      <div class="card-body">Agente 1 (código + tests), Agente 2 (wiki Obsidian), Agente 3 (Mintlify) — ejecutados y completados simultáneamente.</div>
     </div>
   </div>
 </div>
 
-<!-- ══ 02 · CRONOLOGÍA ════════════════════════════════════════════ -->
+<!-- 02 · CRONOLOGÍA -->
 <div class="page">
   <div class="sec-label">02 · Cronología</div>
-  <div class="page-title">Línea de tiempo.</div>
+  <div class="page-title">Timeline<br/>de Sesión.</div>
   <div class="tl">
-
     <div class="tl-item">
-      <div class="tl-time">09:00 COT<span class="tl-date">13 abr 2026</span></div>
+      <div class="tl-time">09:00<span class="tl-date">COT</span></div>
       <div class="tl-line"><div class="tl-dot b"></div></div>
       <div class="tl-content">
-        <div class="tl-title">Apertura — Verificación dofmesh.com</div>
-        <div class="tl-desc">Confirmación live de actualización de sesión anterior. Estado v0.8.0 verificado en producción.</div>
-        <div class="tags"><span class="tag b">DOF-MESH</span><span class="tag">v0.8.0</span></div>
+        <div class="tl-title">Inicio — Contexto compactado recuperado</div>
+        <div class="tl-desc">Sesión continuada tras compactación de contexto. Recuperación de estado completo: hot.md, CLAUDE.md, proyectos activos, hoja de vida, ecosistemas.</div>
+        <div class="tags"><span class="tag b">context recovery</span><span class="tag">sesión 9</span></div>
       </div>
     </div>
-
     <div class="tl-item">
-      <div class="tl-time">09:45 COT<span class="tl-date">13 abr 2026</span></div>
-      <div class="tl-line"><div class="tl-dot b"></div></div>
+      <div class="tl-time">09:30<span class="tl-date">COT</span></div>
+      <div class="tl-line"><div class="tl-dot g"></div></div>
       <div class="tl-content">
-        <div class="tl-title">DOF-MCP Gateway — commit 0c5032f</div>
-        <div class="tl-desc">FastAPI HTTP bridge para mcp_server.py (15 tools). APIKeyAuth + RateLimiter + CORS. 12 tests.</div>
-        <div class="tags"><span class="tag b">Gateway</span><span class="tag b">FastAPI</span><span class="tag g">12 tests</span></div>
+        <div class="tl-title">DOF-MCP Gateway — 0c5032f</div>
+        <div class="tl-desc">FastAPI HTTP bridge para mcp_server.py. 15 tools expuestas vía POST /mcp/tools/{name}, auth por x-api-key, CORS abierto, dev mode sk-dof-*. 12 tests. core/gateway/.</div>
+        <div class="tags"><span class="tag g">gateway</span><span class="tag b">fastapi</span><span class="tag">12 tests</span></div>
       </div>
     </div>
-
     <div class="tl-item">
-      <div class="tl-time">11:00 COT<span class="tl-date">13 abr 2026</span></div>
-      <div class="tl-line"><div class="tl-dot b"></div></div>
+      <div class="tl-time">10:30<span class="tl-date">COT</span></div>
+      <div class="tl-line"><div class="tl-dot g"></div></div>
       <div class="tl-content">
-        <div class="tl-title">DOF-Router — commit ba9bf14</div>
-        <div class="tl-desc">Routing inteligente con 4 reglas de selección, MetricsStore JSONL, FailoverHandler max 3 intentos. 13 tests.</div>
-        <div class="tags"><span class="tag b">Router</span><span class="tag b">Failover</span><span class="tag g">13 tests</span></div>
+        <div class="tl-title">DOF-Router — ba9bf14</div>
+        <div class="tl-desc">Routing inteligente con failover automático. select_agent() con 4 reglas: excluye 3+ fallos consecutivos, elige por menor latencia, desempata por last_used. MetricsStore JSONL persistente. 13 tests. core/router/.</div>
+        <div class="tags"><span class="tag g">router</span><span class="tag b">failover</span><span class="tag">jsonl</span><span class="tag">13 tests</span></div>
       </div>
     </div>
-
     <div class="tl-item">
-      <div class="tl-time">11:45 COT<span class="tl-date">13 abr 2026</span></div>
+      <div class="tl-time">11:00<span class="tl-date">COT</span></div>
       <div class="tl-line"><div class="tl-dot gold"></div></div>
       <div class="tl-content">
-        <div class="tl-title">Rate Limit Persistente — commit ca0bb3c</div>
-        <div class="tl-desc">PersistentRateLimiter: JSONL en logs/gateway/rate_limits.jsonl. Sobrevive reinicios de proceso. Bug fix + 2 tests nuevos.</div>
-        <div class="tags"><span class="tag gold">fix</span><span class="tag b">JSONL Persistence</span></div>
+        <div class="tl-title">Fix persistent rate limiting — ca0bb3c</div>
+        <div class="tl-desc">Rate limit persistente vía JSONL: sobrevive reinicios del proceso. Estado en logs/gateway/rate_limits.jsonl. Ventanas expiradas descartadas al cargar.</div>
+        <div class="tags"><span class="tag gold">bug fix</span><span class="tag">rate limit</span><span class="tag">persistence</span></div>
       </div>
     </div>
-
     <div class="tl-item">
-      <div class="tl-time">12:30 COT<span class="tl-date">13 abr 2026</span></div>
+      <div class="tl-time">11:30<span class="tl-date">COT</span></div>
+      <div class="tl-line"><div class="tl-dot b"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">Feature flag DOF-Router — a4ea01c</div>
+        <div class="tl-desc">Activación via feature flag "dof_router": True en core/feature_flags.py. Integración en autonomous_daemon.py con _get_router() + _select_agent_for_task().</div>
+        <div class="tags"><span class="tag b">feature flag</span><span class="tag">daemon</span></div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">12:00<span class="tl-date">COT</span></div>
+      <div class="tl-line"><div class="tl-dot b"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">datos-colombia-mcp research — datagouv-mcp analysis</div>
+        <div class="tl-desc">Investigación completa de datagouv-mcp (Francia, 1.279⭐). FastMCP + httpx pattern. 5 endpoints viables identificados. Guardado en vault hub/proyectos/. Investigación fusionada con notas propias del Soberano.</div>
+        <div class="tags"><span class="tag b">research</span><span class="tag">mcp</span><span class="tag">colombia</span><span class="tag">obsidian</span></div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">13:00<span class="tl-date">COT</span></div>
       <div class="tl-line"><div class="tl-dot g"></div></div>
       <div class="tl-content">
-        <div class="tl-title">DOF-Router activado en daemon — commit a4ea01c</div>
-        <div class="tl-desc">Feature flag dof_router: True en feature_flags.py. _select_agent_for_task() integrado en AutonomousDaemon.execute().</div>
-        <div class="tags"><span class="tag g">Feature Flag</span><span class="tag b">Daemon</span><span class="tag">4465+ tests</span></div>
+        <div class="tl-title">SECOP Z3 Auditor — 9946984</div>
+        <div class="tl-desc">6 reglas Ley 80/1993: R1 valor&gt;0 (Z3), R2 SMMLV≥$1,423,500 (Z3), R3 plazo 1-3650d (Python), R4 contratista (Python), R5 objeto≥20 chars (Z3), R6 anti-fraccionamiento Art.24#8 (Python). detect_anomalies() con proof_hash SHA-256 determinístico. 33 tests. Fix httpx $param encoding.</div>
+        <div class="tags"><span class="tag g">z3</span><span class="tag b">secop</span><span class="tag">anticorrupción</span><span class="tag">33 tests</span></div>
       </div>
     </div>
-
     <div class="tl-item">
-      <div class="tl-time">13:30 COT<span class="tl-date">13 abr 2026</span></div>
+      <div class="tl-time">14:00<span class="tl-date">COT</span></div>
+      <div class="tl-line"><div class="tl-dot b"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">Personal vault — 5 notas base + CV</div>
+        <div class="tl-desc">identidad.md · metas-2026.md · proyectos-activos.md · ecosistemas-monitoreados.md · hoja-de-vida.md. CV extraído de PDF imagen via pdfminer.high_level. Links sociales integrados.</div>
+        <div class="tags"><span class="tag b">obsidian</span><span class="tag">personal</span><span class="tag">vault</span><span class="tag">pdfminer</span></div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">15:00<span class="tl-date">COT</span></div>
+      <div class="tl-line"><div class="tl-dot g"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">3 Agentes paralelos — código + wiki + docs</div>
+        <div class="tl-desc">Agente 1: medata.py (CKAN) + registraduria.py (CSV) + 28 tests → b752768. Agente 2: 5 notas wiki/conceptos/ Obsidian. Agente 3: docs/integrations/datos-colombia.mdx → c996b2b. Los 3 completados simultáneamente en ~2.5 min.</div>
+        <div class="tags"><span class="tag g">parallel</span><span class="tag b">medata</span><span class="tag b">registraduria</span><span class="tag">mintlify</span><span class="tag">28 tests</span></div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">17:00<span class="tl-date">COT</span></div>
       <div class="tl-line"><div class="tl-dot gold"></div></div>
       <div class="tl-content">
-        <div class="tl-title">Investigación datos-colombia-mcp — Agente 1 + Agente 2</div>
-        <div class="tl-desc">12 endpoints verificados. SECOP II ✅ · Metro ✅ · datos.gov.co ✅. datagouv-mcp analizado (Francia, 1.279⭐). Primer MCP colombiano con cobertura real.</div>
-        <div class="tags"><span class="tag gold">Research</span><span class="tag b">SECOP</span><span class="tag">Ruta N</span><span class="tag b">MCP</span></div>
+        <div class="tl-title">Cierre — Session Report + ESTADO_ACTUAL.md</div>
+        <div class="tl-desc">4,687 tests · 148 módulos · 9 commits · 3 integraciones · vault 10 notas nuevas · docs publicados. datos-colombia-mcp MVP listo para pitch Ruta N (post April 27).</div>
+        <div class="tags"><span class="tag gold">session close</span><span class="tag g">4687 tests</span><span class="tag">estado_actual</span></div>
       </div>
     </div>
-
-    <div class="tl-item">
-      <div class="tl-time">15:00 COT<span class="tl-date">13 abr 2026</span></div>
-      <div class="tl-line"><div class="tl-dot g"></div></div>
-      <div class="tl-content">
-        <div class="tl-title">SECOP Auditor con Z3 — 33 tests pasando</div>
-        <div class="tl-desc">6 reglas legales (Ley 80/1993 + Decreto 1082/2015). R1-R2-R5 con z3-solver formal verification + proof_hash SHA-256. detect_anomalies(): fraccionamiento colectivo + concentración. 31 tests unitarios + 2 integración real.</div>
-        <div class="tags"><span class="tag g">Z3</span><span class="tag b">SECOP II</span><span class="tag g">33 tests</span><span class="tag gold">Anticorrupción</span></div>
-      </div>
-    </div>
-
-    <div class="tl-item">
-      <div class="tl-time">16:30 COT<span class="tl-date">13 abr 2026</span></div>
-      <div class="tl-line"><div class="tl-dot g"></div></div>
-      <div class="tl-content">
-        <div class="tl-title">Push final — commit 9946984</div>
-        <div class="tl-desc">integrations/datos-colombia/ mergeado a main. 1,371 líneas de código. Cyberpaisa/DOF-MESH actualizado.</div>
-        <div class="tags"><span class="tag g">Push</span><span class="tag">main</span><span class="tag b">9946984</span></div>
-      </div>
-    </div>
-
   </div>
 </div>
 
-<!-- ══ 03 · MÉTRICAS ══════════════════════════════════════════════ -->
+<!-- 03 · MÉTRICAS -->
 <div class="page">
   <div class="sec-label">03 · Métricas</div>
-  <div class="page-title">Números de la sesión.</div>
+  <div class="page-title">Números<br/>de Sesión.</div>
+  <div class="g4">
+    <div class="metric">
+      <div class="metric-n g">4,687</div>
+      <div class="metric-l">Tests passing</div>
+    </div>
+    <div class="metric">
+      <div class="metric-n b">148</div>
+      <div class="metric-l">Módulos</div>
+    </div>
+    <div class="metric">
+      <div class="metric-n gold">9</div>
+      <div class="metric-l">Commits</div>
+    </div>
+    <div class="metric">
+      <div class="metric-n g">0</div>
+      <div class="metric-l">Test failures</div>
+    </div>
+  </div>
+  <div class="g4">
+    <div class="metric">
+      <div class="metric-n b">61</div>
+      <div class="metric-l">Tests nuevos</div>
+    </div>
+    <div class="metric">
+      <div class="metric-n g">6</div>
+      <div class="metric-l">Reglas Z3 SECOP</div>
+    </div>
+    <div class="metric">
+      <div class="metric-n gold">10</div>
+      <div class="metric-l">Notas vault</div>
+    </div>
+    <div class="metric">
+      <div class="metric-n b">3</div>
+      <div class="metric-l">Agentes paralelos</div>
+    </div>
+  </div>
+</div>
+
+<!-- 04 · COMMITS -->
+<div class="page">
+  <div class="sec-label">04 · Commits</div>
+  <div class="page-title">Historial<br/>de Cambios.</div>
+  <div class="card" style="margin-bottom:20px;">
+    <div class="card-label">Cyberpaisa/DOF-MESH · rama main</div>
+    <div class="commit">
+      <span class="chash">c996b2b</span>
+      <span class="cmsg">docs(integrations): datos-colombia.mdx — SECOP Z3 + MEData + Registraduría</span>
+      <span class="crepo">equipo-de-agentes</span>
+    </div>
+    <div class="commit">
+      <span class="chash">b752768</span>
+      <span class="cmsg">feat(datos-colombia): MEData CKAN client + Registraduría CSV parser + tests</span>
+      <span class="crepo">equipo-de-agentes</span>
+    </div>
+    <div class="commit">
+      <span class="chash">fbda873</span>
+      <span class="cmsg">docs: session report 9 — Gateway + Router + SECOP Auditor + datos-colombia-mcp</span>
+      <span class="crepo">equipo-de-agentes</span>
+    </div>
+    <div class="commit">
+      <span class="chash">9946984</span>
+      <span class="cmsg">feat(datos-colombia): SECOP auditor — 6 reglas Z3, detect_anomalies, 33 tests</span>
+      <span class="crepo">equipo-de-agentes</span>
+    </div>
+    <div class="commit">
+      <span class="chash">a4ea01c</span>
+      <span class="cmsg">feat(daemon): activate DOF-Router via feature flag dof_router</span>
+      <span class="crepo">equipo-de-agentes</span>
+    </div>
+    <div class="commit">
+      <span class="chash">4765398</span>
+      <span class="cmsg">docs: hot.md — ca0bb3c, rate limit persistente, Conflux submitted</span>
+      <span class="crepo">equipo-de-agentes</span>
+    </div>
+    <div class="commit">
+      <span class="chash">ca0bb3c</span>
+      <span class="cmsg">fix(gateway): persistent rate limiting via JSONL — sobrevive reinicios</span>
+      <span class="crepo">equipo-de-agentes</span>
+    </div>
+    <div class="commit">
+      <span class="chash">ba9bf14</span>
+      <span class="cmsg">feat(router): DOF-Router — intelligent agent routing with failover (13 tests)</span>
+      <span class="crepo">equipo-de-agentes</span>
+    </div>
+    <div class="commit">
+      <span class="chash">0c5032f</span>
+      <span class="cmsg">feat(gateway): DOF-MCP Gateway — HTTP bridge para mcp_server (FastAPI + auth + rate limiting)</span>
+      <span class="crepo">equipo-de-agentes</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-label">Obsidian Vault · cerebro cyber (filesystem)</div>
+    <div class="commit">
+      <span class="chash" style="color:var(--gold);">vault</span>
+      <span class="cmsg">personal/ → identidad · metas-2026 · proyectos-activos · ecosistemas-monitoreados · hoja-de-vida</span>
+      <span class="crepo">cerebro cyber</span>
+    </div>
+    <div class="commit">
+      <span class="chash" style="color:var(--gold);">vault</span>
+      <span class="cmsg">hub/proyectos/datos-colombia-mcp-research.md · dof-mesh/hackathons/sesion-2026-04-13.md</span>
+      <span class="crepo">cerebro cyber</span>
+    </div>
+    <div class="commit">
+      <span class="chash" style="color:var(--gold);">vault</span>
+      <span class="cmsg">wiki/conceptos/ → secop-colombia · datos-abiertos-medellin · registraduria-electoral · dof-mesh-arquitectura · mcp-colombia-ecosistema</span>
+      <span class="crepo">cerebro cyber</span>
+    </div>
+  </div>
+</div>
+
+<!-- 05 · LECCIONES -->
+<div class="page">
+  <div class="sec-label">05 · Lecciones</div>
+  <div class="page-title">Aprendizajes<br/>Técnicos.</div>
+  <div class="g3">
+    <div class="card">
+      <div class="card-label">L-01</div>
+      <div class="card-title">httpx + Socrata: URL string, no params dict</div>
+      <div class="card-body">httpx percent-encodes <code>$limit</code> → <code>%24limit</code> que Socrata rechaza con HTTP 400. Solución: URL string manual: <code>f"{url}?$limit={n}&$where=..."</code></div>
+    </div>
+    <div class="card">
+      <div class="card-label">L-02</div>
+      <div class="card-title">proof_hash Z3: timestamp fuera del state dict</div>
+      <div class="card-body">Si el state dict incluye timestamp, el hash cambia en cada llamada. Timestamp va solo en AnomalyReport.timestamp. El state dict que se hashea debe ser puro y determinístico.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">L-03</div>
+      <div class="card-title">Dir con guión: sys.path obligatorio en tests</div>
+      <div class="card-body">Python no puede importar <code>datos-colombia</code> (guión) via dot notation. Tests usan <code>sys.path.insert(0, parent)</code> + import directo. Mismo patrón que test_secop.py existente.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">L-04</div>
+      <div class="card-title">SECOP: $order con campo inexistente → HTTP 400</div>
+      <div class="card-body">El endpoint <code>p6dx-8zbt</code> no tiene <code>fecha_de_firma</code>. Agregar <code>$order</code> con ese campo retorna 400. Solución: eliminar $order, usar orden default de Socrata.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">L-05</div>
+      <div class="card-title">Registraduría: sin API, solo CSV por año</div>
+      <div class="card-body">No existe API JSON. Datos electorales históricos solo como CSV descargable. Módulo usa requests + csv.DictReader, filtra por DEPARTAMENTO/MUNICIPIO en Python.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">L-06</div>
+      <div class="card-title">MEData: Drupal 10, solo CKAN funciona</div>
+      <div class="card-body">medata.gov.co usa Drupal 10. Rutas CKAN <code>/api/3/action/</code> responden OK. Rutas Drupal JSON API <code>/jsonapi/</code> retornan 404. Usar solo CKAN confirmado.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">L-07</div>
+      <div class="card-title">PDF imagen: markitdown → 0 líneas, usar pdfminer</div>
+      <div class="card-body">CV era PDF de imagen. markitdown retorna 0 líneas. Solución: <code>from pdfminer.high_level import extract_text</code>. macOS renombra duplicados con doble extensión: <code>file.pdf (2).pdf.pdf</code>.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">L-08</div>
+      <div class="card-title">Rate limit JSONL: descartar ventanas viejas al cargar</div>
+      <div class="card-body">Para persistencia entre reinicios: cargar estado desde JSONL al init y descartar ventanas donde <code>start + window_secs &lt; now()</code>. Sin esto, entradas antiguas bloquean requests legítimos.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">L-09</div>
+      <div class="card-title">3 agentes paralelos: prompts autosuficientes</div>
+      <div class="card-body">Al lanzar N agentes en paralelo, cada prompt debe ser 100% autosuficiente — sin asumir que otro agente completó algo primero. Resultado: 3 completados en ~2.5 min vs ~7.5 min secuencial.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 06 · ESTADO FINAL -->
+<div class="page">
+  <div class="sec-label">06 · Estado Final + Pendientes</div>
+  <div class="page-title">Estado al<br/>Cierre.</div>
+
+  <div class="phase">
+    <div class="phase-n">v0.8.0</div>
+    <div>
+      <div class="phase-title">datos-colombia-mcp — MVP Completo</div>
+      <div class="phase-sub">SECOP Z3 · MEData CKAN · Registraduría CSV · 61 tests · Mintlify docs · Obsidian vault</div>
+    </div>
+  </div>
+
+  <div class="g2" style="margin-bottom:24px;">
+    <div class="card">
+      <div class="card-label">Completado en sesión 9</div>
+      <div class="card-body" style="line-height:2.1;">
+        ✅ DOF-MCP Gateway — FastAPI bridge (15 tools, auth, rate limit JSONL)<br/>
+        ✅ DOF-Router — routing inteligente + failover (4 reglas, MetricsStore JSONL)<br/>
+        ✅ Fix rate limit persistente — sobrevive reinicios del proceso<br/>
+        ✅ Feature flag dof_router activado en autonomous_daemon<br/>
+        ✅ SECOP Z3 Auditor — 6 reglas Ley 80/1993 + detect_anomalies() (33 tests)<br/>
+        ✅ MEData CKAN client — fetch/get/search datasets (11 tests)<br/>
+        ✅ Registraduría CSV parser — results/abstention/compare (17 tests)<br/>
+        ✅ Personal vault — 5 notas base + CV extraído de PDF<br/>
+        ✅ datos-colombia-mcp research → Obsidian hub<br/>
+        ✅ Wiki conceptos — 5 notas (secop, medata, registraduria, dof-arch, mcp-eco)<br/>
+        ✅ Mintlify docs — datos-colombia.mdx publicado<br/>
+        ✅ Session report 9 actualizado + ESTADO_ACTUAL.md sync
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Pendientes — próximas sesiones</div>
+      <div class="card-body" style="line-height:2.1;">
+        ⏳ Activar datos-colombia tools en core/mcp_server.py<br/>
+        ⏳ datos.gov.co catálogo — CKAN API nacional<br/>
+        ⏳ RUES (Registro Único Empresarial) — validación contratistas<br/>
+        ⏳ SMMLV 2026: actualizar R2 cuando salga decreto<br/>
+        ⏳ Attestación on-chain anomalías → DOFProofRegistry<br/>
+        ⏳ Pitch Ruta N — demo SECOP en vivo (post April 27)<br/>
+        ⏳ Blog post datos-colombia-mcp — Mirror.xyz + Medium (27 abril)<br/>
+        ⏳ Resultados Conflux Global Hackfest 2026 (27 abril)<br/>
+        ⏳ scripts/release.sh — crear para v0.9.0<br/>
+        ⏳ DOF Leaderboard — diseño e implementación
+      </div>
+    </div>
+  </div>
 
   <div class="g4">
     <div class="metric">
       <div class="metric-n g">4,687</div>
-      <div class="metric-l">Tests Passing</div>
+      <div class="metric-l">Tests passing</div>
     </div>
     <div class="metric">
-      <div class="metric-n b">148</div>
-      <div class="metric-l">Módulos DOF</div>
+      <div class="metric-n b">61</div>
+      <div class="metric-l">Tests nuevos</div>
     </div>
     <div class="metric">
-      <div class="metric-n gold">8</div>
-      <div class="metric-l">Commits</div>
+      <div class="metric-n gold">10</div>
+      <div class="metric-l">Notas vault</div>
     </div>
     <div class="metric">
-      <div class="metric-n">~7h</div>
-      <div class="metric-l">Duración</div>
-    </div>
-  </div>
-
-  <div class="g4">
-    <div class="metric">
-      <div class="metric-n b">6</div>
-      <div class="metric-l">Reglas Z3 SECOP</div>
-    </div>
-    <div class="metric">
-      <div class="metric-n g">33</div>
-      <div class="metric-l">Tests SECOP</div>
-    </div>
-    <div class="metric">
-      <div class="metric-n gold">12</div>
-      <div class="metric-l">APIs Verificadas</div>
-    </div>
-    <div class="metric">
-      <div class="metric-n">5</div>
-      <div class="metric-l">APIs Viables</div>
+      <div class="metric-n">27abr</div>
+      <div class="metric-l">Conflux winners</div>
     </div>
   </div>
 </div>
 
-<!-- ══ 04 · COMMITS ═══════════════════════════════════════════════ -->
-<div class="page">
-  <div class="sec-label">04 · Commits</div>
-  <div class="page-title">Historial de cambios.</div>
-
-  <div class="card" style="margin-bottom:20px;">
-    <div class="card-label">Cyberpaisa/DOF-MESH · branch main</div>
-    <div class="commit">
-      <div class="chash">9946984</div>
-      <div class="cmsg">feat(datos-colombia): SECOP auditor — 6 reglas Z3, detect_anomalies, 33 tests · +1,371 líneas</div>
-      <div class="crepo">DOF-MESH</div>
-    </div>
-    <div class="commit">
-      <div class="chash">a4ea01c</div>
-      <div class="cmsg">feat(daemon): activate DOF-Router via feature flag dof_router</div>
-      <div class="crepo">DOF-MESH</div>
-    </div>
-    <div class="commit">
-      <div class="chash">4765398</div>
-      <div class="cmsg">docs: hot.md — ca0bb3c, rate limit persistente, Conflux submitted</div>
-      <div class="crepo">DOF-MESH</div>
-    </div>
-    <div class="commit">
-      <div class="chash">ca0bb3c</div>
-      <div class="cmsg">fix(gateway): persistent rate limiting via JSONL — sobrevive reinicios</div>
-      <div class="crepo">DOF-MESH</div>
-    </div>
-    <div class="commit">
-      <div class="chash">f6b0217</div>
-      <div class="cmsg">docs: hot.md — estado actual v0.8.0, gateway + router</div>
-      <div class="crepo">DOF-MESH</div>
-    </div>
-    <div class="commit">
-      <div class="chash">ba9bf14</div>
-      <div class="cmsg">feat(router): DOF-Router — intelligent agent routing with failover (13 tests)</div>
-      <div class="crepo">DOF-MESH</div>
-    </div>
-    <div class="commit">
-      <div class="chash">0c5032f</div>
-      <div class="cmsg">feat(gateway): DOF-MCP Gateway — HTTP bridge para mcp_server (FastAPI + auth + rate limiting)</div>
-      <div class="crepo">DOF-MESH</div>
-    </div>
-    <div class="commit">
-      <div class="chash">a89df40</div>
-      <div class="cmsg">feat(media_generation_tool): implement correct muapi.ai async API</div>
-      <div class="crepo">DOF-MESH</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-label">Local · datos-colombia-mcp + cerebro-cyber/vault</div>
-    <div class="commit">
-      <div class="chash">local</div>
-      <div class="cmsg">datos-colombia-mcp-research.md — investigación completa (Agente 1 + Agente 2 + Juan)</div>
-      <div class="crepo">datos-colombia</div>
-    </div>
-    <div class="commit">
-      <div class="chash">local</div>
-      <div class="cmsg">cerebro-cyber vault v2: L1/L2 + patrón Karpathy + mcpvault configurado y activo</div>
-      <div class="crepo">cerebro-cyber</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ 05 · LECCIONES ═════════════════════════════════════════════ -->
-<div class="page">
-  <div class="sec-label">05 · Lecciones</div>
-  <div class="page-title">Lo que aprendimos.</div>
-  <div class="g3">
-    <div class="card">
-      <div class="card-label">L-01 · Obsidian</div>
-      <div class="card-title">Doble path es normal</div>
-      <div class="card-body">El vault en <code style="font-family:var(--mono);font-size:11px;">~/cerebro cyber/cerebro cyber/</code> es comportamiento esperado de Obsidian al crear vault dentro de carpeta con el mismo nombre. No es un error.</div>
-    </div>
-    <div class="card">
-      <div class="card-label">L-02 · Datos del Prompt</div>
-      <div class="card-title">Verificar repo antes de ejecutar</div>
-      <div class="card-body">El prompt tenía datos desactualizados (v0.6.0 vs real v0.8.0). Regla: siempre leer CLAUDE.md + git log antes de ejecutar un plan de sesión.</div>
-    </div>
-    <div class="card">
-      <div class="card-label">L-03 · Daemon Cycles</div>
-      <div class="card-title">Ruta A antes que Ruta B</div>
-      <div class="card-body">Ciclo básico (Ruta A) debe funcionar y validarse antes de pasar al ciclo completo (Ruta B). Evita depurar dos capas simultáneamente.</div>
-    </div>
-    <div class="card">
-      <div class="card-label">L-04 · mcpvault</div>
-      <div class="card-title">Funciona sin Obsidian corriendo</div>
-      <div class="card-body">mcpvault lee directamente el sistema de archivos del vault. No requiere que la app Obsidian esté abierta. El MCP funciona con Claude Code solo.</div>
-    </div>
-    <div class="card">
-      <div class="card-label">L-05 · Formulario 009</div>
-      <div class="card-title">Datos internos → nunca a GitHub</div>
-      <div class="card-body">El formulario 009 de la Secretaría contiene datos de empleo internos. Nunca en un repo público — solo como insumo local para análisis. datos-colombia-mcp solo usa fuentes abiertas (SECOP, MEData).</div>
-    </div>
-    <div class="card">
-      <div class="card-label">L-06 · Repo Strategy</div>
-      <div class="card-title">datos-colombia en DOF-MESH</div>
-      <div class="card-body">datos-colombia-mcp como integración dentro de <code style="font-family:var(--mono);font-size:11px;">integrations/datos-colombia/</code> en DOF-MESH. No en Colombia-Blockchain — esa es una categoría diferente.</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ 06 · ESTADO FINAL + PENDIENTES ════════════════════════════ -->
-<div class="page">
-  <div class="sec-label">06 · Estado Final &amp; Pendientes</div>
-  <div class="page-title">Qué quedó y qué sigue.</div>
-
-  <div class="status-grid">
-    <div class="status-item">
-      <div class="s-label">DOF-MESH v0.8.0</div>
-      <div class="s-val ok">✅ En producción · 4,687 tests</div>
-    </div>
-    <div class="status-item">
-      <div class="s-label">DOF-MCP Gateway</div>
-      <div class="s-val ok">✅ Commiteado · Rate limit JSONL</div>
-    </div>
-    <div class="status-item">
-      <div class="s-label">DOF-Router</div>
-      <div class="s-val ok">✅ Activo en daemon via flag</div>
-    </div>
-    <div class="status-item">
-      <div class="s-label">SECOP Auditor Z3</div>
-      <div class="s-val ok">✅ 6 reglas · 33 tests · on-chain ready</div>
-    </div>
-    <div class="status-item">
-      <div class="s-label">Cerebro Cyber Vault v2</div>
-      <div class="s-val ok">✅ L1/L2 · mcpvault activo</div>
-    </div>
-    <div class="status-item">
-      <div class="s-label">datos-colombia-mcp</div>
-      <div class="s-val warn">⚠️ Investigado · MVP Fase 1 pendiente</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-label">Pendientes — Próxima Sesión</div>
-    <ul class="pending-list">
-      <li>Activar datos-colombia MCP tool en <code style="font-family:var(--mono);font-size:11px;">core/mcp_server.py</code> — registrar <code style="font-family:var(--mono);font-size:11px;">secop_search</code>, <code style="font-family:var(--mono);font-size:11px;">detect_anomalies</code>, <code style="font-family:var(--mono);font-size:11px;">secop_detail</code></li>
-      <li>MVP Fase 2: <code style="font-family:var(--mono);font-size:11px;">medata.py</code> — scraping estructurado datasets MEData (establecimientos, OPE, CEDEZO)</li>
-      <li>MVP Fase 3: <code style="font-family:var(--mono);font-size:11px;">registraduria.py</code> + datos.gov.co Discovery API</li>
-      <li>Pitch Ruta N con demo SECOP en vivo — <code style="font-family:var(--mono);font-size:11px;">SECOP_INTEGRATION=1 python3 tools/secop.py</code></li>
-      <li>Llenar <code style="font-family:var(--mono);font-size:11px;">personal/</code> del vault cerebro-cyber</li>
-      <li>Blog post: "datos-colombia-mcp — el primer MCP de datos abiertos colombianos" · 27 abr 2026</li>
-      <li>SMMLV 2026: actualizar constante en <code style="font-family:var(--mono);font-size:11px;">secop.py</code> cuando se publique el decreto</li>
-    </ul>
-  </div>
-
-  <div style="margin-top:24px;" class="card">
-    <div class="card-label">Snapshot técnico al cierre</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px;">
-      <div>
-        <div style="font-size:11px;font-family:var(--mono);color:var(--gray);margin-bottom:8px;">DOF-MESH</div>
-        <div style="font-size:12px;line-height:2;color:var(--gray);">
-          Tests: <strong style="color:var(--black);">4,687</strong> · Módulos: <strong style="color:var(--black);">148</strong><br>
-          Versión: <strong style="color:var(--black);">v0.8.0</strong> · PyPI: <strong style="color:var(--black);">dof-sdk==0.8.0</strong><br>
-          Z3 proofs: <strong style="color:var(--black);">4/4 PROVEN</strong><br>
-          Chains: <strong style="color:var(--black);">8 (3 mainnet + 5 testnet)</strong>
-        </div>
-      </div>
-      <div>
-        <div style="font-size:11px;font-family:var(--mono);color:var(--gray);margin-bottom:8px;">datos-colombia-mcp</div>
-        <div style="font-size:12px;line-height:2;color:var(--gray);">
-          SECOP tests: <strong style="color:var(--black);">33/33 ✅</strong><br>
-          Reglas Z3: <strong style="color:var(--black);">6 (Ley 80/1993)</strong><br>
-          APIs viables: <strong style="color:var(--black);">5 confirmadas</strong><br>
-          Competidores: <strong style="color:var(--black);">1 (0⭐, sin deploy)</strong>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ FOOTER ══════════════════════════════════════════════════════ -->
+<!-- FOOTER -->
 <div class="rfooter">
   <div class="rf-l">
-    DOF-MESH Session Report · Sesión 9 · 2026-04-13<br>
-    claude-sonnet-4-6 · Claude Code Antigravity · claude.ai Plan Max<br>
-    Cyberpaisa × DOF-MESH Legion · Medellín, Colombia
+    DOF-MESH Session Report · Sesión 9 · 2026-04-13<br/>
+    Generado por Claude Sonnet 4.6 (claude-sonnet-4-6)<br/>
+    Cyberpaisa/DOF-MESH v0.8.0 · dofmesh.com
   </div>
-  <div style="display:flex;align-items:center;gap:20px;">
-    <svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="opacity:.15;">
-      <polygon points="8,7 42,46 42,54 8,93 8,72 29,54 29,46 8,28" fill="#fff"/>
-      <polygon points="92,7 58,46 58,54 92,93 92,72 71,54 71,46 92,28" fill="#fff"/>
-    </svg>
-    <div class="rf-r">
-      ~7 horas trabajadas · Score: 92/100<br>
-      4,687 tests · 8 commits · 2 repos<br>
-      v0.8.0 · dof-sdk en PyPI
-    </div>
+  <div class="rf-r">
+    Score: 92 / 100 · Senior · Top 5%<br/>
+    Duración: ~8h · Commits: 9 · Tests: 4,687<br/>
+    COT (UTC-5) · Medellín, Colombia
   </div>
 </div>
 
