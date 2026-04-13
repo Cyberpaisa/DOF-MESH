@@ -767,5 +767,74 @@ class TestGateInstruction(unittest.TestCase):
             self.assertIsInstance(reason, str)
 
 
+class TestDOFRouterIntegration(unittest.TestCase):
+    """Tests para la integración DOF-Router en AutonomousDaemon (feature flag dof_router)."""
+
+    def setUp(self):
+        self.daemon = AutonomousDaemon(dry_run=True)
+        # Reset runtime flag overrides para que cada test parta limpio
+        from core.feature_flags import flags
+        flags.reset("dof_router")
+
+    def tearDown(self):
+        from core.feature_flags import flags
+        flags.reset("dof_router")
+
+    def test_router_consulted_when_flag_enabled(self):
+        """Con dof_router=True, _select_agent_for_task() debe consultar DOFRouter."""
+        from core.feature_flags import flags
+        from unittest.mock import MagicMock
+
+        flags.enable("dof_router")
+
+        mock_router = MagicMock()
+        mock_router.select_agent.return_value = "minimax-m2.1"
+        self.daemon._router = mock_router
+
+        action = _make_action(mode="build", agent_count=1)
+        result = self.daemon._select_agent_for_task(action)
+
+        mock_router.select_agent.assert_called_once_with(task_type="build")
+        self.assertEqual(result, "minimax-m2.1")
+
+    def test_router_not_consulted_when_flag_disabled(self):
+        """Con dof_router=False, comportamiento original — router NO se consulta."""
+        from core.feature_flags import flags
+        from unittest.mock import MagicMock
+
+        flags.disable("dof_router")
+
+        mock_router = MagicMock()
+        self.daemon._router = mock_router
+
+        action = _make_action(mode="patrol", agent_count=1)
+        result = self.daemon._select_agent_for_task(action)
+
+        mock_router.select_agent.assert_not_called()
+        # Retorna self.model (comportamiento original)
+        self.assertEqual(result, self.daemon.model)
+
+    def test_router_exception_fallback_silently(self):
+        """Si DOFRouter lanza excepción, daemon NO cae — silently fallback a self.model."""
+        from core.feature_flags import flags
+        from unittest.mock import MagicMock
+
+        flags.enable("dof_router")
+
+        mock_router = MagicMock()
+        mock_router.select_agent.side_effect = RuntimeError("router exploded")
+        self.daemon._router = mock_router
+
+        action = _make_action(mode="improve", agent_count=1)
+        # No debe lanzar excepción
+        try:
+            result = self.daemon._select_agent_for_task(action)
+        except Exception as e:
+            self.fail(f"_select_agent_for_task raised {e} — debe ser silencioso")
+
+        # Fallback: retorna self.model
+        self.assertEqual(result, self.daemon.model)
+
+
 if __name__ == "__main__":
     unittest.main()

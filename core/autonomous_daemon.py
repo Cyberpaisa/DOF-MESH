@@ -128,6 +128,7 @@ class AutonomousDaemon:
         self._cost_tracker = None   # lazy — initialized via _get_cost_tracker()
         self._pipeline = None       # lazy — initialized via _get_pipeline()
         self._daemon_memory = None  # lazy — initialized via _get_daemon_memory()
+        self._router = None         # lazy — initialized via _get_router() if dof_router flag active
         self.log_file = log_file if log_file else DAEMON_LOG
 
         # Ensure log dirs exist
@@ -224,6 +225,33 @@ class AutonomousDaemon:
                 max_budget_usd=self.budget_per_cycle,
             )
         return self._commander
+
+    def _get_router(self):
+        """Lazy-load DOFRouter. Returns None if unavailable (import error or disabled)."""
+        if self._router is None:
+            try:
+                from core.router.dof_router import DOFRouter
+                self._router = DOFRouter()
+            except Exception as e:
+                logger.debug(f"[daemon] DOFRouter unavailable: {e}")
+        return self._router
+
+    def _select_agent_for_task(self, action: "DaemonAction") -> str:
+        """
+        Select the best agent for the task via DOFRouter (if dof_router flag is active).
+        Always falls back to self.model silently — daemon never crashes due to routing.
+
+        Returns the selected agent_id (for logging/metrics; self.model is unchanged).
+        """
+        from core.feature_flags import flags
+        if flags.is_enabled("dof_router"):
+            router = self._get_router()
+            if router is not None:
+                try:
+                    return router.select_agent(task_type=action.mode)
+                except Exception as e:
+                    logger.debug(f"[daemon] DOFRouter.select_agent failed, fallback: {e}")
+        return self.model
 
     # ═══════════════════════════════════════════════════
     # PHASE 1: PERCEPTION — Scan system state
@@ -529,6 +557,10 @@ class AutonomousDaemon:
 
         if action.agent_count == 0:
             return "skipped", "No agents needed — system healthy", 0
+
+        # DOF-Router: select optimal agent for this task (feature-flagged)
+        selected_agent = self._select_agent_for_task(action)
+        logger.debug(f"[daemon] agent selected for {action.mode}: {selected_agent}")
 
         # ─── BUILD: Execute pending orders ───
         if action.mode == "build":
