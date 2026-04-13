@@ -1,0 +1,172 @@
+---
+title: "datos-colombia — Datos Públicos Colombianos"
+description: "Módulo DOF-MESH para consulta de contratos públicos (SECOP), datos de Medellín (MEData) y datos electorales (Registraduría)."
+icon: "database"
+---
+
+## Descripción
+
+`integrations/datos-colombia/` conecta DOF-MESH con las principales fuentes
+de datos públicos colombianos: contratos del Estado, datos municipales de
+Medellín y resultados electorales.
+
+## Fuentes integradas
+
+| Fuente | Tipo API | Módulo | Estado |
+|--------|----------|--------|--------|
+| SECOP II | Socrata SODA | `tools/secop.py` | ✅ Activo |
+| SECOP Integrado | Socrata SODA | `tools/secop.py` | ✅ Activo |
+| MEData (Medellín) | CKAN REST | `medata.py` | ✅ Activo |
+| Registraduría | CSV download | `registraduria.py` | ✅ Activo |
+
+## SECOP — Auditoría Z3 con Ley 80/1993
+
+El auditor SECOP aplica **6 reglas formales** derivadas de la Ley 80 de 1993
+(Estatuto General de Contratación):
+
+| ID | Descripción | Norma | Verificación |
+|----|-------------|-------|-------------|
+| R1 | Valor contrato > 0 | Art. 24 | Z3 PROVEN |
+| R2 | SMMLV 2025 ≥ COP $1,423,500 | Decreto 2466/2024 | Z3 PROVEN |
+| R3 | Plazo entre 1–3650 días | Art. 40 | Python |
+| R4 | Contratista no vacío | Art. 13 | Python |
+| R5 | Objeto ≥ 20 caracteres | Art. 24 #4 | Z3 PROVEN |
+| R6 | Anti-fraccionamiento | Art. 24 #8 | Python |
+
+### Ejemplo: buscar contratos y detectar anomalías
+
+```python
+import sys
+sys.path.insert(0, "integrations/datos-colombia")
+from tools.secop import fetch_contracts, detect_anomalies
+
+# Buscar contratos de una entidad
+contracts = fetch_contracts(
+    entity="GOBERNACION DE ANTIOQUIA",
+    year=2024,
+    limit=50
+)
+
+# Detectar anomalías con verificación Z3
+report = detect_anomalies(contracts)
+print(f"Total contratos: {report.total_contracts}")
+print(f"Anomalías detectadas: {len(report.anomalies)}")
+print(f"Proof hash: {report.proof_hash}")
+
+# Ver anomalías detalladas
+for anomaly in report.anomalies:
+    print(f"  [{anomaly.rule_id}] {anomaly.description}")
+    print(f"  Contrato: {anomaly.contract_id}")
+```
+
+### Demo CLI
+
+```bash
+cd ~/equipo-de-agentes
+
+# Modo integration test (requiere red)
+SECOP_INTEGRATION=1 python3 -m unittest \
+  integrations/datos-colombia/tests/test_secop.py -v
+
+# Correr solo tests unitarios (sin red)
+python3 -m unittest discover \
+  -s integrations/datos-colombia/tests -v
+```
+
+## MEData — Datos de Medellín
+
+Portal de datos abiertos de la Alcaldía de Medellín, con 500+ datasets
+sobre movilidad, educación, salud, ambiente y más.
+
+```python
+import sys
+sys.path.insert(0, "integrations/datos-colombia")
+from medata import fetch_datasets, get_dataset, search_datasets
+
+# Listar datasets de movilidad
+datasets = fetch_datasets(category="movilidad", limit=10)
+print(f"Encontrados: {datasets['count']} datasets")
+
+# Buscar por texto
+results = search_datasets("accidentalidad vial 2024")
+for ds in results['result']:
+    print(f"  {ds['title']} — {ds['id']}")
+
+# Obtener metadatos de un dataset específico
+info = get_dataset("accidentalidad-vial-medellin")
+print(f"Recursos: {len(info['result'].get('resources', []))}")
+```
+
+**API**: CKAN 2.x — `https://medata.gov.co/api/3/action/`
+Sin autenticación requerida.
+
+## Registraduría — Datos Electorales
+
+La Registraduría Nacional **no tiene API JSON**. Los datos se obtienen
+de archivos CSV descargables por año y tipo de elección.
+
+```python
+import sys
+sys.path.insert(0, "integrations/datos-colombia")
+from registraduria import get_results, get_abstention_by_zone, compare_elections
+
+# Resultados electorales por departamento
+results = get_results(year=2023, department="ANTIOQUIA")
+print(f"Registros: {results['total']}")
+
+# Tasa de abstención por municipio
+abstention = get_abstention_by_zone(year=2023, municipality="MEDELLIN")
+print(f"Participación: {abstention['participacion_pct']}%")
+print(f"Abstención:   {abstention['abstension_pct']}%")
+
+# Comparar dos elecciones
+delta = compare_elections(2019, 2023, "MEDELLIN")
+print(f"Tendencia abstención: {delta['trend']}")
+print(f"Delta: {delta['delta_abstension']}%")
+```
+
+## Tests
+
+```bash
+# Suite completa datos-colombia (33+ tests)
+python3 -m unittest discover -s integrations/datos-colombia/tests -v
+
+# Solo SECOP
+python3 -m unittest integrations/datos-colombia/tests/test_secop -v
+
+# Solo MEData
+python3 -m unittest integrations/datos-colombia/tests/test_medata -v
+
+# Solo Registraduría
+python3 -m unittest integrations/datos-colombia/tests/test_registraduria -v
+```
+
+## Roadmap
+
+| Fase | Features | Estado |
+|------|----------|--------|
+| 1 | SECOP II + Z3 Auditor (6 reglas) | ✅ Completado |
+| 2 | MEData + Registraduría | ✅ Completado |
+| 3 | datos.gov.co catálogo + RUES | 🔄 Planificado mayo 2026 |
+| 4 | Attestación on-chain automática | 🔄 Planificado junio 2026 |
+
+## Proof hash (reproducibilidad Z3)
+
+Cada `detect_anomalies()` genera un `proof_hash` determinístico: SHA-256
+del estado Z3 al momento de la verificación. Permite reproducir y verificar
+las mismas anomalías en el futuro, o publicarlas on-chain como attestación.
+
+```python
+# El proof_hash es reproducible para el mismo conjunto de contratos
+report1 = detect_anomalies(contracts)
+report2 = detect_anomalies(contracts)
+assert report1.proof_hash == report2.proof_hash  # ✅ siempre True
+```
+
+## Referencias
+
+- SECOP II: https://www.colombiacompra.gov.co/secop/secop-ii
+- MEData: https://medata.gov.co
+- Registraduría Observatorio: https://observatorio.registraduria.gov.co
+- Ley 80 de 1993: https://www.secretariasenado.gov.co/senado/basedoc/ley_0080_1993.html
+- datagouv-mcp (inspiración): https://github.com/datagouv/datagouv-mcp
