@@ -285,3 +285,9 @@ MEMORY.md
 
 # Phantom nodes — never re-create
 logs/mesh/inbox/local-qwen/
+
+# Red Team — NO publicar hasta que todos los CVEs estén parchados
+# Ver: tests/red_team/firewall_improvements.py para estado de cada CVE
+tests/red_team/attack_vectors.py
+tests/red_team/firewall_improvements.py
+tests/red_team/reports/
