@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 
-import httpx
+import requests as _requests
 import z3
 
 logger = logging.getLogger("secop.audit")
@@ -418,33 +418,33 @@ def fetch_contracts(
     year: Optional[int] = None,
     municipio: Optional[str] = None,
     limit: int = 20,
-    endpoint: str = SECOP_II_PROCESOS,
+    endpoint: str = SECOP_II_CONTRATOS,
 ) -> list[dict]:
     """
     Descarga contratos de SECOP II vía Socrata SODA API.
-    Aplica filtros SoQL: entidad, año, municipio.
+    Usa $q (full-text search) para entidad y municipio — indexado, sin timeout.
+    Usa $where solo para filtros exactos/numéricos (año) que sí están indexados.
     """
-    conditions = []
+    params: dict = {"$limit": limit}
+
+    # Términos para $q full-text search (indexado — evita full table scan)
+    q_terms = []
     if entity:
-        conditions.append(f"upper(nombre_de_la_entidad) like upper('%{entity}%')")
+        q_terms.append(entity)
+    if municipio:
+        q_terms.append(municipio)
+    if q_terms:
+        params["$q"] = " ".join(q_terms)
+
+    # $where solo para año (columna indexada)
     if year:
-        conditions.append(
+        params["$where"] = (
             f"fecha_de_firma >= '{year}-01-01T00:00:00' "
             f"AND fecha_de_firma <= '{year}-12-31T23:59:59'"
         )
-    if municipio:
-        conditions.append(f"upper(ciudad) like upper('%{municipio}%')")
-
-    # Construir query string manualmente — httpx encode el $ como %24
-    # pero Socrata SODA exige literalmente $limit, $where, etc.
-    qs_parts = [f"$limit={limit}"]
-    if conditions:
-        where = " AND ".join(conditions)
-        qs_parts.append(f"$where={where}")
-    url = f"{endpoint}?{'&'.join(qs_parts)}"
 
     try:
-        r = httpx.get(url, timeout=20)
+        r = _requests.get(endpoint, params=params, timeout=20)
         r.raise_for_status()
         return r.json()
     except Exception as e:

@@ -411,3 +411,38 @@ Reglas que aplican SIEMPRE sin instrucciones adicionales:
 | Escribir código | Leer archivos existentes primero |
 | Hacer push | CI verde + doble revisión pre-commit |
 | Guardar conocimiento | second_brain.py add/sync |
+
+## datos-colombia-mcp — Uso conversacional
+
+Consulta datos abiertos colombianos directamente desde Claude Code o scripts:
+
+```python
+import sys
+sys.path.insert(0, '.')
+sys.path.insert(0, 'integrations/datos-colombia')
+from core.gateway.router import TOOL_MAP
+
+# Buscar contratos SECOP II en vivo (datos.gov.co)
+contratos = TOOL_MAP['secop_search']({
+    'municipio': 'MEDELLIN',   # o 'entity': 'ALCALDIA DE MEDELLIN'
+    'year': 2025,              # opcional — filtra por fecha_de_firma
+    'limit': 20,               # default 20
+})
+# → {'contracts': [...], 'count': N}
+
+# Detectar anomalías de fraccionamiento (Ley 80 Art. 24)
+alertas = TOOL_MAP['secop_anomalies']({
+    'entity': 'ALCALDIA DE MEDELLIN',
+    'threshold': 3,            # mínimo contratos mismo contratista/mes
+})
+# → {'entity': ..., 'fraccionamiento': [...], 'concentracion': [...]}
+
+# Buscar datasets MEData (medata.gov.co — puede estar caído)
+datasets = TOOL_MAP['medata_search']({
+    'query': 'empleo formal',
+    'limit': 10,
+})
+# → {'success': bool, 'result': [...], 'count': N}
+```
+
+Demo completa: `python3 scripts/demo_rutan.py`

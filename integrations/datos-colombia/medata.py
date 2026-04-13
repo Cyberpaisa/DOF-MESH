@@ -4,7 +4,8 @@ import httpx
 from typing import Optional
 
 BASE_URL = "https://medata.gov.co/api/3/action"
-_TIMEOUT = 10.0
+_TIMEOUT = 8.0  # MEData puede ser lento — falla rápido para no bloquear
+_UNAVAILABLE_MSG = "MEData API no disponible actualmente (timeout). Datos en: medata.gov.co"
 
 
 def fetch_datasets(category: Optional[str] = None, limit: int = 10) -> dict:
@@ -62,12 +63,21 @@ def search_datasets(query: str, limit: int = 10) -> dict:
         dict con 'success', 'result' (lista), 'count'
     """
     url = f"{BASE_URL}/package_search"
-    resp = httpx.get(url, params={"q": query, "rows": limit}, timeout=_TIMEOUT)
-    resp.raise_for_status()
-    data = resp.json()
-    return {
-        "success": data.get("success", False),
-        "result": data.get("result", {}).get("results", []),
-        "count": data.get("result", {}).get("count", 0),
-        "query": query,
-    }
+    try:
+        resp = httpx.get(url, params={"q": query, "rows": limit}, timeout=_TIMEOUT)
+        resp.raise_for_status()
+        data = resp.json()
+        return {
+            "success": data.get("success", False),
+            "result": data.get("result", {}).get("results", []),
+            "count": data.get("result", {}).get("count", 0),
+            "query": query,
+        }
+    except Exception:
+        return {
+            "success": False,
+            "result": [],
+            "count": 0,
+            "query": query,
+            "message": _UNAVAILABLE_MSG,
+        }
