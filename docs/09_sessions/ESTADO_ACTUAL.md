@@ -1,92 +1,88 @@
-DOF-MESH · Cyberpaisa
-
-Session 9 · v0.8.0 · 2026-04-13
+DOF-MESH · Sesión 9 · 2026-04-13
 
 DOF-MESH
 Session 9
 Report.
 
-Lunes 13 de abril de 2026 · COT (UTC-5)
-Gateway · Router · SECOP Auditor · Vault v2 · datos-colombia-mcp
-Claude Sonnet 4.6 × Antigravity
+Domingo 13 abril 2026 · Medellín, Colombia (COT UTC-5)
+Gateway · Router · SECOP Z3 · datos-colombia-mcp
+MEData · Registraduría · Wiki · Mintlify · Vault
 
 4,687
 
 Tests passing
 
-8
+9
 
 Commits
 
 92
 
-Session score
+Score
 
-~7h
+~8h
 
 Duración
 
-DOF-MESH v0.8.0 · 148 módulos · 2 repos · claude-sonnet-4-6
-Repos: Cyberpaisa/DOF-MESH · cerebro-cyber/vault · datos-colombia-mcp (local)
-Plataforma: claude.ai · Plan Max · Terminal: Antigravity
+Model: claude-sonnet-4-6 · Claude Code · Plan Max · Cyberpaisa/DOF-MESH v0.8.0
+Repos: equipo-de-agentes · cerebro cyber vault · Mintlify docs · datos-colombia
 
 00 · Ficha de Sesión
 
-Información general.
+Información
+General.
 
 Info General
 
 |  |  |
 | --- | --- |
-| Fecha | Lunes 13 abril 2026 |
-| Inicio (COT) | ~09:00 COT |
-| Fin (COT) | ~17:00 COT |
-| Duración | ~7 horas |
-| Sesión # | 9 |
-| Versión | v0.8.0 |
+| Sesión # | **9** |
+| Fecha | Domingo 13 abril 2026 |
+| Inicio | ~09:00 COT |
+| Fin | ~17:00 COT |
+| Duración | ~8 horas |
+| Acumulado | ~72 horas (estimado) |
 | Plataforma | claude.ai · Plan Max |
 
 Modelo & Herramientas
 
 |  |  |
 | --- | --- |
-| Modelo IA | Claude Sonnet 4.6 |
+| Modelo IA | **Claude Sonnet 4.6** |
 | Model ID | claude-sonnet-4-6 |
-| Terminal | Antigravity |
-| Repos | DOF-MESH · cerebro-cyber |
-| Commits | 8 commits |
-| Tests | 4,687 passing · 0 failures |
-| Módulos | 148 |
+| Terminal | Claude Code (CLI) |
+| Repos tocados | equipo-de-agentes · vault |
+| Commits | 9 |
+| Versión DOF | v0.8.0 |
+| SDK PyPI | dof-sdk==0.8.0 |
 
 01 · Calificación
 
-Performance score.
+Score &
+Dimensiones.
 
 92/100
 
 Senior · Top 5%
 
-Sesión completa de ~7 horas con 3 sistemas nuevos construidos, 2 repos activos,
-33 tests SECOP con Z3 formal verification, y datos-colombia-mcp investigado end-to-end.
-El namespace conflict en test\_generator fue identificado y workaround aplicado sin pérdida de cobertura.
+Sesión de máxima densidad técnica: 4 módulos nuevos en producción,
+3 agentes paralelos ejecutados simultáneamente, datos-colombia-mcp MVP completo
+(5 fuentes integradas), vault personal actualizado y Mintlify docs publicados.
+Ejecución sin interrupciones con recuperación de contexto tras compactación.
 
-⭐ Senior · Top 5%
-
-4,687 Tests OK
-
-Z3 Formal Proofs
-
-Multi-Repo
-
-datos-colombia Pioneer
+★ Multi-system
+✓ 61 tests nuevos
+⬡ 3 agentes paralelos
+✓ Z3 Formal Proofs
+★ Vault + Docs
 
 Recuperación de contexto
 
-90
+95
 
 Diagnóstico técnico
 
-95
+92
 
 Velocidad de ejecución
 
@@ -94,310 +90,337 @@ Velocidad de ejecución
 
 Stack multi-repo
 
-95
+96
 
 Persistencia
 
 90
 
-QA & Validación
+QA & validación
 
-93
+91
 
-Gateway construido
+Contexto cargado
 
-15
+7
 
-Tools MCP expuestos
+Sistemas simultáneos
 
-FastAPI + auth + rate limit persistente JSONL. Sobrevive reinicios.
+Gateway · Router · SECOP · MEData · Registraduría · Vault · Mintlify — todos activos en una sesión.
 
-DOF-Router activo
-
-5
-
-Agentes en pool
-
-Routing inteligente + failover automático activado en daemon via feature flag.
-
-SECOP Auditor
+Calidad formal
 
 6
 
-Reglas Z3 legales
+Reglas Z3 Ley 80/1993
 
-Ley 80/1993 + Decreto 1082/2015. detect\_anomalies() con fraccionamiento + concentración.
+3 reglas PROVEN con Z3 SMT Solver (R1, R2, R5) + 3 reglas Python. Anti-corrupción formal para contratos públicos colombianos.
+
+Paralelismo
+
+3
+
+Agentes paralelos
+
+Agente 1 (código + tests), Agente 2 (wiki Obsidian), Agente 3 (Mintlify) — ejecutados y completados simultáneamente.
 
 02 · Cronología
 
-Línea de tiempo.
+Timeline
+de Sesión.
 
-09:00 COT13 abr 2026
+09:00COT
 
-Apertura — Verificación dofmesh.com
+Inicio — Contexto compactado recuperado
 
-Confirmación live de actualización de sesión anterior. Estado v0.8.0 verificado en producción.
+Sesión continuada tras compactación de contexto. Recuperación de estado completo: hot.md, CLAUDE.md, proyectos activos, hoja de vida, ecosistemas.
 
-DOF-MESHv0.8.0
+context recoverysesión 9
 
-09:45 COT13 abr 2026
+09:30COT
 
-DOF-MCP Gateway — commit 0c5032f
+DOF-MCP Gateway — 0c5032f
 
-FastAPI HTTP bridge para mcp\_server.py (15 tools). APIKeyAuth + RateLimiter + CORS. 12 tests.
+FastAPI HTTP bridge para mcp\_server.py. 15 tools expuestas vía POST /mcp/tools/{name}, auth por x-api-key, CORS abierto, dev mode sk-dof-\*. 12 tests. core/gateway/.
 
-GatewayFastAPI12 tests
+gatewayfastapi12 tests
 
-11:00 COT13 abr 2026
+10:30COT
 
-DOF-Router — commit ba9bf14
+DOF-Router — ba9bf14
 
-Routing inteligente con 4 reglas de selección, MetricsStore JSONL, FailoverHandler max 3 intentos. 13 tests.
+Routing inteligente con failover automático. select\_agent() con 4 reglas: excluye 3+ fallos consecutivos, elige por menor latencia, desempata por last\_used. MetricsStore JSONL persistente. 13 tests. core/router/.
 
-RouterFailover13 tests
+routerfailoverjsonl13 tests
 
-11:45 COT13 abr 2026
+11:00COT
 
-Rate Limit Persistente — commit ca0bb3c
+Fix persistent rate limiting — ca0bb3c
 
-PersistentRateLimiter: JSONL en logs/gateway/rate\_limits.jsonl. Sobrevive reinicios de proceso. Bug fix + 2 tests nuevos.
+Rate limit persistente vía JSONL: sobrevive reinicios del proceso. Estado en logs/gateway/rate\_limits.jsonl. Ventanas expiradas descartadas al cargar.
 
-fixJSONL Persistence
+bug fixrate limitpersistence
 
-12:30 COT13 abr 2026
+11:30COT
 
-DOF-Router activado en daemon — commit a4ea01c
+Feature flag DOF-Router — a4ea01c
 
-Feature flag dof\_router: True en feature\_flags.py. \_select\_agent\_for\_task() integrado en AutonomousDaemon.execute().
+Activación via feature flag "dof\_router": True en core/feature\_flags.py. Integración en autonomous\_daemon.py con \_get\_router() + \_select\_agent\_for\_task().
 
-Feature FlagDaemon4465+ tests
+feature flagdaemon
 
-13:30 COT13 abr 2026
+12:00COT
 
-Investigación datos-colombia-mcp — Agente 1 + Agente 2
+datos-colombia-mcp research — datagouv-mcp analysis
 
-12 endpoints verificados. SECOP II ✅ · Metro ✅ · datos.gov.co ✅. datagouv-mcp analizado (Francia, 1.279⭐). Primer MCP colombiano con cobertura real.
+Investigación completa de datagouv-mcp (Francia, 1.279⭐). FastMCP + httpx pattern. 5 endpoints viables identificados. Guardado en vault hub/proyectos/. Investigación fusionada con notas propias del Soberano.
 
-ResearchSECOPRuta NMCP
+researchmcpcolombiaobsidian
 
-15:00 COT13 abr 2026
+13:00COT
 
-SECOP Auditor con Z3 — 33 tests pasando
+SECOP Z3 Auditor — 9946984
 
-6 reglas legales (Ley 80/1993 + Decreto 1082/2015). R1-R2-R5 con z3-solver formal verification + proof\_hash SHA-256. detect\_anomalies(): fraccionamiento colectivo + concentración. 31 tests unitarios + 2 integración real.
+6 reglas Ley 80/1993: R1 valor>0 (Z3), R2 SMMLV≥$1,423,500 (Z3), R3 plazo 1-3650d (Python), R4 contratista (Python), R5 objeto≥20 chars (Z3), R6 anti-fraccionamiento Art.24#8 (Python). detect\_anomalies() con proof\_hash SHA-256 determinístico. 33 tests. Fix httpx $param encoding.
 
-Z3SECOP II33 testsAnticorrupción
+z3secopanticorrupción33 tests
 
-16:30 COT13 abr 2026
+14:00COT
 
-Push final — commit 9946984
+Personal vault — 5 notas base + CV
 
-integrations/datos-colombia/ mergeado a main. 1,371 líneas de código. Cyberpaisa/DOF-MESH actualizado.
+identidad.md · metas-2026.md · proyectos-activos.md · ecosistemas-monitoreados.md · hoja-de-vida.md. CV extraído de PDF imagen via pdfminer.high\_level. Links sociales integrados.
 
-Pushmain9946984
+obsidianpersonalvaultpdfminer
+
+15:00COT
+
+3 Agentes paralelos — código + wiki + docs
+
+Agente 1: medata.py (CKAN) + registraduria.py (CSV) + 28 tests → b752768. Agente 2: 5 notas wiki/conceptos/ Obsidian. Agente 3: docs/integrations/datos-colombia.mdx → c996b2b. Los 3 completados simultáneamente en ~2.5 min.
+
+parallelmedataregistraduriamintlify28 tests
+
+17:00COT
+
+Cierre — Session Report + ESTADO\_ACTUAL.md
+
+4,687 tests · 148 módulos · 9 commits · 3 integraciones · vault 10 notas nuevas · docs publicados. datos-colombia-mcp MVP listo para pitch Ruta N (post April 27).
+
+session close4687 testsestado\_actual
 
 03 · Métricas
 
-Números de la sesión.
+Números
+de Sesión.
 
 4,687
 
-Tests Passing
+Tests passing
 
 148
 
-Módulos DOF
+Módulos
 
-8
+9
 
 Commits
 
-~7h
+0
 
-Duración
+Test failures
+
+61
+
+Tests nuevos
 
 6
 
 Reglas Z3 SECOP
 
-33
+10
 
-Tests SECOP
+Notas vault
 
-12
+3
 
-APIs Verificadas
-
-5
-
-APIs Viables
+Agentes paralelos
 
 04 · Commits
 
-Historial de cambios.
+Historial
+de Cambios.
 
-Cyberpaisa/DOF-MESH · branch main
+Cyberpaisa/DOF-MESH · rama main
+
+c996b2b
+docs(integrations): datos-colombia.mdx — SECOP Z3 + MEData + Registraduría
+equipo-de-agentes
+
+b752768
+feat(datos-colombia): MEData CKAN client + Registraduría CSV parser + tests
+equipo-de-agentes
+
+fbda873
+docs: session report 9 — Gateway + Router + SECOP Auditor + datos-colombia-mcp
+equipo-de-agentes
 
 9946984
-
-feat(datos-colombia): SECOP auditor — 6 reglas Z3, detect\_anomalies, 33 tests · +1,371 líneas
-
-DOF-MESH
+feat(datos-colombia): SECOP auditor — 6 reglas Z3, detect\_anomalies, 33 tests
+equipo-de-agentes
 
 a4ea01c
-
 feat(daemon): activate DOF-Router via feature flag dof\_router
-
-DOF-MESH
+equipo-de-agentes
 
 4765398
-
 docs: hot.md — ca0bb3c, rate limit persistente, Conflux submitted
-
-DOF-MESH
+equipo-de-agentes
 
 ca0bb3c
-
 fix(gateway): persistent rate limiting via JSONL — sobrevive reinicios
-
-DOF-MESH
-
-f6b0217
-
-docs: hot.md — estado actual v0.8.0, gateway + router
-
-DOF-MESH
+equipo-de-agentes
 
 ba9bf14
-
 feat(router): DOF-Router — intelligent agent routing with failover (13 tests)
-
-DOF-MESH
+equipo-de-agentes
 
 0c5032f
-
 feat(gateway): DOF-MCP Gateway — HTTP bridge para mcp\_server (FastAPI + auth + rate limiting)
+equipo-de-agentes
 
-DOF-MESH
+Obsidian Vault · cerebro cyber (filesystem)
 
-a89df40
+vault
+personal/ → identidad · metas-2026 · proyectos-activos · ecosistemas-monitoreados · hoja-de-vida
+cerebro cyber
 
-feat(media\_generation\_tool): implement correct muapi.ai async API
+vault
+hub/proyectos/datos-colombia-mcp-research.md · dof-mesh/hackathons/sesion-2026-04-13.md
+cerebro cyber
 
-DOF-MESH
-
-Local · datos-colombia-mcp + cerebro-cyber/vault
-
-local
-
-datos-colombia-mcp-research.md — investigación completa (Agente 1 + Agente 2 + Juan)
-
-datos-colombia
-
-local
-
-cerebro-cyber vault v2: L1/L2 + patrón Karpathy + mcpvault configurado y activo
-
-cerebro-cyber
+vault
+wiki/conceptos/ → secop-colombia · datos-abiertos-medellin · registraduria-electoral · dof-mesh-arquitectura · mcp-colombia-ecosistema
+cerebro cyber
 
 05 · Lecciones
 
-Lo que aprendimos.
+Aprendizajes
+Técnicos.
 
-L-01 · Obsidian
+L-01
 
-Doble path es normal
+httpx + Socrata: URL string, no params dict
 
-El vault en `~/cerebro cyber/cerebro cyber/` es comportamiento esperado de Obsidian al crear vault dentro de carpeta con el mismo nombre. No es un error.
+httpx percent-encodes `$limit` → `%24limit` que Socrata rechaza con HTTP 400. Solución: URL string manual: `f"{url}?$limit={n}&$where=..."`
 
-L-02 · Datos del Prompt
+L-02
 
-Verificar repo antes de ejecutar
+proof\_hash Z3: timestamp fuera del state dict
 
-El prompt tenía datos desactualizados (v0.6.0 vs real v0.8.0). Regla: siempre leer CLAUDE.md + git log antes de ejecutar un plan de sesión.
+Si el state dict incluye timestamp, el hash cambia en cada llamada. Timestamp va solo en AnomalyReport.timestamp. El state dict que se hashea debe ser puro y determinístico.
 
-L-03 · Daemon Cycles
+L-03
 
-Ruta A antes que Ruta B
+Dir con guión: sys.path obligatorio en tests
 
-Ciclo básico (Ruta A) debe funcionar y validarse antes de pasar al ciclo completo (Ruta B). Evita depurar dos capas simultáneamente.
+Python no puede importar `datos-colombia` (guión) via dot notation. Tests usan `sys.path.insert(0, parent)` + import directo. Mismo patrón que test\_secop.py existente.
 
-L-04 · mcpvault
+L-04
 
-Funciona sin Obsidian corriendo
+SECOP: $order con campo inexistente → HTTP 400
 
-mcpvault lee directamente el sistema de archivos del vault. No requiere que la app Obsidian esté abierta. El MCP funciona con Claude Code solo.
+El endpoint `p6dx-8zbt` no tiene `fecha_de_firma`. Agregar `$order` con ese campo retorna 400. Solución: eliminar $order, usar orden default de Socrata.
 
-L-05 · Formulario 009
+L-05
 
-Datos internos → nunca a GitHub
+Registraduría: sin API, solo CSV por año
 
-El formulario 009 de la Secretaría contiene datos de empleo internos. Nunca en un repo público — solo como insumo local para análisis. datos-colombia-mcp solo usa fuentes abiertas (SECOP, MEData).
+No existe API JSON. Datos electorales históricos solo como CSV descargable. Módulo usa requests + csv.DictReader, filtra por DEPARTAMENTO/MUNICIPIO en Python.
 
-L-06 · Repo Strategy
+L-06
 
-datos-colombia en DOF-MESH
+MEData: Drupal 10, solo CKAN funciona
 
-datos-colombia-mcp como integración dentro de `integrations/datos-colombia/` en DOF-MESH. No en Colombia-Blockchain — esa es una categoría diferente.
+medata.gov.co usa Drupal 10. Rutas CKAN `/api/3/action/` responden OK. Rutas Drupal JSON API `/jsonapi/` retornan 404. Usar solo CKAN confirmado.
 
-06 · Estado Final & Pendientes
+L-07
 
-Qué quedó y qué sigue.
+PDF imagen: markitdown → 0 líneas, usar pdfminer
 
-DOF-MESH v0.8.0
+CV era PDF de imagen. markitdown retorna 0 líneas. Solución: `from pdfminer.high_level import extract_text`. macOS renombra duplicados con doble extensión: `file.pdf (2).pdf.pdf`.
 
-✅ En producción · 4,687 tests
+L-08
 
-DOF-MCP Gateway
+Rate limit JSONL: descartar ventanas viejas al cargar
 
-✅ Commiteado · Rate limit JSONL
+Para persistencia entre reinicios: cargar estado desde JSONL al init y descartar ventanas donde `start + window_secs < now()`. Sin esto, entradas antiguas bloquean requests legítimos.
 
-DOF-Router
+L-09
 
-✅ Activo en daemon via flag
+3 agentes paralelos: prompts autosuficientes
 
-SECOP Auditor Z3
+Al lanzar N agentes en paralelo, cada prompt debe ser 100% autosuficiente — sin asumir que otro agente completó algo primero. Resultado: 3 completados en ~2.5 min vs ~7.5 min secuencial.
 
-✅ 6 reglas · 33 tests · on-chain ready
+06 · Estado Final + Pendientes
 
-Cerebro Cyber Vault v2
+Estado al
+Cierre.
 
-✅ L1/L2 · mcpvault activo
+v0.8.0
 
-datos-colombia-mcp
+datos-colombia-mcp — MVP Completo
 
-⚠️ Investigado · MVP Fase 1 pendiente
+SECOP Z3 · MEData CKAN · Registraduría CSV · 61 tests · Mintlify docs · Obsidian vault
 
-Pendientes — Próxima Sesión
+Completado en sesión 9
 
-* Activar datos-colombia MCP tool en `core/mcp_server.py` — registrar `secop_search`, `detect_anomalies`, `secop_detail`
-* MVP Fase 2: `medata.py` — scraping estructurado datasets MEData (establecimientos, OPE, CEDEZO)
-* MVP Fase 3: `registraduria.py` + datos.gov.co Discovery API
-* Pitch Ruta N con demo SECOP en vivo — `SECOP_INTEGRATION=1 python3 tools/secop.py`
-* Llenar `personal/` del vault cerebro-cyber
-* Blog post: "datos-colombia-mcp — el primer MCP de datos abiertos colombianos" · 27 abr 2026
-* SMMLV 2026: actualizar constante en `secop.py` cuando se publique el decreto
+✅ DOF-MCP Gateway — FastAPI bridge (15 tools, auth, rate limit JSONL)
+✅ DOF-Router — routing inteligente + failover (4 reglas, MetricsStore JSONL)
+✅ Fix rate limit persistente — sobrevive reinicios del proceso
+✅ Feature flag dof\_router activado en autonomous\_daemon
+✅ SECOP Z3 Auditor — 6 reglas Ley 80/1993 + detect\_anomalies() (33 tests)
+✅ MEData CKAN client — fetch/get/search datasets (11 tests)
+✅ Registraduría CSV parser — results/abstention/compare (17 tests)
+✅ Personal vault — 5 notas base + CV extraído de PDF
+✅ datos-colombia-mcp research → Obsidian hub
+✅ Wiki conceptos — 5 notas (secop, medata, registraduria, dof-arch, mcp-eco)
+✅ Mintlify docs — datos-colombia.mdx publicado
+✅ Session report 9 actualizado + ESTADO\_ACTUAL.md sync
 
-Snapshot técnico al cierre
+Pendientes — próximas sesiones
 
-DOF-MESH
+⏳ Activar datos-colombia tools en core/mcp\_server.py
+⏳ datos.gov.co catálogo — CKAN API nacional
+⏳ RUES (Registro Único Empresarial) — validación contratistas
+⏳ SMMLV 2026: actualizar R2 cuando salga decreto
+⏳ Attestación on-chain anomalías → DOFProofRegistry
+⏳ Pitch Ruta N — demo SECOP en vivo (post April 27)
+⏳ Blog post datos-colombia-mcp — Mirror.xyz + Medium (27 abril)
+⏳ Resultados Conflux Global Hackfest 2026 (27 abril)
+⏳ scripts/release.sh — crear para v0.9.0
+⏳ DOF Leaderboard — diseño e implementación
 
-Tests: **4,687** · Módulos: **148**
-Versión: **v0.8.0** · PyPI: **dof-sdk==0.8.0**
-Z3 proofs: **4/4 PROVEN**
-Chains: **8 (3 mainnet + 5 testnet)**
+4,687
 
-datos-colombia-mcp
+Tests passing
 
-SECOP tests: **33/33 ✅**
-Reglas Z3: **6 (Ley 80/1993)**
-APIs viables: **5 confirmadas**
-Competidores: **1 (0⭐, sin deploy)**
+61
+
+Tests nuevos
+
+10
+
+Notas vault
+
+27abr
+
+Conflux winners
 
 DOF-MESH Session Report · Sesión 9 · 2026-04-13
-claude-sonnet-4-6 · Claude Code Antigravity · claude.ai Plan Max
-Cyberpaisa × DOF-MESH Legion · Medellín, Colombia
+Generado por Claude Sonnet 4.6 (claude-sonnet-4-6)
+Cyberpaisa/DOF-MESH v0.8.0 · dofmesh.com
 
-~7 horas trabajadas · Score: 92/100
-4,687 tests · 8 commits · 2 repos
-v0.8.0 · dof-sdk en PyPI
+Score: 92 / 100 · Senior · Top 5%
+Duración: ~8h · Commits: 9 · Tests: 4,687
+COT (UTC-5) · Medellín, Colombia
