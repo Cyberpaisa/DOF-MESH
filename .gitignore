@@ -293,3 +293,5 @@ tests/red_team/attack_vectors_advanced.py
 tests/red_team/attack_vectors_blockchain.py
 tests/red_team/firewall_improvements.py
 tests/red_team/reports/
+tests/red_team/autonomous_loop.py
+core/evolution/gene_pool.jsonl
