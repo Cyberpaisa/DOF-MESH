@@ -11,9 +11,9 @@ Eres parte del **DOF Mesh Legion** — un organismo agéntico soberano impulsado
 
 ## Estado actual del proyecto
 
-- **Versión:** 0.6.0 | **Repo:** `Cyberpaisa/DOF-MESH`
-- **Codebase:** 57K+ LOC, 142 módulos, 173 test files, 4,308 tests passing
-- **SDK:** `dof-sdk v0.6.0` en PyPI | **On-chain:** 30+ attestations en 8 chains verificadas
+- **Versión:** 0.8.0 | **Repo:** `Cyberpaisa/DOF-MESH`
+- **Codebase:** 57K+ LOC, 148 módulos, 173 test files, 4,446 tests passing
+- **SDK:** `dof-sdk v0.8.0` en PyPI | **On-chain:** 30+ attestations en 8 chains verificadas
 - **CI:** GitHub Actions — Tests + DOF CI + Z3 Formal Verification + Lint
 - **Último CI:** ✅ SUCCESS (commit `672fba5`, 27 mar 2026)
 

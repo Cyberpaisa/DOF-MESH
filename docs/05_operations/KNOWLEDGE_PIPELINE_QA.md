@@ -1,6 +1,6 @@
 # Knowledge Pipeline — QA Checklist
 
-> DOF-MESH v0.6.0 · Última actualización: 05 abr 2026
+> DOF-MESH v0.8.0 · Última actualización: 12 abr 2026
 
 ## Reinicio rápido
 
