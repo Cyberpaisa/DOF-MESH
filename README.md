@@ -15,7 +15,7 @@
 [![Tests](https://img.shields.io/badge/Tests-4%2C446_passing-brightgreen?style=flat-square)]()
 [![PyPI](https://img.shields.io/pypi/v/dof-sdk?color=blue&style=flat-square)](https://pypi.org/project/dof-sdk/)
 [![Python](https://img.shields.io/badge/python-3.11+-blue?style=flat-square)](https://pypi.org/project/dof-sdk/)
-[![Modules](https://img.shields.io/badge/Modules-147-blue?style=flat-square)]()
+[![Modules](https://img.shields.io/badge/Modules-148-blue?style=flat-square)]()
 [![Z3](https://img.shields.io/badge/Z3-4_theorems_PROVEN-critical?style=flat-square)]()
 [![Chains](https://img.shields.io/badge/Chains-8-gold?style=flat-square)]()
 [![Attestations](https://img.shields.io/badge/Attestations-30%2B-orange?style=flat-square)]()
@@ -194,7 +194,7 @@ A deterministic function does. Every time. Same answer.
 | Autonomous cycles | **238+** |
 | On-chain attestations | **30+** |
 | Chains (mainnets) | **7** |
-| Core modules | **147** |
+| Core modules | **148** |
 | Lines of code | **57,000+** |
 | Z3 theorems | **4/4 PROVEN** |
 | Hierarchy patterns (Z3) | **42 PROVEN** |
@@ -363,7 +363,7 @@ Full data: [`experiments/winston_vs_baseline/`](experiments/winston_vs_baseline/
 
 ```
 equipo-de-agentes/
-  core/                     # 147 modules -- the framework engine
+  core/                     # 148 modules -- the framework engine
     governance.py            # ConstitutionEnforcer, HARD/SOFT rules
     z3_verifier.py           # 4 theorems formally PROVEN
     z3_gate.py               # Neurosymbolic gate (APPROVED/REJECTED/TIMEOUT)
@@ -388,7 +388,7 @@ equipo-de-agentes/
 
 **@Cyber_paisa** · [Telegram](https://t.me/Cyber_paisa)
 
-**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,446 tests. 9 chains (3 mainnet + 5 testnet + 1 ERC-8004). 147 modules. Mathematics, not promises.
+**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,446 tests. 9 chains (3 mainnet + 5 testnet + 1 ERC-8004). 148 modules. Mathematics, not promises.
 
 ---
 

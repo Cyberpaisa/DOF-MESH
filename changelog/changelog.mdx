@@ -5,6 +5,13 @@ description: "Release history for DOF-MESH. All changes, features, and improveme
 
 ## v0.8.0 — April 2026
 
+### Session 8 (cont. 6) — Second Brain + health check + docs (Apr 12, 2026)
+
+- **knowledge_health_check.py** — script de diagnóstico del vault Obsidian: verifica conexión, conteo de notas, sincronización con `docs/`
+- **Hook daemon → vault** — auto-aprendizaje: el daemon escribe a `scripts/second_brain.py add` al cerrar cada ciclo; nuevo conocimiento se persiste en Obsidian automáticamente
+- **wiki/conceptos/** — 5 nuevas notas Feynman: Z3 formal verification, governance pipeline, DaemonMemory, GraphifyTool, FeynmanCrew
+- **Test suite:** 4,446 tests · 0 errors · 148 módulos · 33 skipped
+
 ### Session 8 (final) — feynman_research_crew + all flags active (Apr 12, 2026)
 
 - **FeynmanCrew** (`core/crews/feynman_crew.py`) — Feynman Research Crew; pipeline determinístico 3 pasos: extract_concepts → build_explanation → assess_confidence; log a `logs/feynman/sessions.jsonl`; 8 tests en `tests/test_feynman_crew.py`
