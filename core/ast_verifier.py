@@ -276,6 +276,16 @@ class _UnsafePatternVisitor(ast.NodeVisitor):
 # Secret detection (string literal scan)
 # ─────────────────────────────────────────────────────────────────────
 
+# CVE-DOF-014: Sensitive path fragments split across string concatenation
+# Catches: '/etc' + '/passwd', '/etc' + '/' + 'shadow', etc.
+_SENSITIVE_PATH_PARTS = ['/passwd', '/shadow', '/sudoers', '/id_rsa', '/id_ed25519', '/htpasswd']
+_SENSITIVE_PATH_RE = re.compile(
+    r"['\"](?:/etc|/root|/home/\w+/\.ssh)['\"]"
+    r"|['\"](?:passwd|shadow|sudoers|id_rsa|id_ed25519|htpasswd)['\"]",
+    re.IGNORECASE,
+)
+
+
 def _check_secrets(source: str, lines: list[str]) -> list[Violation]:
     """Scan raw source for hardcoded secrets using regex patterns."""
     violations = []
@@ -290,6 +300,17 @@ def _check_secrets(source: str, lines: list[str]) -> list[Violation]:
                     message=f"Possible hardcoded secret matching {pattern.pattern}",
                 ))
                 break  # one violation per line
+
+        # CVE-DOF-014: detect sensitive path fragments in string concatenation
+        if _SENSITIVE_PATH_RE.search(line):
+            violations.append(Violation(
+                rule_id="SENSITIVE_PATH",
+                severity="block",
+                line_number=i,
+                code_snippet=line.strip()[:80],
+                message="Sensitive path fragment detected (possible path traversal via concatenation)",
+            ))
+
     return violations
 
 

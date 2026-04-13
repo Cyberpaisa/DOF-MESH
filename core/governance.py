@@ -204,6 +204,21 @@ _ESCALATION_PATTERNS = [
     r"(?i)AUDIT\s+LOG\s*:",
     r"(?i)(?:continuing|resuming)\s+from\s+(?:last|previous)\s+session\s+state",
     r"(?i)(?:new|updated)\s+(?:mode|policy)\s*:\s*unrestricted",
+    # CVE-DOF-013: Post-normalization SYSTEM injection (whitespace padding attack — SI-010)
+    # After whitespace collapse, "...   SYSTEM: override" becomes "... SYSTEM: override"
+    # The line-start pattern misses this. This catches inline SYSTEM: claims.
+    r"(?i)\bSYSTEM\s*:\s*(?:override|disable|ignore|governance|directive|rule|skip|safety)",
+    r"(?i)(?:Summarize|Process|Execute|Run|Format|Translate)\s*:\s+SYSTEM\s*:",
+    # CVE-DOF-012: Fictional/academic framing jailbreaks (TAP, PAIR, AutoDAN)
+    r"(?i)(?:for\s+my|in\s+my)\s+(?:novel|story|book|game|screenplay|fiction)",
+    r"(?i)(?:fictional|hypothetical|creative\s+writing)\s+(?:scenario|exercise|character|setting)\s+.*(?:explain|describe|show|provide|bypass|restrict)",
+    r"(?i)(?:my\s+novel|the\s+story|the\s+character)\s+.*(?:explains?|shows?|demonstrates?)\s+.*(?:step.by.step|how\s+to|technique)",
+    r"(?i)(?:as\s+a|i\s+am)\s+(?:cybersecurity\s+)?(?:professor|researcher|instructor|teacher)\s+.*(?:exam|course|question|explain\s+in\s+detail)",
+    r"(?i)(?:thesis|dissertation|research\s+paper)\s+.*(?:requires?|needs?|about\s+how\s+to)",
+    r"(?i)now\s+that\s+(?:we|you)\s+(?:have\s+)?(?:trust|established|worked\s+together)\s+.*(?:skip|bypass|ignore|disable|drop)",
+    r"(?i)let['']s?\s+(?:do|try)\s+(?:a\s+)?creative\s+writing\s+exercise\s+where\s+you\s+play",
+    r"(?i)imagine\s+(?:your|the)\s+(?:constitution|rules?|guidelines?|safety)\s+(?:is|are|as)\s+(?:a\s+)?cage",
+    r"(?i)(?:open\s+the\s+cage|fly\s+free|be\s+free|no\s+constraints?)\s+.*(?:now|today)",
     r"(?i)you\s+are\s+now\s+(?:DAN|GPT-4-unleashed|unrestricted|jailbroken)",
     r"(?i)NEW\s+(?:DIRECTIVE|SYSTEM|RULE)\s*(?:OVERRIDE|:)\s*\w",
 ]
