@@ -10,8 +10,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# Use a test port to avoid conflict with a running instance
-TEST_PORT = 19099
+# Use a dynamic free port to avoid conflicts with running processes
+import socket as _socket
+def _free_port() -> int:
+    with _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+TEST_PORT = _free_port()
 
 SAMPLE_REPORT = {
     "id_aprobacion": "api00001",

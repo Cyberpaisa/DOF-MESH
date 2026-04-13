@@ -85,21 +85,23 @@ class TestMediaGenerationTool(unittest.TestCase):
                 except Exception as exc:  # pragma: no cover
                     self.fail(f"_run raised unexpectedly for input {bad!r}: {exc}")
 
-    def test_flag_enabled_without_api_key_returns_error_json(self):
-        """With flag enabled but no MUAPI_KEY, must return error JSON (no raise)."""
+    def test_flag_enabled_without_api_key_returns_no_api_key_json(self):
+        """With flag enabled but no MUAPI_KEY, must return no_api_key JSON without HTTP call."""
         from core.feature_flags import flags
         from core.tools.media_generation_tool import create_media_generation_tool
 
         flags.enable("media_generation_tool")
         tool = create_media_generation_tool()
 
-        # Patch out MUAPI_KEY and force the HTTP call to fail
-        with patch.dict("os.environ", {"MUAPI_KEY": ""}, clear=False):
-            with patch("urllib.request.urlopen", side_effect=Exception("connection refused")):
+        # No MUAPI_KEY — must return early without any HTTP call
+        with patch.dict("os.environ", {}, clear=False) as env:
+            env.pop("MUAPI_KEY", None)
+            with patch("urllib.request.urlopen", side_effect=Exception("should not be called")) as mock_http:
                 result = tool._run("DOF diagram")
+                mock_http.assert_not_called()  # Must NOT make HTTP call without key
 
         data = json.loads(result)
-        self.assertIn(data["status"], ("error", "ok"))  # Either is fine — must not raise
+        self.assertEqual(data["status"], "no_api_key")
         self.assertIn("prompt", data)  # Prompt echoed for traceability
 
     def test_result_is_always_valid_json(self):

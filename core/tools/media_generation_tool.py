@@ -103,10 +103,15 @@ class MediaGenerationTool(BaseTool):
                 "prompt": prompt,
             }, ensure_ascii=False)
 
-        # Flag enabled — attempt real API call
+        # Flag enabled — check API key before any network call
         api_key = os.getenv("MUAPI_KEY", "")
         if not api_key:
-            logger.warning("MUAPI_KEY not set — media generation will likely fail")
+            logger.warning("MUAPI_KEY not set — media_generation_tool requires MUAPI_KEY env var")
+            return json.dumps({
+                "status": "no_api_key",
+                "message": "MUAPI_KEY environment variable not set. Set it to enable media generation.",
+                "prompt": prompt,
+            }, ensure_ascii=False)
 
         try:
             import urllib.request

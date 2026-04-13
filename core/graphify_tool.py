@@ -126,6 +126,7 @@ def _scan_core(query: str) -> dict[str, Any]:
                     functions_hit.append({"module": module_name, "name": f})
 
     return {
+        "status": "ok",
         "query": query,
         "modules": modules_hit,
         "classes": classes_hit,
