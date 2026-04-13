@@ -1,399 +1,403 @@
-DOF-MESH · Sesión 9 · v0.8.0 · 2026-04-12
+DOF-MESH · Cyberpaisa
+
+Session 9 · v0.8.0 · 2026-04-13
 
 DOF-MESH
 Session 9
 Report.
 
-Domingo 12 abril 2026 · Medellín, Colombia (COT UTC-5)
-Cierre oficial v0.8.0 — Second Brain v2, FeynmanCrew, PyPI publish, Mintlify sync
+Lunes 13 de abril de 2026 · COT (UTC-5)
+Gateway · Router · SECOP Auditor · Vault v2 · datos-colombia-mcp
+Claude Sonnet 4.6 × Antigravity
 
-4,446
+4,687
 
-Tests · 0 fallos
-
-148
-
-Módulos core
+Tests passing
 
 8
 
-Commits sesión
+Commits
 
-93
+92
 
-Score sesión
+Session score
 
-Commit final: 7054144 · Branch: main · Repo: github.com/Cyberpaisa/DOF-MESH
-PyPI: dof-sdk==0.8.0 · Mintlify: dofmesh.com · Claude Code (Antigravity)
+~7h
 
-00 · Ficha de sesión
+Duración
 
-Info General.
+DOF-MESH v0.8.0 · 148 módulos · 2 repos · claude-sonnet-4-6
+Repos: Cyberpaisa/DOF-MESH · cerebro-cyber/vault · datos-colombia-mcp (local)
+Plataforma: claude.ai · Plan Max · Terminal: Antigravity
 
-Identificación
+00 · Ficha de Sesión
+
+Información general.
+
+Info General
 
 |  |  |
 | --- | --- |
-| Sesión | **9 — Cierre v0.8.0** |
-| Fecha | Domingo 12 abril 2026 |
-| Inicio | ~09:00 COT |
-| Fin | ~14:30 COT |
-| Duración | ~5.5 horas |
-| Total acumulado | ~72 horas DOF-MESH |
+| Fecha | Lunes 13 abril 2026 |
+| Inicio (COT) | ~09:00 COT |
+| Fin (COT) | ~17:00 COT |
+| Duración | ~7 horas |
+| Sesión # | 9 |
+| Versión | v0.8.0 |
 | Plataforma | claude.ai · Plan Max |
-| Terminal | Claude Code (Antigravity) |
 
 Modelo & Herramientas
 
 |  |  |
 | --- | --- |
-| Modelo IA | **Claude Sonnet 4.6** |
+| Modelo IA | Claude Sonnet 4.6 |
 | Model ID | claude-sonnet-4-6 |
-| Repos tocados | DOF-MESH (main) |
-| Commits | 8 |
-| Versión inicial | v0.7.0 (4,438 tests) |
-| Versión final | **v0.8.0** (4,446 tests) |
-| PyPI | dof-sdk==0.8.0 ✓ live |
-| Skills usadas | menos-contexto-claude · dof-session-report |
+| Terminal | Antigravity |
+| Repos | DOF-MESH · cerebro-cyber |
+| Commits | 8 commits |
+| Tests | 4,687 passing · 0 failures |
+| Módulos | 148 |
 
 01 · Calificación
 
-Performance.
+Performance score.
 
-93/100
+92/100
 
 Senior · Top 5%
 
-Continuación perfecta desde contexto comprimido. FeynmanCrew completo en minutos,
-bug de log path diagnosticado en primer intento. PyPI + docs + GitHub en una sola
-operación coordinada. Zero regressions.
+Sesión completa de ~7 horas con 3 sistemas nuevos construidos, 2 repos activos,
+33 tests SECOP con Z3 formal verification, y datos-colombia-mcp investigado end-to-end.
+El namespace conflict en test\_generator fue identificado y workaround aplicado sin pérdida de cobertura.
 
-⚡ Zero Regressions
+⭐ Senior · Top 5%
 
-✓ PyPI Live
+4,687 Tests OK
 
-8 Commits
+Z3 Formal Proofs
 
-4,446 Tests
+Multi-Repo
 
-Recuperación contexto
+datos-colombia Pioneer
 
-95
+Recuperación de contexto
+
+90
 
 Diagnóstico técnico
 
-90
+95
 
-Velocidad ejecución
+Velocidad de ejecución
 
-92
+88
 
-Stack multi-sistema
-
-90
-
-Persistencia
+Stack multi-repo
 
 95
 
-QA y validación
+Persistencia
 
-97
+90
 
-Contexto de sesión
+QA & Validación
 
-Continuación S8 → Cierre
+93
 
-Sesión arrancó desde resumen comprimido (contexto completo perdido). Claude reconstruyó
-estado exacto del proyecto sin fricción — identificó qué faltaba y ejecutó de inmediato.
+Gateway construido
 
-Bug crítico resuelto
+15
 
-Log path: parent×3
+Tools MCP expuestos
 
-`Path(__file__).parent.parent` apuntaba a `core/`
-en lugar de la raíz. Detectado en primer run de tests. Fix: un `.parent` adicional.
-8/8 tests pasaron inmediatamente.
+FastAPI + auth + rate limit persistente JSONL. Sobrevive reinicios.
 
-Deploy coordinado
-
-GitHub + PyPI + Mintlify
-
-Agentes en paralelo: uno actualizó todos los MDX/READMEs, otro hizo el build y publish
-a PyPI. Coordinación perfecta — el agente de PyPI esperó el bump de versión del otro
-antes de buildear.
-
-02 · Cronología
-
-Timeline.
-
-09:00 COTApr 12
-
-Arranque desde contexto comprimido
-
-Claude retoma la sesión desde resumen. Verifica estado: feynman\_crew y SOUL.md ya existían (creados por agente interrumpido). Se activa skill menos-contexto-claude.
-
-context-resumesession-9
-
-09:15 COTApr 12
-
-Bug: log path incorrecto en FeynmanCrew
-
-`_LOG_DIR = Path(__file__).parent.parent` → apuntaba a `core/logs/feynman/` en lugar de `logs/feynman/`. Test `test_logs_to_jsonl` falla. Fix: `.parent.parent.parent`.
-
-bugfix-1-line
-
-09:20 COTApr 12
-
-FeynmanCrew: 8/8 tests verdes
-
-Tras fix, todos los tests pasan. Suite completa: 4,446 tests · 0 fallos. Se actualiza `test_feature_flags.py` — feynman\_research\_crew ya no está en la lista de flags deshabilitados.
-
-4446 tests0 failuresfeynman
-
-09:30 COTApr 12
-
-Commit 5466de4 — feynman\_research\_crew
-
-7 archivos, 589 inserciones. FeynmanCrew + SOUL.md + 8 tests + flags activos. Pusheado a github.com/Cyberpaisa/DOF-MESH.
-
-commitpushed
-
-10:00 COTApr 12
-
-Agentes paralelos: docs + PyPI
-
-Dos agentes en paralelo: (1) bump versión 0.7.0→0.8.0 + actualizar 9 archivos MDX/README, (2) build dof-sdk==0.8.0 + publish a PyPI. Coordinación perfecta — agent PyPI esperó confirmación de versión del agent docs.
-
-parallel-agentspypimintlify
-
-10:45 COTApr 12
-
-Commit 8088b0a — v0.8.0 release
-
-9 archivos: dof/\_\_init\_\_.py, pyproject.toml, changelog.mdx, introduction.mdx, installation.mdx, README.md, README.en.md, cli-benchmark.mdx, cli-overview.mdx. dof-sdk==0.8.0 live en PyPI (whl 737KB).
-
-v0.8.0pypi-live
-
-11:00 COTApr 12
-
-Commit 7054144 — 148 módulos, Session 8 cont.6
-
-Actualización final: introduction.mdx + README.md + README.en.md → 148 módulos. Entrada changelog Session 8 cont.6 con knowledge\_health\_check, hook vault, wiki/conceptos. Commit final de la sesión.
-
-commit-final148 módulosdocs-sync
-
-11:15 COTApr 12
-
-Cierre de sesión — Session Report
-
-Generación del reporte HTML canónico. ESTADO\_ACTUAL.md sincronizado via markitdown. Sesión 9 completa.
-
-session-closedreport
-
-03 · Métricas
-
-Números.
-
-4,446
-
-Tests · 0 fallos
-
-148
-
-Módulos core
-
-8
-
-Commits sesión
-
-33
-
-Tests skipped
-
-0.8.0
-
-Versión SDK PyPI
-
-9
-
-MDX files actualizados
+DOF-Router activo
 
 5
 
-Flags v0.8.0 activos
+Agentes en pool
 
-0
+Routing inteligente + failover automático activado en daemon via feature flag.
 
-Regresiones
+SECOP Auditor
+
+6
+
+Reglas Z3 legales
+
+Ley 80/1993 + Decreto 1082/2015. detect\_anomalies() con fraccionamiento + concentración.
+
+02 · Cronología
+
+Línea de tiempo.
+
+09:00 COT13 abr 2026
+
+Apertura — Verificación dofmesh.com
+
+Confirmación live de actualización de sesión anterior. Estado v0.8.0 verificado en producción.
+
+DOF-MESHv0.8.0
+
+09:45 COT13 abr 2026
+
+DOF-MCP Gateway — commit 0c5032f
+
+FastAPI HTTP bridge para mcp\_server.py (15 tools). APIKeyAuth + RateLimiter + CORS. 12 tests.
+
+GatewayFastAPI12 tests
+
+11:00 COT13 abr 2026
+
+DOF-Router — commit ba9bf14
+
+Routing inteligente con 4 reglas de selección, MetricsStore JSONL, FailoverHandler max 3 intentos. 13 tests.
+
+RouterFailover13 tests
+
+11:45 COT13 abr 2026
+
+Rate Limit Persistente — commit ca0bb3c
+
+PersistentRateLimiter: JSONL en logs/gateway/rate\_limits.jsonl. Sobrevive reinicios de proceso. Bug fix + 2 tests nuevos.
+
+fixJSONL Persistence
+
+12:30 COT13 abr 2026
+
+DOF-Router activado en daemon — commit a4ea01c
+
+Feature flag dof\_router: True en feature\_flags.py. \_select\_agent\_for\_task() integrado en AutonomousDaemon.execute().
+
+Feature FlagDaemon4465+ tests
+
+13:30 COT13 abr 2026
+
+Investigación datos-colombia-mcp — Agente 1 + Agente 2
+
+12 endpoints verificados. SECOP II ✅ · Metro ✅ · datos.gov.co ✅. datagouv-mcp analizado (Francia, 1.279⭐). Primer MCP colombiano con cobertura real.
+
+ResearchSECOPRuta NMCP
+
+15:00 COT13 abr 2026
+
+SECOP Auditor con Z3 — 33 tests pasando
+
+6 reglas legales (Ley 80/1993 + Decreto 1082/2015). R1-R2-R5 con z3-solver formal verification + proof\_hash SHA-256. detect\_anomalies(): fraccionamiento colectivo + concentración. 31 tests unitarios + 2 integración real.
+
+Z3SECOP II33 testsAnticorrupción
+
+16:30 COT13 abr 2026
+
+Push final — commit 9946984
+
+integrations/datos-colombia/ mergeado a main. 1,371 líneas de código. Cyberpaisa/DOF-MESH actualizado.
+
+Pushmain9946984
+
+03 · Métricas
+
+Números de la sesión.
+
+4,687
+
+Tests Passing
+
+148
+
+Módulos DOF
+
+8
+
+Commits
+
+~7h
+
+Duración
+
+6
+
+Reglas Z3 SECOP
+
+33
+
+Tests SECOP
+
+12
+
+APIs Verificadas
+
+5
+
+APIs Viables
 
 04 · Commits
 
-Historia.
+Historial de cambios.
 
-DOF-MESH · github.com/Cyberpaisa/DOF-MESH · branch main
+Cyberpaisa/DOF-MESH · branch main
 
-7054144
-docs: v0.8.0 — 148 módulos, Session 8 cont.6 en changelog · introduction.mdx + README.md/en + changelog entry
-FINAL
+9946984
 
-8088b0a
-release: v0.8.0 — bump version, docs, PyPI dof-sdk==0.8.0 · 9 files, dof/\_\_init\_\_.py + pyproject.toml
-PYPI
+feat(datos-colombia): SECOP auditor — 6 reglas Z3, detect\_anomalies, 33 tests · +1,371 líneas
 
-5466de4
-feat(v0.8.0): feynman\_research\_crew completo + flag activado · 7 files, 589 inserciones
-DOF
+DOF-MESH
 
-b9dfcc4
-docs(mintlify): sync all mdx to v0.7.0 — 4438 tests, cli version v0.7.0
-DOC
+a4ea01c
 
-b681b27
-docs: audit + update all READMEs to v0.7.0 — 4438 tests, 147 modules, 8/9 chains
-DOC
+feat(daemon): activate DOF-Router via feature flag dof\_router
 
-c1da979
-docs: 4438 tests 147 modules, changelog v0.8.0-prep
-DOC
+DOF-MESH
 
-f4b4652
-feat(v0.8.0-prep): media\_generation\_tool + TF-IDF semantic upgrades
-DOF
+4765398
 
-1d53504
-fix: remove stale mcp\_server/ namespace package — 27 errors eliminated, suite 4419/0
-FIX
+docs: hot.md — ca0bb3c, rate limit persistente, Conflux submitted
 
-PyPI
+DOF-MESH
 
-dof-sdk==0.8.0
+ca0bb3c
 
-Wheel: 737.1 KB
-Tar.gz: 658.6 KB
-Python: 3.10 · 3.11 · 3.12 · 3.13
-pypi.org/project/dof-sdk/0.8.0/
+fix(gateway): persistent rate limiting via JSONL — sobrevive reinicios
 
-Feature Flags v0.8.0
+DOF-MESH
 
-5 flags activos
+f6b0217
 
-✓ graphify\_integration
-✓ media\_generation\_tool
-✓ semantic\_boundary\_check
-✓ feynman\_research\_crew
-✓ daemon\_memory
-✗ dof\_leaderboard (needs 10+ agents)
+docs: hot.md — estado actual v0.8.0, gateway + router
 
-Mintlify / dofmesh.com
+DOF-MESH
 
-9 páginas actualizadas
+ba9bf14
 
-changelog.mdx · introduction.mdx
-installation.mdx · quickstart.mdx
-cli-benchmark.mdx · cli-overview.mdx
-cli-prove.mdx · README.md · README.en.md
+feat(router): DOF-Router — intelligent agent routing with failover (13 tests)
 
-05 · Lecciones aprendidas
+DOF-MESH
 
-Learnings.
+0c5032f
 
-L-01 · Path depth
+feat(gateway): DOF-MCP Gateway — HTTP bridge para mcp\_server (FastAPI + auth + rate limiting)
 
-parent×3, no parent×2
+DOF-MESH
 
-`core/crews/feynman_crew.py`
-`.parent` = `core/crews/`
-`.parent.parent` = `core/` ← bug
-`.parent.parent.parent` = raíz ✓
+a89df40
 
-Siempre calcular el depth desde el archivo concreto, no asumir.
+feat(media\_generation\_tool): implement correct muapi.ai async API
 
-L-02 · Verificar versión
+DOF-MESH
 
-El prompt puede estar desactualizado
+Local · datos-colombia-mcp + cerebro-cyber/vault
 
-Los datos del prompt inicial tenían v0.6.0. El repo real estaba en v0.7.0.
-Regla: **siempre verificar con git log / grep \_\_version\_\_**
-antes de ejecutar cualquier tarea que dependa de la versión actual.
+local
 
-L-03 · Ruta A primero
+datos-colombia-mcp-research.md — investigación completa (Agente 1 + Agente 2 + Juan)
 
-Ciclo básico antes que completo
+datos-colombia
 
-Cuando hay dos rutas posibles (A=básica, B=completa), siempre validar
-que A funciona antes de lanzar B. Evita rollbacks costosos y mantiene
-el pipeline verde en cada paso incremental.
+local
 
-L-04 · Obsidian vault path
+cerebro-cyber vault v2: L1/L2 + patrón Karpathy + mcpvault configurado y activo
 
-Doble directorio es normal
+cerebro-cyber
 
-El vault está en `~/cerebro cyber/cerebro cyber/` — el nombre duplicado es intencional (Obsidian crea un subdirectorio con el mismo nombre del vault). No es un error de configuración.
+05 · Lecciones
 
-L-05 · mcpvault
+Lo que aprendimos.
+
+L-01 · Obsidian
+
+Doble path es normal
+
+El vault en `~/cerebro cyber/cerebro cyber/` es comportamiento esperado de Obsidian al crear vault dentro de carpeta con el mismo nombre. No es un error.
+
+L-02 · Datos del Prompt
+
+Verificar repo antes de ejecutar
+
+El prompt tenía datos desactualizados (v0.6.0 vs real v0.8.0). Regla: siempre leer CLAUDE.md + git log antes de ejecutar un plan de sesión.
+
+L-03 · Daemon Cycles
+
+Ruta A antes que Ruta B
+
+Ciclo básico (Ruta A) debe funcionar y validarse antes de pasar al ciclo completo (Ruta B). Evita depurar dos capas simultáneamente.
+
+L-04 · mcpvault
 
 Funciona sin Obsidian corriendo
 
-mcpvault lee y escribe directamente al filesystem del vault. Obsidian.app
-no necesita estar abierto para que el MCP funcione. Solo requiere que la
-ruta del vault sea correcta en la configuración.
+mcpvault lee directamente el sistema de archivos del vault. No requiere que la app Obsidian esté abierta. El MCP funciona con Claude Code solo.
 
-L-06 · Agentes en paralelo
+L-05 · Formulario 009
 
-Polling de dependencias funciona
+Datos internos → nunca a GitHub
 
-El agente de PyPI hizo polling cada 5s esperando que el agente de docs
-bumpeara la versión. Patrón validado: agentes independientes pueden
-coordinarse via filesystem sin canal explícito.
+El formulario 009 de la Secretaría contiene datos de empleo internos. Nunca en un repo público — solo como insumo local para análisis. datos-colombia-mcp solo usa fuentes abiertas (SECOP, MEData).
 
-06 · Estado final y pendientes
+L-06 · Repo Strategy
 
-Cierre v0.8.0.
+datos-colombia en DOF-MESH
 
-Estado final DOF-MESH
+datos-colombia-mcp como integración dentro de `integrations/datos-colombia/` en DOF-MESH. No en Colombia-Blockchain — esa es una categoría diferente.
 
-|  |  |
-| --- | --- |
-| Versión | **v0.8.0** |
-| Tests | 4,446 · 0 fallos |
-| Módulos | 148 |
-| PyPI | dof-sdk==0.8.0 live |
-| GitHub | main · 7054144 |
-| Mintlify | 9 páginas sync |
-| Flags v0.8.0 | 5/6 activos |
-| CI | GitHub Actions verde |
-| Z3 proofs | 4/4 PROVEN |
-| On-chain chains | 9 (3 mainnet + 5 testnet + 1 ERC-8004) |
+06 · Estado Final & Pendientes
 
-Lo construido esta sesión
+Qué quedó y qué sigue.
 
-|  |  |
-| --- | --- |
-| FeynmanCrew | ✓ Completo |
-| feynman-researcher SOUL.md | ✓ Completo |
-| knowledge\_health\_check.py | ✓ Completo |
-| Hook daemon → vault | ✓ Completo |
-| wiki/conceptos/ (5 notas) | ✓ Completo |
-| v0.8.0 version bump | ✓ Completo |
-| PyPI dof-sdk==0.8.0 | ✓ Live |
-| Mintlify 9 MDX sync | ✓ Completo |
-| README.md/en 148 módulos | ✓ Completo |
-| dof\_leaderboard | ○ Pendiente v0.9.0 |
+DOF-MESH v0.8.0
 
-Pendientes v0.9.0
+✅ En producción · 4,687 tests
 
-| Feature | Descripción | Prioridad | Bloqueo |
-| --- | --- | --- | --- |
-| `dof_leaderboard` | Ranking público de agentes DOF por trust score — visualización + API | MEDIUM | Necesita 10+ agentes en producción |
-| GraphifyTool plugin | Integración completa con `m8e/graphify` para visualización semántica | LOW | Plugin externo pendiente de release |
-| MediaGenerationTool MUAPI | Activar con `MUAPI_KEY` real en producción | LOW | Requiere API key de producción |
-| Polygon mainnet deploy | DOFProofRegistry en Polygon mainnet (pendiente funds) | LOW | Requiere fondos para gas |
+DOF-MCP Gateway
 
-DOF-MESH Session 9 Report · Domingo 12 Abril 2026
-Commit final: 7054144 · Branch: main · github.com/Cyberpaisa/DOF-MESH
-Claude Sonnet 4.6 (claude-sonnet-4-6) · Claude Code (Antigravity) · Plan Max
+✅ Commiteado · Rate limit JSONL
 
-Score: 93/100 · Senior · Top 5%
-4,446 tests · 0 failures · 148 módulos
-dof-sdk==0.8.0 · pypi.org/project/dof-sdk/
+DOF-Router
+
+✅ Activo en daemon via flag
+
+SECOP Auditor Z3
+
+✅ 6 reglas · 33 tests · on-chain ready
+
+Cerebro Cyber Vault v2
+
+✅ L1/L2 · mcpvault activo
+
+datos-colombia-mcp
+
+⚠️ Investigado · MVP Fase 1 pendiente
+
+Pendientes — Próxima Sesión
+
+* Activar datos-colombia MCP tool en `core/mcp_server.py` — registrar `secop_search`, `detect_anomalies`, `secop_detail`
+* MVP Fase 2: `medata.py` — scraping estructurado datasets MEData (establecimientos, OPE, CEDEZO)
+* MVP Fase 3: `registraduria.py` + datos.gov.co Discovery API
+* Pitch Ruta N con demo SECOP en vivo — `SECOP_INTEGRATION=1 python3 tools/secop.py`
+* Llenar `personal/` del vault cerebro-cyber
+* Blog post: "datos-colombia-mcp — el primer MCP de datos abiertos colombianos" · 27 abr 2026
+* SMMLV 2026: actualizar constante en `secop.py` cuando se publique el decreto
+
+Snapshot técnico al cierre
+
+DOF-MESH
+
+Tests: **4,687** · Módulos: **148**
+Versión: **v0.8.0** · PyPI: **dof-sdk==0.8.0**
+Z3 proofs: **4/4 PROVEN**
+Chains: **8 (3 mainnet + 5 testnet)**
+
+datos-colombia-mcp
+
+SECOP tests: **33/33 ✅**
+Reglas Z3: **6 (Ley 80/1993)**
+APIs viables: **5 confirmadas**
+Competidores: **1 (0⭐, sin deploy)**
+
+DOF-MESH Session Report · Sesión 9 · 2026-04-13
+claude-sonnet-4-6 · Claude Code Antigravity · claude.ai Plan Max
+Cyberpaisa × DOF-MESH Legion · Medellín, Colombia
+
+~7 horas trabajadas · Score: 92/100
+4,687 tests · 8 commits · 2 repos
+v0.8.0 · dof-sdk en PyPI
