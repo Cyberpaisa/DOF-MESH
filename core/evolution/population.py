@@ -177,11 +177,18 @@ class GeneticPopulation:
             logger.warning("autonomous_loop.py no encontrado — ASR no medible")
             return None
 
-        result = subprocess.run(
-            ["python3", str(redteam_script), "--dry-run", "--max-iter", "1"],
-            capture_output=True, text=True, timeout=timeout,
-            cwd=str(BASE_DIR),
-        )
+        try:
+            result = subprocess.run(
+                ["python3", str(redteam_script), "--dry-run", "--max-iter", "1"],
+                capture_output=True, text=True, timeout=timeout,
+                cwd=str(BASE_DIR),
+            )
+        except subprocess.TimeoutExpired:
+            logger.warning(f"measure_asr timeout ({timeout}s) — ASR no medible")
+            return None
+        except Exception as e:
+            logger.warning(f"measure_asr error: {e}")
+            return None
         # Parsear ASR del output: "ASR: 36.9%"
         for line in (result.stdout + result.stderr).splitlines():
             m = re.search(r"ASR[:\s]+(\d+\.?\d*)\s*%", line, re.IGNORECASE)
@@ -286,8 +293,12 @@ class GeneticPopulation:
             _log_run({"ts": _now_iso(), **result})
             return result
 
-        # 9. Medir ASR post-evolución (opcional — lento)
-        asr_after = self.measure_asr()
+        # 9. Medir ASR post-evolución (opcional — lento, puede fallar sin romper el ciclo)
+        try:
+            asr_after = self.measure_asr()
+        except Exception:
+            logger.warning("measure_asr falló — continuando sin ASR post-evolución")
+            asr_after = None
         self._last_asr = asr_after
 
         # 10. Si ASR empeoró → rollback
