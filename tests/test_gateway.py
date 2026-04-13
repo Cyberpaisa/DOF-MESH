@@ -189,5 +189,60 @@ class TestToolRouter(unittest.TestCase):
         self.assertFalse(auth.validate("bearer abc"))
 
 
+class TestPersistentRateLimiter(unittest.TestCase):
+    """Tests de persistencia JSONL del rate limiter."""
+
+    def test_rate_limit_persists_across_restart(self):
+        """Conteo debe sobrevivir un 'restart' (nueva instancia leyendo el mismo archivo)."""
+        import tempfile
+        from core.gateway.rate_limiter import PersistentRateLimiter
+
+        with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as f:
+            tmp_path = f.name
+
+        try:
+            # Instancia 1 — registra 3 requests
+            limiter1 = PersistentRateLimiter(max_requests=5, window_seconds=60, log_path=tmp_path)
+            limiter1.check("sk-dof-persist-test")
+            limiter1.check("sk-dof-persist-test")
+            limiter1.check("sk-dof-persist-test")
+            self.assertEqual(limiter1.remaining("sk-dof-persist-test"), 2)
+
+            # Instancia 2 — simula restart, lee desde el mismo archivo
+            limiter2 = PersistentRateLimiter(max_requests=5, window_seconds=60, log_path=tmp_path)
+            # Solo quedan 2 requests disponibles (no 5 como si fuera RAM fresca)
+            self.assertEqual(limiter2.remaining("sk-dof-persist-test"), 2)
+        finally:
+            import os
+            os.unlink(tmp_path)
+
+    def test_rate_limit_expired_window_resets(self):
+        """Ventana expirada: al cargar, timestamps viejos se descartan → conteo 0."""
+        import tempfile, json, time
+        from core.gateway.rate_limiter import PersistentRateLimiter
+
+        with tempfile.NamedTemporaryFile(
+            suffix=".jsonl", mode="w", delete=False
+        ) as f:
+            tmp_path = f.name
+            # Escribir timestamps de hace 2 minutos (fuera de ventana de 60s)
+            old_ts = time.time() - 120
+            entry = {
+                "key": "sk-dof-expire-test",
+                "count": 50,
+                "window_start": "2026-01-01T00:00:00+00:00",
+                "timestamps": [old_ts] * 50,
+            }
+            f.write(json.dumps(entry) + "\n")
+
+        try:
+            limiter = PersistentRateLimiter(max_requests=5, window_seconds=60, log_path=tmp_path)
+            # Los 50 timestamps expirados deben descartarse → conteo limpio
+            self.assertEqual(limiter.remaining("sk-dof-expire-test"), 5)
+        finally:
+            import os
+            os.unlink(tmp_path)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

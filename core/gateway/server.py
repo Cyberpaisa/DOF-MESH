@@ -17,6 +17,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from .auth import require_api_key
+from .rate_limiter import PersistentRateLimiter
 from .router import ToolRouter
 
 logger = logging.getLogger("dof.gateway.server")
@@ -65,7 +66,7 @@ class RateLimiter:
         return max(0, self._max - len(active))
 
 
-_rate_limiter = RateLimiter()
+_rate_limiter = PersistentRateLimiter()
 _router = ToolRouter()
 _start_time = time.time()
 

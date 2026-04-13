@@ -15,5 +15,6 @@ Configuración:
 from .server import app
 from .auth import APIKeyAuth
 from .router import ToolRouter
+from .rate_limiter import PersistentRateLimiter
 
-__all__ = ["app", "APIKeyAuth", "ToolRouter"]
+__all__ = ["app", "APIKeyAuth", "ToolRouter", "PersistentRateLimiter"]
