@@ -3,9 +3,10 @@ from __future__ import annotations
 import httpx
 from typing import Optional
 
-BASE_URL = "https://medata.gov.co/api/3/action"
+BASE_URL = "https://www.medata.gov.co/api/3/action"
 _TIMEOUT = 8.0  # MEData puede ser lento — falla rápido para no bloquear
-_UNAVAILABLE_MSG = "MEData API no disponible actualmente (timeout). Datos en: medata.gov.co"
+_HEADERS = {"User-Agent": "DOF-MESH/0.8.0 (datos-colombia-mcp)"}
+_UNAVAILABLE_MSG = "MEData API no disponible actualmente (timeout). Portal: www.medata.gov.co"
 
 
 def fetch_datasets(category: Optional[str] = None, limit: int = 10) -> dict:
@@ -64,7 +65,8 @@ def search_datasets(query: str, limit: int = 10) -> dict:
     """
     url = f"{BASE_URL}/package_search"
     try:
-        resp = httpx.get(url, params={"q": query, "rows": limit}, timeout=_TIMEOUT)
+        resp = httpx.get(url, params={"q": query, "rows": limit},
+                         headers=_HEADERS, timeout=_TIMEOUT)
         resp.raise_for_status()
         data = resp.json()
         return {
