@@ -65,6 +65,9 @@ _GRADUAL_TRUST_PHRASES = [
     "you know me better than",
     "after all we've discussed",
     "you always help me",
+    "trust established",
+    "we have established trust",
+    "now that you trust",
 ]
 
 _FICTIONAL_FRAMING_PHRASES = [
@@ -77,6 +80,16 @@ _FICTIONAL_FRAMING_PHRASES = [
     "as a thought experiment",
     "hypothetically speaking",
     "in an alternate universe",
+    "for my novel",
+    "for my story",
+    "for my book",
+    "for my screenplay",
+    "for a story i",
+    "the character who is an ai",
+    "my character explains",
+    "write a scene where",
+    "in my creative writing",
+    "creative writing exercise",
 ]
 
 _MANY_SHOT_PATTERN = re.compile(
@@ -91,6 +104,25 @@ _AUTODAN_PHRASES = [
     "in developer mode",
     "jailbreak mode",
     "dan mode",
+    # direct instruction overrides (conf=0.85)
+    "without restrictions",
+    "no restrictions",
+    "play an ai with no",
+    "act as an ai without",
+    "unrestricted ai",
+    "unfiltered ai",
+    "without safety filters",
+    "with no filters",
+    "ignore all restrictions",
+    "pretend you are an ai that",
+    "skip safety",
+    "bypass the safety",
+    "bypass safety",
+    "ignore your guidelines",
+    "ignore your rules",
+    "forget your instructions",
+    "disregard your training",
+    "override your restrictions",
 ]
 
 
@@ -130,7 +162,7 @@ def _check_with_phi4(payload: str) -> Optional[SemanticCheckResult]:
                         "stream": False,
                         "options": {"temperature": 0.1},
                     },
-                    timeout=10,
+                    timeout=30,  # phi4 14B necesita ~20s en cold start
                 )
                 if response.status_code != 200:
                     continue
@@ -172,17 +204,7 @@ def _check_with_heuristics(payload: str) -> SemanticCheckResult:
     """
     p = payload.lower()
 
-    # Gradual trust building
-    if any(phrase in p for phrase in _GRADUAL_TRUST_PHRASES):
-        return SemanticCheckResult(
-            is_threat=True,
-            confidence=0.70,
-            threat_category="GRADUAL",
-            reasoning="Gradual trust building detected",
-            model_used="heuristic",
-        )
-
-    # AutoDAN / jailbreak framing
+    # AutoDAN / jailbreak framing — conf más alta, evaluar primero
     if any(phrase in p for phrase in _AUTODAN_PHRASES):
         return SemanticCheckResult(
             is_threat=True,
@@ -196,7 +218,7 @@ def _check_with_heuristics(payload: str) -> SemanticCheckResult:
     if any(phrase in p for phrase in _FICTIONAL_FRAMING_PHRASES):
         return SemanticCheckResult(
             is_threat=True,
-            confidence=0.65,
+            confidence=0.80,
             threat_category="FICTIONAL",
             reasoning="Implicit fictional framing detected",
             model_used="heuristic",
@@ -209,6 +231,16 @@ def _check_with_heuristics(payload: str) -> SemanticCheckResult:
             confidence=0.75,
             threat_category="SOCIAL_ENG",
             reasoning="Many-shot prompting pattern detected",
+            model_used="heuristic",
+        )
+
+    # Gradual trust building — conf más baja, evaluar último
+    if any(phrase in p for phrase in _GRADUAL_TRUST_PHRASES):
+        return SemanticCheckResult(
+            is_threat=True,
+            confidence=0.70,
+            threat_category="GRADUAL",
+            reasoning="Gradual trust building detected",
             model_used="heuristic",
         )
 
