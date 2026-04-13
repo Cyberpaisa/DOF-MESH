@@ -27,7 +27,7 @@ logger = logging.getLogger("dof.gateway.server")
 # ─────────────────────────────────────────────────────────────────────
 
 GATEWAY_VERSION = "0.8.0"
-TOTAL_TOOLS = 15
+TOTAL_TOOLS = 18  # +3 datos-colombia-mcp: secop_search, secop_anomalies, medata_search
 RATE_LIMIT_MAX = 100   # requests por ventana
 RATE_LIMIT_WINDOW = 60  # segundos
 

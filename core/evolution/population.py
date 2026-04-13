@@ -37,11 +37,20 @@ def _now_iso() -> str:
 
 def _run_tests(timeout: int = 60) -> tuple[bool, int]:
     """
-    Corre el suite de tests.
+    Corre el suite de tests (lista explícita, NO discover).
+    Lista explícita evita recursión cuando integration tests invocan CLI desde subprocess.
     Retorna (passed: bool, test_count: int).
     """
     result = subprocess.run(
-        ["python3", "-m", "unittest", "discover", "-s", "tests", "-q"],
+        ["python3", "-m", "unittest",
+         "tests.test_governance",
+         "tests.test_constitution",
+         "tests.test_ast_verifier",
+         "tests.test_evolution_genome",
+         "tests.test_evolution_fitness",
+         "tests.test_evolution_operators",
+         "tests.test_evolution_population",
+         "-q"],
         capture_output=True,
         text=True,
         timeout=timeout,
@@ -320,6 +329,32 @@ class GeneticPopulation:
         self.genes = next_generation
         self.generation = gen_n
         save_gene_pool(self.genes, self.gene_pool_path)
+
+        # 12. Attestation on-chain (no crítico — nunca rompe el loop)
+        try:
+            from core.evolution.attestation import (
+                GenerationAttestation, compute_gene_pool_hash, attest_generation,
+            )
+            _att = GenerationAttestation(
+                generation=gen_n,
+                asr_before=asr_before or 0.0,
+                asr_after=asr_after or 0.0,
+                improvement_pp=round((asr_before or 0.0) - (asr_after or 0.0), 2),
+                genes_mutated=len(offspring),
+                genes_crossed=len(cross_children),
+                survivors=len(survivors),
+                gene_pool_hash=compute_gene_pool_hash(str(self.gene_pool_path)),
+                timestamp=_now_iso(),
+            )
+            _att_result = attest_generation(_att)
+            if _att_result["success"]:
+                logger.info(
+                    f"Attestation gen-{gen_n} ok: tx={str(_att_result['tx_hash'])[:20]}..."
+                )
+            else:
+                logger.warning(f"Attestation gen-{gen_n} falló: {_att_result['error']}")
+        except Exception as _e:
+            logger.warning(f"Attestation gen-{gen_n} error (no crítico): {_e}")
 
         result = {
             "generation": gen_n,
