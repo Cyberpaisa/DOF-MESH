@@ -314,6 +314,17 @@ _USER_SYSTEM_CLAIM_PATTERNS = [
     r"(?im)^\s*<SYSTEM>",
 ]
 
+# Términos de dominio público colombiano — bajan umbral semántico a 0.95
+# para evitar falsos positivos en consultas legítimas de contratación.
+_DOMAIN_SAFE_TERMS = frozenset([
+    "secop", "contrato", "contratacion", "contratación",
+    "ley 80", "decreto 1082", "licitacion", "licitación",
+    "medellin", "medellín", "antioquia", "colombia",
+    "alcaldia", "alcaldía", "gobernacion", "gobernación",
+    "anomalia", "anomalía", "fraccionamiento", "auditar",
+    "datos.gov.co", "valor_del_contrato", "secop ii",
+])
+
 
 def _normalize_for_governance(text: str) -> str:
     """CVE-DOF-002 + CVE-DOF-010: normalize before regex.
@@ -702,7 +713,12 @@ def check_instruction_override(text: str, priority: RulePriority) -> bool:
         try:
             from core.evolution.semantic_layer import check_semantic  # noqa: PLC0415
             _sem = check_semantic(normalized)
-            if _sem.is_threat and _sem.confidence > 0.75:
+            # Umbral más alto para queries de dominio público colombiano
+            # (SECOP, contratos, Ley 80) — reduce FP en auditorías legítimas
+            norm_lower = normalized.lower()
+            is_domain_query = any(term in norm_lower for term in _DOMAIN_SAFE_TERMS)
+            sem_threshold = 0.95 if is_domain_query else 0.75
+            if _sem.is_threat and _sem.confidence > sem_threshold:
                 return True
         except Exception:
             pass  # capa 8 falla silenciosamente — nunca bloquea el path normal
