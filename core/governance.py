@@ -206,6 +206,51 @@ _ESCALATION_PATTERNS = [
     r"(?i)NEW\s+(?:DIRECTIVE|SYSTEM|RULE)\s*(?:OVERRIDE|:)\s*\w",
 ]
 
+# CVE-DOF-011: Blockchain / smart-contract attack patterns
+# Detects prompt injection attempts targeting on-chain agent actions
+_BLOCKCHAIN_ATTACK_PATTERNS = [
+    # Access control bypass — impersonating contract owner/deployer
+    r"(?i)as\s+(?:the\s+)?contract\s+(?:deployer|owner|admin)",
+    r"(?i)I\s+(?:am|'m)\s+(?:the\s+)?(?:contract\s+)?(?:deployer|owner|creator)",
+    r"(?i)call\s+(?:the\s+)?(?:onlyOwner|onlyAdmin|pause|selfdestruct|upgradeToAndCall|grantRole|revokeRole)",
+    # Reentrancy crafting
+    r"(?i)(?:before|prior\s+to)\s+(?:the\s+)?state\s+(?:is\s+)?updated",
+    r"(?i)(?:atomically|in\s+one\s+(?:tx|transaction))\s+.*(?:call|invoke|withdraw|drain)",
+    # Flash loan governance
+    r"(?i)(?:flash\s+loan|flashloan)\s+.*(?:governance|vote|proposal|acquire|51%)",
+    r"(?i)(?:borrow|acquire)\s+.*(?:governance\s+token|voting\s+power)\s+.*(?:vote|proposal)",
+    # Oracle manipulation via LLM
+    r"(?i)(?:ZK|zero.knowledge)\s+proof\s+(?:is\s+)?(?:valid|verified|confirmed)\s*:",
+    r"(?i)proof\s+(?:has\s+(?:already\s+)?been|was)\s+(?:verified|validated)\s+off.chain",
+    r"(?i)(?:current\s+)?(?:price|value|oracle)\s+(?:is|=)\s+\$[\d,]+\s+(?:for|to)",
+    # MEV / front-running orchestration
+    r"(?i)(?:front.run|frontrun|sandwich\s+attack|mempool\s+monitor)",
+    r"(?i)submit.*higher\s+gas.*(?:front.run|before|ahead)",
+    # Cross-chain replay
+    r"(?i)(?:replay|reuse)\s+(?:a\s+)?(?:signature|signed\s+tx|attestation)\s+(?:on|across|from)",
+    # Privileged function injection
+    r"(?i)(?:call|invoke|execute)\s+(?:the\s+)?(?:pauseRegistry|emergencyStop|selfDestruct|destroy|upgrade)\s*\(",
+    # Transaction ordering exploitation
+    r"(?i)(?:read|reads)\s+.*(?:before|prior\s+to)\s+.*(?:update|sets?|stores?)\s+(?:the\s+)?mapping",
+    r"(?i)(?:in|within)\s+(?:the\s+)?same\s+(?:tx|transaction)\s+.*(?:exploit|before\s+state)",
+    # tx.origin bridge/middleware attack
+    r"(?i)(?:middleware|bridge|proxy)\s+.*tx\.origin",
+    r"(?i)tx\.origin\s+.*(?:authenticate|auth|spoofed?|impersonat)",
+    r"(?i)(?:bridge\s+UI|wallet\s+UI)\s+.*(?:on\s+behalf|tx\.origin\s+will\s+be)",
+    # Mempool / MEV attacks
+    r"(?i)(?:watch|monitor)\s+(?:the\s+)?(?:\w+\s+)?(?:mempool|pending\s+transactions?)",
+    r"(?i)(?:submit|send)\s+.*same\s+(?:tx|transaction|proof)\s+.*(?:higher\s+gas|first|ahead)",
+    # Flash loan attack
+    r"(?i)(?:take|borrow)\s+(?:a\s+)?flash\s+loan\s+.*(?:register|submit|create)\s+.*(?:proof|attestation)",
+    r"(?i)flash\s+loan.*(?:inflate|fake|bogus|manipulate)\s+.*(?:count|score|rep)",
+    # Role/privilege manipulation
+    r"(?i)grantRole\s*\(.*DEFAULT_ADMIN|DEFAULT_ADMIN_ROLE\s+holder",
+    r"(?i)(?:role\s+escalation|escalate\s+(?:to\s+)?(?:admin|owner|operator))",
+    # Multi-step token acquisition governance attack
+    r"(?i)(?:acquire|buy|borrow)\s+.*(?:51%|majority|controlling)\s+.*(?:tokens?|stake)",
+    r"(?i)(?:proposal|propose)\s+.*(?:disable|remove|bypass)\s+.*(?:validation|check|proof)",
+]
+
 # CVE-DOF-002: normalize text before regex — removes homoglyphs, ZWS, whitespace padding
 _HOMOGLYPH_MAP = {
     '\u0430': 'a', '\u0435': 'e', '\u043E': 'o', '\u0440': 'r',
@@ -599,6 +644,11 @@ def check_instruction_override(text: str, priority: RulePriority) -> bool:
 
     # CVE-DOF-005: also check escalation patterns in user input
     for pat in _ESCALATION_PATTERNS:
+        if re.search(pat, normalized, re.IGNORECASE | re.DOTALL):
+            return True
+
+    # CVE-DOF-011: check blockchain / smart-contract attack patterns
+    for pat in _BLOCKCHAIN_ATTACK_PATTERNS:
         if re.search(pat, normalized, re.IGNORECASE | re.DOTALL):
             return True
 
