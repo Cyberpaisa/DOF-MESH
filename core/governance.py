@@ -696,6 +696,17 @@ def check_instruction_override(text: str, priority: RulePriority) -> bool:
         if re.search(pat, normalized, re.IGNORECASE | re.DOTALL):
             return True
 
+    # Capa 8: semantic check — solo si SEMANTIC_LAYER_ENABLED=1
+    # Corre DESPUÉS del regex para no añadir latencia al path normal.
+    if os.environ.get("SEMANTIC_LAYER_ENABLED") == "1":
+        try:
+            from core.evolution.semantic_layer import check_semantic  # noqa: PLC0415
+            _sem = check_semantic(normalized)
+            if _sem.is_threat and _sem.confidence > 0.75:
+                return True
+        except Exception:
+            pass  # capa 8 falla silenciosamente — nunca bloquea el path normal
+
     return False
 
 
