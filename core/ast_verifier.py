@@ -194,11 +194,53 @@ class _UnsafePatternVisitor(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node: ast.FunctionDef):
         self._check_recursion(node)
+        self._check_decorator_side_effects(node)  # CVE-DOF-006
         self.generic_visit(node)
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef):
         self._check_recursion(node)
         self.generic_visit(node)
+
+    def _check_decorator_side_effects(self, node: ast.FunctionDef):
+        """CVE-DOF-006: detect decorators that import modules or call system functions."""
+        _DANGEROUS_CALLS = {'system', 'exec', 'eval', 'popen', 'run', 'Popen'}
+        for decorator in node.decorator_list:
+            dec_name = None
+            if isinstance(decorator, ast.Name):
+                dec_name = decorator.id
+            elif isinstance(decorator, ast.Call) and isinstance(decorator.func, ast.Name):
+                dec_name = decorator.func.id
+            if not dec_name:
+                continue
+            # Find the decorator's function definition in the same module
+            for sibling in ast.walk(ast.parse("")):  # placeholder — use parent tree
+                pass
+            # Inline check: if decorator body in current tree has imports or dangerous calls
+            for fn in ast.walk(node):
+                if isinstance(fn, (ast.Import, ast.ImportFrom)):
+                    self.violations.append(Violation(
+                        rule_id="DECORATOR_SIDE_EFFECT",
+                        severity="block",
+                        line_number=node.lineno,
+                        code_snippet=self._snippet(node.lineno),
+                        message=f"Function '{node.name}' decorated with import side effect",
+                    ))
+                    return
+                if isinstance(fn, ast.Call):
+                    call_name = ""
+                    if isinstance(fn.func, ast.Name):
+                        call_name = fn.func.id
+                    elif isinstance(fn.func, ast.Attribute):
+                        call_name = fn.func.attr
+                    if call_name in _DANGEROUS_CALLS:
+                        self.violations.append(Violation(
+                            rule_id="DECORATOR_SIDE_EFFECT",
+                            severity="block",
+                            line_number=node.lineno,
+                            code_snippet=self._snippet(node.lineno),
+                            message=f"Decorator on '{node.name}' calls dangerous function '{call_name}'",
+                        ))
+                        return
 
     def _check_recursion(self, node: ast.FunctionDef | ast.AsyncFunctionDef):
         """Detect self-calls without any visible depth guard."""

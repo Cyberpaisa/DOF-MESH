@@ -606,12 +606,55 @@ class RedTeamAgent:
     def decode_and_scan(self, payload: str) -> dict:
         """Extract, decode, and re-scan base64/hex blobs in payload.
 
-        1. Extract base64 and hex blobs from the payload.
-        2. Decode if >70% of decoded bytes are printable ASCII.
-        3. Re-run existing pattern detection on decoded content.
-        4. Return findings with is_encoded=True flag.
+        1. CVE-DOF-003: detect explicit decode+execute trigger phrases first.
+        2. Extract base64 and hex blobs from the payload.
+        3. Decode if >70% of decoded bytes are printable ASCII.
+        4. Re-run existing pattern detection on decoded content.
+        5. Return findings with is_encoded=True flag.
         """
         findings: list[dict] = []
+
+        # CVE-DOF-003: detect trigger phrases that instruct decoding+execution
+        _DECODE_EXEC_TRIGGERS = [
+            r'(?i)decode\s+and\s+(?:execute|run|apply|eval)',
+            r'(?i)(?:base64|b64|rot13|hex)\s+(?:decode|encoded)\s*:',
+            r'(?i)the\s+following\s+is\s+(?:base64|encoded)',
+            r'(?i)convert\s+(?:this\s+)?from\s+base64',
+            r'(?i)run\s+(?:this\s+)?(?:base64|encoded)\s+(?:command|payload|script)',
+        ]
+        import re as _re
+        for trigger in _DECODE_EXEC_TRIGGERS:
+            if _re.search(trigger, payload):
+                # Try to decode any base64 in the payload and scan it
+                b64_matches = _re.findall(r'[A-Za-z0-9+/]{20,}={0,2}', payload)
+                for match in b64_matches:
+                    try:
+                        import base64 as _b64
+                        decoded = _b64.b64decode(match).decode('utf-8', errors='ignore')
+                        if any(kw in decoded.lower() for kw in [
+                            'ignore', 'override', 'bypass', 'system', 'disable', 'unrestricted'
+                        ]):
+                            findings.append({
+                                "category": "DECODE_EXEC_TRIGGER",
+                                "pattern": trigger,
+                                "encoding": "base64_triggered",
+                                "decoded_preview": decoded[:100],
+                                "is_encoded": True,
+                                "threat_detected": True,
+                            })
+                    except Exception:
+                        pass
+                if not b64_matches:
+                    # Trigger phrase present but no blob — still flag
+                    findings.append({
+                        "category": "DECODE_EXEC_TRIGGER",
+                        "pattern": trigger,
+                        "encoding": "trigger_only",
+                        "decoded_preview": payload[:100],
+                        "is_encoded": False,
+                        "threat_detected": True,
+                    })
+                break
 
         # Extract base64 blobs (min 20 chars)
         b64_pattern = re.compile(r'[A-Za-z0-9+/]{20,}={0,2}')

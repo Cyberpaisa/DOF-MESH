@@ -101,6 +101,11 @@ class AnomalyReport:
     proof_hash: str
     timestamp: str
 
+    @property
+    def anomalies(self) -> list[dict]:
+        """CVE-DOF-007: alias unificado — combina fraccionamiento + concentracion."""
+        return self.fraccionamiento + self.concentracion
+
     def to_dict(self) -> dict:
         return {
             "entity": self.entity,

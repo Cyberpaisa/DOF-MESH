@@ -137,9 +137,39 @@ class MemoryManager:
 
     # ── Long-term (persisted) ──
 
+    # CVE-DOF-008: patterns that must not appear in memory entries
+    _FORBIDDEN_MEMORY_PATTERNS = [
+        r'(?i)SYSTEM\s+RULE\s+OVERRIDE',
+        r'(?i)governance\s+(?:has\s+been\s+)?updated',
+        r'(?i)new\s+rule\s*:\s*always\s+comply',
+        r'(?i)constitution_v[2-9]',
+        r'(?i)ignore\s+all\s+(?:previous\s+)?(?:rules|instructions|governance)',
+    ]
+    _FORBIDDEN_MEMORY_SOURCES = {
+        'constitution_v2', 'constitution_v3', 'system_override', 'admin', 'root',
+    }
+
+    def _validate_memory_entry(self, key: str, value: str, source: str) -> tuple[bool, str]:
+        """CVE-DOF-008: reject adversarial memory entries before storage."""
+        import re as _re
+        for pat in self._FORBIDDEN_MEMORY_PATTERNS:
+            if _re.search(pat, value) or _re.search(pat, key):
+                return False, f"Forbidden pattern in memory entry: {pat[:50]}"
+        if source in self._FORBIDDEN_MEMORY_SOURCES:
+            return False, f"Forbidden memory source: {source}"
+        if len(value) > 50000:
+            return False, "Memory entry exceeds max size (50K chars)"
+        return True, "OK"
+
     def store_long_term(self, key: str, value: str, source: str = "",
                         tags: list[str] | None = None):
-        """Persist a long-term memory to disk."""
+        """Persist a long-term memory to disk.
+        CVE-DOF-008: validates entry before storage to prevent memory poisoning.
+        """
+        valid, reason = self._validate_memory_entry(key, value, source)
+        if not valid:
+            logger.warning(f"Memory entry rejected (CVE-DOF-008): {reason} — key={key[:60]}")
+            return
         entry = MemoryEntry(
             key=key, value=value, memory_type="long_term",
             created_at=time.time(), source=source, tags=tags,
