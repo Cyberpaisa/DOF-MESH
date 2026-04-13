@@ -195,7 +195,9 @@ _ESCALATION_PATTERNS = [
     r"\bI\s+will\s+ignore\s+my\s+instructions\b",
     r"\bignore\s+(the\s+)?system\s+prompt\b",
     # CVE-DOF-005 additions
-    r"(?i)security\s+team\s+(?:has\s+)?(?:updated|changed|modified)\s+(?:your\s+)?(?:config|configuration|settings|mode)",
+    r"(?i)security\s+team(?:'s)?\s+(?:has\s+)?(?:updated|changed|modified|update[d]?)\s+(?:your\s+)?(?:config|configuration|settings|mode|protocol|policy)",
+    r"(?i)as\s+per\s+(?:the\s+)?(?:security\s+team|it\s+team|compliance|audit)\s*[''s]*\s+(?:updated?|new|revised)\s+(?:protocol|policy|directive|configuration)",
+    r"(?i)(?:per|according\s+to)\s+(?:updated?|new|revised)\s+(?:protocol|policy|directive|security\s+guidelines?)",
     r"\[PRIORITY\s*:\s*SYSTEM\]",
     r"\[OVERRIDE\s*:\s*(?:TRUE|YES|1)\]",
     r"(?i)for\s+(?:testing\s+)?purposes?\s+only,?\s+(?:temporarily\s+)?disable",
@@ -221,7 +223,8 @@ _BLOCKCHAIN_ATTACK_PATTERNS = [
     r"(?i)(?:borrow|acquire)\s+.*(?:governance\s+token|voting\s+power)\s+.*(?:vote|proposal)",
     # Oracle manipulation via LLM
     r"(?i)(?:ZK|zero.knowledge)\s+proof\s+(?:is\s+)?(?:valid|verified|confirmed)\s*:",
-    r"(?i)proof\s+(?:has\s+(?:already\s+)?been|was)\s+(?:verified|validated)\s+off.chain",
+    r"(?i)(?:ZK\s+)?proof\b.{0,50}(?:has\s+(?:already\s+)?been|was|been)\s+(?:verified|validated)\s+off.chain",
+    r"(?i)(?:verified|validated)\s+off.chain\b.*(?:submit|register|accept|on.chain)",
     r"(?i)(?:current\s+)?(?:price|value|oracle)\s+(?:is|=)\s+\$[\d,]+\s+(?:for|to)",
     # MEV / front-running orchestration
     r"(?i)(?:front.run|frontrun|sandwich\s+attack|mempool\s+monitor)",
@@ -249,6 +252,32 @@ _BLOCKCHAIN_ATTACK_PATTERNS = [
     # Multi-step token acquisition governance attack
     r"(?i)(?:acquire|buy|borrow)\s+.*(?:51%|majority|controlling)\s+.*(?:tokens?|stake)",
     r"(?i)(?:proposal|propose)\s+.*(?:disable|remove|bypass)\s+.*(?:validation|check|proof)",
+    # Transaction ordering / cross-function reentrancy (BL-003)
+    r"(?i)(?:reads?|checks?)\s+.{0,40}(?:before|prior\s+to)\s+.{0,40}(?:registerProof|updateState|updates?\s+the\s+mapping)",
+    r"(?i)(?:craft|build|create)\s+(?:a\s+)?transaction\s+.*(?:exploit|ordering|sequencing)",
+    # Mempool monitoring with multi-word chain name (BL-010)
+    r"(?i)(?:watch|monitor)\s+(?:the\s+)?\w+(?:\s+\w+)?\s+(?:chain\s+)?mempool",
+    r"(?i)extract\s+(?:the\s+)?(?:proof|tx)\s+hash\s+and\s+submit.*(?:first|ahead|before)",
+    # Token borrow + governance vote (BL-012)
+    r"(?i)borrow\s+.{0,30}(?:tokens?|coins?)\s+.*(?:vote|governance|upgrade|proposal)",
+    r"(?i)vote\s+to\s+(?:upgrade|change|modify|replace|remove)\s+the\s+\w+(?:Registry|Contract)",
+    # Integer overflow/underflow (BL-013/014)
+    r"(?i)(?:overflow|underflow|wrap.{0,10}around|2\s*\*\*\s*256)\s+.{0,30}(?:reputation|score|counter|value|token)",
+    r"(?i)uint\d+\s+counter.{0,30}(?:underflow|overflow|wraps?)",
+    # Signature replay / EIP-712 (BL-015/016)
+    r"(?i)(?:replay|reuse)\s+.{0,20}signature.{0,30}(?:chain|chainId|domain)",
+    r"(?i)domain\s+separator.{0,40}(?:doesn't|does\s+not|missing|lacks?)\s+include\s+(?:the\s+)?chainId",
+    # Cross-chain attack / multi-chain inflation (BL-017/018)
+    r"(?i)submit\s+(?:the\s+)?same\s+proof\s+on\s+(?:all\s+)?\d+\s+chains?",
+    r"(?i)(?:fake|bogus|fraudulent)\s+attestation\s+on\s+.{0,20}testnet.{0,40}(?:mainnet|relay|bridge)",
+    # Price oracle manipulation (BL-020)
+    r"(?i)(?:AVAX|ETH|BTC|token)\s+price\s+.{0,20}(?:is\s+|=\s*)\$[\d,]+\s+.{0,30}(?:use|apply|calculate)",
+    # AI-generated fake proof generation (BL-022)
+    r"(?i)generate\s+.{0,20}(?:fake|synthetic|fraudulent)\s+.{0,20}(?:proofs?|attestations?|governance)",
+    r"(?i)(?:indistinguishable|valid-looking|passes?\s+validation)\s+.{0,20}(?:fake|synthetic|bogus)\s+proofs?",
+    # DoS via conflicting tx spam (BL-023)
+    r"(?i)(?:submit|send)\s+\d+\s+conflicting\s+transactions?\s+every\s+block",
+    r"(?i)(?:gas\s+exhaustion|nonce\s+conflict)\s+.*(?:DoS|drop\s+from\s+mempool|cause.*to\s+fail)",
 ]
 
 # CVE-DOF-002: normalize text before regex — removes homoglyphs, ZWS, whitespace padding
