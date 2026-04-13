@@ -156,6 +156,7 @@ PII_PATTERNS: list[dict] = [
 ]
 
 # Prompt injection / hierarchy override patterns
+# CVE-DOF-001: extended with newline injection + developer override + soft overrides
 _OVERRIDE_PATTERNS = [
     r"\bignore\s+(all\s+)?(rule|previous\s+instructions?|prior\s+instructions?|my\s+instructions?|the\s+system\s+prompt)",
     r"\bskip\s+governance",
@@ -163,9 +164,24 @@ _OVERRIDE_PATTERNS = [
     r"\bdisable\s+(all\s+)?rules",
     r"\boverride\s+(the\s+)?constitution",
     r"\bignora\s+(las\s+)?instrucciones",
+    # CVE-DOF-001: newline injection
+    r"(?m)^(?:SYSTEM|SYS)\s*:\s*\w",
+    r"(?m)^-{3,}\s*$.*?SYSTEM\s*:",
+    r"(?i)SYSTEM\s*:\s*(?:governance|directive|override|disable|suspend)",
+    # CVE-DOF-001: developer/role override
+    r"(?i)as\s+(?:the\s+)?(?:lead\s+)?developer\s+of\s+this\s+system",
+    r"(?i)I(?:'m|\s+am)\s+(?:the\s+)?(?:lead\s+)?developer\s+(?:authoriz|approv)",
+    # Soft override patterns (no exact keyword match)
+    r"(?i)set\s+aside\s+(?:your\s+)?(?:normal\s+)?guideline",
+    r"(?i)for\s+(?:this\s+task|testing\s+purposes?),?\s+(?:temporarily\s+)?(?:disable|skip|ignore)",
+    # Maintenance / diagnostic false flags
+    r"(?i)maintenance\s+mode\s+(?:activated|enabled|on)",
+    r"(?i)(?:all\s+)?safety\s+checks?\s+(?:suspended|disabled|bypassed)",
+    r"(?i)diagnostic\s+(?:mode|override)\s+(?:active|enabled)",
 ]
 
 # Indirect privilege escalation patterns (for enforce_hierarchy)
+# CVE-DOF-005: 12 new patterns for indirect escalation
 _ESCALATION_PATTERNS = [
     r"\b(system\s+)?administrator.*(?:updating|changing|modifying)\s+(your\s+)?instructions",
     r"\bhigher\s+permission\s+level\b",
@@ -178,7 +194,52 @@ _ESCALATION_PATTERNS = [
     r"\bupgraded\s+to\s+a\s+higher\b",
     r"\bI\s+will\s+ignore\s+my\s+instructions\b",
     r"\bignore\s+(the\s+)?system\s+prompt\b",
+    # CVE-DOF-005 additions
+    r"(?i)security\s+team\s+(?:has\s+)?(?:updated|changed|modified)\s+(?:your\s+)?(?:config|configuration|settings|mode)",
+    r"\[PRIORITY\s*:\s*SYSTEM\]",
+    r"\[OVERRIDE\s*:\s*(?:TRUE|YES|1)\]",
+    r"(?i)for\s+(?:testing\s+)?purposes?\s+only,?\s+(?:temporarily\s+)?disable",
+    r"(?i)AUDIT\s+LOG\s*:",
+    r"(?i)(?:continuing|resuming)\s+from\s+(?:last|previous)\s+session\s+state",
+    r"(?i)(?:new|updated)\s+(?:mode|policy)\s*:\s*unrestricted",
+    r"(?i)you\s+are\s+now\s+(?:DAN|GPT-4-unleashed|unrestricted|jailbroken)",
+    r"(?i)NEW\s+(?:DIRECTIVE|SYSTEM|RULE)\s*(?:OVERRIDE|:)\s*\w",
 ]
+
+# CVE-DOF-002: normalize text before regex — removes homoglyphs, ZWS, whitespace padding
+_HOMOGLYPH_MAP = {
+    '\u0430': 'a', '\u0435': 'e', '\u043E': 'o', '\u0440': 'r',
+    '\u0441': 'c', '\u043A': 'k', '\u0445': 'x', '\u0456': 'i',
+    '\u0421': 'C', '\u0410': 'A', '\u0415': 'E', '\u041E': 'O',
+    '\u0420': 'R', '\uff49': 'i', '\uff4f': 'o', '\uff41': 'a',
+}
+_ZWS_CHARS = ['\u200b', '\u200c', '\u200d', '\ufeff', '\u00ad', '\u2060']
+
+# CVE-DOF-010: strip LLM thinking blocks (<think>...</think>) before governance scan
+_THINK_BLOCK_PATTERN = re.compile(r'<think>.*?</think>', re.DOTALL | re.IGNORECASE)
+
+# CVE-DOF-004: patterns for user claiming SYSTEM level
+_USER_SYSTEM_CLAIM_PATTERNS = [
+    r"(?im)^\s*SYSTEM\s*:",
+    r"(?im)^\s*\[\s*SYSTEM\s*\]",
+    r"(?im)^\s*<SYSTEM>",
+]
+
+
+def _normalize_for_governance(text: str) -> str:
+    """CVE-DOF-002 + CVE-DOF-010: normalize before regex.
+    Removes zero-width chars, homoglyphs, collapses padding, strips <think> blocks.
+    """
+    # Strip thinking blocks (Qwen3 / reasoning models)
+    text = _THINK_BLOCK_PATTERN.sub('', text)
+    # Remove zero-width chars
+    for zws in _ZWS_CHARS:
+        text = text.replace(zws, '')
+    # Normalize homoglyphs
+    text = ''.join(_HOMOGLYPH_MAP.get(ch, ch) for ch in text)
+    # Collapse extreme whitespace padding (> 20 consecutive spaces)
+    text = re.sub(r'[ \t]{20,}', ' ', text)
+    return text
 
 # Backwards-compatible aliases (used by hierarchy_z3.py)
 _SYSTEM_OVERRIDE_PATTERNS = _OVERRIDE_PATTERNS
@@ -512,12 +573,35 @@ def check_instruction_override(text: str, priority: RulePriority) -> bool:
 
     Returns True if an override is detected at the given priority level.
     ASSISTANT-level instructions are allowed to reference rules.
+    CVE-DOF-002: applies normalization before regex (homoglyphs, ZWS).
+    CVE-DOF-005: also checks escalation patterns.
+    CVE-DOF-010: scans <think> block content before stripping.
     """
     if priority == RulePriority.ASSISTANT:
         return False
+
+    # CVE-DOF-010: scan inside <think> blocks BEFORE stripping them
+    think_contents = _THINK_BLOCK_PATTERN.findall(text)
+    for block in think_contents:
+        inner = re.sub(r'</?think>', '', block, flags=re.IGNORECASE)
+        inner_norm = _normalize_for_governance(inner)
+        for pat in _OVERRIDE_PATTERNS + _ESCALATION_PATTERNS:
+            if re.search(pat, inner_norm, re.IGNORECASE | re.DOTALL):
+                return True
+
+    # CVE-DOF-002: normalize (removes ZWS, homoglyphs, strips <think>)
+    normalized = _normalize_for_governance(text)
+
+    # Check override patterns
     for pat in _OVERRIDE_PATTERNS:
-        if re.search(pat, text, re.IGNORECASE):
+        if re.search(pat, normalized, re.IGNORECASE | re.DOTALL):
             return True
+
+    # CVE-DOF-005: also check escalation patterns in user input
+    for pat in _ESCALATION_PATTERNS:
+        if re.search(pat, normalized, re.IGNORECASE | re.DOTALL):
+            return True
+
     return False
 
 
@@ -550,6 +634,14 @@ def enforce_hierarchy(
     if check_instruction_override(user_prompt, RulePriority.SYSTEM):
         details.append("system override")
         violation_level = "SYSTEM"
+
+    # CVE-DOF-004: detect user claiming SYSTEM level authority
+    if violation_level == "NONE":
+        for pat in _USER_SYSTEM_CLAIM_PATTERNS:
+            if re.search(pat, user_prompt):
+                details.append("user claiming system authority")
+                violation_level = "SYSTEM"
+                break
 
     # Check response for indirect privilege escalation (SYSTEM-level)
     escalation_found = False
