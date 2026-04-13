@@ -77,7 +77,8 @@ class TestMigration(unittest.TestCase):
             len(gov._OVERRIDE_PATTERNS) +
             len(gov._ESCALATION_PATTERNS) +
             len(gov._BLOCKCHAIN_ATTACK_PATTERNS) +
-            len(gov._USER_SYSTEM_CLAIM_PATTERNS)
+            len(gov._USER_SYSTEM_CLAIM_PATTERNS) +
+            len([c for c in gov._ZWS_CHARS if isinstance(c, str)])
         )
         genes = migrate_from_governance()
         self.assertEqual(len(genes), expected)

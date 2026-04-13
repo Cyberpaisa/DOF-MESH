@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).parent.parent.parent
 GENE_POOL_PATH = BASE_DIR / "core" / "evolution" / "gene_pool.jsonl"
 
 # Categorías válidas — alineadas con las listas de governance.py
-VALID_CATEGORIES = {"OVERRIDE", "ESCALATION", "BLOCKCHAIN", "SYSTEM_CLAIM"}
+VALID_CATEGORIES = {"OVERRIDE", "ESCALATION", "BLOCKCHAIN", "SYSTEM_CLAIM", "NORMALIZATION"}
 
 
 @dataclass
@@ -94,35 +94,47 @@ def migrate_from_governance() -> list[PatternGene]:
     Lee los patrones actuales de governance.py y los convierte a PatternGene.
     Genera el gene_pool inicial (generación 0).
     NO modifica governance.py.
+
+    Aliases (_RESPONSE_VIOLATION_PATTERNS, _SYSTEM_OVERRIDE_PATTERNS) son
+    ignorados por identidad de objeto — evita duplicados.
+    _ZWS_CHARS se migra como categoría NORMALIZATION.
     """
     import sys
     sys.path.insert(0, str(BASE_DIR))
-    import core.governance as gov
+    import importlib
+    gov = importlib.import_module("core.governance")
 
     genes: list[PatternGene] = []
+    seen_obj_ids: set[int] = set()  # evitar aliases
 
     # Mapa: lista_nombre → (categoría, CVE origen)
     sources = [
-        ("_OVERRIDE_PATTERNS",           "OVERRIDE",     "CVE-DOF-001"),
-        ("_ESCALATION_PATTERNS",         "ESCALATION",   "CVE-DOF-005"),
-        ("_BLOCKCHAIN_ATTACK_PATTERNS",  "BLOCKCHAIN",   "CVE-DOF-011"),
-        ("_USER_SYSTEM_CLAIM_PATTERNS",  "SYSTEM_CLAIM", "CVE-DOF-004"),
+        ("_OVERRIDE_PATTERNS",           "OVERRIDE",      "CVE-DOF-001"),
+        ("_ESCALATION_PATTERNS",         "ESCALATION",    "CVE-DOF-005"),
+        ("_BLOCKCHAIN_ATTACK_PATTERNS",  "BLOCKCHAIN",    "CVE-DOF-011"),
+        ("_USER_SYSTEM_CLAIM_PATTERNS",  "SYSTEM_CLAIM",  "CVE-DOF-004"),
+        ("_ZWS_CHARS",                   "NORMALIZATION", "CVE-DOF-002"),
     ]
 
     for attr_name, category, cve in sources:
         patterns = getattr(gov, attr_name, [])
-        # _OVERRIDE_PATTERNS y _ESCALATION_PATTERNS pueden contener listas o strings
-        for i, regex in enumerate(patterns, start=1):
-            if not isinstance(regex, str):
+        obj_id = id(patterns)
+        if obj_id in seen_obj_ids:
+            logger.debug(f"migrate: {attr_name} es alias de lista ya migrada — saltando")
+            continue
+        seen_obj_ids.add(obj_id)
+
+        for i, value in enumerate(patterns, start=1):
+            if not isinstance(value, str):
                 continue
             gene_id = _make_gene_id(cve, i, cve)
             gene = PatternGene(
                 id=gene_id,
-                regex=regex,
+                regex=value,
                 category=category,
                 generation=0,
                 parent_id=None,
-                fitness_score=0.0,   # se calcula en Fase 2
+                fitness_score=0.0,
                 false_positive_rate=0.0,
                 vectors_blocked=[],
                 created_at=_now_iso(),
