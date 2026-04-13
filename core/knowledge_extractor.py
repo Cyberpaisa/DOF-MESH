@@ -23,7 +23,7 @@ OLLAMA_URL = "http://localhost:11434/api/generate"
 OLLAMA_MODEL = "dof-analyst"
 CHUNK_WORDS = 3500
 
-EXTRACTION_PROMPT = """Eres analista del sistema DOF-MESH v0.6.0.
+EXTRACTION_PROMPT = """Eres analista del sistema DOF-MESH v0.7.0.
 Analiza esta transcripción y responde SOLO con JSON válido, sin markdown, sin explicaciones.
 
 Formato exacto:

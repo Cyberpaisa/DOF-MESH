@@ -6,18 +6,18 @@
 
 ### Verify. Prove. Attest. · Mathematics, not promises.
 
-**DOF-MESH v0.5.0 | 7 Chains | Enigma Group · Medellín, Colombia**
+**DOF-MESH v0.7.0 | 8 Chains | Enigma Group · Medellín, Colombia**
 
 [![PyPI](https://img.shields.io/badge/PyPI-dof--sdk-blue?style=for-the-badge&logo=pypi)](https://pypi.org/project/dof-sdk/)
 [![GitHub](https://img.shields.io/badge/GitHub-DOF--MESH-181717?style=for-the-badge&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
 [![On-Chain](https://img.shields.io/badge/Avalanche-0x0b65d10F...751c-e84142?style=for-the-badge&logo=avalanche)](https://snowtrace.io/address/0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c)
 
-[![Tests](https://img.shields.io/badge/Tests-4%2C157_passing-brightgreen?style=flat-square)]()
+[![Tests](https://img.shields.io/badge/Tests-4%2C438_passing-brightgreen?style=flat-square)]()
 [![PyPI](https://img.shields.io/pypi/v/dof-sdk?color=blue&style=flat-square)](https://pypi.org/project/dof-sdk/)
 [![Python](https://img.shields.io/badge/python-3.11+-blue?style=flat-square)](https://pypi.org/project/dof-sdk/)
-[![Modules](https://img.shields.io/badge/Modules-142-blue?style=flat-square)]()
+[![Modules](https://img.shields.io/badge/Modules-147-blue?style=flat-square)]()
 [![Z3](https://img.shields.io/badge/Z3-4_theorems_PROVEN-critical?style=flat-square)]()
-[![Chains](https://img.shields.io/badge/Chains-7-gold?style=flat-square)]()
+[![Chains](https://img.shields.io/badge/Chains-8-gold?style=flat-square)]()
 [![Attestations](https://img.shields.io/badge/Attestations-30%2B-orange?style=flat-square)]()
 [![LOC](https://img.shields.io/badge/LOC-57K%2B-lightgrey?style=flat-square)]()
 [![License](https://img.shields.io/badge/License-BSL--1.1-purple?style=flat-square)](LICENSE)
@@ -148,7 +148,7 @@ docker-compose up -d --build
 |  |                               |  DOFProofRegistry             |  |
 |  |      LangChain · CrewAI       |  Avalanche · Base · Celo      |  |
 |  |      AutoGen · Custom         |  Polygon · SKALE · Conflux    |  |
-|  |                               |  7 chains · 30+ attestations  |  |
+|  |                               |  8 chains · 30+ attestations  |  |
 |  +-------------------------------+-------------------------------+  |
 +=====================================================================+
 ```
@@ -163,7 +163,7 @@ docker-compose up -d --build
 | **Z3Verifier** | 4 mathematical theorems formally PROVEN every cycle. Generates keccak256 proof hashes for on-chain recording. |
 | **Z3Gate** | Neurosymbolic gate -- LLM proposes, Z3 verifies. APPROVED / REJECTED / TIMEOUT / FALLBACK. |
 | **MetaSupervisor** | Weighted quality scoring: Q(0.40) + A(0.25) + C(0.20) + F(0.15). Outputs ACCEPT, RETRY, or ESCALATE. |
-| **DOFProofRegistry** | Multi-chain attestation engine. Writes proof receipts to 7 chains. Verifiable by any third party. |
+| **DOFProofRegistry** | Multi-chain attestation engine. Writes proof receipts to 8 chains. Verifiable by any third party. |
 | **MeshDaemon** | 29 nodes + threshold consensus. Byzantine guard, CRDT memory, constitution hash beacon. |
 | **ProviderManager** | LiteLLM router across 7+ LLMs. TTL backoff, automatic failover, Thompson Sampling. |
 
@@ -171,10 +171,10 @@ docker-compose up -d --build
 
 ## The Numbers
 
-We wrote 4,308 tests before calling it a framework.
+We wrote 4,438 tests before calling it a framework.
 Most projects write them after something breaks.
 
-The proofs aren't in our database. They're on 7 public blockchains.
+The proofs aren't in our database. They're on 8 public blockchains.
 Go check — nobody has to take our word for it.
 
 We tested 10 of the best AI models in the world.
@@ -190,11 +190,11 @@ A deterministic function does. Every time. Same answer.
 
 | Metric | Value |
 |:-------|------:|
-| Unit tests | **4,308** |
+| Unit tests | **4,438** |
 | Autonomous cycles | **238+** |
 | On-chain attestations | **30+** |
-| Chains (mainnets) | **7** |
-| Core modules | **142** |
+| Chains (mainnets) | **8** |
+| Core modules | **147** |
 | Lines of code | **57,000+** |
 | Z3 theorems | **4/4 PROVEN** |
 | Hierarchy patterns (Z3) | **42 PROVEN** |
@@ -221,7 +221,7 @@ A deterministic function does. Every time. Same answer.
 
 ## On-Chain Attestation
 
-**DOFProofRegistry** deployed and attested on 7 chains. Every attestation publicly verifiable.
+**DOFProofRegistry** deployed and attested on 8 chains. Every attestation publicly verifiable.
 
 | Chain | Contract | Block | Status |
 |:------|:---------|------:|:-------|
@@ -259,7 +259,7 @@ Gas cost:          $0.01/tx · SKALE chains: zero gas · Merkle batch: 10K attes
 5. Z3 PROOF        Z3Verifier generates formal mathematical proof
                    4 invariants checked, proof hash = keccak256(proof)
                    |
-6. ON-CHAIN        DOFProofRegistry writes attestation to 7 chains
+6. ON-CHAIN        DOFProofRegistry writes attestation to 8 chains
                    ERC-8004 receipt with agent ID + proof hash
                    |
 7. SUPERVISOR      MetaSupervisor scores: Q(0.40)+A(0.25)+C(0.20)+F(0.15)
@@ -297,7 +297,7 @@ Full data: [`experiments/winston_vs_baseline/`](experiments/winston_vs_baseline/
 | [System Architecture](docs/01_architecture/SYSTEM_ARCHITECTURE.md) | Full governance pipeline with latency per layer |
 | [Case Study — Apex #1687](docs/02_research/CASE_STUDY_APEX_1687.md) | 238 autonomous cycles · 0 incidents · 30+ attestations |
 | [Winston Experiment](docs/02_research/EXPERIMENT_WINSTON_VS_BASELINE.md) | Raw data: +26.1% average across 10 frontier models |
-| [Multichain Deployment](docs/05_operations/MULTICHAIN.md) | Deploy DOFProofRegistry to 7 chains |
+| [Multichain Deployment](docs/05_operations/MULTICHAIN.md) | Deploy DOFProofRegistry to 8 chains |
 | [SKALE Integration](docs/04_strategy/SKALE_INTEGRATION.md) | Zero-gas chains · x402 · BITE · IMA bridge |
 | [Attestations](docs/05_operations/ATTESTATIONS.md) | On-chain proof records — publicly verifiable |
 | [Full Index](docs/INDEX.md) | All public documentation |
@@ -308,7 +308,7 @@ Full data: [`experiments/winston_vs_baseline/`](experiments/winston_vs_baseline/
 
 ```
 DOF-MESH/
-  core/                     # 142 modules -- the framework engine
+  core/                     # 147 modules -- the framework engine
     governance.py            # ConstitutionEnforcer, HARD/SOFT rules
     z3_verifier.py           # 4 theorems formally PROVEN
     z3_gate.py               # Neurosymbolic gate (APPROVED/REJECTED/TIMEOUT)
@@ -319,9 +319,9 @@ DOF-MESH/
     claude_commander.py      # 5 modes: SDK, Spawn, Team, Debate, Peers
     ...
   agents/                   # agents running on DOF (validation, not the product)
-  contracts/                # DOFProofRegistry.sol (deployed on 7 chains)
+  contracts/                # DOFProofRegistry.sol (deployed on 8 chains)
   integrations/             # CrewAI, AgentKit, Virtuals, SKALE, Tempo
-  tests/                    # 4,308 unit tests
+  tests/                    # 4,438 unit tests
   docs/                     # public documentation
   logs/                     # JSONL audit trails (append-only)
   experiments/              # Winston vs baseline raw data
@@ -333,10 +333,10 @@ DOF-MESH/
 
 **@Cyber_paisa** · [Telegram](https://t.me/Cyber_paisa)
 
-**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,308 tests. 7 chains. 142 modules. Mathematics, not promises.
+**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,438 tests. 8 chains. 147 modules. Mathematics, not promises.
 
 ---
 
 [![PyPI](https://img.shields.io/badge/Install-pip_install_dof--sdk-blue?style=for-the-badge&logo=pypi)](https://pypi.org/project/dof-sdk/)
 [![GitHub](https://img.shields.io/badge/GitHub-DOF--MESH-181717?style=for-the-badge&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
-[![On-Chain](https://img.shields.io/badge/On--Chain_Proof-7_chains-e84142?style=for-the-badge&logo=ethereum)](https://snowtrace.io/address/0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c)
+[![On-Chain](https://img.shields.io/badge/On--Chain_Proof-8_chains-e84142?style=for-the-badge&logo=ethereum)](https://snowtrace.io/address/0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c)

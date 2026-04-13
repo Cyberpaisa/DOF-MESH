@@ -6,16 +6,16 @@
 
 ### Verify. Prove. Attest. · Mathematics, not promises.
 
-**DOF-MESH v0.6.0 | 8 Chains | Enigma Group · Medellín, Colombia**
+**DOF-MESH v0.7.0 | 8 Chains | Enigma Group · Medellín, Colombia**
 
 [![PyPI](https://img.shields.io/badge/PyPI-dof--sdk-blue?style=for-the-badge&logo=pypi)](https://pypi.org/project/dof-sdk/)
 [![GitHub](https://img.shields.io/badge/GitHub-DOF--MESH-181717?style=for-the-badge&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
 [![On-Chain](https://img.shields.io/badge/Avalanche-0x154a3F49...26F6-e84142?style=for-the-badge&logo=avalanche)](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6)
 
-[![Tests](https://img.shields.io/badge/Tests-4%2C191_passing-brightgreen?style=flat-square)]()
+[![Tests](https://img.shields.io/badge/Tests-4%2C438_passing-brightgreen?style=flat-square)]()
 [![PyPI](https://img.shields.io/pypi/v/dof-sdk?color=blue&style=flat-square)](https://pypi.org/project/dof-sdk/)
 [![Python](https://img.shields.io/badge/python-3.11+-blue?style=flat-square)](https://pypi.org/project/dof-sdk/)
-[![Modules](https://img.shields.io/badge/Modules-142-blue?style=flat-square)]()
+[![Modules](https://img.shields.io/badge/Modules-147-blue?style=flat-square)]()
 [![Z3](https://img.shields.io/badge/Z3-4_theorems_PROVEN-critical?style=flat-square)]()
 [![Chains](https://img.shields.io/badge/Chains-8-gold?style=flat-square)]()
 [![Attestations](https://img.shields.io/badge/Attestations-30%2B-orange?style=flat-square)]()
@@ -171,7 +171,7 @@ docker-compose up -d --build
 
 ## The Numbers
 
-We wrote 4,308 tests before calling it a framework.
+We wrote 4,438 tests before calling it a framework.
 Most projects write them after something breaks.
 
 The proofs aren't in our database. They're on 8 public blockchains.
@@ -190,11 +190,11 @@ A deterministic function does. Every time. Same answer.
 
 | Metric | Value |
 |:-------|------:|
-| Unit tests | **4,191** |
+| Unit tests | **4,438** |
 | Autonomous cycles | **238+** |
 | On-chain attestations | **30+** |
 | Chains (mainnets) | **7** |
-| Core modules | **142** |
+| Core modules | **147** |
 | Lines of code | **57,000+** |
 | Z3 theorems | **4/4 PROVEN** |
 | Hierarchy patterns (Z3) | **42 PROVEN** |
@@ -363,7 +363,7 @@ Full data: [`experiments/winston_vs_baseline/`](experiments/winston_vs_baseline/
 
 ```
 equipo-de-agentes/
-  core/                     # 142 modules -- the framework engine
+  core/                     # 147 modules -- the framework engine
     governance.py            # ConstitutionEnforcer, HARD/SOFT rules
     z3_verifier.py           # 4 theorems formally PROVEN
     z3_gate.py               # Neurosymbolic gate (APPROVED/REJECTED/TIMEOUT)
@@ -376,7 +376,7 @@ equipo-de-agentes/
   agents/                   # agents running on DOF (validation, not the product)
   contracts/                # DOFProofRegistry.sol (deployed on 8 chains — 3 mainnet + 5 testnet)
   integrations/             # CrewAI, AgentKit, Virtuals, SKALE, Tempo
-  tests/                    # 4,308 unit tests
+  tests/                    # 4,438 unit tests
   docs/                     # public documentation
   logs/                     # JSONL audit trails (append-only)
   experiments/              # Winston vs baseline raw data
@@ -388,7 +388,7 @@ equipo-de-agentes/
 
 **@Cyber_paisa** · [Telegram](https://t.me/Cyber_paisa)
 
-**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,308 tests. 8 chains (3 mainnet + 5 testnet). 142 modules. Mathematics, not promises.
+**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,438 tests. 9 chains (3 mainnet + 5 testnet + 1 ERC-8004). 147 modules. Mathematics, not promises.
 
 ---
 
