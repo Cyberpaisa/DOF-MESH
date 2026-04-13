@@ -42,13 +42,13 @@ _DEFAULTS: dict[str, bool] = {
     "git_worktree_isolation": True,    # spawn_worker.sh worktree pattern
     "daemon_governance_gate": True,    # _gate_instruction in autonomous_daemon.py
     # ── Candidates for v0.8.0 ─────────────────────────────────────────
-    "graphify_integration": False,     # GraphifyTool for CrewAI agents
-    "media_generation_tool": False,    # muapi.ai media generation
-    "feynman_research_crew": False,    # Feynman academic research agent
+    "graphify_integration": True,      # GraphifyTool for CrewAI agents
+    "media_generation_tool": True,     # muapi.ai media generation
+    "feynman_research_crew": True,     # Feynman academic research agent
     "daemon_memory": True,             # DaemonMemory historical query (Sesión 8)
     "feature_flags_governance": True,  # Check flags inside ConstitutionEnforcer (v0.7.0)
     "dof_leaderboard": False,          # Leaderboard (needs 10+ agents to make sense)
-    "semantic_boundary_check": False,  # TF-IDF semantic similarity in SystemPromptBoundary (v0.8.0)
+    "semantic_boundary_check": True,   # TF-IDF semantic similarity in SystemPromptBoundary (v0.8.0)
 }
 
 _CONSTITUTION_PATH = Path(__file__).parent.parent / "dof.constitution.yml"

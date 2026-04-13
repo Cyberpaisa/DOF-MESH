@@ -391,17 +391,17 @@ feature_flags:
     description: "DaemonMemory indexes cycles.jsonl for historical queries"
   # ── Candidates (v0.8.0) ──────────────────────────────────────────────
   graphify_integration:
-    enabled: false
+    enabled: true
     description: "GraphifyTool for CrewAI — knowledge graph over core/ modules"
   media_generation_tool:
-    enabled: false
+    enabled: true
     description: "muapi.ai media generation tool for creative agents"
   feynman_research_crew:
-    enabled: false
+    enabled: true
     description: "Feynman academic research agent integration"
   feature_flags_governance:
     enabled: true
     description: "ConstitutionEnforcer checks feature_flags before applying new rules"
   semantic_boundary_check:
-    enabled: false
+    enabled: true
     description: "TF-IDF semantic similarity check in SystemPromptBoundary (v0.8.0)"

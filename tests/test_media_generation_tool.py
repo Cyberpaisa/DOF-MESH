@@ -39,7 +39,9 @@ class TestMediaGenerationTool(unittest.TestCase):
 
     def test_returns_disabled_json_when_flag_off(self):
         """_run must return status='disabled' when media_generation_tool flag is False."""
+        from core.feature_flags import flags
         from core.tools.media_generation_tool import create_media_generation_tool
+        flags.disable("media_generation_tool")
         tool = create_media_generation_tool()
         result = tool._run("test prompt")
         data = json.loads(result)
@@ -47,7 +49,9 @@ class TestMediaGenerationTool(unittest.TestCase):
 
     def test_disabled_json_contains_prompt(self):
         """Disabled JSON must echo back the original prompt for traceability."""
+        from core.feature_flags import flags
         from core.tools.media_generation_tool import create_media_generation_tool
+        flags.disable("media_generation_tool")
         tool = create_media_generation_tool()
         prompt = "generate DOF architecture diagram"
         result = tool._run(prompt)
@@ -58,7 +62,9 @@ class TestMediaGenerationTool(unittest.TestCase):
 
     def test_arun_delegates_to_run(self):
         """_arun must return the same result as _run (sync fallback for async calls)."""
+        from core.feature_flags import flags
         from core.tools.media_generation_tool import create_media_generation_tool
+        flags.disable("media_generation_tool")  # Pin flag for deterministic comparison
         tool = create_media_generation_tool()
         prompt = "architecture diagram"
         self.assertEqual(tool._arun(prompt), tool._run(prompt))

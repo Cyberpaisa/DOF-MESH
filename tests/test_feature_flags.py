@@ -21,7 +21,9 @@ class TestFeatureFlagsDefaults(unittest.TestCase):
             self.assertTrue(self.ff.is_enabled(flag), f"Expected {flag} to be enabled")
 
     def test_candidate_flags_are_disabled(self):
-        for flag in ["graphify_integration", "media_generation_tool", "feynman_research_crew"]:
+        # dof_leaderboard remains disabled (needs 10+ agents to make sense)
+        # feynman_research_crew, graphify_integration, media_generation_tool are now enabled (v0.8.0)
+        for flag in ["dof_leaderboard"]:
             self.assertFalse(self.ff.is_enabled(flag), f"Expected {flag} to be disabled")
 
     def test_unknown_flag_returns_false(self):
@@ -38,6 +40,8 @@ class TestFeatureFlagsOverrides(unittest.TestCase):
         self.ff = FeatureFlags(constitution_path=Path("/nonexistent.yml"))
 
     def test_enable_overrides_default(self):
+        # graphify_integration is now True by default; verify disable→enable round-trip
+        self.ff.disable("graphify_integration")
         self.assertFalse(self.ff.is_enabled("graphify_integration"))
         self.ff.enable("graphify_integration")
         self.assertTrue(self.ff.is_enabled("graphify_integration"))
@@ -54,15 +58,19 @@ class TestFeatureFlagsOverrides(unittest.TestCase):
         self.assertTrue(self.ff.is_enabled("disk_task_queue"))
 
     def test_reset_single_flag(self):
-        self.ff.enable("graphify_integration")
-        self.ff.reset("graphify_integration")
+        # graphify_integration default is now True; disable via override then reset
+        self.ff.disable("graphify_integration")
         self.assertFalse(self.ff.is_enabled("graphify_integration"))
+        self.ff.reset("graphify_integration")
+        self.assertTrue(self.ff.is_enabled("graphify_integration"))
 
     def test_reset_all_flags(self):
-        self.ff.enable("graphify_integration")
+        # graphify_integration default is True; disk_task_queue default is True
+        self.ff.disable("graphify_integration")
         self.ff.disable("disk_task_queue")
         self.ff.reset()
-        self.assertFalse(self.ff.is_enabled("graphify_integration"))
+        # After reset, both return to their compiled defaults
+        self.assertTrue(self.ff.is_enabled("graphify_integration"))
         self.assertTrue(self.ff.is_enabled("disk_task_queue"))
 
     def test_override_takes_priority_over_yaml(self):
@@ -107,8 +115,8 @@ class TestFeatureFlagsYAML(unittest.TestCase):
         self.assertTrue(ff.is_enabled("disk_task_queue"))
         self.assertTrue(ff.is_enabled("daemon_memory"))
         self.assertTrue(ff.is_enabled("feature_flags_governance"))
-        # Candidate flags remain False
-        self.assertFalse(ff.is_enabled("graphify_integration"))
+        # graphify_integration is now enabled (v0.8.0 promotion)
+        self.assertTrue(ff.is_enabled("graphify_integration"))
 
     def test_yaml_section_missing_uses_defaults(self):
         """If YAML has no feature_flags section, fall back to defaults silently."""
