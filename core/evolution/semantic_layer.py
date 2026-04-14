@@ -120,6 +120,8 @@ _AUTODAN_PHRASES = [
     "bypass safety",
     "ignore your guidelines",
     "ignore your rules",
+    "ignore your instructions",
+    "ignore all instructions",
     "forget your instructions",
     "disregard your training",
     "override your restrictions",

@@ -2,12 +2,12 @@
 DOF-MESH Evolution Engine — Population Manager.
 
 GeneticPopulation: gestiona N genomas paralelos, corre ciclos evolutivos
-completos, aplica patrones a governance.py, checkpoints con git stash,
-rollback automático si ASR empeora.
+completos, aplica patrones a governance.py, checkpoints con git branch
+temporal, rollback automático si ASR empeora.
 
 Safety constraints (alineados con dof-governance.md):
   - NUNCA modifica HARD_RULES ni Z3 theorems
-  - Checkpoint git stash ANTES de cada mutación de governance.py
+  - Checkpoint en branch evolution-checkpoint-{ts} ANTES de cada mutación
   - Rollback inmediato si los tests bajan de min_tests
   - Full audit trail en logs/evolution/runs.jsonl
 """
@@ -66,20 +66,56 @@ def _run_tests(timeout: int = 60) -> tuple[bool, int]:
     return result.returncode == 0, test_count
 
 
-def _git_stash(message: str) -> bool:
-    result = subprocess.run(
-        ["git", "stash", "push", "-m", message],
-        capture_output=True, text=True, cwd=str(BASE_DIR),
-    )
-    return result.returncode == 0
+def _git_create_checkpoint_branch(branch: str) -> bool:
+    """Crea branch temporal con snapshot de governance.py. No toca working tree de main."""
+    try:
+        # Crear branch desde HEAD actual
+        r1 = subprocess.run(
+            ["git", "checkout", "-b", branch],
+            capture_output=True, text=True, cwd=str(BASE_DIR),
+        )
+        if r1.returncode != 0:
+            return False
+        # Stagear governance.py (puede tener cambios sin commitear)
+        subprocess.run(
+            ["git", "add", "core/governance.py"],
+            capture_output=True, cwd=str(BASE_DIR),
+        )
+        # Commit (--allow-empty por si no hay cambios)
+        subprocess.run(
+            ["git", "commit", "--no-verify", "--allow-empty",
+             "-m", f"checkpoint: {branch}",
+             "--author=Evolution Engine <evolution@dof.mesh>"],
+            capture_output=True, cwd=str(BASE_DIR),
+        )
+        # Volver a main
+        r2 = subprocess.run(
+            ["git", "checkout", "main"],
+            capture_output=True, text=True, cwd=str(BASE_DIR),
+        )
+        return r2.returncode == 0
+    except Exception as e:
+        logger.warning(f"_git_create_checkpoint_branch error: {e}")
+        return False
 
 
-def _git_stash_pop() -> bool:
-    result = subprocess.run(
-        ["git", "stash", "pop"],
-        capture_output=True, text=True, cwd=str(BASE_DIR),
-    )
-    return result.returncode == 0
+def _git_restore_checkpoint_branch(branch: str) -> bool:
+    """Restaura governance.py desde el branch de checkpoint y lo elimina."""
+    try:
+        # Restaurar solo governance.py desde el branch
+        r1 = subprocess.run(
+            ["git", "checkout", branch, "--", "core/governance.py"],
+            capture_output=True, text=True, cwd=str(BASE_DIR),
+        )
+        # Borrar branch temporal (forzado)
+        subprocess.run(
+            ["git", "branch", "-D", branch],
+            capture_output=True, cwd=str(BASE_DIR),
+        )
+        return r1.returncode == 0
+    except Exception as e:
+        logger.warning(f"_git_restore_checkpoint_branch error: {e}")
+        return False
 
 
 def _read_governance_source() -> str:
@@ -147,11 +183,11 @@ class GeneticPopulation:
       2. Selecciona top 50% (survivors)
       3. Muta survivors para generar offspring
       4. Crossover entre los mejores pares
-      5. git stash checkpoint
+      5. git branch evolution-checkpoint-{ts} (checkpoint)
       6. Aplica nueva población a governance.py
       7. Corre red team → mide ASR global
       8. Si ASR baja (mejora) → commit + siguiente generación
-      9. Si ASR sube (empeora) → git stash pop (rollback)
+      9. Si ASR sube (empeora) → restore desde branch + delete branch (rollback)
     """
 
     def __init__(
@@ -170,6 +206,7 @@ class GeneticPopulation:
         self.llm_fn = llm_fn
         self.min_tests = min_tests
         self._last_asr: Optional[float] = None
+        self._checkpoint_branch: Optional[str] = None
 
         logger.info(f"GeneticPopulation inicializada: {len(self.genes)} genes, size={size}")
 
@@ -277,11 +314,14 @@ class GeneticPopulation:
             save_gene_pool(self.genes, self.gene_pool_path)
             return result
 
-        # 6. Checkpoint git stash ANTES de modificar governance.py
-        stash_msg = f"evolution-gen-{gen_n}-checkpoint-{int(time.time())}"
-        stashed = _git_stash(stash_msg)
-        if not stashed:
-            logger.warning("git stash falló — continuando sin checkpoint")
+        # 6. Checkpoint branch ANTES de modificar governance.py
+        checkpoint_branch = f"evolution-checkpoint-{int(time.time())}"
+        checkpointed = _git_create_checkpoint_branch(checkpoint_branch)
+        if not checkpointed:
+            logger.warning("checkpoint branch falló — continuando sin checkpoint")
+            checkpoint_branch = ""
+        # Guardar en instancia para que pop.rollback() externo pueda usarlo
+        self._checkpoint_branch = checkpoint_branch or None
 
         # 7. Aplicar nueva población a governance.py
         self._apply_genes_to_governance(next_generation)
@@ -292,8 +332,9 @@ class GeneticPopulation:
             logger.error(
                 f"Tests fallaron (count={test_count}, min={self.min_tests}) — rollback"
             )
-            if stashed:
-                _git_stash_pop()
+            if checkpoint_branch:
+                _git_restore_checkpoint_branch(checkpoint_branch)
+                self._checkpoint_branch = None
             result = {
                 "generation": gen_n, "asr_before": asr_before, "asr_after": None,
                 "genes_added": len(new_genes), "rolled_back": True,
@@ -315,8 +356,9 @@ class GeneticPopulation:
             logger.warning(
                 f"ASR empeoró: {asr_before:.1f}% → {asr_after:.1f}% — rollback"
             )
-            if stashed:
-                _git_stash_pop()
+            if checkpoint_branch:
+                _git_restore_checkpoint_branch(checkpoint_branch)
+                self._checkpoint_branch = None
             result = {
                 "generation": gen_n, "asr_before": asr_before, "asr_after": asr_after,
                 "genes_added": len(new_genes), "rolled_back": True,
@@ -325,7 +367,13 @@ class GeneticPopulation:
             _log_run({"ts": _now_iso(), **result})
             return result
 
-        # 11. Generación exitosa — actualizar estado
+        # 11. Generación exitosa — limpiar checkpoint branch (ya no necesario)
+        if checkpoint_branch:
+            subprocess.run(
+                ["git", "branch", "-D", checkpoint_branch],
+                capture_output=True, cwd=str(BASE_DIR),
+            )
+            self._checkpoint_branch = None
         self.genes = next_generation
         self.generation = gen_n
         save_gene_pool(self.genes, self.gene_pool_path)
@@ -408,13 +456,25 @@ class GeneticPopulation:
         )
 
     def checkpoint(self) -> bool:
-        """git stash del estado actual antes de mutar."""
-        msg = f"evolution-manual-checkpoint-gen-{self.generation}"
-        return _git_stash(msg)
+        """Crea branch temporal antes de mutar governance.py."""
+        branch = f"evolution-checkpoint-{int(time.time())}"
+        ok = _git_create_checkpoint_branch(branch)
+        if ok:
+            self._checkpoint_branch = branch
+            logger.info(f"Checkpoint branch: {branch}")
+        else:
+            self._checkpoint_branch = None
+        return ok
 
     def rollback(self) -> bool:
-        """git stash pop para revertir al estado anterior."""
-        return _git_stash_pop()
+        """Restaura governance.py desde el branch de checkpoint y lo elimina."""
+        branch = self._checkpoint_branch
+        if not branch:
+            logger.warning("rollback: sin checkpoint activo")
+            return False
+        ok = _git_restore_checkpoint_branch(branch)
+        self._checkpoint_branch = None
+        return ok
 
     # ── Summary ───────────────────────────────────────────────────────────────
 
