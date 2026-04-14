@@ -44,6 +44,8 @@ reports/
 !docs.json
 !package.json
 !composer.json
+!proof/**/*.json
+!proof/**/*.jsonl
 !**/dof.constitution.yml
 
 # Output

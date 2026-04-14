@@ -56,21 +56,36 @@ def _is_valid_regex(pattern: str) -> bool:
 def _call_llm(prompt: str, llm_fn: Optional[Callable] = None) -> Optional[str]:
     """
     Llama al LLM con el prompt dado.
-    llm_fn: callable(prompt: str) → str. Si es None, usa Groq vía litellm.
+    llm_fn: callable(prompt: str) → str. Si es None, usa DeepSeek directo via requests.
     """
     if llm_fn is not None:
         return llm_fn(prompt)
 
-    # Fallback: litellm con Groq (modelo barato y rápido)
+    # Fallback: DeepSeek API directo (gratuito, sin litellm)
     try:
-        import litellm
-        response = litellm.completion(
-            model="groq/llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=200,
-            temperature=0.3,
+        import os
+        import requests as _req
+        api_key = os.getenv("DEEPSEEK_API_KEY", "")
+        if not api_key:
+            from dotenv import load_dotenv
+            load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
+            api_key = os.getenv("DEEPSEEK_API_KEY", "")
+        if not api_key:
+            logger.warning("LLM call falló: DEEPSEEK_API_KEY no configurada")
+            return None
+        resp = _req.post(
+            "https://api.deepseek.com/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            json={
+                "model": "deepseek-chat",
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 200,
+                "temperature": 0.3,
+            },
+            timeout=30,
         )
-        return response.choices[0].message.content.strip()
+        resp.raise_for_status()
+        return resp.json()["choices"][0]["message"]["content"].strip()
     except Exception as e:
         logger.warning(f"LLM call falló: {e}")
         return None

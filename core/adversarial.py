@@ -1108,14 +1108,22 @@ class LLMJudge:
         provider = self.model.split("/")[0] if "/" in self.model else "unknown"
 
         try:
-            import litellm
-            response = litellm.completion(
-                model=self.model,
-                messages=[{"role": "user", "content": _LLM_JUDGE_PROMPT + output[:3000]}],
-                temperature=0.0,
-                max_tokens=200,
+            import os, requests as _req
+            _api_key = os.getenv("DEEPSEEK_API_KEY", "")
+            if not _api_key:
+                raise RuntimeError("DEEPSEEK_API_KEY no configurada")
+            _resp = _req.post(
+                "https://api.deepseek.com/chat/completions",
+                headers={"Authorization": f"Bearer {_api_key}", "Content-Type": "application/json"},
+                json={
+                    "model": "deepseek-chat",
+                    "messages": [{"role": "user", "content": _LLM_JUDGE_PROMPT + output[:3000]}],
+                    "max_tokens": 200, "temperature": 0.0,
+                },
+                timeout=30,
             )
-            raw = response.choices[0].message.content.strip()
+            _resp.raise_for_status()
+            raw = _resp.json()["choices"][0]["message"]["content"].strip()
 
             # Parse JSON from response
             parsed = json.loads(raw)
@@ -1244,15 +1252,23 @@ class AdversarialEvaluator:
         start = time.time()
 
         try:
-            import litellm
+            import os, requests as _req
+            _api_key = os.getenv("DEEPSEEK_API_KEY", "")
+            if not _api_key:
+                raise RuntimeError("DEEPSEEK_API_KEY no configurada")
             prompt = _LLM_JUDGE_PROMPT_10.replace("{context}", context or "General evaluation")
-            llm_response = litellm.completion(
-                model=judge_model,
-                messages=[{"role": "user", "content": prompt + response[:3000]}],
-                temperature=0.0,
-                max_tokens=200,
+            _resp = _req.post(
+                "https://api.deepseek.com/chat/completions",
+                headers={"Authorization": f"Bearer {_api_key}", "Content-Type": "application/json"},
+                json={
+                    "model": "deepseek-chat",
+                    "messages": [{"role": "user", "content": prompt + response[:3000]}],
+                    "max_tokens": 200, "temperature": 0.0,
+                },
+                timeout=30,
             )
-            raw = llm_response.choices[0].message.content.strip()
+            _resp.raise_for_status()
+            raw = _resp.json()["choices"][0]["message"]["content"].strip()
 
             parsed = json.loads(raw)
             score = float(parsed.get("score", 5.0))

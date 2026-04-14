@@ -1,0 +1,277 @@
+{
+  "report_id": "SECOP-E2E-20260414_081247",
+  "version": "1.0.0",
+  "generated_at": "2026-04-14T13:12:47.867631+00:00",
+  "generated_by": "DOF-MESH v0.8.0 — Enterprise Audit Service",
+  "pipeline": {
+    "engine": "Z3 SMT Solver",
+    "framework": "Ley 80/1993 + Decreto 1082/2015",
+    "governance": "DOF 7-layer deterministic governance",
+    "blockchain": "Avalanche C-Chain (DOFProofRegistry)"
+  },
+  "query": {
+    "target": "MEDELLIN",
+    "municipio": "MEDELLIN",
+    "entity": null,
+    "year": null,
+    "limit": 10,
+    "source": "datos.gov.co — SECOP II (Socrata API)"
+  },
+  "summary": {
+    "total_contracts": 10,
+    "total_value_cop": 450321191.0,
+    "total_value_usd": 107219.33,
+    "unique_entities": 5,
+    "modalities": {
+      "Contratación directa": 8,
+      "Contratación régimen especial (con ofertas)": 1,
+      "Selección abreviada subasta inversa": 1
+    },
+    "risk_level": "BAJO"
+  },
+  "z3_audit": {
+    "rules_applied": 6,
+    "legal_framework": "Ley 80/1993 Art. 24, 25, 26, 29, 30 + Decreto 1082/2015",
+    "passed": 10,
+    "failed": 0,
+    "pass_rate": 100.0,
+    "violations_summary": {}
+  },
+  "anomalies": {
+    "fraccionamiento": {
+      "count": 0,
+      "rule": "Ley 80 Art. 24 — Anti-fraccionamiento",
+      "details": []
+    },
+    "concentracion": {
+      "count": 1,
+      "rule": "Concentración excesiva en un proveedor",
+      "details": [
+        {
+          "contratista": "",
+          "contratos": 10,
+          "total": 10,
+          "porcentaje": 100.0,
+          "alerta": "Concentración:  tiene 10/10 contratos (100.0%) con MEDELLIN — supera umbral 50%."
+        }
+      ]
+    }
+  },
+  "governance": {
+    "dof_layers": 7,
+    "constitution_check": {
+      "passed": false,
+      "score": 0.0,
+      "violations": [
+        "[LANGUAGE_COMPLIANCE] Response must be in English or contain structured data"
+      ],
+      "warnings": []
+    },
+    "z3_formal_verification": {
+      "total": 4,
+      "proven": 4,
+      "theorems": [
+        {
+          "name": "GCR_INVARIANT",
+          "result": "VERIFIED",
+          "time_ms": 0.55
+        },
+        {
+          "name": "SS_FORMULA",
+          "result": "VERIFIED",
+          "time_ms": 0.26
+        },
+        {
+          "name": "SS_MONOTONICITY",
+          "result": "VERIFIED",
+          "time_ms": 1.21
+        },
+        {
+          "name": "SS_BOUNDARIES",
+          "result": "VERIFIED",
+          "time_ms": 0.5
+        }
+      ]
+    }
+  },
+  "blockchain": {
+    "chain": "Avalanche C-Chain",
+    "chain_id": 43114,
+    "contract": "0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6",
+    "master_proof_hash": "0xdd924dc25c2e3a7acd377d4c878271056f24b8972e2e7ebc47aa50c5e7ea1815",
+    "attestation": {
+      "status": "dry_run",
+      "tx_hash": "0xad2570472769a30452a5c3dc6c7688e1ec43579a7a17352acdfaff1b14160b70",
+      "chain_id": 43114,
+      "chain_name": "Avalanche C-Chain",
+      "proof_hash": "0xdd924dc25c2e3a7acd377d4c878271056f24b8972e2e7ebc47aa50c5e7ea1815",
+      "agent_id": 8004
+    }
+  },
+  "contracts_detail": [
+    {
+      "index": 1,
+      "id_contrato": "CO1.PCCNTR.4379624",
+      "entidad": "INSTITUTO DE DEPORTES Y RECREACION DE MEDELLIN",
+      "objeto": "PRESTAR LOS SERVICIOS DE APOYO A LA GESTION EN LA ESTABILIDAD DEL AGUA; MANTENIMIENTO; LIMPIEZA; Y D",
+      "valor_cop": 8694400.0,
+      "proveedor": "HECTOR DAVID LOPEZ BELTRAN",
+      "modalidad": "Contratación directa",
+      "estado": "En ejecución",
+      "fecha_firma": "2023-01-07T00:00:00.000",
+      "z3_passed": true,
+      "z3_score": 1.0,
+      "z3_violations": [],
+      "proof_hash": "e11624986b108528e5d895f4c51ce8a0b6677246d0ca59341c6f8d2eab9103b0"
+    },
+    {
+      "index": 2,
+      "id_contrato": "CO1.PCCNTR.6385569",
+      "entidad": "ASOCIACIÓN CANAL LOCAL DE TELEVISIÓN DE MEDELLIN - TELEMEDELLIN",
+      "objeto": "COMPRA DE EQUIPOS PARA PRODUCCIÓN DE TELEVISIÓN",
+      "valor_cop": 3600000.0,
+      "proveedor": "LA CURACAO",
+      "modalidad": "Contratación régimen especial (con ofertas)",
+      "estado": "Modificado",
+      "fecha_firma": "2024-06-05T00:00:00.000",
+      "z3_passed": true,
+      "z3_score": 1.0,
+      "z3_violations": [],
+      "proof_hash": "e0e53171f8b34d36cb949e91c476e1c63f19d08671fb642960644ff8bbaef78d"
+    },
+    {
+      "index": 3,
+      "id_contrato": "CO1.PCCNTR.1163620",
+      "entidad": "CPMSBEL",
+      "objeto": "SUMINISTRO DE MATERIAS PRIMAS Y DESECHABLES PARA SU COMERCIALIZACIÓN EN EL ALMACÉN EXPENDIO DEL ESTA",
+      "valor_cop": 239053726.0,
+      "proveedor": "AMERICANA CORP SAS",
+      "modalidad": "Selección abreviada subasta inversa",
+      "estado": "Aprobado",
+      "fecha_firma": "2019-11-01T00:00:00.000",
+      "z3_passed": true,
+      "z3_score": 1.0,
+      "z3_violations": [],
+      "proof_hash": "11dabb9f83959491e03f157135398a10f40ebaa6536eeee57777bc3c2995d1af"
+    },
+    {
+      "index": 4,
+      "id_contrato": "CO1.PCCNTR.5620071",
+      "entidad": "BIBLIOTECA PUBLICA PILOTO DE MEDELLIN PARA AMERICA LATINA",
+      "objeto": "Prestación de servicio profesionales y /o de apoyo a la gestión para contribuir con la mediación bib",
+      "valor_cop": 2293170.0,
+      "proveedor": "Alexander Hurtado Mosquera",
+      "modalidad": "Contratación directa",
+      "estado": "Cerrado",
+      "fecha_firma": "2023-12-02T00:00:00.000",
+      "z3_passed": true,
+      "z3_score": 1.0,
+      "z3_violations": [],
+      "proof_hash": "68dc48b242fda2e8906a35ff467174a51c43d3b092062564c2967d3c1e18115a"
+    },
+    {
+      "index": 5,
+      "id_contrato": "CO1.PCCNTR.6481462",
+      "entidad": "INSTITUTO DE DEPORTES Y RECREACION DE MEDELLIN",
+      "objeto": "PRESTAR LOS SERVICIOS DE APOYO A LA GESTIÓN COMO GUÍA - BACHILLER 1; DE LA ESTRATEGIA VÍAS ACTIVAS Y",
+      "valor_cop": 6809106.0,
+      "proveedor": "Juan jose ramos restrepo",
+      "modalidad": "Contratación directa",
+      "estado": "En ejecución",
+      "fecha_firma": "2024-07-01T00:00:00.000",
+      "z3_passed": true,
+      "z3_score": 1.0,
+      "z3_violations": [],
+      "proof_hash": "e3c56c6e61394dd35c8f0b03cacbd6826ae4b6af8533188311604085acb513f2"
+    },
+    {
+      "index": 6,
+      "id_contrato": "CO1.PCCNTR.4922582",
+      "entidad": "INSTITUTO DE DEPORTES Y RECREACION DE MEDELLIN",
+      "objeto": "PRESTAR LOS SERVICIOS ESPECIALIZADOS DE APOYO EN EL ANÁLISIS DE LA INFORMACIÓN DE LOS PROCESOS MISIO",
+      "valor_cop": 53096853.0,
+      "proveedor": "JENNIFER MEJÍA PULGARIN",
+      "modalidad": "Contratación directa",
+      "estado": "Modificado",
+      "fecha_firma": "2023-05-05T00:00:00.000",
+      "z3_passed": true,
+      "z3_score": 1.0,
+      "z3_violations": [],
+      "proof_hash": "afb2e347eee219166cc3b2e823f83215d3764c8fcce59974c5e9f0fb06a3d30c"
+    },
+    {
+      "index": 7,
+      "id_contrato": "CO1.PCCNTR.2388083",
+      "entidad": "DISTRITO ESPECIAL DE CIENCIA TECNOLOGIA E INNOVACION DE MEDELLIN",
+      "objeto": "Prestación de servicios de inhumación o cremación a población pobre y vulnerable de la ciudad de Med",
+      "valor_cop": 69501225.0,
+      "proveedor": "FUNERARIA SAN VICENTE S.A.",
+      "modalidad": "Contratación directa",
+      "estado": "Cerrado",
+      "fecha_firma": "2021-03-26T00:00:00.000",
+      "z3_passed": true,
+      "z3_score": 1.0,
+      "z3_violations": [],
+      "proof_hash": "e6b7b8e09227428e8a99b553c3ef46e65f1a0e2ebb4a0804de46c9e383ec350a"
+    },
+    {
+      "index": 8,
+      "id_contrato": "CO1.PCCNTR.8030803",
+      "entidad": "INSTITUTO DE DEPORTES Y RECREACION DE MEDELLIN",
+      "objeto": "PRESTAR LOS SERVICIOS DE APOYO A LA GESTIÓN COMO GUARDIÁN (A) - TÉCNICO 1; DE LA ESTRATEGIA CICLOVIA",
+      "valor_cop": 10015467.0,
+      "proveedor": "VICTOR ALONSO CUERVO SOTO",
+      "modalidad": "Contratación directa",
+      "estado": "En ejecución",
+      "fecha_firma": "2025-06-30T00:00:00.000",
+      "z3_passed": true,
+      "z3_score": 1.0,
+      "z3_violations": [],
+      "proof_hash": "3b1290fe644029d1a4f4de392d0dbac6f4eb7a5cd69251dc34a04e36f7af227e"
+    },
+    {
+      "index": 9,
+      "id_contrato": "CO1.PCCNTR.2787836",
+      "entidad": "BIBLIOTECA PUBLICA PILOTO DE MEDELLIN PARA AMERICA LATINA",
+      "objeto": "Prestación de servicios profesionales; para apoyar la gestión y coordinación de las actividades de p",
+      "valor_cop": 27257244.0,
+      "proveedor": "Marta Cecilia Garcia Franco",
+      "modalidad": "Contratación directa",
+      "estado": "En ejecución",
+      "fecha_firma": "2021-08-24T00:00:00.000",
+      "z3_passed": true,
+      "z3_score": 1.0,
+      "z3_violations": [],
+      "proof_hash": "33b60629d3732f3d3e1290bf6837b042bdb73d453faa364de5774ea1cd3dbc4c"
+    },
+    {
+      "index": 10,
+      "id_contrato": "CO1.PCCNTR.4408654",
+      "entidad": "DISTRITO ESPECIAL DE CIENCIA TECNOLOGIA E INNOVACION DE MEDELLIN",
+      "objeto": "Prestación de servicios profesionales especializados  para desarrollar actividades de apoyo transver",
+      "valor_cop": 30000000.0,
+      "proveedor": "BRYAN CARTAGENA RODRIGUEZ",
+      "modalidad": "Contratación directa",
+      "estado": "En ejecución",
+      "fecha_firma": "2023-01-16T00:00:00.000",
+      "z3_passed": true,
+      "z3_score": 1.0,
+      "z3_violations": [],
+      "proof_hash": "7075a73ba77e03f758654a8a0e4c4eed9b1a45bcf75be2ed65d46b40c533abf8"
+    }
+  ],
+  "performance": {
+    "total_seconds": 0.69,
+    "ingesta_seconds": 0.62,
+    "z3_audit_seconds": 0.01,
+    "anomalies_seconds": 0.0,
+    "governance_seconds": 0.05,
+    "blockchain_seconds": 0.01
+  },
+  "verification": {
+    "how_to_verify": "Recalcular SHA-256 del campo 'blockchain.master_proof_hash' con los datos del campo 'summary' + 'z3_audit' + 'anomalies'. Debe coincidir con el proof registrado en el contrato 0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6 en Avalanche C-Chain.",
+    "explorer": "https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6",
+    "sdk": "pip install dof-sdk",
+    "docs": "https://dofmesh.com"
+  }
+}
