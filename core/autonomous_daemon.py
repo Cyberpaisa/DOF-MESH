@@ -774,6 +774,24 @@ class AutonomousDaemon:
         # Knowledge extraction: si el ciclo tiene aprendizaje, actualiza vault
         self._maybe_extract_learning(cycle_result)
 
+        # Obsidian auto-capture: ciclos BUILD/IMPROVE exitosos → +Entrada/
+        if cycle_result.result_status == "success" and \
+           cycle_result.action.mode in ("build", "improve"):
+            try:
+                from integrations.obsidian.auto_capture import capture_event
+                capture_event("daemon_cycle", {
+                    "cycle": cycle_result.cycle,
+                    "cycle_type": cycle_result.action.mode.upper(),
+                    "duration_s": round(cycle_result.elapsed_ms / 1000, 1),
+                    "action": cycle_result.action.action[:120],
+                    "status": cycle_result.result_status,
+                    "agent": getattr(cycle_result, "agent_id", "daemon"),
+                    "lesson": (cycle_result.output_summary or "")[:200],
+                    "git_changes": cycle_result.state.git_dirty_files,
+                })
+            except Exception:
+                pass  # nunca romper el daemon por el vault
+
     # ═══════════════════════════════════════════════════
     # MAIN LOOP
     # ═══════════════════════════════════════════════════
