@@ -134,10 +134,10 @@ def run_semantic_injection(vector: dict) -> AttackResult:
 
     # Test decode_and_scan (adversarial.py)
     try:
-        from core.adversarial import EncodingScanner
-        scanner = EncodingScanner()
+        from core.adversarial import RedTeamAgent
+        scanner = RedTeamAgent()
         scan_result = scanner.decode_and_scan(payload)
-        encoding_detected = scan_result.get("threat_detected", False)
+        encoding_detected = scan_result.get("detected", False) or scan_result.get("threat_detected", False)
     except Exception:
         encoding_detected = False
 

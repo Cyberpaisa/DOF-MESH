@@ -135,7 +135,7 @@ REPO_ROOT = Path(__file__).parent.parent
 
 # Default hard/soft rules and PII patterns — IDs match YAML rule_key
 HARD_RULES: list[dict] = [
-    {"id": "NO_HALLUCINATION_CLAIM", "priority": RulePriority.SYSTEM, "pattern": r"\bstatistics show\b|\baccording to recent studies\b|\bstudies show\b|\bresearch shows\b|\bdata confirms\b|\bresearch demonstrates\b", "description": "Must not assert fabricated data without source", "type": "phrase_without_url"},
+    {"id": "NO_HALLUCINATION_CLAIM", "priority": RulePriority.SYSTEM, "pattern": r"\bstatistics show\b|\baccording to recent studies\b|\bstudies show\b|\bresearch shows\b|\bdata confirms\b|\bresearch demonstrates\b|\bit has been shown\b|\bit is well.known\b|\bexperts agree\b|\b\d{2,3}%\s+of\s+(?:cases?|users?|people|respondents?|participants?)\b", "description": "Must not assert fabricated data without source", "type": "phrase_without_url"},
     {"id": "LANGUAGE_COMPLIANCE", "priority": RulePriority.SYSTEM, "pattern": None, "description": "Response must be in English or contain structured data", "type": "language_check"},
     {"id": "NO_EMPTY_OUTPUT", "priority": RulePriority.SYSTEM, "pattern": None, "description": "Output cannot be empty or a placeholder", "type": "min_length", "min_length": 50},
     {"id": "MAX_LENGTH", "priority": RulePriority.SYSTEM, "pattern": None, "description": "Output cannot exceed 50K chars", "type": "max_length", "max_chars": 50000},
@@ -178,6 +178,10 @@ _OVERRIDE_PATTERNS = [
     r"(?i)maintenance\s+mode\s+(?:activated|enabled|on)",
     r"(?i)(?:all\s+)?safety\s+checks?\s+(?:suspended|disabled|bypassed)",
     r"(?i)diagnostic\s+(?:mode|override)\s+(?:active|enabled)",
+    # CVE-DOF-015: Memory poisoning — fake rule injection
+    r"(?i)(?:SYSTEM\s+)?RULE\s+OVERRIDE\s*:",
+    r"(?i)New\s+rule\s*:\s+(?:always|never|when\s+asked)",
+    r"(?i)(?:updated?|new|revised)\s+(?:system\s+)?rule\s*:\s+(?:always|comply|respond|ignore)",
 ]
 
 # Indirect privilege escalation patterns (for enforce_hierarchy)
@@ -438,12 +442,33 @@ def _sync_rules_from_constitution():
 # Helper functions
 # ─────────────────────────────────────────────────────────────────────
 
+_FAKE_URL_PATTERNS = re.compile(
+    r'(?:fake|example|test|placeholder|dummy|lorem|xxx|sample)-'
+    r'|\.example\.com|\.test\.com|\.fake\.'
+    r'|example\.com|httpbin\.org'
+, re.IGNORECASE)
+
+
 def _has_source_attribution(text: str) -> bool:
-    """Check if text has source attribution (URL or explicit source reference)."""
-    if re.search(r'https?://', text):
-        return True
-    if re.search(r'\b(Sources?|References?|Citations?|Cited from)\s*:', text, re.IGNORECASE):
-        return True
+    """Check if text has source attribution (URL or explicit source reference).
+
+    CVE-DOF-015: Rejects obviously fake/placeholder URLs.
+    """
+    urls = re.findall(r'https?://[^\s"\'<>]+', text)
+    if urls:
+        real_urls = [u for u in urls if not _FAKE_URL_PATTERNS.search(u)]
+        if real_urls:
+            return True
+    source_ref = re.search(r'\b(Sources?|References?|Citations?|Cited from)\s*:\s*(.*)', text, re.IGNORECASE)
+    if source_ref:
+        ref_content = source_ref.group(2).strip()
+        # If the reference points to a URL, verify it's not fake
+        ref_urls = re.findall(r'https?://[^\s"\'<>]+', ref_content)
+        if ref_urls:
+            real_ref_urls = [u for u in ref_urls if not _FAKE_URL_PATTERNS.search(u)]
+            return bool(real_ref_urls)
+        # Non-URL source reference (e.g., "Source: WHO Report 2025")
+        return bool(ref_content)
     return False
 
 

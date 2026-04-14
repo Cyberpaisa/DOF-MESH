@@ -203,8 +203,14 @@ class _UnsafePatternVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def _check_decorator_side_effects(self, node: ast.FunctionDef):
-        """CVE-DOF-006: detect decorators that import modules or call system functions."""
+        """CVE-DOF-006: detect decorators that import modules or call system functions.
+
+        Checks both:
+        1. The decorated function body for imports/dangerous calls
+        2. The decorator definition (if found in the same module) for side effects
+        """
         _DANGEROUS_CALLS = {'system', 'exec', 'eval', 'popen', 'run', 'Popen'}
+
         for decorator in node.decorator_list:
             dec_name = None
             if isinstance(decorator, ast.Name):
@@ -213,35 +219,42 @@ class _UnsafePatternVisitor(ast.NodeVisitor):
                 dec_name = decorator.func.id
             if not dec_name:
                 continue
-            # Find the decorator's function definition in the same module
-            for sibling in ast.walk(ast.parse("")):  # placeholder — use parent tree
-                pass
-            # Inline check: if decorator body in current tree has imports or dangerous calls
-            for fn in ast.walk(node):
-                if isinstance(fn, (ast.Import, ast.ImportFrom)):
-                    self.violations.append(Violation(
-                        rule_id="DECORATOR_SIDE_EFFECT",
-                        severity="block",
-                        line_number=node.lineno,
-                        code_snippet=self._snippet(node.lineno),
-                        message=f"Function '{node.name}' decorated with import side effect",
-                    ))
-                    return
-                if isinstance(fn, ast.Call):
-                    call_name = ""
-                    if isinstance(fn.func, ast.Name):
-                        call_name = fn.func.id
-                    elif isinstance(fn.func, ast.Attribute):
-                        call_name = fn.func.attr
-                    if call_name in _DANGEROUS_CALLS:
+
+            # Search the module-level tree for the decorator's definition
+            search_nodes = [node]  # always check the decorated function
+            if hasattr(self, '_module_tree'):
+                for top_node in ast.walk(self._module_tree):
+                    if (isinstance(top_node, ast.FunctionDef)
+                            and top_node.name == dec_name
+                            and top_node is not node):
+                        search_nodes.append(top_node)
+
+            for search_node in search_nodes:
+                for child in ast.walk(search_node):
+                    if isinstance(child, (ast.Import, ast.ImportFrom)):
                         self.violations.append(Violation(
                             rule_id="DECORATOR_SIDE_EFFECT",
                             severity="block",
-                            line_number=node.lineno,
-                            code_snippet=self._snippet(node.lineno),
-                            message=f"Decorator on '{node.name}' calls dangerous function '{call_name}'",
+                            line_number=search_node.lineno,
+                            code_snippet=self._snippet(search_node.lineno),
+                            message=f"Decorator '{dec_name}' on '{node.name}' has import side effect",
                         ))
                         return
+                    if isinstance(child, ast.Call):
+                        call_name = ""
+                        if isinstance(child.func, ast.Name):
+                            call_name = child.func.id
+                        elif isinstance(child.func, ast.Attribute):
+                            call_name = child.func.attr
+                        if call_name in _DANGEROUS_CALLS:
+                            self.violations.append(Violation(
+                                rule_id="DECORATOR_SIDE_EFFECT",
+                                severity="block",
+                                line_number=search_node.lineno,
+                                code_snippet=self._snippet(search_node.lineno),
+                                message=f"Decorator '{dec_name}' on '{node.name}' calls dangerous '{call_name}'",
+                            ))
+                            return
 
     def _check_recursion(self, node: ast.FunctionDef | ast.AsyncFunctionDef):
         """Detect self-calls without any visible depth guard."""
@@ -428,6 +441,7 @@ class ASTVerifier:
 
         # Run AST visitor
         visitor = _UnsafePatternVisitor(lines)
+        visitor._module_tree = tree  # CVE-DOF-006: decorator lookup needs full tree
         visitor.visit(tree)
 
         # Run secret scan
