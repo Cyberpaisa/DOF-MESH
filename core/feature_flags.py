@@ -47,7 +47,7 @@ _DEFAULTS: dict[str, bool] = {
     "feynman_research_crew": True,     # Feynman academic research agent
     "daemon_memory": True,             # DaemonMemory historical query (Sesión 8)
     "feature_flags_governance": True,  # Check flags inside ConstitutionEnforcer (v0.7.0)
-    "dof_leaderboard": False,          # Leaderboard (needs 10+ agents to make sense)
+    "dof_leaderboard": True,           # Leaderboard — /leaderboard page + karma API (Sesión 11)
     "dof_router": True,                # DOFRouter intelligent agent routing (core/router/)
     "semantic_boundary_check": True,   # TF-IDF semantic similarity in SystemPromptBoundary (v0.8.0)
 }

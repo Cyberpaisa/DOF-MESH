@@ -20,11 +20,9 @@ class TestFeatureFlagsDefaults(unittest.TestCase):
         ]:
             self.assertTrue(self.ff.is_enabled(flag), f"Expected {flag} to be enabled")
 
-    def test_candidate_flags_are_disabled(self):
-        # dof_leaderboard remains disabled (needs 10+ agents to make sense)
-        # feynman_research_crew, graphify_integration, media_generation_tool are now enabled (v0.8.0)
-        for flag in ["dof_leaderboard"]:
-            self.assertFalse(self.ff.is_enabled(flag), f"Expected {flag} to be disabled")
+    def test_leaderboard_flag_enabled(self):
+        # dof_leaderboard enabled in Sesión 11 — /leaderboard page implemented
+        self.assertTrue(self.ff.is_enabled("dof_leaderboard"), "dof_leaderboard should be enabled")
 
     def test_unknown_flag_returns_false(self):
         self.assertFalse(self.ff.is_enabled("nonexistent_flag"))
