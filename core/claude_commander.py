@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Claude Commander — DOF ordena a Claude Code directamente.
 

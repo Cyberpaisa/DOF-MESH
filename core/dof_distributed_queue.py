@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 dof_distributed_queue.py — DistributedMeshQueue para DOF Mesh Hyperion.
 

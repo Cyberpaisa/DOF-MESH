@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Task Contract — Formal pre/post-condition enforcement for crew tasks.
 

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 AutonomousExecutor — Agentic execution loop for DOF Mesh nodes.
 
@@ -197,12 +198,20 @@ class AutonomousExecutor:
         # Parse effort_level from YAML frontmatter if present
         effort_level = "medium"
         self._current_temperature = 0.5  # default
-        import yaml
-        import re
+        
+        def _simple_yaml_parse(text: str) -> dict:
+            """Sovereign YAML parser for simple key-value pairs."""
+            meta = {}
+            for line in text.splitlines():
+                if ":" in line and not line.startswith(" "):
+                    k, _, v = line.partition(":")
+                    meta[k.strip()] = v.strip().strip('"').strip("'")
+            return meta
+
         yaml_match = re.search(r"^---\n(.*?)\n---", task, re.DOTALL)
         if yaml_match:
             try:
-                frontmatter = yaml.safe_load(yaml_match.group(1))
+                frontmatter = _simple_yaml_parse(yaml_match.group(1))
                 if isinstance(frontmatter, dict):
                     effort_level = frontmatter.get("effort_level", "medium").lower()
             except Exception:

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 hyperion_http.py — HTTP Bridge para DOF Mesh Hyperion.
 

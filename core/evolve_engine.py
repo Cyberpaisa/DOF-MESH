@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 DOF-EvolveEngine — AlphaEvolve-inspired self-improvement for DOF-MESH.
 

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Knowledge Extractor — DOF Knowledge Pipeline, Componente 2.
 Input:  docs/knowledge/YYYY-MM-DD-{slug}.md

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Step-Level Checkpointing — JSONL persistence.
 

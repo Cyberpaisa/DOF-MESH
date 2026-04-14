@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 A-Mem — Agentic Memory with Zettelkasten Knowledge Graph.
 

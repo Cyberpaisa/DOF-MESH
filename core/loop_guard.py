@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Loop Guard — Detects infinite loops in agent executions.
 

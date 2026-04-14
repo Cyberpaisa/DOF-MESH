@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 dof_consensus.py — VectorClock + GossipProtocol para DOF Mesh Hyperion.
 

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Storage Backend — Dual JSONL / PostgreSQL persistence layer.
 

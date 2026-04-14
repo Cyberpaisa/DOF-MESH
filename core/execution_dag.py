@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Execution DAG — Directed Acyclic Graph for agent execution tracing.
 

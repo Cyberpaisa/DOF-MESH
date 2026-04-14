@@ -9,7 +9,7 @@ import os
 import json
 import time
 import logging
-from typing import Any
+from typing import Any, Optional, List, Dict
 
 logger = logging.getLogger("core.metrics")
 
@@ -38,7 +38,7 @@ class MetricsLogger:
 
     def log(self, event: str, run_id: str = "", agent: str = "",
             provider: str = "", latency_ms: float = 0.0,
-            status: str = "", meta: dict[str, Any] | None = None):
+            status: str = "", meta: Optional[Dict[str, Any]] = None):
         """Log a structured event."""
         entry = {
             "ts": time.time(),
@@ -88,7 +88,7 @@ class MetricsLogger:
         })
 
     def log_governance(self, run_id: str, passed: bool, score: float,
-                       violations: list[str] | None = None):
+                       violations: Optional[List[str]] = None):
         """Log governance check result."""
         self.log("governance_check", run_id=run_id,
                  status="pass" if passed else "fail",
@@ -98,7 +98,7 @@ class MetricsLogger:
         """Log supervisor evaluation."""
         self.log("supervisor_eval", run_id=run_id, status=decision, meta=scores)
 
-    def get_recent(self, n: int = 50) -> list[dict]:
+    def get_recent(self, n: int = 50) -> List[Dict]:
         """Return last N events. Returns [] for n <= 0."""
         if n <= 0:
             return []

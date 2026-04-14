@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Solidity Smart Contract Scanner — Deterministic vulnerability detection.
 

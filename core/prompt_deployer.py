@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Prompt Deployment Pipeline for DOF-MESH.
 

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Event Stream — in-memory pub/sub with circular buffer (Phase 8 preparation).
 

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 MeshBridge — HTTP Server for Remote Nodes.
 

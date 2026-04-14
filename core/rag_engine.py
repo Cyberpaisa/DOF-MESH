@@ -12,7 +12,7 @@ import threading
 import logging
 from pathlib import Path
 from dataclasses import dataclass, field, asdict
-from typing import Optional
+from typing import Optional, List, Dict, Union, Any, Tuple
 
 logger = logging.getLogger("core.rag_engine")
 
@@ -94,9 +94,9 @@ class RAGEngine:
             return
         self._initialized = True
 
-        self._index: dict[str, RAGDocument] = {}
+        self._index: Dict[str, RAGDocument] = {}
         self._lock = threading.Lock()
-        self._idf_cache: dict = {}
+        self._idf_cache: Dict = {}
 
         # Ensure log directory exists
         _INDEX_DIR.mkdir(parents=True, exist_ok=True)
@@ -184,7 +184,7 @@ class RAGEngine:
         logger.info("index_directory: %s — %d total chunks", directory, total)
         return total
 
-    def search(self, query: str, top_k: int = 5) -> list:
+    def search(self, query: str, top_k: int = 5) -> List:
         """TF-IDF search over all indexed chunks. Returns top_k RAGResult list."""
         query_terms = self._tokenize(query)
         if not query_terms:
@@ -316,7 +316,7 @@ class RAGEngine:
 
         return chunks
 
-    def _tfidf_score(self, query_terms: list, chunk: str, docs: dict = None) -> float:
+    def _tfidf_score(self, query_terms: List, chunk: str, docs: Dict = None) -> float:
         """Compute TF-IDF score for query_terms against a single chunk."""
         if not query_terms or not chunk:
             return 0.0
@@ -354,7 +354,7 @@ class RAGEngine:
 
         return score
 
-    def _tokenize(self, text: str) -> list:
+    def _tokenize(self, text: str) -> List:
         """Lowercase, split on non-alphanumeric, remove stopwords."""
         tokens = re.split(r"[^a-z0-9]+", text.lower())
         return [t for t in tokens if t and t not in _STOPWORDS and len(t) > 1]

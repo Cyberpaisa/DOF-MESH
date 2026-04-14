@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 ZK Batch Prover — Batch aggregation de governance proofs con Merkle tree.
 

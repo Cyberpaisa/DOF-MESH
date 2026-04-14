@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 SemAnalyzer — Semantic diff layer for DOF-MESH agent code verification.
 

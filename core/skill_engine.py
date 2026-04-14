@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 DOF Sovereign Skill Engine v2.0
 

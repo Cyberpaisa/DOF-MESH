@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 dof_raft.py — Raft Consensus para DOF Mesh Hyperion.
 

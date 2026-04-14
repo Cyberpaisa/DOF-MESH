@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Z3 Portfolio Solving — Múltiples estrategias Z3 con short-circuit.
 

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Runtime Observer — Production metrics from real execution data.
 

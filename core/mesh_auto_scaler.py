@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Mesh Auto Scaler — Monitor de Auto-escalado para DOF Mesh.
 

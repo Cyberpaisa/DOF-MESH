@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 AdaptiveCircuitBreaker — per-agent block-rate monitor for the Supervisor.
 

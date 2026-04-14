@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 SupplyChainGuard — Protección proactiva contra supply chain attacks.
 

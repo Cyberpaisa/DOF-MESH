@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Meta-Supervisor Minimal — FASE 0.
 

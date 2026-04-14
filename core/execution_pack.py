@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 DOFExecutionPack — Agentic Delivery Layer: Execution Tier (Layer 4).
 

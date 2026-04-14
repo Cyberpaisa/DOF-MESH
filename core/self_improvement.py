@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Self-Improvement Engine — Inspirado en MiniMax M2.7.
 

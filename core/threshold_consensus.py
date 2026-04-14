@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 core/threshold_consensus.py
 Threshold Consensus para DOF Mesh — consenso distribuido con firmas colectivas.

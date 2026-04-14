@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 TestGenerator + BenchmarkRunner — Automated adversarial test generation
 and FDR/FPR measurement for DOF governance layers.

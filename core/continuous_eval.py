@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Evaluador Continuo — Evals en tiempo real sobre cada output.
 

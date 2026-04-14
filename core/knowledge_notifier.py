@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Knowledge Notifier — DOF Approval Pipeline, Componente 2.
 Input:  docs/knowledge/pending/{id}.json

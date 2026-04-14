@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Data Oracle — Deterministic fact-checking for semantic verification.
 

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Revenue Tracker — Real revenue tracking for DOF monetization.
 

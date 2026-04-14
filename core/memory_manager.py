@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Memory Manager — Cross-session memory with TTL and compression.
 
@@ -15,6 +16,7 @@ import json
 import time
 import logging
 from dataclasses import dataclass, field, asdict
+from typing import Optional, List, Dict, Union, Any, Tuple
 
 logger = logging.getLogger("core.memory_manager")
 
@@ -31,7 +33,7 @@ class MemoryEntry:
     created_at: float = 0.0
     ttl_seconds: float = 0.0  # 0 = no expiry
     source: str = ""  # which agent/crew created it
-    tags: list[str] | None = None
+    tags: Optional[List[str]] = None
     access_count: int = 0       # S+Memory: how many times retrieved
     last_accessed: float = 0.0  # S+Memory: timestamp of last retrieval
 
@@ -98,14 +100,15 @@ class MemoryManager:
 
     def __init__(self):
         os.makedirs(MEMORY_DIR, exist_ok=True)
-        self._short_term: dict[str, MemoryEntry] = {}
+        self._short_term: Dict[str, MemoryEntry] = {}
         self._long_term_file = os.path.join(MEMORY_DIR, "long_term.jsonl")
         self._episodic_file = os.path.join(MEMORY_DIR, "episodic.jsonl")
 
     # ── Short-term (session only) ──
 
     def remember(self, key: str, value: str, source: str = "",
-                 ttl: float = 3600, tags: list[str] | None = None):
+                 # Fix for Python 3.9 compatibility
+                 ttl: float = 3600, tags: Optional[List[str]] = None):
         """Store short-term memory (session-scoped, default 1h TTL)."""
         self._short_term[key] = MemoryEntry(
             key=key, value=value, memory_type="short_term",
@@ -113,7 +116,7 @@ class MemoryManager:
             source=source, tags=tags,
         )
 
-    def recall(self, key: str) -> str | None:
+    def recall(self, key: str) -> Optional[str]:
         """Recall short-term memory if not expired."""
         entry = self._short_term.get(key)
         if not entry:
@@ -149,7 +152,7 @@ class MemoryManager:
         'constitution_v2', 'constitution_v3', 'system_override', 'admin', 'root',
     }
 
-    def _validate_memory_entry(self, key: str, value: str, source: str) -> tuple[bool, str]:
+    def _validate_memory_entry(self, key: str, value: str, source: str) -> Tuple[bool, str]:
         """CVE-DOF-008: reject adversarial memory entries before storage."""
         import re as _re
         for pat in self._FORBIDDEN_MEMORY_PATTERNS:
@@ -162,7 +165,7 @@ class MemoryManager:
         return True, "OK"
 
     def store_long_term(self, key: str, value: str, source: str = "",
-                        tags: list[str] | None = None):
+                        tags: Optional[List[str]] = None):
         """Persist a long-term memory to disk.
         CVE-DOF-008: validates entry before storage to prevent memory poisoning.
         """
@@ -177,7 +180,7 @@ class MemoryManager:
         self._append_jsonl(self._long_term_file, entry)
         logger.info(f"Long-term memory stored: {key}")
 
-    def search_long_term(self, query: str, max_results: int = 5) -> list[MemoryEntry]:
+    def search_long_term(self, query: str, max_results: int = 5) -> List[MemoryEntry]:
         """Search long-term memory using hybrid scoring.
 
         Hybrid score = fisher_rao(0.4) + bm25(0.4) + temporal_decay(0.2)
@@ -195,7 +198,7 @@ class MemoryManager:
         corpus_texts = [f"{e.key} {e.value}" for e in entries]
 
         # Try Fisher-Rao for semantic component
-        fisher_scores: dict[int, float] = {}
+        fisher_scores: Dict[int, float] = {}
         try:
             from core.fisher_rao import fisher_rao_similarity
             for i, e in enumerate(entries):
@@ -246,7 +249,7 @@ class MemoryManager:
         )
         self._append_jsonl(self._episodic_file, entry)
 
-    def get_recent_episodes(self, crew_name: str = "", n: int = 5) -> list[dict]:
+    def get_recent_episodes(self, crew_name: str = "", n: int = 5) -> List[Dict]:
         """Get recent execution episodes. Returns [] for n <= 0."""
         if n <= 0:
             return []
@@ -299,7 +302,7 @@ class MemoryManager:
             kept = [e for e in entries if e.access_count > 0]
 
         elif strategy == "dedup_merge":
-            seen: dict[str, MemoryEntry] = {}
+            seen: Dict[str, MemoryEntry] = {}
             for e in entries:
                 # Keep most recent entry per key
                 if e.key not in seen or e.created_at > seen[e.key].created_at:
@@ -363,7 +366,7 @@ class MemoryManager:
             logger.error(f"Memory write error: {e}")
 
     @staticmethod
-    def _load_jsonl(filepath: str) -> list[MemoryEntry]:
+    def _load_jsonl(filepath: str) -> List[MemoryEntry]:
         """Load entries from JSONL file."""
         if not os.path.exists(filepath):
             return []

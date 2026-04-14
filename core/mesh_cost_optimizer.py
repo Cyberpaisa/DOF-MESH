@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 DOF Mesh - Autonomous Scaling: Cost Optimizer
 Implementación de Phase 9 para calcular y aprovisionar dinámicamente el nodo

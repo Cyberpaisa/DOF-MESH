@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 MeshQueue — Cola en memoria para el DOF Mesh.
 

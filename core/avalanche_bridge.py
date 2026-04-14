@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Avalanche Bridge — Real on-chain attestation publishing via web3.py.
 

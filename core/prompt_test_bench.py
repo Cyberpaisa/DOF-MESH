@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 PromptTestBench — Batch testing de prompts con datasets JSONL.
 

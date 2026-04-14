@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 DOF Tracer — Sistema de Tracing Estructurado inspirado en Adaline.
 

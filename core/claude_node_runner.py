@@ -1,3 +1,4 @@
+from __future__ import annotations
 #!/usr/bin/env python3
 """
 Claude Node Runner — DOF Mesh node usando Claude Code CLI como motor.

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Mesh Circuit Breaker — Fault tolerance for DOF Mesh nodes.
 

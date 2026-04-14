@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Merkle Tree — SHA256 batch attestation aggregation for on-chain publishing.
 

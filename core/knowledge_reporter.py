@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Knowledge Reporter — DOF Approval Pipeline, Componente 1.
 Input:  docs/knowledge/YYYY-MM-DD-{slug}.json

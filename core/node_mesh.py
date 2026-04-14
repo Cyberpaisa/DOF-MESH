@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Node Mesh — Red de Nodos Infinitos de Agentes Claude.
 

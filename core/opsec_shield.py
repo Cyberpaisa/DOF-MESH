@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 OpsecShield — Operational Security Module for DOF Mesh Infrastructure.
 

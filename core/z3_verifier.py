@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Z3 Formal Verifier — SMT-based proofs for DOF invariants.
 

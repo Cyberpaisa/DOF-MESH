@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Mesh Router V2 — Intelligent routing for DOF Mesh.
 

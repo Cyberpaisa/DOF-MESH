@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 dof_sharding.py — ConsistentHashRing + DOFShardManager para DOF Mesh Hyperion.
 

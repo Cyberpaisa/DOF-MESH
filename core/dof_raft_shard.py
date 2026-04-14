@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 dof_raft_shard.py — Integración Raft + DOFShardManager.
 

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Mesh Metrics Collector — Recolector de Métricas para DOF Mesh.
 

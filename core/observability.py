@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Run-Level Observability — FASE 1.
 

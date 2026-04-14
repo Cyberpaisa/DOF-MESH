@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Prompt Version Control Registry for DOF-MESH.
 

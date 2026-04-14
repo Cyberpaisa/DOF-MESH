@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Memory Governance — Constitutional memory store with governance enforcement.
 

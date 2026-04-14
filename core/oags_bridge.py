@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 OAGS Bridge — Open Agent Governance Specification compatibility.
 

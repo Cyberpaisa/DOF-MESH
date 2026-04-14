@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 AgentLeak Privacy Benchmark — Privacy leak detection via DOF governance layers.
 

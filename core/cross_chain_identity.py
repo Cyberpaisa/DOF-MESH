@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 core/cross_chain_identity.py
 Cross-Chain Identity Bridge — portable identity proofs across EVM chains.

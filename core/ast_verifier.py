@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 AST Verifier — Static Analysis for Agent-Generated Code.
 

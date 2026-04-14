@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Versioned Z3 Cache — Cache con versionado por epoch y expiración.
 

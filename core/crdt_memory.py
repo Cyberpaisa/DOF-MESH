@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 CRDT Memory Layer — Conflict-free Replicated Data Types para memoria distribuida.
 

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Oracle Bridge — ERC-8004 on-chain attestation of governance metrics.
 

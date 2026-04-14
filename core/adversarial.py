@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Adversarial Evaluation Protocol — Three-Agent Verification.
 

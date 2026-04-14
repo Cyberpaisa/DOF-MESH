@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Mesh Guardian — Security Layer for the Node Mesh.
 

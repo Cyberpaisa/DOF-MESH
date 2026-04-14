@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 dof_wal.py — Write-Ahead Log para crash recovery en DOF Mesh Hyperion.
 

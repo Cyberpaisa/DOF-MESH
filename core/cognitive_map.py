@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Cognitive Map — Model Family Cognitive Architecture Profiles for the DOF Mesh.
 

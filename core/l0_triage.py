@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 L0 Triage — Deterministic pre-LLM filtering layer.
 
