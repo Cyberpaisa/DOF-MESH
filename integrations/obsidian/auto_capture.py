@@ -60,6 +60,26 @@ tags: [asr, metrics, auto]
 Target: {target:.1f}% · {status_emoji} {status_label}
 Sesión: {session}
 """,
+"daemon_cycle": """---
+type: session
+date: {date}
+project: DOF-MESH
+event: daemon_cycle
+cycle_type: {cycle_type}
+status: {status}
+tags: [daemon, ciclo, dof-mesh, auto]
+---
+# Daemon Ciclo {cycle} — {cycle_type} · {date}
+| Duración | Agente | Estado |
+|---|---|---|
+| {duration_s}s | {agent} | {status} |
+
+**Acción:** {action}
+
+**Lección:** {lesson}
+
+Archivos modificados: {git_changes}
+""",
 }
 
 DEFAULTS = {"date": "", "tx_hash": "dry_run", "improvement_pp": 0.0,
@@ -67,7 +87,11 @@ DEFAULTS = {"date": "", "tx_hash": "dry_run", "improvement_pp": 0.0,
             "rule_id": "?", "confidence": 0.0, "contract_count": 0,
             "total_value": 0, "contractors": "?", "anomaly_type": "?",
             "entity": "?", "asr_total": 0.0, "target": 15.0,
-            "status_emoji": "🟡", "status_label": "en progreso", "session": "?"}
+            "status_emoji": "🟡", "status_label": "en progreso", "session": "?",
+            # daemon_cycle defaults
+            "cycle": 0, "cycle_type": "BUILD", "duration_s": 0.0,
+            "agent": "daemon", "action": "?", "lesson": "", "git_changes": 0,
+            "status": "success"}
 
 def capture_event(event_type: str, data: dict[str, Any]) -> str | None:
     if not VAULT.exists():
