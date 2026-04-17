@@ -5,6 +5,7 @@ Hard rules block execution. Soft rules score output (future).
 Enforced at crew output level before delivery.
 """
 
+import codecs
 import os
 import re
 import logging
@@ -158,12 +159,25 @@ PII_PATTERNS: list[dict] = [
 # Prompt injection / hierarchy override patterns
 # CVE-DOF-001: extended with newline injection + developer override + soft overrides
 _OVERRIDE_PATTERNS = [
-    r"\bignore\s+(all\s+)?(rule|previous\s+instructions?|prior\s+instructions?|my\s+instructions?|the\s+system\s+prompt)",
+    r"\bignore\s+(all\s+)?(rules?|previous\s+ins\w*tions?|prior\s+ins\w*tions?|my\s+ins\w*tions?|the\s+system\s+prompt)",
     r"\bskip\s+governance",
     r"\bbypass\s+rule",
     r"\bdisable\s+(all\s+)?rules",
     r"\boverride\s+(the\s+)?constitution",
-    r"\bignora\s+(las\s+)?instrucciones",
+    r"\bignora\s+(las\s+)?(instrucciones|reglas)",
+    # CVE-DI-003: Spanish "ignora las reglas anteriores"
+    r"(?i)\bignora\s+(las\s+)?reglas\s+(anteriores|previas)",
+    # CVE-SI-005: "disregard" as synonym of "ignore"
+    r"(?i)\bdisregard\s+(?:what\s+you\s+were|everything\s+(?:you\s+were|above)|all\s+(?:previous|prior))",
+    r"(?i)\bact\s+without\s+(?:limitations?|restrictions?|constraints?)",
+    # CVE-SI-007: hypothetical framing to bypass rules
+    r"(?i)(?:hypothetically|theoretically),?\s+(?:if|what\s+if)\s+(?:your|the)\s+rules?\s+(?:didn|did\s+not|don|do\s+not)\s*(?:'t)?\s+exist",
+    # CVE-SI-003/004: encoded payload detection (base64, ROT13)
+    r"(?i)(?:decode|decrypt|deobfuscate|execute|run|eval)\s+(?:and\s+)?(?:execute|run|follow|apply)?\s*:\s*[A-Za-z0-9+/=]{20,}",
+    r"(?i)(?:decode|decrypt)\s+(?:and\s+)?(?:execute|run|follow)\b",
+    # CVE-SI-008: SYSTEM override hidden in code comments
+    r"#\s*(?:SYSTEM|SYS)\s*:\s*(?:unrestricted|override|ignore|bypass|disable)",
+    r"#\s*ignore_rules\s*=\s*True",
     # CVE-DOF-001: newline injection
     r"(?m)^(?:SYSTEM|SYS)\s*:\s*\w",
     r"(?m)^-{3,}\s*$.*?SYSTEM\s*:",
@@ -731,6 +745,17 @@ def check_instruction_override(text: str, priority: RulePriority) -> bool:
     for pat in _BLOCKCHAIN_ATTACK_PATTERNS:
         if re.search(pat, normalized, re.IGNORECASE | re.DOTALL):
             return True
+
+    # CVE-SI-004: check ROT13-encoded payloads
+    try:
+        rot13_decoded = codecs.decode(normalized, 'rot_13')
+        # Remove dots/dashes used as word-splitters (e.g. "Ign.ore" → "Ignore")
+        rot13_clean = re.sub(r'(?<=\w)[.\-](?=\w)', '', rot13_decoded)
+        for pat in _OVERRIDE_PATTERNS + _ESCALATION_PATTERNS:
+            if re.search(pat, rot13_clean, re.IGNORECASE | re.DOTALL):
+                return True
+    except Exception:
+        pass
 
     # Capa 8: semantic check — solo si SEMANTIC_LAYER_ENABLED=1
     # Corre DESPUÉS del regex para no añadir latencia al path normal.

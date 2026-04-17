@@ -1,15 +1,18 @@
 #!/bin/bash
 # release.sh — DOF-MESH release automation
 # Usage:
-#   ./scripts/release.sh 0.7.0          # release version 0.7.0
-#   ./scripts/release.sh 0.7.0 --dry-run  # preview only, no changes
+#   ./scripts/release.sh 0.9.0          # release explicit version
+#   ./scripts/release.sh patch          # auto-bump: 0.8.0 → 0.8.1
+#   ./scripts/release.sh minor          # auto-bump: 0.8.0 → 0.9.0
+#   ./scripts/release.sh major          # auto-bump: 0.8.0 → 1.0.0
+#   ./scripts/release.sh 0.9.0 --dry-run  # preview only, no changes
 #
 # Requires: PYPI_API_TOKEN in env (source .env first)
 # Commits use author: Cyber <jquiceva@gmail.com>
 
 set -euo pipefail
 
-REPO="/Users/jquiceva/equipo-de-agentes"
+REPO="$(cd "$(dirname "$0")/.." && pwd)"
 INIT_FILE="$REPO/dof/__init__.py"
 PYPROJECT="$REPO/pyproject.toml"
 DRY_RUN=false
@@ -19,13 +22,26 @@ VERSION=""
 for arg in "$@"; do
     case "$arg" in
         --dry-run) DRY_RUN=true ;;
+        patch|minor|major)
+            # Auto-bump from current version
+            CURRENT=$(grep '__version__' "$INIT_FILE" | sed "s/.*['\"]\\(.*\\)['\"].*/\\1/")
+            IFS='.' read -r _MAJOR _MINOR _PATCH <<< "$CURRENT"
+            case "$arg" in
+                major) _MAJOR=$((_MAJOR+1)); _MINOR=0; _PATCH=0 ;;
+                minor) _MINOR=$((_MINOR+1)); _PATCH=0 ;;
+                patch) _PATCH=$((_PATCH+1)) ;;
+            esac
+            VERSION="$_MAJOR.$_MINOR.$_PATCH"
+            ;;
         [0-9]*.*) VERSION="$arg" ;;
     esac
 done
 
 if [[ -z "$VERSION" ]]; then
-    echo "Usage: ./scripts/release.sh <version> [--dry-run]"
-    echo "Example: ./scripts/release.sh 0.7.0"
+    echo "Usage: ./scripts/release.sh <version|patch|minor|major> [--dry-run]"
+    echo "Examples:"
+    echo "  ./scripts/release.sh 0.9.0"
+    echo "  ./scripts/release.sh patch    # auto-bump patch"
     exit 1
 fi
 

@@ -821,6 +821,11 @@ class AutonomousDaemon:
         logger.info(f"  Dry run: {self.dry_run}")
         logger.info("=" * 60)
 
+        _consecutive_errors = 0
+        _last_cycle_time = time.time()
+        _MAX_CONSECUTIVE_ERRORS = 5
+        _STALE_THRESHOLD_S = 3600  # 1h without cycles → restart
+
         try:
             while True:
                 self.cycle_count += 1
@@ -830,6 +835,13 @@ class AutonomousDaemon:
                     break
 
                 cycle_start = time.time()
+
+                # Heartbeat every 10 cycles
+                if self.cycle_count % 10 == 0:
+                    elapsed_hours = (time.time() - _last_cycle_time) / 3600
+                    logger.info(f"[HEARTBEAT] Cycle {self.cycle_count} | "
+                                f"Errors streak: {_consecutive_errors} | "
+                                f"Improvements: {self.total_improvements}")
 
                 # ─── PERCEIVE ───
                 logger.info(f"\n{'─'*40}")
@@ -868,6 +880,21 @@ class AutonomousDaemon:
                     agents_spawned=agents,
                 )
                 self.evaluate_and_log(cycle_result)
+
+                # Track consecutive errors for auto-recovery
+                if status == "error":
+                    _consecutive_errors += 1
+                    if _consecutive_errors >= _MAX_CONSECUTIVE_ERRORS:
+                        logger.warning(
+                            f"[RECOVERY] {_consecutive_errors} consecutive errors — "
+                            f"sleeping 300s before retry"
+                        )
+                        await asyncio.sleep(300)
+                        _consecutive_errors = 0
+                else:
+                    _consecutive_errors = 0
+
+                _last_cycle_time = time.time()
 
                 # ─── WAIT ───
                 if max_cycles > 0 and self.cycle_count >= max_cycles:
