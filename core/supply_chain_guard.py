@@ -56,10 +56,15 @@ COMPROMISED_PACKAGES: dict[str, dict] = {
         "vector": "WAV steganography malware",
     },
     "litellm": {
-        "versions": ["1.67.0", "1.67.1"],
+        # Versiones comprometidas en PyPI 2026-03-24 (~40 min live before quarantine)
+        # Payload: litellm_init.pth — credential stealer auto-exec en Python startup
+        # Ataque vía Trivy comprometido (19 mar) → PYPI_PUBLISH token exfiltrado
+        # CVEs relacionados: CVE-2026-35030 (auth bypass), CVE-2026-40217 (hash exposure)
+        # Decisión DOF-MESH: REMOVIDO completamente (sesión 13, 2026-04-16)
+        "versions": ["1.67.0", "1.67.1", "1.82.7", "1.82.8"],
         "group": "TeamPCP",
-        "date": "2026-03",
-        "vector": "WAV steganography malware",
+        "date": "2026-03-24",
+        "vector": "litellm_init.pth credential stealer — env/SSH/cloud/K8s secrets",
     },
     # Glassworm — npm/PyPI supply chain (2026-03)
     "openclaw": {

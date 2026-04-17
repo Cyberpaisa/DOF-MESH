@@ -62,7 +62,8 @@ db = [
 ]
 agents = [
     "crewai[tools]>=0.108.0",
-    "litellm",
+    # litellm removido — TeamPCP supply chain attack mar 2026 (CVE-2026-35030)
+    # Ver: docs/06_security/SOVEREIGN_SECURITY.md
 ]
 langgraph = [
     "langgraph>=0.2.0",
