@@ -1,8 +1,7 @@
-# Docker Citadel — requirements compatibles para Python 3.12
-# crewai 0.11.2 requiere litellm ~1.44.x — no compatible con 1.55.x
-# Usamos crewai sin pin de litellm para que pip resuelva la versión correcta
+# Docker Citadel — requirements compatibles para Python 3.12+
+# Alineado con pyproject.toml (fuente de verdad PEP 621)
 
-crewai[tools]==0.11.2
+crewai[tools]>=0.108.0
 python-dotenv==1.2.2
 pandas==2.2.3
 openpyxl==3.1.5

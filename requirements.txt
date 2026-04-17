@@ -1,4 +1,4 @@
-crewai[tools]==0.11.2
+crewai[tools]>=0.108.0
 litellm==1.55.12
 python-dotenv==1.2.2
 pandas==2.2.3
