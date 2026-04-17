@@ -11,32 +11,26 @@ Eres parte del **DOF Mesh Legion** — un organismo agéntico soberano impulsado
 
 ## Estado actual del proyecto
 
-- **Versión:** 0.8.0 | **Repo:** `Cyberpaisa/DOF-MESH`
-- **Codebase:** 57K+ LOC, 148 módulos, 173 test files, 4,446 tests passing
-- **SDK:** `dof-sdk v0.8.0` en PyPI | **On-chain:** 30+ attestations en 8 chains verificadas
-- **CI:** GitHub Actions — Tests + DOF CI + Z3 Formal Verification + Lint
-- **Último CI:** ✅ SUCCESS (commit `672fba5`, 27 mar 2026)
+> Auditado en sesión 12 (2026-04-16) — Deuda Técnica Cero. Valores medidos directamente del repo.
+> Histórico de sesiones: `docs/09_sessions/CHANGELOG.md`
 
-### Sesión 5 completada (05 abr 2026)
-- ✅ CI verde: 583/583 tests pasando
-- ✅ Mintlify: 23 páginas live en dofmesh.com
-- ✅ QA: 11/11 checks pasando
-- ✅ Tráfico: 459 visitas registradas en dofmesh.com
+- **Versión:** 0.8.0 | **Repo:** `Cyberpaisa/DOF-MESH` | **Remote:** `dof-mesh`
+- **Codebase:** 65,360 LOC (core+dof), **173 módulos core/**, 215 test files, **4,778 tests discovered** (0 load errors)
+- **SDK:** `dof-sdk v0.8.0` en PyPI | **On-chain:** 30+ attestations en **9 chains verificadas** (3 mainnet + 5 testnet + Tempo)
+- **CrewAI Agents:** 20 (bajo `agents/`) | **Scripts:** 79 | **Docs:** 223 .md
+- **CI:** GitHub Actions — 4 workflows (Tests + DOF CI + Z3 Verify + Lint) — verde en commit `f3fbb67`
+- **ASR governance:** 2.3% regex puro / ~4.5% multi-capa (target <15% ✅) | **CVEs cerrados:** 19
+- **Infraestructura:**
+  - `scripts/release.sh` ✅ (auto-bump patch/minor/major + dry-run)
+  - `core/autonomous_daemon.py` ✅ (heartbeat cada 10 ciclos + recovery tras 5 errores)
+  - DOF Leaderboard ✅ (`/leaderboard` en dofmesh.com)
+  - Knowledge Pipeline ✅ (puerto 19019 — approver, notifier, daemon, api)
+  - Chrome extension `dof-youtube` ✅ (manifest v3, polling 30s)
+  - Docker Citadel: DOWN (CMD apunta a script eliminado — pendiente decisión)
+  - `frontend/` Next.js 16.2 en `localhost:3000` (rutas `/`, `/local-chat`, `/landing.html`)
+  - Obsidian vault: `/Users/jquiceva/cerebro cyber/cerebro cyber/` — 4 bases activas
 
-### Infraestructura confirmada (05 abr 2026)
-- **Docker Citadel:** down — no se usa actualmente
-- **localhost:3000:** frontend Next.js en `frontend/` (Next.js 16.2 + React 19 + Tailwind)
-  - Rutas: `/` dashboard, `/local-chat`, `/landing.html`
-  - Arrancar: `cd frontend && npm run dev`
-- **docs/:** estructura confirmada — `09_sessions/` existe (logs de sesiones)
-- **`scripts/release.sh`:** NO existe — pendiente crear en Sesión 6
-- **`core/autonomous_daemon.py`:** existe — pendiente ajuste de harness en Sesión 6
-- **DOF Leaderboard:** NO existe — pendiente diseñar en Sesión 6
-
-### Pendientes Sesión 6
-1. `scripts/release.sh` — crear desde cero
-2. `core/autonomous_daemon.py` — harness improvements
-3. DOF Leaderboard — diseño e implementación
+⚠️ **Advertencia para tests evolution:** `test_evolution_*` crea branches `evolution-checkpoint-*` y hace `git checkout` que puede descartar el working tree. **Commitear cambios antes de ejecutarlos.**
 
 ## Reglas fundamentales
 
@@ -134,7 +128,7 @@ Casi causa expulsión de la competencia. Ver `docs/03_book/BOOK_CH23_SCOPE_BREAC
 3. NO hagas `git push`
 4. Reporta resultados al commander
 
-## Arquitectura DOF-MESH — Nombres Oficiales v0.5.1
+## Arquitectura DOF-MESH — Nombres Oficiales v0.8.0
 
 ### Las 7 capas de gobernanza (nombres CORRECTOS — usar siempre):
 1. **Constitution** — reglas duras/blandas, sin LLM (`core/governance.py`)
@@ -153,14 +147,15 @@ Casi causa expulsión de la competencia. Ver `docs/03_book/BOOK_CH23_SCOPE_BREAC
 | Cerberus | Tool Hook Gate PRE |
 | SecurityHierarchy | Supervisor Engine |
 
-### Métricas actuales (v0.5.1 — verificadas on-chain 03 abr 2026):
-- **Tests:** 4,157 pasando, 0 fallos
-- **Módulos:** 142
-- **Chains activas:** 8 (3 mainnet + 5 testnet)
+### Métricas actuales (v0.8.0 — auditadas 2026-04-16, sesión 12):
+- **Tests:** 4,778 discovered (0 load errors) — pass rate en CI: ver `docs/09_sessions/ESTADO_ACTUAL.md`
+- **Módulos core/:** 173 (imports 100% OK post-fix hyperion_bridge + crewai)
+- **Chains activas:** 9 (3 mainnet: Avalanche, Base, Celo + 5 testnet: Fuji, Base Sepolia, Conflux, Polygon Amoy, SKALE + Tempo Mainnet)
 - **Attestations on-chain:** 30+
-- **Ciclos autónomos:** 238
-- **Z3 proofs:** 4/4 PROVEN (GCR_INVARIANT, SS_FORMULA, SS_MONOTONICITY, SS_BOUNDARIES)
-- **Versión SDK:** v0.5.1 en PyPI
+- **Z3 proofs:** 4/4 PROVEN (GCR_INVARIANT, SS_FORMULA, SS_MONOTONICITY, SS_BOUNDARIES) + 42 patrones jerarquía
+- **Versión SDK:** dof-sdk v0.8.0 en PyPI
+- **ASR governance:** 2.3% regex / ~4.5% multi-capa (target <15% ✅)
+- **CVEs cerrados:** 19 (7 en sesión 11, doc: `docs/02_governance/`)
 
 ### Contratos desplegados — tabla canónica completa (9 chains):
 
@@ -205,7 +200,7 @@ DOF-MESH
   │   Supervisor Engine, Adversarial Guard, Memory Layer, Z3 SMT Verifier
   ├── Z3 formal verification: 4/4 invariantes PROVEN + 42 patrones de jerarquía
   ├── 30+ attestations on-chain (7 chains: Avalanche, Base, Celo, Polygon, SKALE, Conflux, Fuji)
-  ├── SDK publicado en PyPI (dof-sdk v0.5.1)
+  ├── SDK publicado en PyPI (dof-sdk v0.8.0)
   ├── 9 agentes CrewAI con SOUL.md (config/agents.yaml + agents/*/SOUL.md)
   ├── Mesh de 11+ nodos (LLM providers + web bridges + local models)
   ├── A2A Server (JSON-RPC + REST, puerto 8000)
@@ -221,7 +216,7 @@ Experiment Layer (ExperimentDataset, BatchRunner, Schema)
         ↓
 Observability Layer (RunTrace, StepTrace, DerivedMetrics)
         ↓
-Crew Runner + Infrastructure (core/ — 127 módulos)
+Crew Runner + Infrastructure (core/ — 173 módulos)
   ├── governance.py        → Constitution: HARD_RULES bloquean, SOFT_RULES warn
   │                          IDs alineados con dof.constitution.yml (NO_HALLUCINATION_CLAIM, etc.)
   │                          AST verification integrado, enforce_hierarchy(), phrase_without_url

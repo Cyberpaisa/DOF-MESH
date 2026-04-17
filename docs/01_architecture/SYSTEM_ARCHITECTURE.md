@@ -1,4 +1,4 @@
-# DOF-MESH v0.5.0 — Complete System Architecture
+# DOF-MESH v0.8.0 — Complete System Architecture
 
 > Deterministic Observability Framework — Autonomous governance system for AI agents
 > Cyber Paisa — Enigma Group — 2026
@@ -7,20 +7,22 @@
 
 ## System Numbers
 
+> Última auditoría: 2026-04-16 (sesión 12 — Deuda Técnica Cero)
+
 | Metric | Value |
 |---|---|
-| Core modules | 132 |
-| Test files | 143 |
-| Total tests | 3,698 (100% passing) |
-| Lines of code | 119,409 |
-| Documentation | 105 .md files |
+| Core modules | 173 |
+| Test files | 215 |
+| Total tests | 4,778 (discovered via unittest, 0 load errors) |
+| Lines of code | 65,360 (core + dof) |
+| Documentation | 223 .md files |
 | Interfaces | 4 (Dashboard, Telegram, Voice, Realtime Voice) |
-| Scripts | 13 |
-| CI Workflows | 3 (Tests, DOF CI, Z3 Verify) |
-| SDK | dof-sdk 0.6.0 (PyPI) |
-| On-chain | 21+ attestations (Avalanche C-Chain) |
-| CrewAI Agents | 17 |
-| Mesh LLM Nodes | 11 |
+| Scripts | 79 |
+| CI Workflows | 4 (Tests, DOF CI, Z3 Verify, Lint) |
+| SDK | dof-sdk 0.8.0 (PyPI) |
+| On-chain | 30+ attestations across 9 chains |
+| CrewAI Agents | 20 |
+| Mesh LLM Nodes | 11+ |
 | Governance layers | 7 |
 
 ---
@@ -275,7 +277,7 @@
 4. **Multi-chain portable** — Identity and attestations on Avalanche, Base, Celo, Ethereum.
 5. **Heterogeneous mesh** — 11 distinct coordinated LLMs. Stronger than any individual model.
 6. **Offline-capable** — Sentinel, governance, and Z3 work without an internet connection.
-7. **Test-first** — 3,698 tests. No code is merged without tests.
+7. **Test-first** — 4,778 tests. No code is merged without tests.
 
 ---
 

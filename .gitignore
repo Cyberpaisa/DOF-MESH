@@ -297,3 +297,18 @@ tests/red_team/firewall_improvements.py
 tests/red_team/reports/
 tests/red_team/autonomous_loop.py
 core/evolution/gene_pool.jsonl
+
+# === Auditoría Sesión 12 (2026-04-16) ===
+# Cache MCP local (playwright)
+.playwright-mcp/
+
+# Forks externos y renders pesados (>100MB)
+# global-hackfest-2026/ es fork Conflux Hackathon (256M) — mantener aparte
+# video-render/ es proyecto Remotion con out/*.mp4 (819M) — artefactos regenerables
+global-hackfest-2026/
+video-render/
+
+# Excepciones: permitir histórico de sesiones y reports HTML
+!docs/09_sessions/CHANGELOG.md
+!docs/09_sessions/reports/
+!docs/09_sessions/reports/**

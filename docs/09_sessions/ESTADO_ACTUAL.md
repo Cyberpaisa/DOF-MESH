@@ -1,6 +1,67 @@
 DOF-MESH
 
-Session #10-B · Domingo 13 Abr 2026 · COT
+## 🟢 Session 12 · Deuda Técnica Cero · 2026-04-16 · IN PROGRESS
+
+> Auditoría end-to-end con team agents (Auditor-A/B/C + Fixer + Builders + Archivist + Reporter).
+> Valores medidos directamente del repo — single source of truth.
+> Histórico: `docs/09_sessions/CHANGELOG.md`
+
+### Métricas canónicas v0.8.0
+
+| Métrica | Valor | Fuente |
+|---|---|---|
+| Versión | 0.8.0 | `dof/__init__.py` |
+| LOC (core + dof) | 65,360 | `find core dof -name "*.py" \| xargs wc -l` |
+| Módulos core/ | 173 | `find core -name "*.py" -not -name __init__.py` |
+| Test files | 215 | `find tests -name "test_*.py"` |
+| Tests discovered | 4,778 | `unittest.TestLoader().discover()` — 0 load errors |
+| Imports rotos | 0 | Post-fix hyperion_bridge + crewai |
+| Chains | 9 | 3 mainnet + 5 testnet + Tempo |
+| On-chain attestations | 30+ | `DOFProofRegistry` en 8 chains |
+| CrewAI agents | 20 | `ls agents/*/` |
+| Scripts | 79 | `find scripts -name "*.py" -o -name "*.sh"` |
+| Docs .md | 223 | `find docs -name "*.md"` |
+| CI workflows | 4 | `ls .github/workflows/*.yml` |
+| ASR governance | 2.3% regex / 4.5% multi-capa | Sesión 11 |
+| CVEs cerrados | 19 | Sesión 11 (+7 nuevos) |
+
+### Cambios sesión 12
+
+**Fix crítico — imports desbloqueados:**
+- `core/hyperion_bridge.py` recuperado de `_internal/core_legacy/` (usado en `mesh_orchestrator.py:39,161,486`)
+- Deps en python3.11: `crewai 1.14.1`, `crewai-tools 1.14.1`, `filelock`, `cryptography`, `setuptools`
+- Validación: `173/173 módulos core/` importan sin error
+
+**Higiene de raíz (9 .py + 7 PNGs movidos):**
+- `scripts/diagnostics/`: check_governance_fields, check_mesh_health, read_governance, verify_governance_fields
+- `scripts/experiments/regex/`: test_card_pattern, test_credit_card, test_governance_broadcast*, test_pii_masking
+- `proof/evidence/2026-04/`: 7 PNGs (confluxscan_*, audit-dofmesh-home, fase0_wallet, screenshot_146txs)
+- `docs/09_sessions/reports/`: 7 HTML reports consolidados desde raíz
+
+**`.gitignore` actualizado:**
+- `.playwright-mcp/` (cache MCP local)
+- `global-hackfest-2026/` (256M fork Conflux)
+- `video-render/` (819M Remotion renders)
+- Excepciones: `docs/09_sessions/CHANGELOG.md`, `docs/09_sessions/reports/**`
+
+**Docs sincronizadas:**
+- `docs/01_architecture/SYSTEM_ARCHITECTURE.md` — v0.5.0 → v0.8.0, métricas reales
+- `CLAUDE.md` — unificado (antes 3 secciones contradictorias)
+- `docs/07_integrations/TOOLS_AND_INTEGRATIONS.md` — 94 marcadores de merge resueltos automáticamente
+- `docs/09_sessions/CHANGELOG.md` — creado con histórico v0.5.0 → v0.8.0
+
+### Deuda técnica identificada (no bloqueante)
+
+- Z3 `unknown` en proofs durante tests → DEGRADED MODE 66-100% en `test_z3_verifier`
+- Docker Citadel DOWN (Dockerfile CMD → script eliminado)
+- Worktree `.claude/worktrees/vibrant-bose` — decidir merge/discard
+- `requirements.txt` `crewai==0.11.2` vs `pyproject.toml` `>=0.108.0` — alinear
+- ⚠️ **CRÍTICO:** `test_evolution_*` crea branches `evolution-checkpoint-*` y hace `git checkout` que descarta working tree. **Commitear cambios antes de ejecutarlos.**
+- ~60+ branches `evolution-checkpoint-*` acumuladas en git — limpieza pendiente
+
+---
+
+## 📚 Histórico — Session #10-B · Domingo 13 Abr 2026 · COT
 
 DOF-MESH
 Session 10-B
