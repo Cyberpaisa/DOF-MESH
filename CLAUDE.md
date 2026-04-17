@@ -441,3 +441,15 @@ datasets = TOOL_MAP['medata_search']({
 ```
 
 Demo completa: `python3 scripts/demo_rutan.py`
+
+## MCPs Obsidian — Auditoría de Seguridad 2026-04-16
+
+Auditados con supply_chain_guard + inspección código fuente + npm audit.
+
+| MCP | Versión | Veredicto | Razón |
+|---|---|---|---|
+| `@bitbonsai/mcpvault` | 0.11.0 | ✅ APROBADO | 0 eval/exec/network, 14 tools, BM25, path sandbox |
+| `mcp-obsidian` (calclavia) | 1.0.0 | ✅ OK limitado | 0 eval/exec, solo 2 tools (read+search) |
+| `obsidian-claude-code-mcp` (iansinnott) | 1.1.8 | 🔴 NO INSTALAR | `new Function()` RCE vía `obsidian_api` tool — vector prompt injection desde datos SECOP/MEData |
+
+**Regla:** No instalar `obsidian-claude-code-mcp`. El tool `obsidian_api` ejecuta JS arbitrario con acceso al vault Obsidian completo. Un nombre de contrato malicioso en SECOP podría convertirse en RCE via prompt injection.
