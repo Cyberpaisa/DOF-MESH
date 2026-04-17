@@ -469,11 +469,17 @@ class TestEvaluateWithJudge(unittest.TestCase):
         self.assertIn("error", result)
 
     def test_error_returns_fail_with_bad_model(self):
-        """When LLM model is invalid, verdict should be FAIL with error."""
+        """When model is invalid, verdict should be FAIL.
+
+        Post-litellm removal (sesión 13), el parámetro `model` es informativo:
+        el fetch siempre usa DeepSeek directamente. Un output de baja calidad
+        ("test output") recibe FAIL ya sea por error de API (sin DEEPSEEK_API_KEY)
+        o por juicio del LLM (score < 7). Ambos paths son válidos.
+        """
         evaluator = AdversarialEvaluator()
         result = evaluator.evaluate_with_judge("test output", model="nonexistent/fake-model-xyz")
         self.assertEqual(result["verdict"], "FAIL")
-        self.assertNotEqual(result["error"], "")
+        self.assertIn("error", result)  # key presente (valor puede ser vacío si API respondió)
 
     def test_score_range_definition(self):
         """Score should be 0.0 (error) or in 1.0-10.0 range."""

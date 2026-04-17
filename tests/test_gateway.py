@@ -38,7 +38,7 @@ class TestGatewayHealth(unittest.TestCase):
         data = response.json()
         self.assertEqual(data["status"], "ok")
         self.assertEqual(data["version"], "0.8.0")
-        self.assertEqual(data["tools"], 15)
+        self.assertEqual(data["tools"], 18)
         self.assertIn("uptime_ms", data)
 
 
@@ -118,7 +118,7 @@ class TestGatewayToolDispatch(unittest.TestCase):
         self.assertEqual(data["error"], "tool_not_found")
         self.assertIn("available", data)
         self.assertIsInstance(data["available"], list)
-        self.assertEqual(len(data["available"]), 15)
+        self.assertEqual(len(data["available"]), 18)
 
 
 class TestRateLimiter(unittest.TestCase):
@@ -154,8 +154,8 @@ class TestToolRouter(unittest.TestCase):
         import asyncio
         router = ToolRouter()
 
-        # Verificar que tiene los 15 tools
-        self.assertEqual(len(router.available_tools()), 15)
+        # Verificar que tiene los 18 tools (15 base + 3 datos-colombia-mcp)
+        self.assertEqual(len(router.available_tools()), 18)
 
         # dispatch() debe retornar dict
         result = asyncio.run(router.dispatch("dof_get_metrics", {}))
@@ -164,17 +164,20 @@ class TestToolRouter(unittest.TestCase):
         # No debe ser un error de tool_not_found
         self.assertNotEqual(result.get("error"), "tool_not_found")
 
-    def test_tool_map_has_all_15_tools(self):
-        """TOOL_MAP debe tener exactamente 15 tools."""
+    def test_tool_map_has_all_18_tools(self):
+        """TOOL_MAP debe tener exactamente 18 tools (15 base + 3 datos-colombia-mcp)."""
         expected_tools = [
+            # 15 base
             "dof_verify_governance", "dof_verify_ast", "dof_run_z3",
             "dof_memory_add", "dof_memory_query", "dof_memory_snapshot",
             "dof_get_metrics", "dof_create_attestation",
             "dof_oags_identity", "dof_conformance_check",
             "mesh_send_task", "mesh_broadcast", "mesh_route_smart",
             "mesh_read_inbox", "mesh_consensus",
+            # 3 datos-colombia-mcp (sesión 10-B)
+            "secop_search", "secop_anomalies", "medata_search",
         ]
-        self.assertEqual(len(TOOL_MAP), 15)
+        self.assertEqual(len(TOOL_MAP), 18)
         for tool in expected_tools:
             self.assertIn(tool, TOOL_MAP, f"Tool faltante: {tool}")
 

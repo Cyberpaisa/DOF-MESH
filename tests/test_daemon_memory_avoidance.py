@@ -27,6 +27,14 @@ if PROJECT_ROOT not in sys.path:
 from core.autonomous_daemon import AutonomousDaemon, DaemonAction, SystemState
 from core.daemon_memory import DaemonMemory, ErrorPattern
 
+# TF-IDF real requiere sklearn. Sin él, _cosine_similarity devuelve 0.0 (fallback seguro).
+# El test de "textos relacionados > 0" solo pasa con sklearn instalado.
+try:
+    import sklearn  # noqa: F401
+    HAS_SKLEARN = True
+except ImportError:
+    HAS_SKLEARN = False
+
 
 # ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -230,6 +238,7 @@ class TestSemanticAvoidance(unittest.TestCase):
     # ------------------------------------------------------------------
     # Test 8: cosine similarity — textos relacionados tienen similarity alta
     # ------------------------------------------------------------------
+    @unittest.skipUnless(HAS_SKLEARN, "sklearn no instalado — cosine_similarity fallback a 0.0")
     def test_cosine_similarity_related_texts_high(self):
         """Textos semánticamente similares deben producir similarity > 0.5."""
         sim = AutonomousDaemon._cosine_similarity(

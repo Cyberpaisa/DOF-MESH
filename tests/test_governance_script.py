@@ -1,5 +1,6 @@
 
 import unittest
+from pathlib import Path
 from core.governance import ConstitutionEnforcer, GovernanceResult, RulePriority
 
 class TestGovernance(unittest.TestCase):
