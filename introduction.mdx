@@ -15,16 +15,16 @@ DOF-MESH (Deterministic Observability Framework) is a pre-execution governance l
 
 | Metric | Value |
 |--------|-------|
-| Core modules | 148 |
-| Tests | 4,446 |
-| Harness modules | 3 (mock_provider, session_resume, cost_tracker) |
+| Core modules | 173 |
+| Tests | 4,778 |
+| Lines of code | 65,360 |
 | Import errors | 0 |
 | AI providers | 8+ |
 | Security layers | 7 |
 | Formal Z3 proofs | 4/4 PROVEN |
 | Chains deployed | 9 |
 | On-chain attestations | 30+ |
-| Autonomous cycles | 238 |
+| ASR governance | 2.3% (regex) / ~4.5% (multi-layer) |
 | Security compliance | 100% |
 
 ---
@@ -40,7 +40,7 @@ Constitution → AST → Tool Hook Gate → Supervisor → Adversarial → Memor
       ↓
 keccak256 proof hash generated
       ↓
-DOFProofRegistry.attest() on 8 chains
+DOFProofRegistry.attest() on 9 chains
       ↓
 Action approved or blocked — with proof
 ```
@@ -86,7 +86,7 @@ result = verifier.verify_action(
 
 ## On-Chain Proof
 
-`DOFProofRegistry` is deployed on 8 chains (3 mainnet + 5 testnet):
+`DOFProofRegistry` is deployed on 9 chains (3 mainnet + 5 testnet + Tempo):
 
 **DOFProofRegistry (8 chains):** Avalanche C-Chain · Base · Celo (mainnet) · Fuji · Base Sepolia · Conflux · Polygon Amoy · SKALE (testnet)
 
