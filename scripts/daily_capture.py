@@ -33,9 +33,13 @@ def latest_asr():
 def test_count():
     try:
         c = (REPO/"docs/09_sessions/ESTADO_ACTUAL.md").read_text(errors="ignore")
-        m = re.search(r"(\d{3,5})\s*tests?\s*passing", c, re.I)
-        return m.group(1) if m else "4,687"
-    except: return "4,687"
+        # Prioridad 1: "Tests discovered | 4,778"
+        m = re.search(r"Tests\s+discovered[^\d]*([\d,]+)", c, re.I)
+        if m: return m.group(1)
+        # Prioridad 2: "4,xxx tests (discovered|passing|ejecutables|OK)"
+        m2 = re.search(r"([\d,]{4,7})\s*tests?\s*(?:discovered|passing|ejecutables|OK)", c, re.I)
+        return m2.group(1) if m2 else "4,778"
+    except: return "4,778"
 
 def daemon_status():
     try:
