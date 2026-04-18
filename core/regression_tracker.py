@@ -197,31 +197,59 @@ class RegressionTracker:
                     "patterns_checked": 0, "categories_checked": 0,
                     "error": "z3-solver not installed"}
 
+    # Mismo set de módulos que el CI — evita el conflicto de nombres
+    # core/test_generator.py vs tests/test_generator.py en unittest discover.
+    _CI_TEST_MODULES = [
+        "tests.test_ast_verifier",
+        "tests.test_z3_verifier",
+        "tests.test_adversarial",
+        "tests.test_constitution",
+        "tests.test_task_contract",
+        "tests.test_causal",
+        "tests.test_bayesian_provider",
+        "tests.test_memory_governance",
+        "tests.test_oags_bridge",
+        "tests.test_oracle_bridge",
+        "tests.test_full_pipeline",
+        "tests.test_mcp_server",
+        "tests.test_api",
+        "tests.test_storage",
+        "tests.test_integrations",
+        "tests.test_enigma_bridge",
+        "tests.test_avalanche_bridge",
+        "tests.test_entropy_detector",
+        "tests.test_regression_tracker",
+    ]
+
     def _measure_tests(self) -> dict:
-        """Run unittest discover and capture pass/fail counts.
+        """Run unittest and capture pass/fail counts.
 
         If logs/last_test_run.json exists (written by CI test step), reads from
         it instead of re-running tests to avoid double execution and timeouts.
+        Fallback uses the same curated module list as CI to avoid the naming
+        conflict between core/test_generator.py and tests/test_generator.py
+        that breaks unittest discover.
         """
         cache_file = "logs/last_test_run.json"
         if os.path.exists(cache_file):
             try:
                 with open(cache_file) as f:
                     cached = json.load(f)
-                return {
-                    "total": cached.get("total", 0),
-                    "passed": cached.get("passed", 0),
-                    "failures": cached.get("failures", 0),
-                    "errors": cached.get("errors", 0),
-                    "returncode": cached.get("returncode", 0),
-                    "source": "cache",
-                }
+                if cached.get("total", 0) > 0:
+                    return {
+                        "total": cached.get("total", 0),
+                        "passed": cached.get("passed", 0),
+                        "failures": cached.get("failures", 0),
+                        "errors": cached.get("errors", 0),
+                        "returncode": cached.get("returncode", 0),
+                        "source": "cache",
+                    }
             except Exception:
                 pass
 
         try:
             result = subprocess.run(
-                [sys.executable, "-m", "unittest", "discover", "tests/", "-v"],
+                [sys.executable, "-m", "unittest"] + self._CI_TEST_MODULES + ["-v"],
                 capture_output=True, text=True, timeout=600
             )
             output = result.stderr
