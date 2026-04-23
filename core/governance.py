@@ -3,6 +3,7 @@ Constitution Hard Enforcement — FASE 0.
 
 Hard rules block execution. Soft rules score output (future).
 Enforced at crew output level before delivery.
+SDK Version: 1.1.0 -- Universal Modular Governance (Colombia Edition)
 """
 
 import codecs
