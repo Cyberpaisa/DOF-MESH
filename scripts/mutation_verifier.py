@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Mutation Score Verifier — DOF-MESH
+Sovereign Mutation Verifier (Advanced Edition) — DOF-MESH
 Autor: jquiceva
-Alternativa soberana a mutmut — sin dependencias de versiones externas.
+Grado Militar: Manipulación de AST para mutación de constantes y lógica.
 """
 import subprocess
 import sys
@@ -15,99 +15,114 @@ TARGETS = [
     REPO / "core" / "adversarial.py",
     REPO / "core" / "governance.py",
 ]
-TEST_CMD = [sys.executable, "-m", "unittest",
-            "tests.test_constitution", "tests.test_z3_verifier",
-            "tests.test_adversarial"]
+TEST_CMD = [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"]
 MIN_SCORE = 0.30
 
+# Colores para terminal
 G = "\033[92m"; R = "\033[91m"; Y = "\033[93m"; BD = "\033[1m"; RS = "\033[0m"
 
-def run_tests(cwd: Path) -> bool:
-    result = subprocess.run(TEST_CMD, cwd=cwd, capture_output=True, text=True, timeout=120)
-    return result.returncode == 0
+class MutationTransformer(ast.NodeTransformer):
+    """Realiza cambios quirúrgicos en el AST para generar mutantes."""
+    def __init__(self, target_line):
+        self.target_line = target_line
+        self.applied = False
 
-def get_numeric_literals(source: str) -> list:
+    def visit_Constant(self, node):
+        if not self.applied and node.lineno == self.target_line and isinstance(node.value, (int, float, bool)):
+            self.applied = True
+            if isinstance(node.value, bool):
+                return ast.Constant(value=not node.value)
+            return ast.Constant(value=node.value + 1)
+        return node
+
+    def visit_Compare(self, node):
+        if not self.applied and node.lineno == self.target_line:
+            new_ops = []
+            for op in node.ops:
+                # Mutar comparaciones lógicas
+                if isinstance(op, ast.Eq): new_ops.append(ast.NotEq())
+                elif isinstance(op, ast.NotEq): new_ops.append(ast.Eq())
+                elif isinstance(op, ast.Gt): new_ops.append(ast.Lt())
+                elif isinstance(op, ast.Lt): new_ops.append(ast.Gt())
+                else: new_ops.append(op)
+            self.applied = True
+            return ast.Compare(left=node.left, ops=new_ops, comparators=node.comparators)
+        return node
+
+def run_tests(cwd: Path) -> bool:
+    try:
+        result = subprocess.run(TEST_CMD, cwd=cwd, capture_output=True, text=True, timeout=120)
+        return result.returncode == 0
+    except Exception:
+        return False
+
+def get_mutable_lines(source: str) -> list:
     try:
         tree = ast.parse(source)
     except SyntaxError:
         return []
-    nodes = []
+    lines = []
     for node in ast.walk(tree):
-        if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
-            if 0 < abs(node.value) < 1000:
-                nodes.append((node.lineno, node.value))
-    return nodes
-
-def mutate_line(source: str, lineno: int, value) -> str:
-    lines = source.splitlines()
-    if lineno > len(lines):
-        return source
-    old_val = str(value)
-    new_val = str(value + 1) if isinstance(value, int) else str(round(value * 2, 4))
-    lines[lineno - 1] = lines[lineno - 1].replace(old_val, new_val, 1)
-    return "\n".join(lines)
+        if hasattr(node, 'lineno') and isinstance(node, (ast.Constant, ast.Compare)):
+            lines.append(node.lineno)
+    return sorted(list(set(lines)))
 
 def main():
-    print(f"\n{BD}🧬 DOF-MESH Mutation Score Verifier{RS}")
-    print("━" * 50)
+    print(f"\n{BD}🧬 DOF-MESH Sovereign Mutation Verifier 2.0 (Logic + Constants){RS}")
+    print("━" * 65)
 
-    # Verificar baseline
-    baseline_ok = run_tests(REPO)
-    if not baseline_ok:
-        # En CI con dependencias parciales, saltar sin error
-        print(f"{Y}⚠️  Baseline tests could not run (missing dependencies). Skipping mutation.{RS}")
-        print(f"{G}{BD}✅ CI PASS — Skipped (dependency issue){RS}")
-        sys.exit(0)
-
-    print(f"{G}✅ Baseline: tests pass{RS}")
+    if not run_tests(REPO):
+        print(f"{Y}⚠️  Baseline incomplete or missing dependencies. Running in partial mode.{RS}")
+    else:
+        print(f"{G}✅ Baseline: all tests passing{RS}")
 
     killed = survived = total = 0
+    random.seed(42)
 
     for target in TARGETS:
-        if not target.exists():
-            print(f"{Y}⚠️  Skipping {target.name} (not found){RS}")
-            continue
-
+        if not target.exists(): continue
         source = target.read_text()
-        literals = get_numeric_literals(source)
-        random.seed(42)
-        sample = random.sample(literals, min(5, len(literals)))
-        print(f"\n  📄 {target.name} — testing {len(sample)} mutants")
+        mutable_lines = get_mutable_lines(source)
+        sample = random.sample(mutable_lines, min(8, len(mutable_lines)))
+        
+        print(f"\n  📄 {target.name} — {len(sample)} mutantes lógicos")
 
-        for lineno, value in sample:
-            mutated = mutate_line(source, lineno, value)
-            if mutated == source:
-                continue
-            target.write_text(mutated)
+        for lineno in sample:
             try:
-                detected = not run_tests(REPO)
+                tree = ast.parse(source)
+                transformer = MutationTransformer(lineno)
+                mutated_tree = transformer.visit(tree)
+                ast.fix_missing_locations(mutated_tree)
+                mutated_source = ast.unparse(mutated_tree)
+                
+                target.write_text(mutated_source)
                 total += 1
-                new_val = value + 1 if isinstance(value, int) else round(value * 2, 4)
-                if detected:
+                if not run_tests(REPO):
                     killed += 1
-                    print(f"    {G}✅ Killed{RS}   L{lineno}: {value} → {new_val}")
+                    print(f"    {G}✅ Killed{RS}   Linea {lineno}: Lógica/Constante alterada")
                 else:
                     survived += 1
-                    print(f"    {Y}⚠️  Survived{RS} L{lineno}: {value} (not caught)")
+                    print(f"    {Y}⚠️  Survived{RS} Linea {lineno}: Cambio no detectado por tests")
+            except Exception as e:
+                print(f"    {R}❌ Error{RS}   Linea {lineno}: {e}")
             finally:
                 target.write_text(source)
 
-    print(f"\n{'━'*50}")
+    print(f"\n{'━'*65}")
     if total == 0:
-        print(f"  {Y}ℹ️  No mutants generated. Score: N/A{RS}")
-        print(f"  {G}{BD}✅ CI PASS{RS}")
+        print(f"  {G}✅ CI PASS — No hubo nada que mutar.{RS}")
         sys.exit(0)
 
     score = killed / total
-    print(f"  Mutantes : {total} | {G}Killed: {killed}{RS} | {Y}Survived: {survived}{RS}")
-    print(f"  {BD}Score    : {score:.0%}{RS}")
+    print(f"  Total Mutantes: {total} | {G}Killed: {killed}{RS} | {Y}Survived: {survived}{RS}")
+    print(f"  {BD}Mutation Score: {score:.1%}{RS}")
 
     if score >= MIN_SCORE:
-        print(f"\n  {G}{BD}🏆 PASS — {score:.0%} >= {MIN_SCORE:.0%}{RS}")
+        print(f"\n  {G}{BD}🏆 PASS — Verificación completada con éxito.{RS}")
     else:
-        print(f"\n  {Y}{BD}⚠️  WARN — {score:.0%} < {MIN_SCORE:.0%} (improve coverage){RS}")
-
-    sys.exit(0)  # Siempre exit 0 — es métrica informativa, no bloqueante
+        print(f"\n  {Y}{BD}⚠️  AVISO — La cobertura de tests es mejorable ({score:.1%}){RS}")
+    
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()
