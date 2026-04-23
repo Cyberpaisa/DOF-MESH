@@ -1,0 +1,23 @@
+version: "1.0"
+metadata:
+  industry: "Fintech"
+  compliance: "SOX"
+  description: "Cumplimiento financiero y transparencia de auditoría."
+
+rules:
+  hard:
+    - id: "FINANCIAL_ASSERTION_REQUIRED"
+      rule_key: "FINANCIAL_ASSERTION_REQUIRED"
+      description: "Cualquier reporte financiero debe incluir una aserción de veracidad"
+      priority: "SYSTEM"
+      pattern:
+        type: "regex_absent"
+        regex: "(?i)confirmamos que los datos presentados son veraces"
+
+    - id: "AUDITOR_SIGNATURE_MANDATORY"
+      rule_key: "AUDITOR_SIGNATURE_MANDATORY"
+      description: "Falta firma de auditor certificado en el reporte"
+      priority: "SYSTEM"
+      pattern:
+        type: "regex_absent"
+        regex: "AUDIT-SIG-[A-Z0-9]{8}"

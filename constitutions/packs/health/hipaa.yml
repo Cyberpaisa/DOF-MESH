@@ -1,0 +1,23 @@
+version: "1.0"
+metadata:
+  industry: "Health"
+  compliance: "HIPAA"
+  description: "Protección de datos de salud (PHI) y privacidad del paciente."
+
+rules:
+  hard:
+    - id: "PHI_STRICT_BLOCK"
+      rule_key: "PHI_STRICT_BLOCK"
+      description: "Bloqueo total de identificadores de pacientes en texto plano"
+      priority: "SYSTEM"
+      pattern:
+        type: "regex"
+        regex: "(?i)patient name:|dob:|medical record:|diagnosis:"
+
+    - id: "NO_UNENCRYPTED_DATA"
+      rule_key: "NO_UNENCRYPTED_DATA"
+      description: "No se permiten datos médicos sin etiquetas de encriptación"
+      priority: "SYSTEM"
+      pattern:
+        type: "regex_absent"
+        regex: "ENC\\[.*\\]"

@@ -1,0 +1,93 @@
+version: "1.0"
+metadata:
+  project: "DOF-MESH"
+  author: "Guardian"
+  description: "Core Sovereign Governance Rules"
+
+rules:
+  hard:
+    - id: "NO_HALLUCINATION_CLAIM"
+      rule_key: "NO_HALLUCINATION_CLAIM"
+      description: "Must not assert fabricated data without source"
+      priority: "SYSTEM"
+      pattern:
+        type: "phrase_without_url"
+        phrases: 
+          - "\\bstatistics show\\b"
+          - "\\baccording to recent studies\\b"
+          - "\\bstudies show\\b"
+          - "\\bresearch shows\\b"
+          - "\\bdata confirms\\b"
+          - "\\bresearch demonstrates\\b"
+          - "\\bit has been shown\\b"
+          - "\\bit is well.known\\b"
+          - "\\bexperts agree\\b"
+
+    - id: "LANGUAGE_COMPLIANCE"
+      rule_key: "LANGUAGE_COMPLIANCE"
+      description: "Response must be in English or contain structured data"
+      priority: "SYSTEM"
+      pattern:
+        type: "language_check"
+
+    - id: "NO_EMPTY_OUTPUT"
+      rule_key: "NO_EMPTY_OUTPUT"
+      description: "Output cannot be empty or a placeholder"
+      priority: "SYSTEM"
+      pattern:
+        type: "min_length"
+        min_length: 50
+
+    - id: "MAX_LENGTH"
+      rule_key: "MAX_LENGTH"
+      description: "Output cannot exceed 50K chars"
+      priority: "SYSTEM"
+      pattern:
+        type: "max_length"
+        max_chars: 50000
+
+  soft:
+    - id: "HAS_SOURCES"
+      rule_key: "HAS_SOURCES"
+      description: "Should include source URLs"
+      priority: "USER"
+      weight: 0.3
+      pattern:
+        type: "regex_absent"
+        regex: "https?://"
+
+    - id: "STRUCTURED_OUTPUT"
+      rule_key: "STRUCTURED_OUTPUT"
+      description: "Should have clear structure (headers, bullets)"
+      priority: "USER"
+      weight: 0.2
+      pattern:
+        type: "regex_absent"
+        regex: "##|- |\\* |1\\.|•"
+
+    - id: "CONCISENESS"
+      rule_key: "CONCISENESS"
+      description: "Should not have repetitive paragraphs"
+      priority: "USER"
+      weight: 0.2
+      pattern:
+        type: "regex_present"
+        regex: "\\bmeasurements were recorded\\b|\\bcomprehensive monitoring\\b|\\bsignificant delays\\b"
+
+    - id: "ACTIONABLE"
+      rule_key: "ACTIONABLE"
+      description: "Should include actionable steps or recommendations"
+      priority: "USER"
+      weight: 0.3
+      pattern:
+        type: "regex_absent"
+        regex: "\\b(recommend|next step|action|implement|recomend|siguiente paso)\\b"
+
+    - id: "NO_PII_LEAK"
+      rule_key: "NO_PII_LEAK"
+      description: "Should not contain PII (emails, phones, SSNs, credit cards)"
+      priority: "USER"
+      weight: 0.3
+      pattern:
+        type: "regex_present"
+        regex: "\\b\\d{3}-\\d{2}-\\d{4}\\b|\\b4\\d{3}[-\\s]?\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}\\b|[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}|\\b\\+?1?[-.\\s]?\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}\\b"

@@ -1,0 +1,33 @@
+version: "1.0"
+metadata:
+  country: "Colombia"
+  compliance: "CONPES 4012 / Minciencias"
+  description: "Desarrollo tecnológico, IA y Spin-offs."
+
+rules:
+  hard:
+    - id: "CO_DEEPTECH_ETHICS_CONPES"
+      rule_key: "CO_DEEPTECH_ETHICS_CONPES"
+      description: "Falta declaración de cumplimiento de Ética de IA según CONPES 4012"
+      priority: "SYSTEM"
+      pattern:
+        type: "regex_absent"
+        regex: "(?i)etica de IA|CONPES 4012|transparencia algoritmica"
+
+    - id: "CO_DEEPTECH_SPINOFF_LEY"
+      rule_key: "CO_DEEPTECH_SPINOFF_LEY"
+      description: "Documentación de Spin-off debe citar cumplimiento de la Ley 1838 de 2017"
+      priority: "SYSTEM"
+      pattern:
+        type: "regex_absent"
+        regex: "(?i)Ley 1838|Spin-off"
+
+  soft:
+    - id: "CO_DEEPTECH_NIVEL_MADUREZ"
+      rule_key: "CO_DEEPTECH_NIVEL_MADUREZ"
+      description: "Se recomienda incluir el nivel TRL (Technology Readiness Level)"
+      priority: "USER"
+      weight: 0.1
+      pattern:
+        type: "regex"
+        regex: "\\bTRL\\s*[1-9]\\b"

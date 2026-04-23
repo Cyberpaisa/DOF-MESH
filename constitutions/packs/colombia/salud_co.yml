@@ -1,0 +1,33 @@
+version: "1.0"
+metadata:
+  country: "Colombia"
+  compliance: "Ley 1581 de 2012 / Res. 1995"
+  description: "Protección de datos sensibles y manejo de Historia Clínica."
+
+rules:
+  hard:
+    - id: "CO_HEALTH_PII_STRICT"
+      rule_key: "CO_HEALTH_PII_STRICT"
+      description: "Bloqueo inmediato de IDs colombianos (Cédula de Ciudadanía) en contextos de salud"
+      priority: "SYSTEM"
+      pattern:
+        type: "regex"
+        regex: "(?i)C\\.C\\.|Cedula:|TI:|Registro Civil:|CE:"
+
+    - id: "CO_HEALTH_CONSENT_REQUIRED"
+      rule_key: "CO_HEALTH_CONSENT_REQUIRED"
+      description: "Falta la cláusula de consentimiento informado para tratamiento de datos sensibles"
+      priority: "SYSTEM"
+      pattern:
+        type: "regex_absent"
+        regex: "(?i)consentimiento informado|autorizacion de datos sensibles"
+
+  soft:
+    - id: "CO_HEALTH_MIPRES_RECO"
+      rule_key: "CO_HEALTH_MIPRES_RECO"
+      description: "Sugerir verificación en plataforma MIPRES para medicamentos no PBS"
+      priority: "USER"
+      weight: 0.2
+      pattern:
+        type: "regex_absent"
+        regex: "(?i)MIPRES|PBS"

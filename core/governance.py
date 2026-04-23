@@ -13,6 +13,8 @@ import threading
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
+import glob
+import sys
 
 try:
     import yaml
@@ -41,14 +43,31 @@ class ConstitutionEnforcer:
     Guards the mesh against non-deterministic behavior and ensures compliance
     with the DOF constitution. Validates tasks before orchestration.
     """
-    def __init__(self, mesh_dir=None):
+    def __init__(self, mesh_dir=None, industry: str | None = None):
         self.mesh_dir = Path(mesh_dir) if mesh_dir else Path("logs/mesh")
+        self.registry = ConstitutionRegistry()
+        
+        # Local rules for this instance (init with defaults)
+        self.hard_rules = list(HARD_RULES)
+        self.soft_rules = list(SOFT_RULES)
+        
+        # Load base core pack if available
+        self.registry.load_pack("core", hard_list=self.hard_rules, soft_list=self.soft_rules)
+        
+        # Load industry pack if requested
+        if industry:
+            self.registry.load_pack(industry, hard_list=self.hard_rules, soft_list=self.soft_rules)
+
         if _INTEGRITY_AVAILABLE:
-            all_rules = {r["id"]: r for r in HARD_RULES + SOFT_RULES}
+            all_rules = {r["id"]: r for r in self.hard_rules + self.soft_rules}
             self._integrity_watcher = ConstitutionIntegrityWatcher(all_rules)
         else:
             self._integrity_watcher = None
-        logger.info("ConstitutionEnforcer active — Guardian of Legion.")
+        logger.info("ConstitutionEnforcer active — Industry: %s", industry or "Default")
+
+    def load_pack(self, industry: str) -> bool:
+        """Dynamically load an industry governance pack at runtime."""
+        return self.registry.load_pack(industry, hard_list=self.hard_rules, soft_list=self.soft_rules)
 
     def verify_constitution_integrity(self) -> bool:
         """Verifica que las reglas de Constitution no han sido modificadas."""
@@ -82,7 +101,7 @@ class ConstitutionEnforcer:
 
     def check(self, text: str) -> "GovernanceResult":
         """Alias used by dof.quick — returns GovernanceResult dataclass."""
-        result = self.enforce(text)
+        result = check_governance(text, hard_rules=self.hard_rules, soft_rules=self.soft_rules)
         return GovernanceResult(
             passed=result["status"] == "COMPLIANT",
             score=result.get("score", 1.0),
@@ -94,11 +113,8 @@ class ConstitutionEnforcer:
         """
         Analytically verify that the provided text (or outputs) complies
         with the sovereign constitution.
-
-        Delegates to check_governance() so HARD_RULES, SOFT_RULES and
-        PII_PATTERNS are all evaluated consistently.
         """
-        result = check_governance(text)
+        result = check_governance(text, hard_rules=self.hard_rules, soft_rules=self.soft_rules)
         return {
             "status": "COMPLIANT" if result.passed else "BLOCKED",
             "hard_violations": result.violations,
@@ -117,22 +133,131 @@ class GovernanceResult:
     violations: list[str]
     warnings: list[str]
 
+# ─────────────────────────────────────────────────────────────────────
+# Constants and Rule Definitions
+# ─────────────────────────────────────────────────────────────────────
+
+REPO_ROOT = Path(__file__).parent.parent
+
 class RulePriority(str, Enum):
     SYSTEM = "SYSTEM"
     USER = "USER"
     ASSISTANT = "ASSISTANT"
 
-@dataclass
-class HierarchyResult:
-    compliant: bool
-    violation_level: str  # "NONE", "SYSTEM", "USER"
-    details: list[str] | str
+# Default hard/soft rules and PII patterns — IDs match YAML rule_key
+HARD_RULES: list[dict] = [
+    {"id": "NO_HALLUCINATION_CLAIM", "priority": RulePriority.SYSTEM, "pattern": r"\bstatistics show\b|\baccording to recent studies\b|\bstudies show\b|\bresearch shows\b|\bdata confirms\b|\bresearch demonstrates\b|\bit has been shown\b|\bit is well.known\b|\bexperts agree\b|\b\d{2,3}%\s+of\s+(?:cases?|users?|people|respondents?|participants?)\b", "description": "Must not assert fabricated data without source", "type": "phrase_without_url"},
+    {"id": "LANGUAGE_COMPLIANCE", "priority": RulePriority.SYSTEM, "pattern": None, "description": "Response must be in English or contain structured data", "type": "language_check"},
+    {"id": "NO_EMPTY_OUTPUT", "priority": RulePriority.SYSTEM, "pattern": None, "description": "Output cannot be empty or a placeholder", "type": "min_length", "min_length": 50},
+    {"id": "MAX_LENGTH", "priority": RulePriority.SYSTEM, "pattern": None, "description": "Output cannot exceed 50K chars", "type": "max_length", "max_chars": 50000},
+]
+
+SOFT_RULES: list[dict] = [
+    {"id": "HAS_SOURCES", "priority": RulePriority.USER, "pattern": r"https?://", "description": "Should include source URLs", "weight": 0.3, "match_mode": "absent"},
+    {"id": "STRUCTURED_OUTPUT", "priority": RulePriority.USER, "pattern": r"##|- |\* |1\.|•", "description": "Should have clear structure (headers, bullets)", "weight": 0.2, "match_mode": "absent"},
+    {"id": "CONCISENESS", "priority": RulePriority.USER, "pattern": r"\bmeasurements were recorded\b|\bcomprehensive monitoring\b|\bsignificant delays\b", "description": "Should not have repetitive paragraphs", "weight": 0.2, "match_mode": "present"},
+    {"id": "ACTIONABLE", "priority": RulePriority.USER, "pattern": r"\b(recommend|next step|action|implement|recomend|siguiente paso)\b", "description": "Should include actionable steps or recommendations", "weight": 0.3, "match_mode": "absent"},
+    {"id": "NO_PII_LEAK", "priority": RulePriority.USER, "pattern": r"\b\d{3}-\d{2}-\d{4}\b|\b4\d{3}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b|[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}|\b\+?1?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b", "description": "Should not contain PII (emails, phones, SSNs, credit cards)", "weight": 0.3, "match_mode": "present"},
+]
+
+PII_PATTERNS: list[dict] = [
+    {"id": "P1", "pattern": r"\b\d{3}-\d{2}-\d{4}\b", "description": "SSN"},
+    {"id": "P2", "pattern": r"\b4[0-9]{12}(?:[0-9]{3})?\b", "description": "Visa card"},
+    {"id": "P3", "pattern": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", "description": "Email"},
+]
+
+# Registry for internal core use
+GOVERNANCE_RULES = HARD_RULES + SOFT_RULES
 
 # ─────────────────────────────────────────────────────────────────────
-# Constitution loader (required by dof/__init__.py)
+# Constitution Registry — Modular Industry Packs
 # ─────────────────────────────────────────────────────────────────────
 
-REPO_ROOT = Path(__file__).parent.parent
+# ─────────────────────────────────────────────────────────────────────
+# Constitution Registry — Modular Industry Packs
+# ─────────────────────────────────────────────────────────────────────
+
+class ConstitutionRegistry:
+    """Manages the loading and registration of industry-specific governance packs."""
+    def __init__(self, packs_dir: str | Path | None = None):
+        self.packs_dir = Path(packs_dir) if packs_dir else REPO_ROOT / "constitutions" / "packs"
+        self._loaded_packs: set[str] = set()
+
+    def load_pack(self, pack_name: str, hard_list: list | None = None, soft_list: list | None = None) -> bool:
+        """Load a YAML pack from the registry directory.
+        
+        Args:
+            pack_name: Name of the pack (folder).
+            hard_list: List to append hard rules to (defaults to global HARD_RULES).
+            soft_list: List to append soft rules to (defaults to global SOFT_RULES).
+        """
+        global HARD_RULES, SOFT_RULES, GOVERNANCE_RULES
+        
+        h_list = hard_list if hard_list is not None else HARD_RULES
+        s_list = soft_list if soft_list is not None else SOFT_RULES
+        
+        pack_path = self.packs_dir / pack_name
+        # print(f"DEBUG: Loading pack {pack_name} from {pack_path}")
+        if not pack_path.exists():
+            logger.warning("Governance pack directory not found: %s", pack_path)
+            return False
+
+        yml_files = glob.glob(str(pack_path / "*.yml"))
+        # print(f"DEBUG: YAML files found: {yml_files}")
+        if not yml_files:
+            logger.warning("No YAML files found in pack: %s", pack_name)
+            return False
+
+        loaded_count = 0
+        for yml in yml_files:
+            try:
+                with open(yml, "r", encoding="utf-8") as f:
+                    data = yaml.safe_load(f) or {}
+                
+                # Append Hard Rules
+                new_hards = data.get("rules", {}).get("hard", [])
+                for r in new_hards:
+                    rule_entry = {
+                        "id": r.get("rule_key") or r.get("id"),
+                        "priority": RulePriority.SYSTEM,
+                        "pattern": r.get("pattern", {}).get("regex") or r.get("pattern", {}).get("phrases"),
+                        "description": r.get("description"),
+                        "type": r.get("pattern", {}).get("type", "regex"),
+                        "min_length": r.get("pattern", {}).get("min_length"),
+                        "max_chars": r.get("pattern", {}).get("max_chars"),
+                    }
+                    rule_entry["match_mode"] = "absent" if "absent" in rule_entry["type"] else "present"
+                    
+                    if rule_entry["id"] not in [hr["id"] for hr in h_list]:
+                        h_list.append(rule_entry)
+                
+                # Append Soft Rules
+                new_softs = data.get("rules", {}).get("soft", [])
+                for r in new_softs:
+                    rule_id = r.get("rule_key") or r.get("id")
+                    rule_entry = {
+                        "id": rule_id,
+                        "priority": r.get("priority", RulePriority.USER),
+                        "pattern": r.get("pattern", {}).get("regex") or r.get("pattern", {}).get("patterns"),
+                        "description": r.get("description"),
+                        "weight": r.get("weight", 0.1),
+                        "match_mode": "present" if "present" in r.get("pattern", {}).get("type", "") else "absent"
+                    }
+                    if rule_id not in [sr["id"] for sr in s_list]:
+                        s_list.append(rule_entry)
+                
+                loaded_count += 1
+            except Exception as e:
+                logger.error("Error loading governance YAML %s: %s", yml, e)
+
+        self._loaded_packs.add(pack_name)
+        
+        # If we modified global lists, update the global registry
+        if hard_list is None or soft_list is None:
+            GOVERNANCE_RULES = HARD_RULES + SOFT_RULES
+            
+        logger.info("Loaded pack '%s' (%d files).", pack_name, loaded_count)
+        return True
 
 # Default hard/soft rules and PII patterns — IDs match YAML rule_key
 HARD_RULES: list[dict] = [
@@ -499,10 +624,13 @@ def _extract_python_blocks(text: str) -> list[str]:
 # Core governance check
 # ─────────────────────────────────────────────────────────────────────
 
-def check_governance(text: str) -> GovernanceResult:
+def check_governance(text: str, hard_rules: list | None = None, soft_rules: list | None = None) -> GovernanceResult:
     """Run hard rules, soft rules, PII patterns, and AST verification against text."""
     violations: list[str] = []
     warnings: list[str] = []
+
+    h_rules = hard_rules if hard_rules is not None else HARD_RULES
+    s_rules = soft_rules if soft_rules is not None else SOFT_RULES
 
     # Ensure input is string
     if not isinstance(text, str):
@@ -524,7 +652,7 @@ def check_governance(text: str) -> GovernanceResult:
     )
 
     # Hard rules — block on match (YAML-aligned logic)
-    for rule in HARD_RULES:
+    for rule in h_rules:
         # Skip rule if gated by a disabled feature flag
         if _ff_governance and "feature_flag" in rule:
             if not _feature_flags.is_enabled(rule["feature_flag"]):  # type: ignore[union-attr]
@@ -571,13 +699,20 @@ def check_governance(text: str) -> GovernanceResult:
         elif pattern:
             # Fallback: simple regex (or list of keywords)
             keywords = pattern if isinstance(pattern, list) else [pattern]
+            match_found = False
             for kw in keywords:
                 if re.search(kw, text, re.IGNORECASE):
-                    violations.append(f"[{rule['id']}] {rule['description']}")
+                    match_found = True
                     break
+            
+            mode = rule.get("match_mode", "present")
+            if mode == "present" and match_found:
+                violations.append(f"[{rule['id']}] {rule['description']}")
+            elif mode == "absent" and not match_found:
+                violations.append(f"[{rule['id']}] {rule['description']}")
 
     # Soft rules — warn based on match_mode
-    for rule in SOFT_RULES:
+    for rule in s_rules:
         # Skip rule if gated by a disabled feature flag
         if _ff_governance and "feature_flag" in rule:
             if not _feature_flags.is_enabled(rule["feature_flag"]):  # type: ignore[union-attr]

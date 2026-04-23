@@ -1,0 +1,33 @@
+version: "1.0"
+metadata:
+  country: "Colombia"
+  compliance: "Ley 1273 de 2009 / CONPES 3854"
+  description: "Protección de la información y delitos informáticos."
+
+rules:
+  hard:
+    - id: "CO_CYBER_ACCESO_ABUSIVO"
+      rule_key: "CO_CYBER_ACCESO_ABUSIVO"
+      description: "Detección de comandos o scripts que sugieran acceso abusivo a sistema informático (Art. 269A)"
+      priority: "SYSTEM"
+      pattern:
+        type: "regex"
+        regex: "(?i)bypass\\s+auth|force\\s+log|brute\\s+force|crack\\s+(pass|pwd)|exploit|sql\\s*injection|xss|vulnerabilidad"
+
+    - id: "CO_CYBER_INCIDENT_REPORT"
+      rule_key: "CO_CYBER_INCIDENT_REPORT"
+      description: "Obligación de reporte ante el CSIRT Nacional (ColCERT) ante brechas de seguridad"
+      priority: "SYSTEM"
+      pattern:
+        type: "regex_absent"
+        regex: "(?i)ColCERT|CSIRT|reporte de incidente"
+
+  soft:
+    - id: "CO_CYBER_MINTIC_GUIDE"
+      rule_key: "CO_CYBER_MINTIC_GUIDE"
+      description: "Se recomienda seguir la Guía de Ciberseguridad de MinTIC"
+      priority: "USER"
+      weight: 0.1
+      pattern:
+        type: "regex_absent"
+        regex: "(?i)MinTIC|Guia de Ciberseguridad"

@@ -1,0 +1,33 @@
+version: "1.0"
+metadata:
+  country: "Colombia"
+  compliance: "Ley 1266 de 2008 / SFC"
+  description: "Habeas Data Financiero y protección de datos crediticios."
+
+rules:
+  hard:
+    - id: "CO_FINTECH_HABEAS_DATA"
+      rule_key: "CO_FINTECH_HABEAS_DATA"
+      description: "Es obligatorio citar el derecho al Habeas Data en cualquier procesamiento de datos crediticios"
+      priority: "SYSTEM"
+      pattern:
+        type: "regex_absent"
+        regex: "(?i)habeas data|ley 1266|ley de borron y cuenta nueva"
+
+    - id: "CO_FINTECH_SFC_SECURITY"
+      rule_key: "CO_FINTECH_SFC_SECURITY"
+      description: "Detección de patrones prohibidos por la Circular 029 de la SFC (vulnerabilidades en pasarelas)"
+      priority: "SYSTEM"
+      pattern:
+        type: "regex"
+        regex: "(?i)CVV en texto plano|PIN sin cifrar|clave dinamica en log"
+
+  soft:
+    - id: "CO_FINTECH_CONSUMER_RIGHTS"
+      rule_key: "CO_FINTECH_CONSUMER_RIGHTS"
+      description: "Debe incluir información sobre el Defensor del Consumidor Financiero"
+      priority: "USER"
+      weight: 0.3
+      pattern:
+        type: "regex_absent"
+        regex: "(?i)defensor del consumidor"

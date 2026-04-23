@@ -1,0 +1,33 @@
+version: "1.0"
+metadata:
+  country: "Colombia"
+  compliance: "Ley 80 de 1993 / SECOP II"
+  description: "Estatuto General de Contratación de la Administración Pública."
+
+rules:
+  hard:
+    - id: "CO_CONTRACT_SECOP_LINK"
+      rule_key: "CO_CONTRACT_SECOP_LINK"
+      description: "Es obligatorio incluir el ID del proceso de SECOP II en cualquier documento de contratación"
+      priority: "SYSTEM"
+      pattern:
+        type: "regex"
+        regex: "CO1\\.PDC\\.[0-9]{7,}|CO1\\.REQ\\.[0-9]{7,}"
+
+    - id: "CO_CONTRACT_FRACCIONAMIENTO"
+      rule_key: "CO_CONTRACT_FRACCIONAMIENTO"
+      description: "Alerta de posible fraccionamiento de contratos (Art. 24 Ley 80)"
+      priority: "SYSTEM"
+      pattern:
+        type: "regex"
+        regex: "(?i)divid(ir|iendo|ido|as?)\\s+el\\s+objeto|contrat(os?|aciones?)\\s+simultane(os?|as?)|mismo\\s+objeto\\s+mismo\\s+mes"
+
+  soft:
+    - id: "CO_CONTRACT_CCE_RECO"
+      rule_key: "CO_CONTRACT_CCE_RECO"
+      description: "Se recomienda verificar pliegos tipo de Colombia Compra Eficiente"
+      priority: "USER"
+      weight: 0.2
+      pattern:
+        type: "regex_absent"
+        regex: "(?i)Colombia Compra Eficiente|Pliegos Tipo"

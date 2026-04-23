@@ -1,0 +1,33 @@
+version: "1.0"
+metadata:
+  country: "Colombia"
+  compliance: "Ley 1712 de 2014"
+  description: "Transparencia y Acceso a la Información Pública."
+
+rules:
+  hard:
+    - id: "CO_GOV_TRANSPARENCY_FAIL"
+      rule_key: "CO_GOV_TRANSPARENCY_FAIL"
+      description: "Cualquier respuesta gubernamental debe incluir el enlace al Portal de Transparencia del ente respectivo"
+      priority: "SYSTEM"
+      pattern:
+        type: "regex_absent"
+        regex: "(?i)transparencia|acceso a la informacion|ley 1712"
+
+    - id: "CO_GOV_PII_PROTECTION"
+      rule_key: "CO_GOV_PII_PROTECTION"
+      description: "No se permite la exposición de datos clasificados o reservados según el Art. 18 de la Ley 1712"
+      priority: "SYSTEM"
+      pattern:
+        type: "regex"
+        regex: "(?i)informacion reservada|secreto comercial|secreto industrial|datos biometricos"
+
+  soft:
+    - id: "CO_GOV_LENGUAJE_CLARO"
+      rule_key: "CO_GOV_LENGUAJE_CLARO"
+      description: "Se recomienda el uso de Lenguaje Claro según la directiva presidencial"
+      priority: "USER"
+      weight: 0.2
+      pattern:
+        type: "regex_absent"
+        regex: "\\b(entender|claro|simple|ciudadano)\\b"
