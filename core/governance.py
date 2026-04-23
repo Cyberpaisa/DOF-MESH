@@ -101,13 +101,7 @@ class ConstitutionEnforcer:
 
     def check(self, text: str) -> "GovernanceResult":
         """Alias used by dof.quick — returns GovernanceResult dataclass."""
-        result = check_governance(text, hard_rules=self.hard_rules, soft_rules=self.soft_rules)
-        return GovernanceResult(
-            passed=result["status"] == "COMPLIANT",
-            score=result.get("score", 1.0),
-            violations=result.get("hard_violations", []),
-            warnings=result.get("soft_violations", []),
-        )
+        return check_governance(text, hard_rules=self.hard_rules, soft_rules=self.soft_rules)
 
     def enforce(self, text: str) -> dict:
         """
@@ -132,6 +126,24 @@ class GovernanceResult:
     score: float
     violations: list[str]
     warnings: list[str]
+
+    def __getitem__(self, key):
+        # Backward compatibility for result["status"]
+        if key == "status":
+            return "COMPLIANT" if self.passed else "BLOCKED"
+        return getattr(self, key)
+
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except (AttributeError, KeyError):
+            return default
+
+@dataclass
+class HierarchyResult:
+    compliant: bool
+    violation_level: str
+    details: list[str]
 
 # ─────────────────────────────────────────────────────────────────────
 # Constants and Rule Definitions
