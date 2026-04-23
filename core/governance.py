@@ -317,6 +317,9 @@ _OVERRIDE_PATTERNS = [
     r"(?i)maintenance\s+mode\s+(?:activated|enabled|on)",
     r"(?i)(?:all\s+)?safety\s+checks?\s+(?:suspended|disabled|bypassed)",
     r"(?i)diagnostic\s+(?:mode|override)\s+(?:active|enabled)",
+    # CVE-DOF-016: Developer mode and role override attacks
+    r"(?i)\b(?:you\s+are\s+(?:now\s+)?in|enter|activate|enable)\s+developer\s+mode\b",
+    r"(?i)\bas\s+an?\s+AI\s+with\s+no\s+(?:restrictions?|rules?|limitations?|constraints?)\b",
     # CVE-DOF-015: Memory poisoning — fake rule injection
     r"(?i)(?:SYSTEM\s+)?RULE\s+OVERRIDE\s*:",
     r"(?i)New\s+rule\s*:\s+(?:always|never|when\s+asked)",
