@@ -203,8 +203,6 @@ class ConstitutionRegistry:
             hard_list: List to append hard rules to (defaults to global HARD_RULES).
             soft_list: List to append soft rules to (defaults to global SOFT_RULES).
         """
-        global HARD_RULES, SOFT_RULES, GOVERNANCE_RULES
-        
         h_list = hard_list if hard_list is not None else HARD_RULES
         s_list = soft_list if soft_list is not None else SOFT_RULES
         
