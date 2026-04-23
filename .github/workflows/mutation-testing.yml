@@ -1,4 +1,4 @@
-name: Mutation Testing (mutmut)
+name: Mutation Testing (Sovereign)
 
 on:
   push:
@@ -26,16 +26,5 @@ jobs:
           pip install --upgrade pip
           pip install z3-solver pyyaml python-dotenv rich blake3 fastapi httpx sqlalchemy web3 psutil
           pip install -e . --no-deps
-          pip install mutmut
-      - name: Run mutation testing
-        run: mutmut run || true
-      - name: Report mutation score
-        run: |
-          mutmut results || true
-          KILLED=$(mutmut results 2>/dev/null | grep -oP 'Killed: \K\d+' || echo 0)
-          TOTAL=$(mutmut results 2>/dev/null | grep -oP 'Total: \K\d+' || echo 0)
-          if [ "$TOTAL" -eq 0 ]; then
-            echo "ℹ️  No mutants generated (no testable paths changed). Score: N/A"
-          else
-            echo "🧬 Mutation score: $KILLED / $TOTAL killed"
-          fi
+      - name: Run sovereign mutation verifier
+        run: python scripts/mutation_verifier.py
