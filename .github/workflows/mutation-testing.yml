@@ -27,7 +27,7 @@ jobs:
           pip install mutmut
       - name: Run mutation testing on adversarial
         run: |
-          mutmut run --paths-to-mutate core/adversarial.py --tests-dir tests/ || true
+          mutmut run || true
           mutmut results
       - name: Check mutation score
         run: |
