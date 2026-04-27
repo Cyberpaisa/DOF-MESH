@@ -13,7 +13,7 @@
 |---|---|
 | Core modules | 173 |
 | Test files | 215 |
-| Total tests | 4,778 (discovered via unittest, 0 load errors) |
+| Total tests | 4,800 (discovered via unittest, 0 load errors) |
 | Lines of code | 65,360 (core + dof) |
 | Documentation | 223 .md files |
 | Interfaces | 4 (Dashboard, Telegram, Voice, Realtime Voice) |
@@ -277,7 +277,7 @@
 4. **Multi-chain portable** — Identity and attestations on Avalanche, Base, Celo, Ethereum.
 5. **Heterogeneous mesh** — 11 distinct coordinated LLMs. Stronger than any individual model.
 6. **Offline-capable** — Sentinel, governance, and Z3 work without an internet connection.
-7. **Test-first** — 4,778 tests. No code is merged without tests.
+7. **Test-first** — 4,800 tests. No code is merged without tests.
 
 ---
 

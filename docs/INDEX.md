@@ -38,4 +38,4 @@ See [diagrams/](diagrams/) for architecture diagrams in Mermaid format.
 
 ---
 
-*DOF-MESH v0.8.0 · 4,446 tests · 8 chains · Mathematics, not promises.*
+*DOF-MESH v0.8.0 · 4,800 tests · 9 chains · Mathematics, not promises.*

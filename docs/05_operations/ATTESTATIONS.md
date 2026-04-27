@@ -1,6 +1,6 @@
 # DOF Live Attestations — v0.5.1
 
-**DOFProofRegistry — 8 chains activas (verificadas on-chain 03 abr 2026)**
+**DOFProofRegistry — 9 chains activas (verificadas on-chain 03 abr 2026)**
 
 | Chain | Chain ID | Contrato | Tipo |
 |---|---|---|---|

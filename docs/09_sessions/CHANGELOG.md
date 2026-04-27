@@ -11,7 +11,7 @@ Evolución de métricas por sesión. Valores medidos directamente del repo en ca
 | LOC (core+dof) | 65,360 |
 | Core modules | 173 (0 imports rotos) |
 | Test files | 215 |
-| Tests discovered | 4,778 (0 load errors) |
+| Tests discovered | 4,800 (0 load errors) |
 | Chains verificadas | 9 (3 mainnet + 5 testnet + Tempo) |
 | On-chain attestations | 30+ |
 | CrewAI agents | 20 |
@@ -38,7 +38,7 @@ Cambios clave:
 
 ## v0.8.0 — sesión 10-B (2026-04-13) — Red Team + Capa 8
 
-- 36 commits · 4,778 tests · 178 módulos (conteo incluye __init__.py)
+- 36 commits · 4,800 tests · 178 módulos (conteo incluye __init__.py)
 - Red Team + Capa 8 Semántica + Evolution Engine + Segundo Cerebro Vivo
 - `datos-colombia-mcp` integrado (SECOP + MEData)
 - ASR bajó de 13.6% → 2.3% (5 CVEs parchados, 1 accepted risk)
@@ -56,7 +56,7 @@ Cambios clave:
 
 - Tests: 4,157 pasando, 0 fallos
 - Módulos: 142
-- 8 chains activas (3 mainnet + 5 testnet)
+- 9 chains activas (3 mainnet + 5 testnet)
 - Attestations on-chain: 30+
 - Ciclos autónomos: 238
 - Z3 proofs: 4/4 PROVEN

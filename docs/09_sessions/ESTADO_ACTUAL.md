@@ -14,10 +14,10 @@ DOF-MESH
 | LOC (core + dof) | 65,360 | `find core dof -name "*.py" \| xargs wc -l` |
 | Módulos core/ | 173 | `find core -name "*.py" -not -name __init__.py` |
 | Test files | 215 | `find tests -name "test_*.py"` |
-| Tests discovered | 4,778 | `unittest.TestLoader().discover()` — 0 load errors |
+| Tests discovered | 4,800 | `unittest.TestLoader().discover()` — 0 load errors |
 | Imports rotos | 0 | Post-fix hyperion_bridge + crewai |
 | Chains | 9 | 3 mainnet + 5 testnet + Tempo |
-| On-chain attestations | 30+ | `DOFProofRegistry` en 8 chains |
+| On-chain attestations | 30+ | `DOFProofRegistry` en 9 chains |
 | CrewAI agents | 20 | `ls agents/*/` |
 | Scripts | 79 | `find scripts -name "*.py" -o -name "*.sh"` |
 | Docs .md | 223 | `find docs -name "*.md"` |
