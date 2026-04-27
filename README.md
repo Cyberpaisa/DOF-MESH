@@ -171,7 +171,7 @@ docker-compose up -d --build
 
 ## The Numbers
 
-We wrote 4,446 tests before calling it a framework.
+We wrote 4,800 tests before calling it a framework.
 Most projects write them after something breaks.
 
 The proofs aren't in our database. They're on 8 public blockchains.
@@ -190,7 +190,7 @@ A deterministic function does. Every time. Same answer.
 
 | Metric | Value |
 |:-------|------:|
-| Unit tests | **4,446** |
+| Unit tests | **4,800** |
 | Autonomous cycles | **238+** |
 | On-chain attestations | **30+** |
 | Chains (mainnets) | **7** |
@@ -376,7 +376,7 @@ equipo-de-agentes/
   agents/                   # agents running on DOF (validation, not the product)
   contracts/                # DOFProofRegistry.sol (deployed on 8 chains — 3 mainnet + 5 testnet)
   integrations/             # CrewAI, AgentKit, Virtuals, SKALE, Tempo
-  tests/                    # 4,446 unit tests
+  tests/                    # 4,800 unit tests
   docs/                     # public documentation
   logs/                     # JSONL audit trails (append-only)
   experiments/              # Winston vs baseline raw data
@@ -388,7 +388,7 @@ equipo-de-agentes/
 
 **@Cyber_paisa** · [Telegram](https://t.me/Cyber_paisa)
 
-**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,446 tests. 9 chains (3 mainnet + 5 testnet + 1 ERC-8004). 148 modules. Mathematics, not promises.
+**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,800 tests. 9 chains (3 mainnet + 5 testnet + 1 ERC-8004). 148 modules. Mathematics, not promises.
 
 ---
 

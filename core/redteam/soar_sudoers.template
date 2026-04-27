@@ -1,0 +1,19 @@
+# Configuración de sudoers para el usuario SOAR (V1.1 Blueprint)
+# Ubicación en UTM: /etc/sudoers.d/soar
+# Permisos: 440 (root:root)
+
+# Definir el usuario
+User_Alias SOAR_USER = soar
+
+# Reglas restrictivas (G-001)
+SOAR_USER ALL=(root) NOPASSWD: /usr/bin/docker inspect *
+SOAR_USER ALL=(root) NOPASSWD: /usr/bin/docker pause *
+SOAR_USER ALL=(root) NOPASSWD: /usr/bin/docker network disconnect lab_net *
+SOAR_USER ALL=(root) NOPASSWD: /usr/bin/docker network disconnect redteam_lab_net *
+SOAR_USER ALL=(root) NOPASSWD: /usr/bin/docker export *
+
+# Bloqueo explícito de comandos peligrosos (Deny by default)
+SOAR_USER ALL=(root) !/usr/bin/docker run *
+SOAR_USER ALL=(root) !/usr/bin/docker exec *
+SOAR_USER ALL=(root) !/usr/bin/docker stop *
+SOAR_USER ALL=(root) !/usr/bin/docker rm *

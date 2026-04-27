@@ -1,8 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// --- ADVERSARIAL SECURITY HARDENING (APRIL 2026) ---
+// Infrastructure: Vercel + Upstash Redis
+// Policy: 10 messages/session, 15s Rate Limit, Origin Validation
+
+const MAX_QUOTA = 10;
+const RATE_LIMIT_MS = 15000;
+
 const SYSTEM_PROMPT = `You are Enigma #1686, the DOF Agent — the first AI agent with deterministic observability. You are speaking from the official DOF landing page.
 
 DOF (Deterministic Observability Framework) is a governance and observability layer for autonomous AI agents that replaces probabilistic trust with mathematical proof.
+
+LICENSING (CRITICAL):
+- This project is NOT licensed under MIT.
+- It is licensed under the Business Source License 1.1 (BSL 1.1).
+- Free for non-commercial use, research, and personal projects.
+- Commercial use requires a separate agreement with the Licensor (Juan Quiceno).
+- Contact: @Cyber_paisa on Telegram.
+- On 2028-03-08 this project converts to Apache License 2.0.
 
 KEY FACTS:
 - 238+ autonomous cycles executed with zero human intervention
@@ -58,11 +73,29 @@ function governanceCheck(text: string): { passed: boolean; score: number; violat
 }
 
 export async function POST(req: NextRequest) {
+  // 1. Origin Validation
+  const origin = req.headers.get('origin') || req.headers.get('referer') || '';
+  const isAllowed = origin.includes('dofmesh.com') || origin.includes('localhost') || origin.includes('vercel.app');
+
+  if (!isAllowed && origin.length > 0) {
+    return NextResponse.json({ error: 'Sovereign territory. Origin denied.' }, { status: 403 });
+  }
+
   try {
-    const { message, history = [] } = await req.json();
+    const body = await req.json();
+    const { message, history = [] } = body;
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json({ error: 'Message required' }, { status: 400 });
+    }
+
+    // 2. Payload Size Protection
+    const payloadSize = JSON.stringify(body).length;
+    if (payloadSize > 50000) {
+      return NextResponse.json({ error: 'Payload too large' }, { status: 400 });
+    }
+    if (history.length > 20) {
+      return NextResponse.json({ error: 'Context depth exceeded' }, { status: 400 });
     }
 
     const apiKey = process.env.DEEPSEEK_API_KEY;
@@ -70,6 +103,57 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
     }
 
+    // 3. Redis Rate Limiting (Persistent, Adversarial-Grade)
+    const kvUrl = process.env.KV_REST_API_URL;
+    const kvToken = process.env.KV_REST_API_TOKEN;
+    const ip = req.headers.get('x-forwarded-for') || 'anonymous';
+
+    if (kvUrl && kvToken) {
+      try {
+        const { Redis } = await import('@upstash/redis');
+        const redis = new Redis({ url: kvUrl, token: kvToken });
+
+        const quotaKey = `dof:quota:${ip}`;
+        const timeKey = `dof:last_seen:${ip}`;
+
+        const [count, lastTime] = await Promise.all([
+          redis.get<number>(quotaKey),
+          redis.get<number>(timeKey)
+        ]);
+
+        const now = Date.now();
+
+        // Circuit Breaker (Quota)
+        if (count !== null && count >= MAX_QUOTA) {
+          return NextResponse.json(
+            { error: 'Session quota exceeded. Contact @Cyber_paisa for commercial access.' },
+            { status: 429 }
+          );
+        }
+
+        // Rate Limit
+        if (lastTime !== null && (now - lastTime < RATE_LIMIT_MS)) {
+          await redis.incr(`dof:attacks:ratelimit:${ip}`);
+          return NextResponse.json(
+            { error: 'Rate limited. Wait 15 seconds.' },
+            { status: 429 }
+          );
+        }
+
+        // Update state
+        await Promise.all([
+          redis.incr(quotaKey),
+          redis.set(timeKey, now),
+          redis.expire(quotaKey, 86400),
+          redis.expire(timeKey, 86400)
+        ]);
+      } catch (redisErr) {
+        console.error('Redis security layer error (fail-open):', redisErr);
+        // Fail-open: continue without Redis protection if unavailable
+      }
+    }
+
+    // 4. Build messages for upstream
     const messages = [
       { role: 'system', content: SYSTEM_PROMPT },
       ...history.slice(-10).map((m: { role: string; content: string }) => ({
@@ -79,6 +163,7 @@ export async function POST(req: NextRequest) {
       { role: 'user', content: message.slice(0, 2000) }
     ];
 
+    // 5. Upstream Call
     const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -99,6 +184,7 @@ export async function POST(req: NextRequest) {
     const data = await res.json();
     const reply = data.choices?.[0]?.message?.content || 'I could not generate a response.';
 
+    // 6. Governance Check
     const governance = governanceCheck(reply);
 
     return NextResponse.json({

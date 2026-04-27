@@ -287,6 +287,10 @@ python3 core/autonomous_daemon.py --multi --model claude-sonnet-4-6 # 3 daemons
 
 # Fase 11 — Operación Nocturna
 PYTHONPATH=. python3 scripts/phase11_night_orchestrator.py
+
+# Kimi K2.6 Cloud (Blackwell)
+ollama run kimi-k2.6:cloud                  # Chat
+ollama launch claude --model kimi-k2.6:cloud # Claude Code mode
 ```
 
 ## Creando módulos nuevos
@@ -319,6 +323,7 @@ PYTHONPATH=. python3 scripts/phase11_night_orchestrator.py
 | Zhipu | GLM-4.7-Flash | - | `extra_body={"enable_thinking": False}` |
 | SambaNova | DeepSeek V3.2 | 24K contexto | Solo backup |
 | MINIMAX | MiniMax-M2.1 | 128K context | Free tier |
+| Kimi | K2.6 (Cloud) | - | 256K context, Blackwell, Agent Swarm |
 | Gemini | 2.5 Flash | 20 req/día | 1M context |
 | OpenRouter | Hermes 405B | Variable | Free tier |
 

@@ -312,3 +312,8 @@ video-render/
 !docs/09_sessions/CHANGELOG.md
 !docs/09_sessions/reports/
 !docs/09_sessions/reports/**
+
+# Large local ISO images
+iso/
+*.iso
+core/redteam/iso/

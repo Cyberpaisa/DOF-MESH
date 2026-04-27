@@ -1,0 +1,55 @@
+# DOF-MESH :: Laboratorio Defensivo Soberano V7.3
+# NOTA: Requiere archivo .env.lab con DVWA_MYSQL_PASS definida+ WebGoat (OWASP clásico)
+# Ambas imágenes tienen soporte nativo ARM64 — sin builds custom necesarios.
+# Red: internal: true — sin salida a internet ni al host Mac.
+# REQUISITO: Crear .env.lab con DVWA_MYSQL_PASS antes de levantar (ver .env.lab.example)
+
+networks:
+  lab_net:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 10.10.10.0/24
+          gateway: 10.10.10.1
+
+services:
+  # Target 1: Juice Shop — OWASP Top 10 moderno, API REST, JWT, XSS, IDOR
+  # ARM64 nativo. El target más completo para análisis defensivo.
+  juice-shop:
+    image: bkimminich/juice-shop@sha256:a8139c141311c7f31fcf2e611125246928f703ee42827de33983fd9425d1b2f6
+    container_name: lab_juiceshop
+    networks:
+      lab_net:
+        ipv4_address: 10.10.10.10
+    environment:
+      - NODE_ENV=ctf
+    restart: unless-stopped
+
+  # Target 2: WebGoat — Lecciones guiadas OWASP, SQLi clásica, CSRF, XXE
+  # ARM64 nativo. Ideal para aprendizaje estructurado.
+  webgoat:
+    image: webgoat/webgoat@sha256:3101bd9e7bcfe122d7ef91e690ef3720de36cc4e86b3d06763a1ddf2e2751a4b
+    container_name: lab_webgoat
+    networks:
+      lab_net:
+        ipv4_address: 10.10.10.11
+    environment:
+      - WEBGOAT_HOST=0.0.0.0
+      - WEBWOLF_HOST=0.0.0.0
+    restart: unless-stopped
+
+  # Captura de tráfico — para análisis posterior con Wireshark en el host
+  traffic-capture:
+    image: nicolaka/netshoot:v0.13
+    container_name: lab_traffic
+    networks:
+      - lab_net
+    command: >
+      sh -c "tcpdump -i eth0 -w /captures/lab_traffic.pcap host 10.10.10.10 or host 10.10.10.11"
+    volumes:
+      - ./logs/captures:/captures
+    restart: unless-stopped
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN

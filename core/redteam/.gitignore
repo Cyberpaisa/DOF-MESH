@@ -1,0 +1,27 @@
+# DOF-MESH :: Red Team Lab — Archivos excluidos del versionado
+
+# Credenciales y entornos
+.env
+.env.*
+!.env.*.example
+*.pem
+*.key
+id_rsa*
+
+# Modelos y datos pesados
+*.gguf
+*.bin
+*.safetensors
+models/
+
+# Capturas y logs
+*.pcap
+*.pcapng
+logs/
+captures/
+reports/*.md
+
+# Imágenes de VM
+*.utm/
+*.qcow2
+*.raw

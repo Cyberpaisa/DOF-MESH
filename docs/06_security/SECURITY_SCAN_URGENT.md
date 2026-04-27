@@ -22,7 +22,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Key:** | `AIzaSyBsrx6G9rgSQOujv2m5xIfuimoOoLxV014` |
+| **Key:** | `AIzaSy...[REDACTED]` |
 | **Current files:** | `data/extraction/coliseum_vault.jsonl` (462 occurrences), `data/extraction/due_diligence_vault.jsonl` (56 occurrences) |
 | **Origin commit:** | `0bb849a` (2026-03-26) |
 | **Context:** | The key leaked in HTTP 429 error messages logged as payload in benchmark JSONL files |
@@ -33,7 +33,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Token:** | `8465352813:AAGZqamdYhT8PNWGSP6K_ukkpvutp6DGE6Y` |
+| **Token:** | `8465352813...[REDACTED]` |
 | **Current file:** | `scripts/run_claude_dof_bot.sh` (lines 2 and 8) |
 | **Origin commit:** | `c01652c` |
 | **Context:** | Hardcoded as `export TELEGRAM_BOT_TOKEN=` in deployment script |
@@ -44,7 +44,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Token:** | `8706259296:AAHIJgQu6x59tZZ-KgpvJHW-OPZVJFWZYew` |
+| **Token:** | `8706259296...[REDACTED]` |
 | **Current file:** | `scripts/soul-watchdog.sh` (line 26) |
 | **Origin commit:** | `849395c` |
 | **Context:** | Hardcoded as `local BOT_TOKEN=` in alerts script |
@@ -55,7 +55,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Key:** | `sk-sej9ye5gv5s2ywsrvyi20wnudbd0h96mz0dfyies6qaymtv6` |
+| **Key:** | `sk-...[REDACTED]` |
 | **Current file:** | `scripts/mimo_adapter.py` (line 21) |
 | **Origin commit:** | `c01652c` |
 | **Context:** | Hardcoded as `MIMO_API_KEY = "sk-..."` (does NOT use `os.getenv()` like other keys in the same file) |
@@ -111,7 +111,7 @@ The commit contains references to:
 ## IMMEDIATE REMEDIATION PLAN
 
 ### Step 1: ROTATE (do NOW)
-1. **Google API Key:** Go to Google Cloud Console > APIs & Services > Credentials > Regenerate key `AIzaSyBsrx6G9rgSQOujv2m5xIfuimoOoLxV014`
+1. **Google API Key:** Go to Google Cloud Console > APIs & Services > Credentials > Regenerate key `AIzaSy...[REDACTED]`
 2. **Telegram Bot #1:** Talk to @BotFather > `/revoke` token for bot `8465352813`
 3. **Telegram Bot #2:** Talk to @BotFather > `/revoke` token for bot `8706259296`
 4. **MIMO API Key:** Rotate in the provider dashboard (OpenRouter or similar)
@@ -119,15 +119,15 @@ The commit contains references to:
 ### Step 2: REMOVE from current files
 ```bash
 # 1. Sanitize MIMO adapter
-sed -i '' 's/MIMO_API_KEY = "sk-sej9ye5gv5s2ywsrvyi20wnudbd0h96mz0dfyies6qaymtv6"/MIMO_API_KEY = os.getenv("MIMO_API_KEY", "")/' scripts/mimo_adapter.py
+sed -i '' 's/MIMO_API_KEY = "sk-...[REDACTED]"/MIMO_API_KEY = os.getenv("MIMO_API_KEY", "")/' scripts/mimo_adapter.py
 
 # 2. Sanitize Telegram scripts
-sed -i '' 's/8465352813:AAGZqamdYhT8PNWGSP6K_ukkpvutp6DGE6Y/${TELEGRAM_BOT_TOKEN}/g' scripts/run_claude_dof_bot.sh
-sed -i '' 's/8706259296:AAHIJgQu6x59tZZ-KgpvJHW-OPZVJFWZYew/${TELEGRAM_BOT_TOKEN}/g' scripts/soul-watchdog.sh
+sed -i '' 's/8465352813...[REDACTED]/${TELEGRAM_BOT_TOKEN}/g' scripts/run_claude_dof_bot.sh
+sed -i '' 's/8706259296...[REDACTED]/${TELEGRAM_BOT_TOKEN}/g' scripts/soul-watchdog.sh
 
 # 3. Sanitize JSONL (remove key from error payloads)
-sed -i '' 's/AIzaSyBsrx6G9rgSQOujv2m5xIfuimoOoLxV014/REDACTED/g' data/extraction/coliseum_vault.jsonl
-sed -i '' 's/AIzaSyBsrx6G9rgSQOujv2m5xIfuimoOoLxV014/REDACTED/g' data/extraction/due_diligence_vault.jsonl
+sed -i '' 's/AIzaSy...[REDACTED]/REDACTED/g' data/extraction/coliseum_vault.jsonl
+sed -i '' 's/AIzaSy...[REDACTED]/REDACTED/g' data/extraction/due_diligence_vault.jsonl
 ```
 
 ### Step 3: CLEAN git history (optional but recommended)
@@ -135,10 +135,10 @@ The git history still contains the secrets. To remove them completely:
 ```bash
 # Use git-filter-repo or BFG Repo Cleaner
 pip install git-filter-repo
-git filter-repo --replace-text <(echo 'AIzaSyBsrx6G9rgSQOujv2m5xIfuimoOoLxV014==>REDACTED')
-git filter-repo --replace-text <(echo '8465352813:AAGZqamdYhT8PNWGSP6K_ukkpvutp6DGE6Y==>REDACTED')
-git filter-repo --replace-text <(echo '8706259296:AAHIJgQu6x59tZZ-KgpvJHW-OPZVJFWZYew==>REDACTED')
-git filter-repo --replace-text <(echo 'sk-sej9ye5gv5s2ywsrvyi20wnudbd0h96mz0dfyies6qaymtv6==>REDACTED')
+git filter-repo --replace-text <(echo 'AIzaSy...[REDACTED]==>REDACTED')
+git filter-repo --replace-text <(echo '8465352813...[REDACTED]==>REDACTED')
+git filter-repo --replace-text <(echo '8706259296...[REDACTED]==>REDACTED')
+git filter-repo --replace-text <(echo 'sk-...[REDACTED]==>REDACTED')
 # Then force-push (requires coordination with all collaborators)
 ```
 

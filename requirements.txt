@@ -1,4 +1,4 @@
-crewai[tools]>=0.108.0
+crewai[tools]==0.108.0
 # litellm removido — TeamPCP supply chain attack mar 2026 (CVE-2026-35030)
 # Ver: docs/06_security/SOVEREIGN_SECURITY.md
 python-dotenv==1.2.2
