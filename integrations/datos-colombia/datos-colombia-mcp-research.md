@@ -417,7 +417,7 @@ Avalanche C-Chain: 0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6
 | ArcGIS FeatureServer | ❌ | ✅ Metro Medellín geoespacial |
 | Governance DOF | ❌ | ✅ ConstitutionEnforcer pre-respuesta |
 | Reglas legales Z3 | ❌ | ✅ 5 reglas Ley 80/1993 verificadas |
-| On-chain attestation | ❌ | ✅ DOFProofRegistry 8 chains |
+| On-chain attestation | ❌ | ✅ DOFProofRegistry 9 chains |
 | Cache inteligente | ❌ | ✅ TTL: contratos 1h, geo 24h |
 | Filtro municipio nativo | ❌ | ✅ `municipio=MEDELLIN` en tools |
 

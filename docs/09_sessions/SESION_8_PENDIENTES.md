@@ -9,7 +9,7 @@
 ## Qué se hizo en esta sesión
 
 ### Website dofmesh.com (Mintlify)
-- Sweep completo de todos los `.mdx`: 8 chains, 4,302 tests, 143 módulos
+- Sweep completo de todos los `.mdx`: 9 chains, 4,302 tests, 143 módulos
 - Tempo Chain removido de todas las páginas
 - Página `changelog/changelog.mdx` creada — historial v0.5.0 → v0.6.0 → sesión 8
 - `docs.json` actualizado con tab "Updates"
@@ -96,7 +96,7 @@ Ideas documentadas (no comprometidas):
 
 ## Commits de esta sesión (5 commits a main)
 - `09a26cb` docs: actualizar dofmesh.com — tests 4272, chains 8, Tempo Chain removido, changelog nuevo
-- `6325893` docs: sweep completo — 8 chains en todos los mdx, tests 4272 en refs
+- `6325893` docs: sweep completo — 9 chains en todos los mdx, tests 4272 en refs
 - `a3edb32` feat(fase2): DiskTaskQueue filelock + SystemPromptBoundary — 30 tests OK
 - `5621ba9` feat(fase3): AbortSignal cascade + StreamingToolExecutor + Git Worktree Isolation — 15 tests OK
 - `b8060e1` docs: actualizar métricas sesión 8 — 4302 tests, 143 módulos, changelog completo

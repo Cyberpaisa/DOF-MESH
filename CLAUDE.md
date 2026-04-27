@@ -15,7 +15,7 @@ Eres parte del **DOF Mesh Legion** — un organismo agéntico soberano impulsado
 > Histórico de sesiones: `docs/09_sessions/CHANGELOG.md`
 
 - **Versión:** 0.8.0 | **Repo:** `Cyberpaisa/DOF-MESH` | **Remote:** `dof-mesh`
-- **Codebase:** 65,360 LOC (core+dof), **173 módulos core/**, 215 test files, **4,778 tests discovered** (0 load errors)
+- **Codebase:** 65,360 LOC (core+dof), **173 módulos core/**, 215 test files, **4,800 tests discovered** (0 load errors)
 - **SDK:** `dof-sdk v0.8.0` en PyPI | **On-chain:** 30+ attestations en **9 chains verificadas** (3 mainnet + 5 testnet + Tempo)
 - **CrewAI Agents:** 20 (bajo `agents/`) | **Scripts:** 79 | **Docs:** 223 .md
 - **CI:** GitHub Actions — 4 workflows (Tests + DOF CI + Z3 Verify + Lint) — verde en commit `f3fbb67`
@@ -148,7 +148,7 @@ Casi causa expulsión de la competencia. Ver `docs/03_book/BOOK_CH23_SCOPE_BREAC
 | SecurityHierarchy | Supervisor Engine |
 
 ### Métricas actuales (v0.8.0 — auditadas 2026-04-16, sesión 12):
-- **Tests:** 4,778 discovered (0 load errors) — pass rate en CI: ver `docs/09_sessions/ESTADO_ACTUAL.md`
+- **Tests:** 4,800 discovered (0 load errors) — pass rate en CI: ver `docs/09_sessions/ESTADO_ACTUAL.md`
 - **Módulos core/:** 173 (imports 100% OK post-fix hyperion_bridge + crewai)
 - **Chains activas:** 9 (3 mainnet: Avalanche, Base, Celo + 5 testnet: Fuji, Base Sepolia, Conflux, Polygon Amoy, SKALE + Tempo Mainnet)
 - **Attestations on-chain:** 30+

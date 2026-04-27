@@ -88,8 +88,8 @@ result = adapter.publish_attestation(
 | Autonomous cycles | 238+ | `logs/daemon/cycles.jsonl` |
 | Z3 theorems PROVEN | 4/4 | `python3 -m dof verify-states` |
 | On-chain proofs (Conflux) | 36+ | ConfluxScan explorer |
-| On-chain proofs (all chains) | 80+ | 8 chains total |
-| Tests passing | 4,308 | `python3 -m unittest discover -s tests` |
+| On-chain proofs (all chains) | 80+ | 9 chains total |
+| Tests passing | 4,800 | `python3 -m unittest discover -s tests` |
 | Zero LLM in governance path | ✅ | `grep -r "llm_call" core/governance.py` → 0 matches |
 
 ---
@@ -126,7 +126,7 @@ DOF-MESH v0.6.0
 ├── 8 active chains — Avalanche, Base, Celo, Conflux, Polygon, SKALE, Fuji, Base Sepolia
 ├── 238+ autonomous cycles logged
 ├── ConfluxGateway with Gas Sponsorship support
-└── DOFProofRegistry.sol — identical contract on all 8 chains
+└── DOFProofRegistry.sol — identical contract on all 9 chains
 ```
 
 ---

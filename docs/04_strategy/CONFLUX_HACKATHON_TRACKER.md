@@ -133,8 +133,8 @@ Actualizar antes de enviar:
 | Ciclos autónomos | 238+ | `logs/daemon/cycles.jsonl` |
 | Z3 theorems PROVEN | 4/4 | `python3 -m dof verify-states` |
 | Proofs en Conflux testnet | 38+ (después de sesión) | ConfluxScan |
-| Proofs en todas las chains | 80+ | 8 chains activas |
-| Tests pasando | 4,308 | `python3 -m unittest discover -s tests` |
+| Proofs en todas las chains | 80+ | 9 chains activas |
+| Tests pasando | 4,800 | `python3 -m unittest discover -s tests` |
 | Zero LLM en governance | ✅ | Determinístico: regex + Z3 + AST |
 | Balance CFX testnet | 1,098 CFX | ConfluxScan wallet |
 
@@ -175,7 +175,7 @@ Actualizar antes de enviar:
 2. **Z3 formal proofs** — 4 teoremas matemáticamente PROVEN, no "pretty good"
 3. **Gas Sponsorship nativo** — agentes registran proofs sin tener CFX propio
 4. **238+ ciclos autónomos documentados** — evidencia real, no un demo fabricado
-5. **Mismo contrato en 8 chains** — DOFProofRegistry portable, Conflux es una más del ecosistema
+5. **Mismo contrato en 9 chains** — DOFProofRegistry portable, Conflux es una más del ecosistema
 
 ---
 
