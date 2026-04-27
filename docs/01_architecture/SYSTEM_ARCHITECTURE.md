@@ -274,7 +274,7 @@
 1. **Zero-LLM governance** — Every governance decision is deterministic (regex, AST, Z3). No LLM judges another LLM.
 2. **Zero external dependencies** — DOF works standalone, without Enigma or any external service.
 3. **Proofs, not logs** — Every decision generates a verifiable cryptographic hash, not just a log.
-4. **Multi-chain portable** — Identity and attestations on Avalanche, Base, Celo, Ethereum.
+4. **Multi-chain portable** — Identity and attestations on Avalanche, Base, Celo, Tempo, Ethereum.
 5. **Heterogeneous mesh** — 11 distinct coordinated LLMs. Stronger than any individual model.
 6. **Offline-capable** — Sentinel, governance, and Z3 work without an internet connection.
 7. **Test-first** — 4,800 tests. No code is merged without tests.

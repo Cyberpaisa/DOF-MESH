@@ -12,7 +12,7 @@ Evolución de métricas por sesión. Valores medidos directamente del repo en ca
 | Core modules | 173 (0 imports rotos) |
 | Test files | 215 |
 | Tests discovered | 4,800 (0 load errors) |
-| Chains verificadas | 9 (3 mainnet + 5 testnet + Tempo) |
+| Chains verificadas | 9 (4 mainnet + 5 testnet + Tempo) |
 | On-chain attestations | 30+ |
 | CrewAI agents | 20 |
 | Scripts | 79 |
@@ -56,7 +56,7 @@ Cambios clave:
 
 - Tests: 4,157 pasando, 0 fallos
 - Módulos: 142
-- 9 chains activas (3 mainnet + 5 testnet)
+- 9 chains activas (4 mainnet + 5 testnet)
 - Attestations on-chain: 30+
 - Ciclos autónomos: 238
 - Z3 proofs: 4/4 PROVEN

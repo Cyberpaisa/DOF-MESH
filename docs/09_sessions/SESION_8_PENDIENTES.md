@@ -87,7 +87,7 @@ Ideas documentadas (no comprometidas):
 |---|---|
 | Tests | 4,302 / 0 fallos |
 | Módulos core | 143 |
-| Chains activas | 8 (3 mainnet + 5 testnet) |
+| Chains activas | 8 (4 mainnet + 5 testnet) |
 | Attestations on-chain | 30+ |
 | Z3 proofs | 4/4 PROVEN |
 | dofmesh.com | Actualizado y desplegado |

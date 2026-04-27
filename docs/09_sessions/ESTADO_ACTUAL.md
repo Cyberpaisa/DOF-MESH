@@ -16,7 +16,7 @@ DOF-MESH
 | Test files | 215 | `find tests -name "test_*.py"` |
 | Tests discovered | 4,800 | `unittest.TestLoader().discover()` — 0 load errors |
 | Imports rotos | 0 | Post-fix hyperion_bridge + crewai |
-| Chains | 9 | 3 mainnet + 5 testnet + Tempo |
+| Chains | 9 | 4 mainnet + 5 testnet + Tempo |
 | On-chain attestations | 30+ | `DOFProofRegistry` en 9 chains |
 | CrewAI agents | 20 | `ls agents/*/` |
 | Scripts | 79 | `find scripts -name "*.py" -o -name "*.sh"` |

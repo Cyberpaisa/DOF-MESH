@@ -64,7 +64,7 @@ Leer en este orden:
 | v0.3.3 | `dof-hackathon` branch | 2026-03-24 | Prototipo hackathon, 53 test files |
 | v0.4.1 | `deterministic-observability-framework` main | 2026-03-22 | Open source público, 69 test files |
 | v0.6.0 | `equipo-de-agentes` (DOF-MESH) | 2026-04-04 | PyPI live, 4,800 tests — harness: mock_provider + session_resume + cost_tracker |
-| v0.8.0 | `equipo-de-agentes` (DOF-MESH) | 2026-04-12 | 4,800 tests · 148 módulos |
+| v0.8.0 | `equipo-de-agentes` (DOF-MESH) | 2026-04-12 | 4,800 tests · 173 módulos |
 | — | `dof-landing` | 2026-04-04 | dofmesh.com producción, chat widget |
 
 ---
@@ -75,7 +75,7 @@ Leer en este orden:
 - **Módulos Python:** 231 archivos
 - **Tests:** 4,800 passing (583 en CI GitHub Actions)
 - **Lecciones:** L-1 → L-72
-- **Chains:** 8 (3 mainnet: Avalanche, Base, Celo + 5 testnet)
+- **Chains:** 8 (4 mainnet: Avalanche, Base, Celo, Tempo + 5 testnet)
 - **Agentes especializados:** 15
 - **Nodos mesh:** 29 registrados
 - **Attestations on-chain:** 30+

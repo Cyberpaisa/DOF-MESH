@@ -15,11 +15,11 @@
 [![Tests](https://img.shields.io/badge/Tests-4%2C800_passing-brightgreen?style=flat-square)]()
 [![PyPI](https://img.shields.io/pypi/v/dof-sdk?color=blue&style=flat-square)](https://pypi.org/project/dof-sdk/)
 [![Python](https://img.shields.io/badge/python-3.11+-blue?style=flat-square)](https://pypi.org/project/dof-sdk/)
-[![Modules](https://img.shields.io/badge/Modules-148-blue?style=flat-square)]()
+[![Modules](https://img.shields.io/badge/Modules-173-blue?style=flat-square)]()
 [![Z3](https://img.shields.io/badge/Z3-4_theorems_PROVEN-critical?style=flat-square)]()
 [![Chains](https://img.shields.io/badge/Chains-9-gold?style=flat-square)]()
 [![Attestations](https://img.shields.io/badge/Attestations-30%2B-orange?style=flat-square)]()
-[![LOC](https://img.shields.io/badge/LOC-57K%2B-lightgrey?style=flat-square)]()
+[![LOC](https://img.shields.io/badge/LOC-65K%2B-lightgrey?style=flat-square)]()
 [![License](https://img.shields.io/badge/License-BSL--1.1-purple?style=flat-square)](LICENSE)
 
 [PyPI](https://pypi.org/project/dof-sdk/) | [Getting Started](docs/05_operations/GETTING_STARTED.md) | [Documentation](docs/INDEX.md) | [On-Chain Proof](https://snowtrace.io/address/0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c) | [@Cyber_paisa](https://t.me/Cyber_paisa)
@@ -194,8 +194,8 @@ A deterministic function does. Every time. Same answer.
 | Autonomous cycles | **238+** |
 | On-chain attestations | **30+** |
 | Chains (mainnets) | **8** |
-| Core modules | **148** |
-| Lines of code | **57,000+** |
+| Core modules | **173** |
+| Lines of code | **65,000+** |
 | Z3 theorems | **4/4 PROVEN** |
 | Hierarchy patterns (Z3) | **42 PROVEN** |
 | LLM providers | **7+ (Cerebras, Groq, DeepSeek, Gemini, NVIDIA, SambaNova, Zhipu)** |
@@ -308,7 +308,7 @@ Full data: [`experiments/winston_vs_baseline/`](experiments/winston_vs_baseline/
 
 ```
 DOF-MESH/
-  core/                     # 148 modules -- the framework engine
+  core/                     # 173 modules -- the framework engine
     governance.py            # ConstitutionEnforcer, HARD/SOFT rules
     z3_verifier.py           # 4 theorems formally PROVEN
     z3_gate.py               # Neurosymbolic gate (APPROVED/REJECTED/TIMEOUT)
@@ -333,7 +333,7 @@ DOF-MESH/
 
 **@Cyber_paisa** · [Telegram](https://t.me/Cyber_paisa)
 
-**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,800 tests. 9 chains. 148 modules. Mathematics, not promises.
+**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,800 tests. 9 chains. 173 modules. Mathematics, not promises.
 
 ---
 

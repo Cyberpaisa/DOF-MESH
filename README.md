@@ -15,11 +15,11 @@
 [![Tests](https://img.shields.io/badge/Tests-4%2C800_passing-brightgreen?style=flat-square)]()
 [![PyPI](https://img.shields.io/pypi/v/dof-sdk?color=blue&style=flat-square)](https://pypi.org/project/dof-sdk/)
 [![Python](https://img.shields.io/badge/python-3.11+-blue?style=flat-square)](https://pypi.org/project/dof-sdk/)
-[![Modules](https://img.shields.io/badge/Modules-148-blue?style=flat-square)]()
+[![Modules](https://img.shields.io/badge/Modules-173-blue?style=flat-square)]()
 [![Z3](https://img.shields.io/badge/Z3-4_theorems_PROVEN-critical?style=flat-square)]()
 [![Chains](https://img.shields.io/badge/Chains-9-gold?style=flat-square)]()
 [![Attestations](https://img.shields.io/badge/Attestations-30%2B-orange?style=flat-square)]()
-[![LOC](https://img.shields.io/badge/LOC-57K%2B-lightgrey?style=flat-square)]()
+[![LOC](https://img.shields.io/badge/LOC-65K%2B-lightgrey?style=flat-square)]()
 [![License](https://img.shields.io/badge/License-BSL--1.1-purple?style=flat-square)](LICENSE)
 
 [PyPI](https://pypi.org/project/dof-sdk/) | [Getting Started](docs/05_operations/GETTING_STARTED.md) | [Documentation](docs/INDEX.md) | [On-Chain Proof](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6) | [@Cyber_paisa](https://t.me/Cyber_paisa)
@@ -194,8 +194,8 @@ A deterministic function does. Every time. Same answer.
 | Autonomous cycles | **238+** |
 | On-chain attestations | **30+** |
 | Chains (mainnets) | **7** |
-| Core modules | **148** |
-| Lines of code | **57,000+** |
+| Core modules | **173** |
+| Lines of code | **65,000+** |
 | Z3 theorems | **4/4 PROVEN** |
 | Hierarchy patterns (Z3) | **42 PROVEN** |
 | LLM providers | **7+ (Cerebras, Groq, DeepSeek, Gemini, NVIDIA, SambaNova, Zhipu)** |
@@ -273,7 +273,7 @@ print(post.attestation_hash)  # 0x44b45cd026916c...
 
 ## On-Chain Attestation
 
-**DOFProofRegistry** deployed on 9 chains (3 mainnet + 5 testnet). Verified on-chain 03 Apr 2026.
+**DOFProofRegistry** deployed on 9 chains (4 mainnet + 5 testnet). Verified on-chain 03 Apr 2026.
 
 | Chain | Contract | Status |
 |:------|:---------|:-------|
@@ -363,7 +363,7 @@ Full data: [`experiments/winston_vs_baseline/`](experiments/winston_vs_baseline/
 
 ```
 equipo-de-agentes/
-  core/                     # 148 modules -- the framework engine
+  core/                     # 173 modules -- the framework engine
     governance.py            # ConstitutionEnforcer, HARD/SOFT rules
     z3_verifier.py           # 4 theorems formally PROVEN
     z3_gate.py               # Neurosymbolic gate (APPROVED/REJECTED/TIMEOUT)
@@ -374,7 +374,7 @@ equipo-de-agentes/
     claude_commander.py      # 5 modes: SDK, Spawn, Team, Debate, Peers
     ...
   agents/                   # agents running on DOF (validation, not the product)
-  contracts/                # DOFProofRegistry.sol (deployed on 9 chains — 3 mainnet + 5 testnet)
+  contracts/                # DOFProofRegistry.sol (deployed on 9 chains — 4 mainnet + 5 testnet)
   integrations/             # CrewAI, AgentKit, Virtuals, SKALE, Tempo
   tests/                    # 4,800 unit tests
   docs/                     # public documentation
@@ -388,7 +388,7 @@ equipo-de-agentes/
 
 **@Cyber_paisa** · [Telegram](https://t.me/Cyber_paisa)
 
-**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,800 tests. 9 chains (3 mainnet + 5 testnet + 1 ERC-8004). 148 modules. Mathematics, not promises.
+**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,800 tests. 9 chains (4 mainnet + 5 testnet + 1 ERC-8004). 173 modules. Mathematics, not promises.
 
 ---
 
