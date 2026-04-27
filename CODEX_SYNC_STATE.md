@@ -1,23 +1,18 @@
-# SYNC REPORT — DOF-MESH v0.8.0 [2026-04-26]
+# SYNC STATUS — DOF-MESH [2026-04-26]
 
-## 1. Test Count Synchronization
-The authoritative test count has been updated across the entire ecosystem.
-- **Source of Truth**: 4,800 tests (discovered via `grep "def test_" tests/` in local repo).
-- **Previous Stale Counts**: 4,446 (README) and 4,778 (Web/Landing).
-- **Updated Locations**:
-  - `DOF-MESH/README.md` & `README.en.md`
-  - `equipo-de-agentes/README.md` & `README.en.md`
-  - `dof-landing/public/index.html` & `dof-home.html`
-  - All Mintlify `.mdx` and documentation session reports.
-  - `ARCHITECTURE.md` in Codex Context Package v3.
+## 1. Test Count (Vigilancia)
+- **Local**: 4,800 tests (verificado en código).
+- **Remoto**: PENDIENTE (la web y GitHub todavía muestran cifras desactualizadas).
+- **Instrucción Codex**: Reportar cifras como "4,800+ [pendiente de validación remota]" hasta que el deploy final sea verificado.
 
-## 2. Infrastructure State
-- **Current Version**: v0.8.0
-- **Verification Engine**: Z3 Formal Verifier (4/4 Invariants Proven).
-- **On-Chain Layers**: 9 Chains (Avalanche, Base, Conflux, SKALE, etc.).
-- **Local Fallback**: Ollama (Llama 3.2).
+## 2. Infraestructura Multichain
+- **Estado**: Multichain (Avalanche, Base, Conflux, etc.).
+- **Validación**: Validar número exacto de chains activas antes de cualquier cambio en contratos.
 
-## 3. Mandatory Codex Instructions
-- Use **Context Package v3** (ZIP in Downloads or project root).
-- Always verify the test count with `python3 -m unittest discover -s tests` before claiming success.
-- Do NOT modify `core/z3_verifier.py` or `core/z3_gate.py` as they define the 4,800 tests' formal logic.
+## 3. Estado del Deploy
+- **Push**: En proceso (carga pesada).
+- **Vercel/Mintlify**: Esperando trigger de commit remoto.
+
+## 4. Maintenance
+
+- **CI Fix**: Resolved linting error F821 in `security_analyst.py` (missing `import time`).
