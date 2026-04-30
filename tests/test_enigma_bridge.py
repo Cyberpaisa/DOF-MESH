@@ -9,9 +9,12 @@ import os
 import sys
 import json
 import unittest
+import pytest
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
+
+pytestmark = pytest.mark.optional
 
 from core.enigma_bridge import EnigmaBridge, DOFTrustScore, TrustScore
 

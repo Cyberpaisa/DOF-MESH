@@ -8,8 +8,11 @@ import time
 import unittest
 import urllib.request
 from pathlib import Path
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+pytestmark = [pytest.mark.integration, pytest.mark.optional]
 
 def _free_port() -> int:
     with _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM) as s:

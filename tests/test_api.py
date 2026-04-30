@@ -5,9 +5,12 @@ import os
 import sys
 import tempfile
 import unittest
+import pytest
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
+
+pytestmark = pytest.mark.optional
 
 try:
     from fastapi.testclient import TestClient
