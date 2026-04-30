@@ -183,8 +183,10 @@ async def health():
     return {
         "status": "ok",
         "version": DOF_VERSION,
-        "tests": 350,
-        "modules": 30,
+        # These are intentionally not global repo metrics.
+        "tests": None,
+        "modules": None,
+        "metrics_scope": "not_reported_by_health",
     }
 
 
