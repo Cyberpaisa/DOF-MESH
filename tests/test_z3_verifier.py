@@ -5,7 +5,9 @@ Tests for core/z3_verifier.py — Z3 formal verification of DOF invariants.
 import os
 import sys
 import json
+import tempfile
 import unittest
+from unittest.mock import patch
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
@@ -69,12 +71,15 @@ class TestVerifyAll(unittest.TestCase):
         self.assertEqual(len(verified), 4)
 
     def test_verify_all_saves_json(self):
-        verifier = Z3Verifier()
-        verifier.verify_all()
-        self.assertTrue(os.path.exists(PROOFS_FILE))
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_proofs_file = os.path.join(tmpdir, "z3_proofs.json")
+            with patch("core.z3_verifier.PROOFS_FILE", temp_proofs_file):
+                verifier = Z3Verifier()
+                verifier.verify_all()
+                self.assertTrue(os.path.exists(temp_proofs_file))
 
-        with open(PROOFS_FILE) as f:
-            data = json.load(f)
+                with open(temp_proofs_file) as f:
+                    data = json.load(f)
 
         self.assertIn("proofs", data)
         self.assertIn("summary", data)

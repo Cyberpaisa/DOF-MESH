@@ -92,3 +92,15 @@ include = ["dof*", "core*", "integrations*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+markers = [
+    "core: canonical defendable core tests",
+    "integration: multi-module or local service integration tests",
+    "scientific: scientific or research-oriented evaluation tests",
+    "external: tests depending on external artifacts or environments",
+    "stress: load, chaos, or stress tests",
+    "scratch: exploratory or non-canonical scratch tests",
+    "slow: tests with longer runtime",
+    "onchain: tests requiring blockchain or chain-specific context",
+    "red_team: adversarial or red-team test coverage",
+    "optional: tests gated by optional dependencies or environment constraints",
+]
