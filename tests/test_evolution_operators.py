@@ -30,10 +30,13 @@ def _make_gene(gene_id="TEST-p001", regex=r"(?i)\bignore\s+rules?\b",
 class TestMutate(unittest.TestCase):
 
     def test_mutate_no_llm_returns_original(self):
-        """Sin LLM, mutate devuelve el gen original (sin crash)."""
+        """Sin LLM disponible, mutate devuelve el gen original."""
         gene = _make_gene()
-        result = mutate(gene, llm_fn=None)
-        # Sin LLM disponible, retorna el original
+
+        def no_llm(prompt):
+            return None
+
+        result = mutate(gene, llm_fn=no_llm)
         self.assertEqual(result.id, gene.id)
 
     def test_mutate_with_mock_llm_returns_new_gene(self):

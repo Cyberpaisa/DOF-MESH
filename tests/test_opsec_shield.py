@@ -294,23 +294,25 @@ class TestNetworkScan(unittest.TestCase):
 
     def test_network_scan_with_open_port(self):
         """Test detection of an open port using a real socket server."""
-        # Start a temporary server
+        # Start a temporary server on an OS-assigned free port to avoid
+        # collisions with local services or CI environment restrictions.
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            server.bind(("127.0.0.1", 9876))
+            server.bind(("127.0.0.1", 0))
             server.listen(1)
+            port = server.getsockname()[1]
 
             shield = OpsecShield(project_dir=self.tmpdir)
 
             # Monkey-patch the port list temporarily
             import core.opsec_shield as mod
             original = dict(mod._KNOWN_SERVICES)
-            mod._KNOWN_SERVICES[9876] = "Test Server"
+            mod._KNOWN_SERVICES[port] = "Test Server"
             try:
                 report = shield.scan_network_exposure()
                 port_nums = [p["port"] for p in report.open_ports]
-                self.assertIn(9876, port_nums)
+                self.assertIn(port, port_nums)
             finally:
                 mod._KNOWN_SERVICES.clear()
                 mod._KNOWN_SERVICES.update(original)
