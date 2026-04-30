@@ -30,7 +30,7 @@ jobs:
       - name: Install test dependencies (minimal — no crewai/litellm)
         run: |
           pip install --upgrade pip
-          pip install z3-solver pyyaml python-dotenv rich blake3 fastapi httpx sqlalchemy web3 psutil
+          pip install pytest z3-solver pyyaml python-dotenv rich blake3 fastapi httpx sqlalchemy web3 psutil
 
       - name: Install dof package (no transitive deps)
         run: pip install -e . --no-deps
