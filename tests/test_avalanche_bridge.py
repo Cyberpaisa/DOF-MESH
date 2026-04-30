@@ -8,9 +8,12 @@ On-chain tests require AVALANCHE_PRIVATE_KEY (skipped in CI).
 import os
 import sys
 import unittest
+import pytest
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
+
+pytestmark = [pytest.mark.onchain, pytest.mark.optional]
 
 from core.avalanche_bridge import _hex_to_bytes32
 

@@ -19,9 +19,12 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock
+import pytest
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOGS_DIR = os.path.join(BASE_DIR, "logs")
+
+pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
 
 class TestFullPipelineAcceptFlow(unittest.TestCase):

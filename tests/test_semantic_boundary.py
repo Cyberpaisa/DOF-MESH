@@ -6,6 +6,9 @@ Run with: python3 -m unittest tests.test_semantic_boundary
 """
 
 import unittest
+import pytest
+
+pytestmark = pytest.mark.optional
 
 from core.governance import (
     _tfidf_similarity,

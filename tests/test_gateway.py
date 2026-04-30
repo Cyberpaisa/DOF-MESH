@@ -8,9 +8,12 @@ Usa fastapi.testclient.TestClient (sin necesidad de servidor real).
 import os
 import sys
 import unittest
+import pytest
 
 # Asegurar que el proyecto esté en el path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+pytestmark = [pytest.mark.integration, pytest.mark.optional]
 
 # Configurar modo dev antes de importar el gateway
 os.environ.pop("DOF_GATEWAY_KEYS", None)  # modo dev: acepta sk-dof-*

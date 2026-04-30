@@ -5,8 +5,11 @@ python3 -m unittest tests.test_conflux_integration -v
 import unittest
 import sys
 from pathlib import Path
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+pytestmark = [pytest.mark.integration, pytest.mark.onchain, pytest.mark.slow]
 
 
 class TestConfluxChainAdapterDryRun(unittest.TestCase):

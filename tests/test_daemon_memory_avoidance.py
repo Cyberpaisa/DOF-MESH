@@ -18,11 +18,14 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+import pytest
 
 # Asegurar PYTHONPATH apunta a la raíz del proyecto
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
+
+pytestmark = pytest.mark.optional
 
 from core.autonomous_daemon import AutonomousDaemon, DaemonAction, SystemState
 from core.daemon_memory import DaemonMemory, ErrorPattern
