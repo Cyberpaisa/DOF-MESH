@@ -3,6 +3,7 @@ import time
 import json
 import asyncio
 import hashlib
+import unittest
 from dotenv import load_dotenv
 import logging
 
@@ -23,12 +24,15 @@ logger = logging.getLogger("ScientificEval")
 # ---------------------------------------------------------
 load_dotenv()
 FUNDED_PK = os.getenv("DOF_PRIVATE_KEY")
-
-if not FUNDED_PK:
-    raise ValueError("Se requiere DOF_PRIVATE_KEY (llave fundeada en Avalanche) en el .env")
+SKIP_REASON = (
+    "Scientific/on-chain optional test: requires DOF_PRIVATE_KEY in the environment"
+)
 
 AVA_AGENT_ID = 1686
 APEX_AGENT_ID = 101
+
+if not FUNDED_PK:
+    raise unittest.SkipTest(SKIP_REASON)
 
 # ---------------------------------------------------------
 # EXPERIMENTO 1: Flujo Integrado (Honest Agent)
