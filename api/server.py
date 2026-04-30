@@ -64,7 +64,7 @@ def _load_api_keys() -> set:
 # Endpoints excluded from API key auth
 _AUTH_EXCLUDED_PATHS = {"/api/v1/health", "/docs", "/openapi.json", "/redoc"}
 
-from mcp_server import (
+from core.mcp_server import (
     tool_verify_governance,
     tool_verify_ast,
     tool_run_z3,

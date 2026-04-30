@@ -11,10 +11,13 @@ sys.path.insert(0, BASE_DIR)
 
 try:
     from fastapi.testclient import TestClient
-    from api.server import app
     HAS_FASTAPI = True
 except ImportError:
     HAS_FASTAPI = False
+    TestClient = None
+
+if HAS_FASTAPI:
+    from api.server import app
 
 
 @unittest.skipUnless(HAS_FASTAPI, "fastapi not installed")
