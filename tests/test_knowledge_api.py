@@ -1,5 +1,6 @@
 """Tests for core/knowledge_api.py"""
 import json
+import socket as _socket
 import sys
 import tempfile
 import threading
@@ -10,13 +11,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# Use a dynamic free port to avoid conflicts with running processes
-import socket as _socket
 def _free_port() -> int:
     with _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM) as s:
         s.bind(("127.0.0.1", 0))
         return s.getsockname()[1]
-TEST_PORT = _free_port()
+
+
+TEST_PORT: int | None = None
 
 SAMPLE_REPORT = {
     "id_aprobacion": "api00001",
@@ -36,6 +37,8 @@ SAMPLE_REPORT = {
 
 
 def _get(path: str) -> tuple[int, dict]:
+    if TEST_PORT is None:
+        raise RuntimeError("TEST_PORT not initialized")
     url = f"http://127.0.0.1:{TEST_PORT}{path}"
     try:
         with urllib.request.urlopen(url, timeout=3) as r:
@@ -45,6 +48,8 @@ def _get(path: str) -> tuple[int, dict]:
 
 
 def _post(path: str) -> tuple[int, dict]:
+    if TEST_PORT is None:
+        raise RuntimeError("TEST_PORT not initialized")
     url = f"http://127.0.0.1:{TEST_PORT}{path}"
     req = urllib.request.Request(url, data=b"", method="POST")
     try:
@@ -59,6 +64,14 @@ class TestKnowledgeAPI(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        global TEST_PORT
+        try:
+            TEST_PORT = _free_port()
+        except PermissionError as exc:
+            raise unittest.SkipTest(
+                "Integration test requires local port binding permissions"
+            ) from exc
+
         cls.tmp = Path(tempfile.mkdtemp())
         cls.pending_dir = cls.tmp / "docs" / "knowledge" / "pending"
         cls.pending_dir.mkdir(parents=True)
@@ -68,7 +81,12 @@ class TestKnowledgeAPI(unittest.TestCase):
 
         from core.knowledge_api import KnowledgeHandler
         from http.server import HTTPServer
-        cls.server = HTTPServer(("127.0.0.1", TEST_PORT), KnowledgeHandler)
+        try:
+            cls.server = HTTPServer(("127.0.0.1", TEST_PORT), KnowledgeHandler)
+        except PermissionError as exc:
+            raise unittest.SkipTest(
+                "Integration test requires local HTTP server binding permissions"
+            ) from exc
         cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
         cls.thread.start()
         time.sleep(0.1)  # give server time to bind
