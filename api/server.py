@@ -64,7 +64,7 @@ def _load_api_keys() -> set:
 # Endpoints excluded from API key auth
 _AUTH_EXCLUDED_PATHS = {"/api/v1/health", "/docs", "/openapi.json", "/redoc"}
 
-from mcp_server import (
+from core.mcp_server import (
     tool_verify_governance,
     tool_verify_ast,
     tool_run_z3,
@@ -183,8 +183,10 @@ async def health():
     return {
         "status": "ok",
         "version": DOF_VERSION,
-        "tests": 350,
-        "modules": 30,
+        # These are intentionally not global repo metrics.
+        "tests": None,
+        "modules": None,
+        "metrics_scope": "not_reported_by_health",
     }
 
 

@@ -84,7 +84,7 @@ all = ["dof-sdk[dev,data,interfaces,api,db,agents,langgraph,otel,whisper]"]
 dof = "dof.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/Cyberpaisa/deterministic-observability-framework"
+Homepage = "https://github.com/Cyberpaisa/DOF-MESH"
 
 [tool.setuptools.packages.find]
 include = ["dof*", "core*", "integrations*"]
