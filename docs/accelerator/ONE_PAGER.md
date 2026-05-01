@@ -21,7 +21,7 @@ La propuesta de DOF-MESH separa cuatro funciones que usualmente quedan mezcladas
 El proyecto reporta actualmente:
 
 - 173 módulos
-- 4,800 tests automatizados
+- 4,797-test collection
 - 9 chains
 - Z3 4/4 PROVEN
 - Digital Bunker Nivel 5
