@@ -104,3 +104,6 @@ markers = [
     "red_team: adversarial or red-team test coverage",
     "optional: tests gated by optional dependencies or environment constraints",
 ]
+filterwarnings = [
+    "ignore:websockets\\.legacy is deprecated:DeprecationWarning:websockets\\.legacy",
+]
