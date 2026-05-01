@@ -17,6 +17,7 @@
 
 ### Operations
 - [GETTING_STARTED.md](05_operations/GETTING_STARTED.md) — Quick start guide
+- [VERIFY_CLI.md](05_operations/VERIFY_CLI.md) — Validated DOF verify CLI usage
 - [MULTICHAIN.md](05_operations/MULTICHAIN.md) — Deploy DOFProofRegistry across 9 tracked chains
 - [ATTESTATIONS.md](05_operations/ATTESTATIONS.md) — On-chain attestation records (30+ proofs)
 
