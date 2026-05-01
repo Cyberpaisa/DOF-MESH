@@ -7,18 +7,18 @@
 
 ## System Numbers
 
-> Última auditoría: 2026-04-16 (sesión 12 — Deuda Técnica Cero)
+> Última auditoría: 2026-04-30 (testing/CI hardening baseline)
 
 | Metric | Value |
 |---|---|
 | Core modules | 173 |
 | Test files | 215 |
-| Total tests | 4,800 (discovered via unittest, 0 load errors) |
+| Total tests | 4,797 collected; canonical suite 293 passed + 11 subtests |
 | Lines of code | 65,360 (core + dof) |
 | Documentation | 223 .md files |
 | Interfaces | 4 (Dashboard, Telegram, Voice, Realtime Voice) |
 | Scripts | 79 |
-| CI Workflows | 4 (Tests, DOF CI, Z3 Verify, Lint) |
+| CI Workflows | 5 (Tests, DOF CI, Z3 Verify, Mutation Testing, Lint) |
 | SDK | dof-sdk 0.8.0 (PyPI) |
 | On-chain | 30+ attestations across 9 chains |
 | CrewAI Agents | 20 |
@@ -277,8 +277,8 @@
 4. **Multi-chain portable** — Identity and attestations on Avalanche, Base, Celo, Tempo, Ethereum.
 5. **Heterogeneous mesh** — 11 distinct coordinated LLMs. Stronger than any individual model.
 6. **Offline-capable** — Sentinel, governance, and Z3 work without an internet connection.
-7. **Test-first** — 4,800 tests. No code is merged without tests.
+7. **Test-first** — 4,797-test collection. No code is merged without tests.
 
 ---
 
-*Last updated: March 27, 2026 — Cyber Paisa, Enigma Group*
+*Last updated: April 30, 2026 — Cyber Paisa, Enigma Group*
