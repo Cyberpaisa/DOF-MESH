@@ -8,7 +8,17 @@ on:
       - 'core/governance.py'
       - 'core/z3_gate.py'
       - '.github/workflows/mutation-testing.yml'
+  pull_request:
+    branches: ["main"]
+    paths:
+      - 'core/adversarial.py'
+      - 'core/governance.py'
+      - 'core/z3_gate.py'
+      - '.github/workflows/mutation-testing.yml'
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
