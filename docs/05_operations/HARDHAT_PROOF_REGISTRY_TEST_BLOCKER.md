@@ -30,7 +30,7 @@ This means Hardhat is expected to treat files inside `contracts/` as Solidity so
 
 ## Blocker
 
-The file `contracts/ERC8004Attestation.sol` is not valid Solidity source.
+The file `contracts/ERC8004Attestation.openpgp` is not valid Solidity source.
 
 Local inspection identified it as:
 
@@ -68,7 +68,7 @@ The existing test suite is primarily Python-based under `tests/`.
 
 Do not add Hardhat Solidity behavior tests until the compile blocker is resolved.
 
-Do not run `npx hardhat compile` against the current root source tree without first deciding how to handle `contracts/ERC8004Attestation.sol`.
+Do not run `npx hardhat compile` against the current root source tree without first deciding how to handle `contracts/ERC8004Attestation.openpgp`.
 
 ## Safe options
 
@@ -80,7 +80,7 @@ This avoids moving files but requires deliberate test infrastructure.
 
 ### Option 2: relocate non-Solidity artifact
 
-Move or rename `contracts/ERC8004Attestation.sol` in a separate PR if it is confirmed to be an artifact/key and not Solidity source.
+Move or rename `contracts/ERC8004Attestation.openpgp` in a separate PR if it is confirmed to be an artifact/key and not Solidity source.
 
 This would restore the expectation that all `.sol` files in `contracts/` are Solidity contracts.
 
@@ -95,7 +95,7 @@ This does not validate Solidity behavior directly, but it can reduce ambiguity a
 Recommended order:
 
 1. Document this blocker.
-2. Decide whether `contracts/ERC8004Attestation.sol` should be relocated or excluded.
+2. Decide whether `contracts/ERC8004Attestation.openpgp` should be relocated or excluded.
 3. Add direct Solidity behavior tests only after Hardhat compile behavior is safe.
 4. Add Python hash compatibility tests if contract test infrastructure remains blocked.
 

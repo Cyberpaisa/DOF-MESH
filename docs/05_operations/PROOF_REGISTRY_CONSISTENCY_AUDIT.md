@@ -16,7 +16,7 @@ Audited components:
 - `contracts/DOFValidationRegistry.sol`
 - `contracts/DOFEvaluator.sol`
 - `contracts/DOFGaslessProof.sol`
-- `contracts/ERC8004Attestation.sol`
+- `contracts/ERC8004Attestation.openpgp`
 - `core/z3_proof.py`
 - `core/zk_governance_proof.py`
 - `core/proof_hash.py`
