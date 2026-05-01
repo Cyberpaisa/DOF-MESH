@@ -80,6 +80,14 @@ Operational diagnostics:
 - Partial mode is not automatically a mutation failure. The relevant mutation result is still the final mutation score and whether mutants were killed or survived.
 - If the verifier is interrupted, run `git status` and restore any touched target files before continuing.
 
+Rejected fast-path note:
+
+- A faster canonical pytest signal was tested as an internal mutation verifier runner.
+- That fast path reduced mutation detection from `16/16 killed` to `1/16 killed`.
+- Mutation score dropped from `100.0%` to `6.2%`.
+- Because of that, the mutation verifier intentionally keeps the broader baseline command even though it is slower.
+- Do not replace the mutation verifier runner with the canonical fast suite unless equivalent mutation strength is proven.
+
 ## Optional npm suites
 
 ### npm run test:integration
