@@ -73,6 +73,13 @@ Mutation Score: 100.0%
 
 Note: the mutation verifier may run slowly because it mutates target files temporarily and executes test checks repeatedly. It must leave the working tree clean after completion.
 
+Operational diagnostics:
+
+- `partial mode` means the broad baseline command did not fully pass locally, but mutation checks still run against the available local test signal.
+- The verifier reports the baseline reason when possible, such as a non-zero exit code, timeout, or exception.
+- Partial mode is not automatically a mutation failure. The relevant mutation result is still the final mutation score and whether mutants were killed or survived.
+- If the verifier is interrupted, run `git status` and restore any touched target files before continuing.
+
 ## Optional npm suites
 
 ### npm run test:integration
