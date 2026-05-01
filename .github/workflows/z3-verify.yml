@@ -41,7 +41,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --upgrade pip
-        pip install z3-solver pyyaml python-dotenv rich blake3 psutil
+        pip install pytest z3-solver pyyaml python-dotenv rich blake3 psutil
 
     - name: Install dof package
       run: pip install -e . --no-deps
@@ -65,15 +65,14 @@ jobs:
 
     - name: Run Z3 unit tests
       run: |
-        python -m unittest \
-          tests.test_state_model \
-          tests.test_transitions \
-          tests.test_hierarchy_z3 \
-          tests.test_z3_gate \
-          tests.test_agent_output \
-          tests.test_boundary \
-          tests.test_z3_test_generator \
-          -v
+        python -m pytest -q \
+          tests/test_state_model.py \
+          tests/test_transitions.py \
+          tests/test_hierarchy_z3.py \
+          tests/test_z3_gate.py \
+          tests/test_agent_output.py \
+          tests/test_boundary.py \
+          tests/test_z3_test_generator.py
 
     - name: Regression Check
       run: |
