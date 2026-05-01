@@ -17,7 +17,7 @@ Puede compartirse información de nivel institucional, estratégico y funcional 
 - El objetivo de preincubación en Créame / Ruta N: preparación para validación y pilotos institucionales o empresariales.
 - Métricas globales ya definidas para uso externo:
   - 173 módulos
-  - 4,800 tests automatizados
+  - 4,797-test collection
   - 9 chains
   - Z3 4/4 PROVEN
   - Digital Bunker Nivel 5
