@@ -27,6 +27,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
       - name: Install test dependencies (minimal — no crewai/litellm)
         run: |
           pip install --upgrade pip
@@ -35,28 +40,11 @@ jobs:
       - name: Install dof package (no transitive deps)
         run: pip install -e . --no-deps
 
-      - name: Run tests
-        # pytest has a web3 plugin conflict in this project — use unittest runner
-        run: |
-          python -m unittest \
-            tests.test_ast_verifier \
-            tests.test_z3_verifier \
-            tests.test_adversarial \
-            tests.test_constitution \
-            tests.test_task_contract \
-            tests.test_causal \
-            tests.test_bayesian_provider \
-            tests.test_memory_governance \
-            tests.test_oags_bridge \
-            tests.test_oracle_bridge \
-            tests.test_full_pipeline \
-            tests.test_mcp_server \
-            tests.test_api \
-            tests.test_storage \
-            tests.test_integrations \
-            tests.test_enigma_bridge \
-            tests.test_avalanche_bridge \
-            -v
+      - name: Run canonical test suite
+        run: npm run test
+
+      - name: Run safe test suite
+        run: npm run test:safe
 
       - name: Verify public API imports
         run: python -c "import dof; print('dof', dof.__version__, '— OK')"
