@@ -196,7 +196,7 @@ A deterministic function does. Every time. Same answer.
 | Mutation verifier | **16/16 killed · 100.0% score** |
 | Autonomous cycles | **238+** |
 | On-chain attestations | **30+** |
-| Chains (mainnets) | **7** |
+| Chains | **9 total tracked** |
 | Core modules | **173** |
 | Lines of code | **65,000+** |
 | Z3 theorems | **4/4 PROVEN** |
@@ -276,7 +276,7 @@ print(post.attestation_hash)  # 0x44b45cd026916c...
 
 ## On-Chain Attestation
 
-**DOFProofRegistry** deployed on 9 chains (4 mainnet + 5 testnet). Verified on-chain 03 Apr 2026.
+**DOFProofRegistry** tracked across 9 chains. Verified on-chain 03 Apr 2026.
 
 | Chain | Contract | Status |
 |:------|:---------|:-------|
@@ -288,6 +288,8 @@ print(post.attestation_hash)  # 0x44b45cd026916c...
 | Conflux Testnet (71) | `0x554cCa8ceBE30dF95CeeFfFBB9ede5bA7C7A9B83` | ✅ testnet |
 | Polygon Amoy (80002) | `0x0b65d10FEcE517c3B6c6339CdE30fF4A8363751c` | ✅ testnet |
 | SKALE Base Sepolia (324705682) | `0x4e54634d0E12f2Fa585B6523fB21C7d8AaFC881D` | ✅ testnet · zero gas |
+
+Note: the deployment table lists the currently documented public addresses. The project tracks 9 total chains across mainnet/testnet environments.
 
 **Roadmap:** Polygon mainnet · Conflux eSpace · SKALE Base mainnet
 
@@ -377,7 +379,7 @@ equipo-de-agentes/
     claude_commander.py      # 5 modes: SDK, Spawn, Team, Debate, Peers
     ...
   agents/                   # agents running on DOF (validation, not the product)
-  contracts/                # DOFProofRegistry.sol (deployed on 9 chains — 4 mainnet + 5 testnet)
+  contracts/                # DOFProofRegistry.sol (tracked across 9 chains)
   integrations/             # CrewAI, AgentKit, Virtuals, SKALE, Tempo
   tests/                    # 4,797-test collection
   docs/                     # public documentation
