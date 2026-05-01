@@ -85,6 +85,7 @@ def _compute_benchmark_result(category: str, tp: int, tn: int, fp: int, fn: int,
 # ─────────────────────────────────────────────────────────────────────
 
 class TestGenerator:
+    __test__ = False
     """Generates deterministic adversarial test datasets for DOF benchmarking."""
 
     def __init__(self, known_facts_path: str = "data/known_facts.json", seed: int = 42):

@@ -31,6 +31,7 @@ BENCH_RESULTS_FILE = os.path.join(BASE_DIR, "logs", "prompts", "bench_results.js
 
 @dataclass
 class TestCase:
+    __test__ = False
     """Un caso de prueba para un prompt."""
     id: str
     input_vars: dict
@@ -42,6 +43,7 @@ class TestCase:
 
 @dataclass
 class TestResult:
+    __test__ = False
     """Resultado de correr un test case contra un prompt."""
     test_case_id: str
     prompt_name: str

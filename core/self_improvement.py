@@ -67,6 +67,7 @@ class MeshAnalysis:
 
 @dataclass
 class TestAnalysis:
+    __test__ = False
     """Resultado del análisis de output de unittest."""
     total: int = 0
     passed: int = 0
