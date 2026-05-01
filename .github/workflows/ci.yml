@@ -27,52 +27,24 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "24"
+
     - name: Install dependencies (minimal — no crewai/litellm)
       run: |
         pip install --upgrade pip
-        pip install z3-solver pyyaml python-dotenv rich blake3 fastapi httpx sqlalchemy web3 psutil
+        pip install pytest z3-solver pyyaml python-dotenv rich blake3 fastapi httpx sqlalchemy web3 psutil
 
     - name: Install dof package
       run: pip install -e . --no-deps
 
-    - name: Run tests (unittest — avoids web3/pytest conflict)
-      run: |
-        mkdir -p logs
-        python -m unittest \
-          tests.test_ast_verifier \
-          tests.test_z3_verifier \
-          tests.test_adversarial \
-          tests.test_constitution \
-          tests.test_task_contract \
-          tests.test_causal \
-          tests.test_bayesian_provider \
-          tests.test_memory_governance \
-          tests.test_oags_bridge \
-          tests.test_oracle_bridge \
-          tests.test_full_pipeline \
-          tests.test_mcp_server \
-          tests.test_api \
-          tests.test_storage \
-          tests.test_integrations \
-          tests.test_enigma_bridge \
-          tests.test_avalanche_bridge \
-          tests.test_entropy_detector \
-          tests.test_regression_tracker \
-          -v 2>&1 | tee /tmp/test_output.txt; \
-        python3 -c "
-        import re, json, os
-        out = open('/tmp/test_output.txt').read()
-        total, failures, errors = 0, 0, 0
-        m = re.search(r'Ran (\d+) test', out)
-        if m: total = int(m.group(1))
-        mf = re.search(r'failures=(\d+)', out)
-        if mf: failures = int(mf.group(1))
-        me = re.search(r'errors=(\d+)', out)
-        if me: errors = int(me.group(1))
-        os.makedirs('logs', exist_ok=True)
-        json.dump({'total': total, 'passed': total-failures-errors, 'failures': failures, 'errors': errors, 'returncode': 0 if failures+errors==0 else 1}, open('logs/last_test_run.json','w'))
-        print(f'Saved test results: {total} total, {total-failures-errors} passed, {failures} failures, {errors} errors')
-        "
+    - name: Run canonical test suite
+      run: npm run test
+
+    - name: Run safe test suite
+      run: npm run test:safe
 
     - name: Run Z3 verification
       run: |
