@@ -12,7 +12,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-DOF--MESH-181717?style=for-the-badge&logo=github)](https://github.com/Cyberpaisa/DOF-MESH)
 [![On-Chain](https://img.shields.io/badge/Avalanche-0x154a3F49...26F6-e84142?style=for-the-badge&logo=avalanche)](https://snowtrace.io/address/0x154a3F49a9d28FeCC1f6Db7573303F4D809A26F6)
 
-[![Tests](https://img.shields.io/badge/Tests-4%2C800_passing-brightgreen?style=flat-square)]()
+[![Tests](https://img.shields.io/badge/Tests-4%2C797_collected-brightgreen?style=flat-square)]()
 [![PyPI](https://img.shields.io/pypi/v/dof-sdk?color=blue&style=flat-square)](https://pypi.org/project/dof-sdk/)
 [![Python](https://img.shields.io/badge/python-3.11+-blue?style=flat-square)](https://pypi.org/project/dof-sdk/)
 [![Modules](https://img.shields.io/badge/Modules-173-blue?style=flat-square)]()
@@ -105,7 +105,7 @@ docker-compose up -d --build
 
 ```
 +=====================================================================+
-|                        DOF-MESH  v0.5.0                             |
+|                        DOF-MESH  v0.8.0                             |
 |                                                                     |
 |  +---------------------------------------------------------------+  |
 |  |                      INTERFACE LAYER                          |  |
@@ -171,7 +171,7 @@ docker-compose up -d --build
 
 ## The Numbers
 
-We wrote 4,800 tests before calling it a framework.
+We maintain a 4,797-test collection before calling it a framework.
 Most projects write them after something breaks.
 
 The proofs aren't in our database. They're on 9 public blockchains.
@@ -190,7 +190,10 @@ A deterministic function does. Every time. Same answer.
 
 | Metric | Value |
 |:-------|------:|
-| Unit tests | **4,800** |
+| Full test collection | **4,797 collected** |
+| Canonical test suite | **293 passed + 11 subtests** |
+| Z3 pytest subset | **156 passed** |
+| Mutation verifier | **16/16 killed · 100.0% score** |
 | Autonomous cycles | **238+** |
 | On-chain attestations | **30+** |
 | Chains (mainnets) | **7** |
@@ -376,7 +379,7 @@ equipo-de-agentes/
   agents/                   # agents running on DOF (validation, not the product)
   contracts/                # DOFProofRegistry.sol (deployed on 9 chains — 4 mainnet + 5 testnet)
   integrations/             # CrewAI, AgentKit, Virtuals, SKALE, Tempo
-  tests/                    # 4,800 unit tests
+  tests/                    # 4,797-test collection
   docs/                     # public documentation
   logs/                     # JSONL audit trails (append-only)
   experiments/              # Winston vs baseline raw data
@@ -388,7 +391,7 @@ equipo-de-agentes/
 
 **@Cyber_paisa** · [Telegram](https://t.me/Cyber_paisa)
 
-**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,800 tests. 9 chains (4 mainnet + 5 testnet + 1 ERC-8004). 173 modules. Mathematics, not promises.
+**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,797-test collection. 9 chains. 173 modules. Mathematics, not promises.
 
 ---
 
