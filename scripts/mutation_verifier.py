@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
 """
-Sovereign Mutation Verifier (Advanced Edition) — DOF-MESH
-Autor: jquiceva
-Grado Militar: Manipulación de AST para mutación de constantes y lógica.
+Sovereign Mutation Verifier (Advanced Edition) — DOF-MESH.
+
+This verifier mutates selected logic/constant nodes in critical governance files,
+runs the broad local test command after each mutation, and reports whether the
+test suite detects the change.
+
+Operational notes:
+- The script can be slow because it runs test checks repeatedly.
+- Target files are modified temporarily and restored after each mutant.
+- If the process is interrupted, run `git status` and restore touched files if needed.
+- "Partial mode" means the broad baseline command did not fully pass locally,
+  but mutation checks still run against the available local test signal.
 """
 import subprocess
 import sys
@@ -16,6 +25,8 @@ TARGETS = [
     REPO / "core" / "governance.py",
 ]
 TEST_CMD = [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"]
+TEST_TIMEOUT_SECONDS = 120
+MUTANTS_PER_TARGET = 8
 MIN_SCORE = 0.30
 
 # Colores para terminal
@@ -49,12 +60,23 @@ class MutationTransformer(ast.NodeTransformer):
             return ast.Compare(left=node.left, ops=new_ops, comparators=node.comparators)
         return node
 
-def run_tests(cwd: Path) -> bool:
+def run_tests(cwd: Path) -> tuple[bool, str]:
+    """Run the broad local test command and return (ok, reason)."""
     try:
-        result = subprocess.run(TEST_CMD, cwd=cwd, capture_output=True, text=True, timeout=120)
-        return result.returncode == 0
-    except Exception:
-        return False
+        result = subprocess.run(
+            TEST_CMD,
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            timeout=TEST_TIMEOUT_SECONDS,
+        )
+        if result.returncode == 0:
+            return True, "passed"
+        return False, f"exit code {result.returncode}"
+    except subprocess.TimeoutExpired:
+        return False, f"timeout after {TEST_TIMEOUT_SECONDS}s"
+    except Exception as exc:
+        return False, f"{type(exc).__name__}: {exc}"
 
 def get_mutable_lines(source: str) -> list:
     try:
@@ -71,8 +93,10 @@ def main():
     print(f"\n{BD}🧬 DOF-MESH Sovereign Mutation Verifier 2.0 (Logic + Constants){RS}")
     print("━" * 65)
 
-    if not run_tests(REPO):
-        print(f"{Y}⚠️  Baseline incomplete or missing dependencies. Running in partial mode.{RS}")
+    baseline_ok, baseline_reason = run_tests(REPO)
+    if not baseline_ok:
+        print(f"{Y}⚠️  Baseline did not fully pass ({baseline_reason}). Running in partial mode.{RS}")
+        print(f"{Y}   Mutation checks will still run against the available local test signal.{RS}")
     else:
         print(f"{G}✅ Baseline: all tests passing{RS}")
 
@@ -83,7 +107,7 @@ def main():
         if not target.exists(): continue
         source = target.read_text()
         mutable_lines = get_mutable_lines(source)
-        sample = random.sample(mutable_lines, min(8, len(mutable_lines)))
+        sample = random.sample(mutable_lines, min(MUTANTS_PER_TARGET, len(mutable_lines)))
         
         print(f"\n  📄 {target.name} — {len(sample)} mutantes lógicos")
 
@@ -97,7 +121,8 @@ def main():
                 
                 target.write_text(mutated_source)
                 total += 1
-                if not run_tests(REPO):
+                tests_ok, _reason = run_tests(REPO)
+                if not tests_ok:
                     killed += 1
                     print(f"    {G}✅ Killed{RS}   Linea {lineno}: Lógica/Constante alterada")
                 else:
