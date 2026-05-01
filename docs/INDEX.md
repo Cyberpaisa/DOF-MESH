@@ -17,7 +17,7 @@
 
 ### Operations
 - [GETTING_STARTED.md](05_operations/GETTING_STARTED.md) — Quick start guide
-- [MULTICHAIN.md](05_operations/MULTICHAIN.md) — Deploy DOFProofRegistry to 7 chains
+- [MULTICHAIN.md](05_operations/MULTICHAIN.md) — Deploy DOFProofRegistry across 9 tracked chains
 - [ATTESTATIONS.md](05_operations/ATTESTATIONS.md) — On-chain attestation records (30+ proofs)
 
 ### Integrations
@@ -38,4 +38,4 @@ See [diagrams/](diagrams/) for architecture diagrams in Mermaid format.
 
 ---
 
-*DOF-MESH v0.8.0 · 4,800 tests · 9 chains · Mathematics, not promises.*
+*DOF-MESH v0.8.0 · 4,797-test collection · 9 chains · Mathematics, not promises.*
