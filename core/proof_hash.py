@@ -9,21 +9,30 @@ Uses keccak256 for compatibility with Ethereum/Avalanche attestations.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import logging
 from typing import Optional
 
 logger = logging.getLogger("core.proof_hash")
 
-# Try to use web3's keccak, fallback to sha3_256
+# EVM-compatible proof hashes must use Keccak-256 semantics.
+# Python hashlib.sha3_256 is not equivalent to Solidity/EVM keccak256.
 try:
     from web3 import Web3
+
+    _WEB3_IMPORT_ERROR: ImportError | None = None
+
     def _keccak256(data: bytes) -> bytes:
         return Web3.keccak(data)
-except ImportError:
+
+except ImportError as exc:
+    _WEB3_IMPORT_ERROR = exc
+
     def _keccak256(data: bytes) -> bytes:
-        return hashlib.sha3_256(data).digest()
+        raise RuntimeError(
+            "EVM-compatible keccak256 requires the web3 package. "
+            "Install web3 to compute Solidity/Avalanche-compatible proof hashes."
+        ) from _WEB3_IMPORT_ERROR
 
 
 class ProofSerializer:
