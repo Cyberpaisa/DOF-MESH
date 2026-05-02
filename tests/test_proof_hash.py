@@ -9,6 +9,9 @@ Verifies:
 - Different inputs → different hashes
 """
 
+import builtins
+import importlib
+import sys
 import unittest
 
 from core.proof_hash import ProofSerializer, ProofBatcher
@@ -240,6 +243,39 @@ class TestProofHashCompatibility(unittest.TestCase):
     def test_empty_transcript_remains_zero_hash(self):
         """The existing empty transcript sentinel remains unchanged."""
         self.assertEqual(ProofSerializer.hash_proof(""), b"\x00" * 32)
+
+
+class TestProofHashWeb3Requirement(unittest.TestCase):
+    """Test explicit failure when EVM-compatible keccak cannot be provided."""
+
+    def test_non_empty_hash_proof_raises_when_web3_unavailable(self):
+        """hash_proof must not silently fall back to hashlib.sha3_256."""
+        original_module = sys.modules["core.proof_hash"]
+        original_import = builtins.__import__
+
+        def blocked_import(name, *args, **kwargs):
+            if name == "web3" or name.startswith("web3."):
+                raise ImportError("blocked web3 for fallback policy test")
+            return original_import(name, *args, **kwargs)
+
+        try:
+            builtins.__import__ = blocked_import
+            sys.modules.pop("core.proof_hash", None)
+            reloaded = importlib.import_module("core.proof_hash")
+
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "EVM-compatible keccak256 requires the web3 package",
+            ):
+                reloaded.ProofSerializer.hash_proof("non-empty transcript")
+
+            self.assertEqual(
+                reloaded.ProofSerializer.hash_proof(""),
+                b"\x00" * 32,
+            )
+        finally:
+            builtins.__import__ = original_import
+            sys.modules["core.proof_hash"] = original_module
 
 
 if __name__ == "__main__":
