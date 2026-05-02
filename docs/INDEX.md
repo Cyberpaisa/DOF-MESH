@@ -19,6 +19,7 @@
 - [GETTING_STARTED.md](05_operations/GETTING_STARTED.md) — Quick start guide
 - [VERIFY_CLI.md](05_operations/VERIFY_CLI.md) — Validated DOF verify CLI usage
 - [PROOF_HASH_SEMANTICS.md](05_operations/PROOF_HASH_SEMANTICS.md) — Canonical hash semantics for EVM proof attestations
+- [HASH_DOMAIN_LEGACY_AUDIT.md](05_operations/HASH_DOMAIN_LEGACY_AUDIT.md) — Legacy hash-domain audit after EVM Keccak enforcement
 - [MULTICHAIN.md](05_operations/MULTICHAIN.md) — Deploy DOFProofRegistry across 9 tracked chains
 - [ATTESTATIONS.md](05_operations/ATTESTATIONS.md) — On-chain attestation records (30+ proofs)
 

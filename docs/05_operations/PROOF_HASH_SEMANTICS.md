@@ -21,14 +21,16 @@ Its goal is to prevent ambiguity between EVM proof hashes, SHA3/FIPS hashes, Mer
 | `BLAKE3` / `certificateHash` | Separate certificate/identity domain where explicitly defined | Treat as a separate domain, not interchangeable with EVM proof hashes. |
 | `HMAC-SHA256` | Authentication and integrity of signed payloads | Not an on-chain proof hash and not interchangeable with EVM keccak. |
 
-## 4. Current State of `core/proof_hash.py`
+## 4. Current State of `core/proof_hash.py` After PR #39
 
 The current implementation behaves as follows:
 
-- If `Web3` is available, `ProofSerializer.hash_proof()` uses `Web3.keccak`.
-- If `Web3` is not available, it falls back to `hashlib.sha3_256`.
+- `Web3.keccak` is the canonical source for EVM-compatible proof hashes.
+- If `Web3` is available, `ProofSerializer.hash_proof(non_empty_transcript)` uses `Web3.keccak`.
+- If `Web3` is not available and the transcript is non-empty, `ProofSerializer.hash_proof()` raises `RuntimeError`.
+- The empty transcript behavior remains `b"\\x00" * 32`.
 
-That fallback exists for local resilience, but it must **not** be interpreted as semantic equivalence with EVM `keccak256`.
+The previous `hashlib.sha3_256` fallback was removed by PR #39. This is intentional: non-empty EVM-compatible proof hashes must fail closed when EVM Keccak is unavailable.
 
 ## 5. What PR #37 Proved
 
@@ -50,17 +52,18 @@ These tests make the hash-family distinction explicit instead of leaving it as a
 
 ## 7. Pending Risk
 
-The `sha3_256` fallback in `core/proof_hash.py` remains an open risk and should be resolved in a separate implementation PR.
+The `sha3_256` fallback in `core/proof_hash.py` has been removed by PR #39.
 
-Until that happens, developers should assume that:
+Remaining risk is now outside the canonical `ProofSerializer.hash_proof` path:
 
-- environments with `Web3` available can produce canonical EVM-compatible proof hashes;
-- environments without `Web3` may produce hashes that are deterministic but not Solidity-compatible.
+- legacy documentation and comments may still describe `hashlib.sha3_256` as Keccak-compatible;
+- some non-`z3ProofHash` domains still use `sha256`, `sha3_256`, HMAC-SHA256, BLAKE3, or certificate hashes for valid local purposes;
+- operators must keep those domains separate from EVM proof hashes sent to Solidity or `DOFProofRegistry`.
 
 ## 8. Recommended Next PR
 
 Recommended follow-up:
 
-- `fix/test: enforce EVM keccak proof hash policy`
+- `docs: audit legacy hash-domain wording`
 
-That follow-up should decide whether the fallback remains allowed, becomes explicit error behavior, or is replaced with a truly EVM-compatible implementation path.
+That follow-up should document legacy hash-domain findings and identify where comments or historical docs still need clarification after PR #39.
