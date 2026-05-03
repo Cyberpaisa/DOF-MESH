@@ -170,7 +170,7 @@ It maps naturally to `DOFProofRegistry`:
 
 Concern:
 
-`z3_proof.py` depends on `core/proof_hash.py`, where the preferred path may use Web3 keccak, but fallback behavior may use Python `sha3_256`.
+`z3_proof.py` depends on `core/proof_hash.py`. Historical note: at the time of this audit, the preferred path used Web3 Keccak and fallback behavior could use Python `sha3_256`. This was superseded by PR #39; non-empty EVM proof hashes now fail closed when Web3 Keccak is unavailable.
 
 ### core/proof_hash.py
 
@@ -248,7 +248,7 @@ The adapter verification semantics may differ from `DOFEvaluator`, especially ar
 | `DOFEvaluator` | Owner-only evaluator, read-only registry scan | No direct Solidity tests confirmed | Docs describe ERC-8183 evaluator | High: O(n) lookup, submissionHash/z3ProofHash ambiguity | Tests before refactor |
 | `core/z3_proof.py` | Produces Z3 proof attestation payload | Python tests exist | Docs generally align | Medium: fallback hash may not match EVM keccak | Cross-check hash tests |
 | `core/zk_governance_proof.py` | Produces governance proof payload | Python tests exist | Docs mention governance proof attestations | High: no clear matching Solidity contract in this audit | Docs audit |
-| `core/proof_hash.py` | Web3 keccak preferred, sha3_256 fallback | Python tests exist | Docs say deterministic proof hashing | Medium: fallback mismatch risk | Explicit compatibility tests |
+| `core/proof_hash.py` | Historical: Web3 Keccak preferred, sha3_256 fallback | Python tests exist | Superseded by PR #39 fail-closed EVM Keccak policy | Historical risk resolved for non-empty EVM proof hashes | Explicit compatibility tests |
 | `core/oracle_bridge.py` | BLAKE3 or SHA256 certificate hashes, HMAC signatures | Bridge tests exist | Docs mention ERC-8004/on-chain attestation | Medium-high: hash family changes by dependency availability | Clarify hash policy |
 | `core/avalanche_bridge.py` | Uses `registerAttestation` / `isCompliant` | Bridge tests exist | Docs mention Avalanche attestations | Medium: depends on upstream certificate hash semantics | Tests + docs |
 | `core/chain_adapter.py` | Uses `DOFProofRegistry` ABI | Adapter tests exist | Multichain docs mention proof registry | High: verification semantics need comparison with evaluator | Tests |
@@ -331,7 +331,7 @@ This may be historical, but it should be clearly labeled before external use.
 4. Is there a Solidity contract for `submitGovernanceProof` or `submitBatchAttestation`?
 5. Is `DOFGaslessProof.sol` part of the production path or a demo/hackathon artifact?
 6. Should `core/tool_hooks.py` comments be updated to say SHA256 instead of keccak256 for local hashes?
-7. Should `proof_hash.py` fail closed when Web3 keccak is unavailable instead of falling back to `sha3_256`?
+7. Historical question, resolved by PR #39: `proof_hash.py` now fails closed for non-empty EVM proof hashes when Web3 Keccak is unavailable instead of silently falling back to `sha3_256`.
 
 ## Recommended next path
 
@@ -380,7 +380,7 @@ At the time of this audit:
 
 - branch: `audit/dof-proof-registry`;
 - working tree: clean;
-- `npm run test:collect`: `4797 tests collected`;
+- `npm run test:collect`: `4802 tests collected`;
 - no files modified;
 - no commits created;
 - no pushes performed.
