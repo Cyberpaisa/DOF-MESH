@@ -39,7 +39,7 @@ Final validated baseline:
 
 - npm run test -> 293 passed, 11 subtests passed
 - npm run test:safe -> 293 passed, 11 subtests passed
-- npm run test:collect -> 4797 tests collected
+- npm run test:collect -> 4802 tests collected
 - Z3 pytest subset -> 156 passed
 - Mutation verifier -> 16/16 killed, 100.0% mutation score
 

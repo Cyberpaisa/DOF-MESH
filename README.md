@@ -171,7 +171,7 @@ docker-compose up -d --build
 
 ## The Numbers
 
-We maintain a 4,797-test collection before calling it a framework.
+We maintain a 4802-test collection before calling it a framework.
 Most projects write them after something breaks.
 
 The proofs aren't in our database. They're on 9 public blockchains.
@@ -190,7 +190,7 @@ A deterministic function does. Every time. Same answer.
 
 | Metric | Value |
 |:-------|------:|
-| Full test collection | **4,797 collected** |
+| Full test collection | **4802 collected** |
 | Canonical test suite | **293 passed + 11 subtests** |
 | Z3 pytest subset | **156 passed** |
 | Mutation verifier | **16/16 killed · 100.0% score** |
@@ -381,7 +381,7 @@ equipo-de-agentes/
   agents/                   # agents running on DOF (validation, not the product)
   contracts/                # DOFProofRegistry.sol (tracked across 9 chains)
   integrations/             # CrewAI, AgentKit, Virtuals, SKALE, Tempo
-  tests/                    # 4,797-test collection
+  tests/                    # 4802-test collection
   docs/                     # public documentation
   logs/                     # JSONL audit trails (append-only)
   experiments/              # Winston vs baseline raw data
@@ -393,7 +393,7 @@ equipo-de-agentes/
 
 **@Cyber_paisa** · [Telegram](https://t.me/Cyber_paisa)
 
-**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4,797-test collection. 9 chains. 173 modules. Mathematics, not promises.
+**DOF-MESH** -- The production laboratory where deterministic AI governance is built. 4802-test collection. 9 chains. 173 modules. Mathematics, not promises.
 
 ---
 
