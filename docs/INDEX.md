@@ -20,6 +20,7 @@
 - [VERIFY_CLI.md](05_operations/VERIFY_CLI.md) — Validated DOF verify CLI usage
 - [PROOF_HASH_SEMANTICS.md](05_operations/PROOF_HASH_SEMANTICS.md) — Canonical hash semantics for EVM proof attestations
 - [HASH_DOMAIN_LEGACY_AUDIT.md](05_operations/HASH_DOMAIN_LEGACY_AUDIT.md) — Legacy hash-domain audit after EVM Keccak enforcement
+- [LEARNINGS_FULL_HARDENING_PR_1_TO_42_20260502.md](05_learnings/LEARNINGS_FULL_HARDENING_PR_1_TO_42_20260502.md) — Full hardening learnings through PR #42
 - [MULTICHAIN.md](05_operations/MULTICHAIN.md) — Deploy DOFProofRegistry across 9 tracked chains
 - [ATTESTATIONS.md](05_operations/ATTESTATIONS.md) — On-chain attestation records (30+ proofs)
 
@@ -32,6 +33,7 @@
 
 ### Sessions
 - [09_sessions/](09_sessions/) — Bitácoras de sesiones de trabajo históricas
+- [OBSIDIAN_MEMORY_HARDENING_CLOSURE_PR_41_TO_42.md](09_sessions/OBSIDIAN_MEMORY_HARDENING_CLOSURE_PR_41_TO_42.md) — Obsidian memory closure for PR #41–#42
 
 ### Documentation System
 - [DOC_SYSTEM.md](DOC_SYSTEM.md) — Constitución del sistema de documentación maestro (mapa canónico, protocolos)
