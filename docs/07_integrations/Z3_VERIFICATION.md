@@ -7,8 +7,8 @@
 DOF uses the Z3 SMT solver to provide **mathematical guarantees** — not just test coverage — that governance cannot be violated.
 
 ```bash
-dof verify-states      # 8/8 PROVEN (107ms)
-dof verify-hierarchy   # 42 patterns PROVEN (5ms)
+dof verify-states      # 8/8 PROVEN
+dof verify-hierarchy   # 62 patterns PROVEN
 dof prove              # 4 static theorems VERIFIED
 ```
 
@@ -36,7 +36,9 @@ Total: **1.66ms** for all 4 theorems.
 | INV-7 | `safety_score = 1 − f³` (consistency)            | **PROVEN** | <10ms |
 | INV-8 | `governance_violation → DEMOTE`                  | **PROVEN** | <15ms |
 
-Total: **107.7ms** for all 8 invariants. 42 hierarchy patterns verified in **4.9ms**.
+Current CLI baseline: **8/8 PROVEN** for state invariants and **62 hierarchy patterns PROVEN**.
+
+Historical v0.3.x reference: 8 invariants completed in 107.7ms and 42 hierarchy patterns completed in 4.9ms. Treat those timings and counts as historical, not the current release-readiness baseline.
 
 ## Neurosymbolic Z3 Gate
 

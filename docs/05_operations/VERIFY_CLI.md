@@ -27,6 +27,7 @@ Command:
 Expected result:
 
     DOF Hierarchy Verification — PROVEN
+    Patterns checked: 62
 
 ### Text verification
 
@@ -65,7 +66,7 @@ The verify CLI should:
 Validated locally:
 
 - `python3 -m dof verify-states` -> `8/8 PROVEN`
-- `python3 -m dof verify-hierarchy` -> `PROVEN`
+- `python3 -m dof verify-hierarchy` -> `PROVEN`, `62 patterns`
 - `python3 -m dof verify "<text>"` -> `Status: PASS`
 - `git status` -> clean
 
