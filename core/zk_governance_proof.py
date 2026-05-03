@@ -1,9 +1,9 @@
 """
 ZK Governance Proof — Proof of compliance para decisiones de governance.
 
-Genera hashes criptográficos verificables (SHA3-256 / keccak256) de cada
-decisión de governance. Cada proof es determinístico y reproducible,
-permitiendo verificación on-chain sin revelar los inputs originales.
+Genera hashes criptográficos verificables en un dominio legacy SHA3-256/FIPS
+para cada decisión de governance. Estos hashes son determinísticos y
+reproducibles, pero no deben tratarse como EVM/Solidity keccak256.
 
 Zero dependencias externas — usa hashlib (sha3_256) de stdlib.
 
@@ -37,7 +37,7 @@ PROOFS_LOG_PATH = os.path.join(PROOFS_LOG_DIR, "governance_proofs.jsonl")
 
 
 def _keccak256(data: bytes) -> str:
-    """SHA3-256 (keccak256-compatible) hash -> hex string."""
+    """Legacy SHA3-256/FIPS hash -> hex string; not EVM/Solidity keccak256."""
     return hashlib.sha3_256(data).hexdigest()
 
 

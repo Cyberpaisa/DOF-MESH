@@ -679,8 +679,10 @@ class EvolveController:
         """
         Write immutable on-chain record when TRACER weights evolve.
 
-        Attestation payload: keccak256 of {run_id, target, old_weights,
-        new_weights, score_delta, corpus_size, timestamp}
+        Attestation payload: legacy SHA3-256/FIPS digest of {run_id, target,
+        old_weights, new_weights, score_delta, corpus_size, timestamp}.
+
+        This legacy digest is not equivalent to Solidity/EVM keccak256.
 
         Uses dry_run mode if DOF_PRIVATE_KEY not set — logs but doesn't tx.
         """
@@ -700,7 +702,7 @@ class EvolveController:
             "event": "WEIGHTS_EVOLVED"
         }
 
-        # keccak256 equivalent using sha3_256 (same Keccak family)
+        # Legacy SHA3-256/FIPS digest. This is not equivalent to EVM keccak256.
         payload_bytes = _json.dumps(payload, sort_keys=True).encode()
         proof_hash = "0x" + hashlib.sha3_256(payload_bytes).hexdigest()
 
