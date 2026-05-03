@@ -178,7 +178,7 @@ Concern:
 
 Concern:
 
-Fallback behavior uses `hashlib.sha3_256`, which is not identical to EVM `keccak256`.
+Historical finding, superseded by PR #39: fallback behavior used `hashlib.sha3_256`, which is not identical to EVM `keccak256`. The current implementation fails closed for non-empty EVM proof hashes when Web3 Keccak is unavailable.
 
 This matters if a proof hash generated in fallback mode is expected to match Solidity `keccak256(proofTranscript)`.
 
@@ -195,7 +195,7 @@ This matters if a proof hash generated in fallback mode is expected to match Sol
 
 Concern:
 
-It uses Python `hashlib.sha3_256` while describing the result as SHA3-256 / keccak-compatible.
+Historical finding, superseded by PR #42: this path used Python `hashlib.sha3_256` while describing the result as SHA3-256 / keccak-compatible. Current comments now classify this as legacy SHA3-256/FIPS, not EVM Keccak.
 
 This should not be assumed to match EVM `keccak256`.
 
@@ -269,7 +269,7 @@ The system uses multiple hash families:
 
 These are not interchangeable.
 
-Any path that expects Python fallback `sha3_256` or SHA256 to match Solidity `keccak256` is unsafe.
+Historical warning retained for audit context: any path that expects Python fallback `sha3_256` or SHA256 to match Solidity `keccak256` is unsafe. The EVM proof-hash path was hardened by PR #39 and now fails closed for non-empty transcripts when Web3 Keccak is unavailable.
 
 ### Naming drift
 
