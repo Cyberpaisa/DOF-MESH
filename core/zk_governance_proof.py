@@ -69,8 +69,8 @@ class GovernanceProof:
     """Proof criptográfico de una decisión de governance.
 
     Attributes:
-        proof_hash: Hash keccak256 del resultado completo (proof de compliance).
-        input_hash: Hash keccak256 de los inputs (violations + warnings + score).
+        proof_hash: Legacy SHA3-256/FIPS hash del resultado completo (proof de compliance); no EVM keccak256.
+        input_hash: Legacy SHA3-256/FIPS hash de los inputs (violations + warnings + score); no EVM keccak256.
         timestamp: ISO 8601 timestamp de la generación del proof.
         verdict: "PASS" si no hay violaciones, "FAIL" si hay violaciones.
         rule_ids: Lista de IDs de reglas evaluadas.
@@ -172,7 +172,7 @@ class GovernanceProofGenerator:
         # Verdict
         verdict = "FAIL" if violations else "PASS"
 
-        # Proof hash — incluye input_hash + verdict (compromiso completo)
+        # Proof hash — incluye input_hash + verdict (legacy SHA3-256/FIPS commitment)
         proof_data = _canonical_json({
             "input_hash": input_hash,
             "verdict": verdict,

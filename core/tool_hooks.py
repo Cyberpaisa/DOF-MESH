@@ -103,7 +103,7 @@ class HookResult:
     """Result of a PreToolUse check."""
     allowed: bool
     reason: str
-    z3_proof: Optional[str] = None          # keccak256 proof hash if Z3 ran
+    z3_proof: Optional[str] = None          # internal SHA-256 Z3 proof digest if Z3 ran
     governance_score: float = 1.0
     layer: str = "none"                     # which layer made the decision
     latency_ms: float = 0.0
@@ -116,7 +116,7 @@ class HookResult:
 @dataclass
 class PostHookResult:
     """Result of a PostToolUse audit pass."""
-    attestation_hash: str                   # keccak256 of tool_name+output+agent_id
+    attestation_hash: str                   # internal SHA-256 digest of tool_name+output+agent_id
     trace_entry: dict = field(default_factory=dict)
     audit_written: bool = False
 
@@ -154,7 +154,7 @@ class ToolHookPipeline:
 
     Layer order in post_tool_use:
       1. Audit trail entry (JSONL)
-      2. Attestation hash (keccak256)
+      2. Attestation hash (internal SHA-256 digest)
       3. get_execution_trace() compatible dict
     """
 
@@ -312,7 +312,7 @@ class ToolHookPipeline:
         Run audit pipeline AFTER a tool executes.
 
         Records:
-          - Attestation hash: keccak256(tool_name + output + agent_id + ts)
+          - Attestation hash: internal SHA-256 digest of tool_name + output + agent_id + ts
           - Audit JSONL entry
           - trace_entry compatible with get_execution_trace()
 
