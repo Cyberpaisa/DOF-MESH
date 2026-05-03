@@ -96,7 +96,7 @@ class ZKProof:
 # ─── Core ZK Functions ────────────────────────────────────────────────────────
 
 def _sha3(data: bytes) -> str:
-    """SHA3-256 hash → hex string (keccak family, Solidity-compatible)."""
+    """SHA3-256/FIPS internal commitment hash; not Solidity/EVM keccak256."""
     return hashlib.sha3_256(data).hexdigest()
 
 

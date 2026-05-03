@@ -1,5 +1,5 @@
 """
-DOF Audit Log — Tamper-Proof JSONL with keccak256 Hash Chain
+DOF Audit Log — Tamper-Proof JSONL with SHA3-256/FIPS Hash Chain
 ============================================================
 
 Each log entry includes a `chain_hash` that is the SHA3-256 of:
@@ -34,7 +34,7 @@ GENESIS_HASH = "0000000000000000000000000000000000000000000000000000000000000000
 # ═══════════════════════════════════════════════════
 
 def sha3_256(data: str) -> str:
-    """SHA3-256 (keccak256-compatible for audit chain)."""
+    """SHA3-256/FIPS audit-chain hash; not EVM/Solidity keccak256."""
     return hashlib.sha3_256(data.encode("utf-8")).hexdigest()
 
 
@@ -82,7 +82,7 @@ class VerificationResult:
 
 class AuditLog:
     """
-    Append-only JSONL audit log with keccak256-compatible hash chain.
+    Append-only JSONL audit log with an internal SHA3-256/FIPS hash chain.
 
     Thread-safe. Zero external dependencies.
     """
