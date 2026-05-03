@@ -51,7 +51,7 @@ Leer en este orden:
 
 | Repo | Propósito | CI | GitHub |
 |------|-----------|----|--------|
-| equipo-de-agentes | SDK, governance, multi-agent, tests | ✅ 4,797-test collection | github.com/Cyberpaisa/DOF-MESH |
+| equipo-de-agentes | SDK, governance, multi-agent, tests | ✅ 4802-test collection | github.com/Cyberpaisa/DOF-MESH |
 | dof-landing | dofmesh.com, chat widget | ✅ Vercel auto-deploy | github.com/Cyberpaisa/dof-landing |
 | deterministic-observability-framework | Origen público v0.4.1 | — | github.com/Cyberpaisa/deterministic-observability-framework |
 
@@ -64,7 +64,7 @@ Leer en este orden:
 | v0.3.3 | `dof-hackathon` branch | 2026-03-24 | Prototipo hackathon, 53 test files |
 | v0.4.1 | `deterministic-observability-framework` main | 2026-03-22 | Open source público, 69 test files |
 | v0.6.0 | `equipo-de-agentes` (DOF-MESH) | 2026-04-04 | Historical: PyPI live, 4,800-test milestone — harness: mock_provider + session_resume + cost_tracker |
-| v0.8.0 | `equipo-de-agentes` (DOF-MESH) | 2026-04-12 | 4,797-test collection · 173 módulos |
+| v0.8.0 | `equipo-de-agentes` (DOF-MESH) | 2026-04-12 | 4802-test collection · 173 módulos |
 | — | `dof-landing` | 2026-04-04 | dofmesh.com producción, chat widget |
 
 ---
@@ -73,7 +73,7 @@ Leer en este orden:
 
 - **SDK version:** v0.8.0
 - **Módulos Python:** 231 archivos
-- **Tests:** 4,797 collected; canonical suite 293 passed + 11 subtests
+- **Tests:** 4802 collected; canonical suite 293 passed + 11 subtests
 - **Lecciones:** L-1 → L-72
 - **Chains:** 9 total tracked across mainnet/testnet environments
 - **Agentes especializados:** 15
