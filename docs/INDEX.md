@@ -21,6 +21,7 @@
 - [PROOF_HASH_SEMANTICS.md](05_operations/PROOF_HASH_SEMANTICS.md) — Canonical hash semantics for EVM proof attestations
 - [HASH_DOMAIN_LEGACY_AUDIT.md](05_operations/HASH_DOMAIN_LEGACY_AUDIT.md) — Legacy hash-domain audit after EVM Keccak enforcement
 - [FUJI_BURNER_MANUAL_EXECUTION_RUNBOOK.md](05_operations/FUJI_BURNER_MANUAL_EXECUTION_RUNBOOK.md) — Manual-only Avalanche Fuji burner execution runbook
+- [FUJI_TRANSCRIPT_VERIFICATION_RUNBOOK.md](05_operations/FUJI_TRANSCRIPT_VERIFICATION_RUNBOOK.md) — Manual-only Fuji transcript verification runbook
 - [LEARNINGS_FULL_HARDENING_PR_1_TO_42_20260502.md](05_learnings/LEARNINGS_FULL_HARDENING_PR_1_TO_42_20260502.md) — Full hardening learnings through PR #42
 - [LEARNINGS_HARDENING_TO_ONCHAIN_READINESS_PR_43_TO_49_20260503.md](05_learnings/LEARNINGS_HARDENING_TO_ONCHAIN_READINESS_PR_43_TO_49_20260503.md) — Memory checkpoint from hardening closure to on-chain readiness through PR #49
 - [MULTICHAIN.md](05_operations/MULTICHAIN.md) — Deploy DOFProofRegistry across 9 tracked chains
